@@ -1,23 +1,22 @@
 "use client";
 
+import { forgotPasswordAction } from "@/https/controllers/forgot-password-controller";
 import { ArrowLeftOutlined } from "@ant-design/icons";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { Button, Card, Flex, Form, Input, Typography, message } from "antd";
 import Link from "next/link";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState } from "react";
 import { PendingConfirmationForm } from "./pending-confirmation-form";
 
 const schema = z.object({
-  email: z.string().email("Please enter a valid email"),
+  email: z.email("Please enter a valid email"),
 });
 
 type DataType = z.infer<typeof schema>;
 
 export const SendEmailForm = () => {
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
   const {
     control,
     handleSubmit,
@@ -26,29 +25,26 @@ export const SendEmailForm = () => {
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: DataType) => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: forgotPasswordAction,
+    onSuccess: () => {
+      message.success("If an account exists, an email has been sent.");
+    },
+    onError: () => {
+      message.error("Something went wrong. Please try again.");
+    },
+  });
 
-      if (response.ok) {
-        setSubmitted(true);
-      } else {
-        message.error("Something went wrong. Please try again.");
-      }
+  const onSubmit = async (data: DataType) => {
+    try {
+      await mutateAsync(data);
     } catch (error) {
       console.error(error);
       message.error("An unexpected error occurred.");
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (submitted) {
+  if (isPending) {
     return <PendingConfirmationForm />;
   }
 
@@ -75,7 +71,7 @@ export const SendEmailForm = () => {
           )}
         />
         <Flex justify="space-between" align="center">
-          <Button type="primary" htmlType="submit" loading={loading}>
+          <Button type="primary" htmlType="submit" loading={isPending}>
             Send
           </Button>
           <Link href="/sign-in" prefetch>
@@ -88,4 +84,3 @@ export const SendEmailForm = () => {
     </Card>
   );
 };
-

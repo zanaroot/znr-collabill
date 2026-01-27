@@ -1,4 +1,4 @@
-import { AntProvider } from "@/app/_providers/ant-provider";
+import { AntProvider, ReactQueryProvider } from "@/app/_providers";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ReactNode } from "react";
@@ -30,7 +30,7 @@ const RootLayout = ({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased `}
         >
-          {children}
+          <ReactQueryProvider>{children}</ReactQueryProvider>
         </body>
       </AntProvider>
     </html>

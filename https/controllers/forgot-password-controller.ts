@@ -1,37 +1,40 @@
+'use server';
+
 import { db } from "@/db";
 import { passwordResetTokens, users } from "@/db/schema/schema";
 import { sendEmail } from "@/lib/email";
 import { eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 const schema = z.object({
-  email: z.string().email(),
+  email: z.email(),
 });
 
-export async function POST(req: Request) {
+export const forgotPasswordAction = async (input: { email: string }) => {
   try {
-    const body = await req.json();
-    const parsed = schema.safeParse(body);
+    const parsed = schema.safeParse(input);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid email" },
-        { status: 400 }
-      );
+      return {
+        error: "Invalid email",
+        success: false
+      };
     }
 
-    const { email } = parsed.data;
+    const validatedEmail = parsed.data.email;
 
     const [user] = await db
       .select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(eq(users.email, validatedEmail))
       .limit(1);
 
     if (!user) {
-      return NextResponse.json({ message: "If an account exists, an email has been sent." });
+      return {
+        message: "If an account exists, an email has been sent.",
+        success: true
+      };
     }
 
     const token = uuidv4();
@@ -46,14 +49,20 @@ export async function POST(req: Request) {
     const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/reset-password?token=${token}`;
 
     await sendEmail({
-      to: email,
+      to: validatedEmail,
       subject: "Reset your password",
       html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
     });
 
-    return NextResponse.json({ message: "If an account exists, an email has been sent." });
+    return {
+      message: "If an account exists, an email has been sent.",
+      success: true
+    };
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    console.error("Password reset error:", error);
+    return {
+      error: "Something went wrong",
+      success: false
+    };
   }
 }
