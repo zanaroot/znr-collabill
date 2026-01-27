@@ -1,5 +1,7 @@
+import { AntProvider } from "@/app/_providers/ant-provider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ReactNode } from "react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,17 +22,19 @@ export const metadata: Metadata = {
 const RootLayout = ({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) => {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <AntProvider>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+        >
+          {children}
+        </body>
+      </AntProvider>
     </html>
   );
-}
+};
 
 export default RootLayout;
