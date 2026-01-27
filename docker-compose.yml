@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: collabill_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: collabill_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - collabill_pgdata:/var/lib/postgresql/data
+
+volumes:
+  collabill_pgdata:
