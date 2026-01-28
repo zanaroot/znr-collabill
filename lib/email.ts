@@ -1,38 +1,31 @@
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
+import "server-only";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
-export const sendEmail = async ({
+export type SendEmailParams = {
+  to: string | string[];
+  subject: string;
+  html: string;
+  text?: string;
+};
+
+export async function sendEmail({
   to,
   subject,
   html,
-}: {
-  to: string;
-  subject?: string;
-  html?: string;
-}) => {
-  if (!process.env.SMTP_HOST) {
-    console.log("----------------------------------------");
-    console.log(`[Email Dev Mode] To: ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log("Body:"); 
-    console.log(html);
-    console.log("----------------------------------------");
-    return;
+  text,
+}: SendEmailParams) {
+  try {
+    await sgMail.send({
+      to,
+      from: process.env.MAIL_FROM!,
+      subject,
+      html,
+      text,
+    });
+  } catch (error) {
+    console.error("SendGrid error:", error?.response?.body || error);
+    throw error;
   }
-
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || '"Collabill" <no-reply@collabill.com>',
-    to,
-    subject: subject || "",
-    html: html || "",
-  });
-};
+}

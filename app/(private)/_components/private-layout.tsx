@@ -9,7 +9,7 @@ import {
   QuestionCircleOutlined,
   RightOutlined,
   UploadOutlined,
-  VideoCameraOutlined,
+  UsergroupAddOutlined,
 } from "@ant-design/icons";
 import {
   Badge,
@@ -60,9 +60,9 @@ export const PrivateLayout = ({ children }: { children: ReactNode }) => {
               label: <Link href="/task-board">Task Board</Link>,
             },
             {
-              key: "2",
-              icon: <VideoCameraOutlined />,
-              label: "nav 2",
+              key: "team-management",
+              icon: <UsergroupAddOutlined />,
+              label: <Link href="/team-management">Team Management</Link>,
             },
             {
               key: "3",

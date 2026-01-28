@@ -34,14 +34,14 @@ export const users = pgTable("users", {
 });
 
 export const userRoles = pgTable("user_roles", {
-  userId: uuid("user_id").references(() => users.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
   role: roleEnum("role").notNull(),
 }, (t) => ([
   primaryKey({ columns: [t.userId, t.role] }),
 ]));
 
 export const collaboratorRates = pgTable("collaborator_rates", {
-  userId: uuid("user_id").primaryKey().references(() => users.id),
+  userId: uuid("user_id").notNull().primaryKey().references(() => users.id),
   dailyRate: numeric("daily_rate", { precision: 10, scale: 2 }).notNull(),
   rateXs: numeric("rate_xs", { precision: 10, scale: 2 }).notNull(),
   rateS: numeric("rate_s", { precision: 10, scale: 2 }).notNull(),
@@ -59,15 +59,15 @@ export const projects = pgTable("projects", {
 });
 
 export const projectMembers = pgTable("project_members", {
-  projectId: uuid("project_id").references(() => projects.id),
-  userId: uuid("user_id").references(() => users.id),
+  projectId: uuid("project_id").notNull().references(() => projects.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
 }, (t) => ([
   primaryKey({ columns: [t.projectId, t.userId] }),
 ]));
 
 export const tasks = pgTable("tasks", {
   id: uuid("id").defaultRandom().primaryKey(),
-  projectId: uuid("project_id").references(() => projects.id),
+  projectId: uuid("project_id").notNull().references(() => projects.id),
   title: text("title").notNull(),
   description: text("description"),
   size: taskSizeEnum("size").notNull(),
@@ -84,7 +84,7 @@ export const tasks = pgTable("tasks", {
 
 export const presences = pgTable("presences", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id").references(() => users.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
   date: date("date").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (t) => ([
@@ -93,7 +93,7 @@ export const presences = pgTable("presences", {
 
 export const invoices = pgTable("invoices", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id").references(() => users.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
   periodStart: date("period_start").notNull(),
   periodEnd: date("period_end").notNull(),
   status: invoiceStatusEnum("status").default("DRAFT"),
@@ -106,7 +106,7 @@ export const invoices = pgTable("invoices", {
 
 export const invoiceLines = pgTable("invoice_lines", {
   id: uuid("id").defaultRandom().primaryKey(),
-  invoiceId: uuid("invoice_id").references(() => invoices.id),
+  invoiceId: uuid("invoice_id").notNull().references(() => invoices.id),
   type: text("type").notNull(), // PRESENCE | TASK
   referenceId: uuid("reference_id"),
   label: text("label").notNull(),
@@ -130,6 +130,15 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const invitations = pgTable("invitations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  token: text("token").notNull().unique(),
+  role: roleEnum("role").notNull().default("COLLABORATOR"),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });

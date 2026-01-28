@@ -15,6 +15,20 @@
       "when": 1769530733238,
       "tag": "0001_flat_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769543143757,
+      "tag": "0002_fast_sleepwalker",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1769543665842,
+      "tag": "0003_massive_roughhouse",
+      "breakpoints": true
     }
   ]
 }
