@@ -1,4 +1,4 @@
-import { AntProvider, ReactQueryProvider } from "@/app/_providers";
+import { AntProvider, ReactQueryProvider } from "@/providers";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ReactNode } from "react";
@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Collabill",
+  title: "Collabill - Work together. Get paid right.",
   description: "Collabill — Work together. Get paid right.",
 };
 
