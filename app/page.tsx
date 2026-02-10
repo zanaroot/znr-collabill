@@ -34,10 +34,12 @@ const LandingPage = () => {
             </Paragraph>
 
             <Space size="large">
-              <Button type="primary" size="large">
+              <Button type="primary" size="large" href="/task-board">
                 Get Started
               </Button>
-              <Button size="large">View Demo</Button>
+              <Button size="large" href="/auth/login">
+                View Demo
+              </Button>
             </Space>
           </Col>
         </Row>

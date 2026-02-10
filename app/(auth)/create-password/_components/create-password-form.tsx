@@ -1,8 +1,9 @@
 "use client";
 
 import { createPasswordAction } from "@/https/controllers/create-password-controller";
+import { getInvitationByToken } from "@/https/controllers/get-invitation-by-token";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Card, Form, Input, message, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
@@ -49,7 +50,20 @@ export const CreatePasswordForm = () => {
     },
   });
 
-  if (!token) {
+  const { data: invitation, isLoading } = useQuery({
+    queryKey: ["invitation", token],
+    queryFn: () => getInvitationByToken(token!),
+  });
+
+  if (isLoading) {
+    return (
+      <Card title="Loading">
+        <Typography.Text>Loading invitation...</Typography.Text>
+      </Card>
+    );
+  }
+
+  if (!invitation?.token) {
     return (
       <Card title="Error">
         <Typography.Text type="danger">
@@ -62,7 +76,7 @@ export const CreatePasswordForm = () => {
   const onSubmit = async (data: DataType) => {
     try {
       await mutateAsync({
-        token,
+        token: invitation.token,
         name: data.name,
         password: data.password,
       });
@@ -76,7 +90,8 @@ export const CreatePasswordForm = () => {
     <div className="flex justify-center items-center min-h-[400px]">
       <Card title="Create Your Account" className="w-[400px]">
         <Typography.Text className="mb-8 block" type="secondary">
-          Welcome! Please enter your name and choose a password to complete your registration.
+          Welcome {invitation.email}! Please enter your name and choose a
+          password to complete your registration.
         </Typography.Text>
         <form
           onSubmit={handleSubmit(onSubmit)}

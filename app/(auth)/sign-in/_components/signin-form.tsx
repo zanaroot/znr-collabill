@@ -1,7 +1,10 @@
 "use client";
 
-import { Button, Card, Flex, Form, Input, Typography } from "antd";
+import { signInAction } from "@/https/controllers/sign-in";
+import { useMutation } from "@tanstack/react-query";
+import { Button, Card, Flex, Form, Input, message, Typography } from "antd";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type DataType = {
   email: string;
@@ -9,8 +12,25 @@ type DataType = {
 };
 
 export const SignInForm = () => {
-  const onFinish = (values: DataType) => {
-    console.log("onFinish", values);
+  const router = useRouter();
+
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: signInAction,
+    onSuccess: (data) => {
+      if (data.success) {
+        message.success("Sign in successful!");
+        router.push("/task-board");
+      } else {
+        message.error(data.error || "Something went wrong.");
+      }
+    },
+    onError: () => {
+      message.error("Something went wrong. Please try again.");
+    },
+  });
+
+  const onFinish = async (values: DataType) => {
+    await mutateAsync(values);
   };
 
   return (
@@ -35,7 +55,7 @@ export const SignInForm = () => {
         </Form.Item>
         <Flex justify="space-between">
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={isPending}>
               Sign In
             </Button>
           </Form.Item>

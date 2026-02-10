@@ -1,7 +1,7 @@
 "use client";
 
+import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import {
-  AlipayOutlined,
   BellOutlined,
   ContactsOutlined,
   LeftOutlined,
@@ -113,7 +113,7 @@ export const PrivateLayout = ({ children }: { children: ReactNode }) => {
             <Badge dot>
               <BellOutlined />
             </Badge>
-            <AlipayOutlined />
+            <UserDropdownMenus />
           </Space>
         </Header>
         <Content

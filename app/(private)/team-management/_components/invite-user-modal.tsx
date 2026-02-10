@@ -37,8 +37,17 @@ export const InviteUserModal = () => {
         onCancel={() => setIsOpen(false)}
         centered
       >
-        <Form form={form} onFinish={handleFinish}>
-          <Form.Item name="email" label="Email">
+        <Form
+          form={form}
+          onFinish={handleFinish}
+          initialValues={{ role: "COLLABORATOR" }}
+          layout="vertical"
+        >
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[{ required: true, message: "Please enter email" }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item name="role" label="Role">
