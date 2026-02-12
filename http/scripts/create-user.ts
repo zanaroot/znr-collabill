@@ -3,8 +3,8 @@ import { eq } from "drizzle-orm";
 import { stdin, stdout } from "node:process";
 import readline from "node:readline";
 import { createInterface } from "node:readline/promises";
-import { db } from "../db";
-import { userRoles, users } from "../db/schema";
+import { db } from "../../db";
+import { userRoles, users } from "../../db/schema";
 
 function askHidden(question: string): Promise<string> {
   return new Promise((resolve) => {

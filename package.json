@@ -11,7 +11,7 @@
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:pull": "drizzle-kit pull",
     "lint": "eslint",
-    "create:user": "npx tsx scripts/create-user.ts"
+    "create:user": "npx tsx https/scripts/create-user.ts"
   },
   "dependencies": {
     "@ant-design/icons": "~6.1.0",
@@ -22,6 +22,7 @@
     "antd": "^6.2.2",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.1",
+    "hono": "^4.11.9",
     "next": "16.1.5",
     "nodemailer": "^7.0.13",
     "pg": "^8.17.2",

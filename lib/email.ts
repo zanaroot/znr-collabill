@@ -10,12 +10,7 @@ export type SendEmailParams = {
   text?: string;
 };
 
-export async function sendEmail({
-  to,
-  subject,
-  html,
-  text,
-}: SendEmailParams) {
+export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
   try {
     await sgMail.send({
       to,
@@ -25,7 +20,11 @@ export async function sendEmail({
       text,
     });
   } catch (error) {
-    console.error("SendGrid error:", error?.response?.body || error);
+    console.error(
+      "SendGrid error:",
+      (error as unknown as { response?: { body?: unknown } })?.response?.body ||
+        error,
+    );
     throw error;
   }
 }

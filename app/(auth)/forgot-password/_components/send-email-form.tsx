@@ -1,6 +1,6 @@
 "use client";
 
-import { forgotPasswordAction } from "@/https/controllers/forgot-password-controller";
+import { forgotPasswordAction } from "@/http/controllers/forgot-password-controller";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";

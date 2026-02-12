@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/https/controllers/get-current-user";
+import { getCurrentUser } from "@/http/controllers/get-current-user";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { PrivateLayout as PrivateLayoutComponent } from "./_components/private-layout";

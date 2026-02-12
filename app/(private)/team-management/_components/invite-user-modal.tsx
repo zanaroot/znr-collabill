@@ -1,6 +1,6 @@
 "use client";
 
-import { inviteUserAction } from "@/https/controllers/invite-user-controller";
+import { inviteUserAction } from "@/http/controllers/invite-user-controller";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Form, Input, Modal, Select } from "antd";
 import { useState } from "react";

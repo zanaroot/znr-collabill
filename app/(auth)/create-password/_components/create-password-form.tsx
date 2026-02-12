@@ -1,7 +1,7 @@
 "use client";
 
-import { createPasswordAction } from "@/https/controllers/create-password-controller";
-import { getInvitationByToken } from "@/https/controllers/get-invitation-by-token";
+import { createPasswordAction } from "@/http/controllers/create-password-controller";
+import { getInvitationByToken } from "@/http/controllers/get-invitation-by-token";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Card, Form, Input, message, Typography } from "antd";

@@ -1,6 +1,6 @@
 "use client";
 
-import { signInAction } from "@/https/controllers/sign-in";
+import { signInAction } from "@/http/controllers/sign-in";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Card, Flex, Form, Input, message, Typography } from "antd";
 import Link from "next/link";
