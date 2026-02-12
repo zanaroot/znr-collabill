@@ -1,5 +1,4 @@
 "use client";
-
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import {
   BellOutlined,
@@ -23,16 +22,20 @@ import {
   Typography,
 } from "antd";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ReactNode, useState } from "react";
 
 const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
 
 export const PrivateLayout = ({ children }: { children: ReactNode }) => {
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
 
   return (
     <Layout>
@@ -40,6 +43,7 @@ export const PrivateLayout = ({ children }: { children: ReactNode }) => {
         <Menu
           theme="light"
           mode="inline"
+          selectedKeys={[selectedKey]}
           items={[
             {
               key: "logo",
