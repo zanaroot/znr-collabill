@@ -11,7 +11,7 @@
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:pull": "drizzle-kit pull",
     "lint": "eslint",
-    "create:user": "npx tsx https/scripts/create-user.ts"
+    "create:user": "npx tsx http/scripts/create-user.ts"
   },
   "dependencies": {
     "@ant-design/icons": "~6.1.0",
@@ -43,6 +43,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^11.0.0",
+    "dotenv": "^17.2.4",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9",
     "eslint-config-next": "16.1.5",
