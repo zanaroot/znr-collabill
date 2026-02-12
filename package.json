@@ -10,7 +10,8 @@
     "drizzle:push": "drizzle-kit push",
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:pull": "drizzle-kit pull",
-    "lint": "eslint"
+    "lint": "eslint",
+    "create:user": "npx tsx scripts/create-user.ts"
   },
   "dependencies": {
     "@ant-design/icons": "~6.1.0",

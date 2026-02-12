@@ -1,11 +1,11 @@
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
 const connectionString = process.env.DATABASE_URL ?? "";
 
 declare global {
-  var dbInstance: ReturnType<typeof drizzle> | undefined;
+  var dbInstance: PostgresJsDatabase<typeof schema> | undefined;
   var postgresClient: ReturnType<typeof postgres> | undefined;
 }
 
