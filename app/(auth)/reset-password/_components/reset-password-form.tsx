@@ -1,12 +1,12 @@
 "use client";
 
-import { resetPasswordWithTokenAction } from "@/http/controllers/reset-password-with-token-controller";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Button, Card, Form, Input, Typography, message } from "antd";
+import { Button, Card, Form, Input, message, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { resetPasswordWithTokenAction } from "@/http/actions/password.action";
 
 const schema = z
   .object({

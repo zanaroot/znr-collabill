@@ -1,7 +1,7 @@
-import { hash } from "bcryptjs";
-import { eq } from "drizzle-orm";
 import { stdin, stdout } from "node:process";
 import readline from "node:readline";
+import { hash } from "bcryptjs";
+import { eq } from "drizzle-orm";
 import { db } from "../../db";
 import { userRoles, users } from "../../db/schema";
 
@@ -17,7 +17,7 @@ async function main() {
   let inputCount = 0;
   const requiredInputs = 4;
 
-  return new Promise<void>((resolve) => {
+  return new Promise<void>((_resolve) => {
     rl.on("line", (line) => {
       lines.push(line.trim());
       inputCount++;
@@ -91,7 +91,7 @@ async function main() {
       } catch (error) {
         console.error(
           "Error creating user:",
-          error instanceof Error ? error.message : error
+          error instanceof Error ? error.message : error,
         );
         process.exit(1);
       }
@@ -126,7 +126,7 @@ async function main() {
                   lines[2] = password;
                   lines[3] = role;
                   rl.close();
-                }
+                },
               );
             } else if (ch === "\u0003") {
               stdin.removeListener("data", passwordHandler);

@@ -1,13 +1,15 @@
 "use client";
 
-import { createPasswordAction } from "@/http/controllers/create-password-controller";
-import { getInvitationByToken } from "@/http/controllers/get-invitation-by-token";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Card, Form, Input, message, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import {
+  createPasswordAction,
+  getInvitationByToken,
+} from "@/http/actions/invitation.action";
 
 const schema = z
   .object({
@@ -52,7 +54,10 @@ export const CreatePasswordForm = () => {
 
   const { data: invitation, isLoading } = useQuery({
     queryKey: ["invitation", token],
-    queryFn: () => getInvitationByToken(token!),
+    queryFn: async () => {
+      if (!token) return null;
+      return getInvitationByToken(token);
+    },
   });
 
   if (isLoading) {

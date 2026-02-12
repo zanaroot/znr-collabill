@@ -1,7 +1,8 @@
-import { AntProvider, ReactQueryProvider } from "@/providers";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
+import { AntProvider } from "@/packages/antd";
+import { ReactQueryProvider } from "@/packages/react-query";
 import "./globals.css";
 
 const geistSans = Geist({

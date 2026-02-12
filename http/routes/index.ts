@@ -1,6 +1,10 @@
 import { Hono } from "hono";
-import { userRoutes } from "./groups/user";
+import { authMiddleware } from "@/http/middleware/auth.middleware";
+import { userRoutes } from "./user.route";
 
-export const app = new Hono().basePath("/api").route("/users", userRoutes);
+export const app = new Hono()
+  .basePath("/api")
+  .use("*", authMiddleware)
+  .route("/users", userRoutes);
 
 export type AppType = typeof app;

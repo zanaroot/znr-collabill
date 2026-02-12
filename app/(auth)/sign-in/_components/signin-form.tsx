@@ -1,10 +1,10 @@
 "use client";
 
-import { signInAction } from "@/http/controllers/sign-in";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Card, Flex, Form, Input, message, Typography } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signInAction } from "@/http/actions/auth.action";
 
 type DataType = {
   email: string;

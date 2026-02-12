@@ -1,6 +1,6 @@
-import { getCurrentUser } from "@/http/repositories";
 import { redirect } from "next/navigation";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
+import { getCurrentUser } from "@/http/actions/get-current-user";
 import { PrivateLayout as PrivateLayoutComponent } from "./_components/private-layout";
 
 const PrivateLayout = async ({ children }: { children: ReactNode }) => {

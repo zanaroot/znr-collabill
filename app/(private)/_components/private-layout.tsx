@@ -1,5 +1,4 @@
 "use client";
-import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import {
   BellOutlined,
   ContactsOutlined,
@@ -18,12 +17,13 @@ import {
   Layout,
   Menu,
   Space,
-  theme,
   Typography,
+  theme,
 } from "antd";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
+import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 
 const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;

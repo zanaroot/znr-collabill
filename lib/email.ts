@@ -1,7 +1,20 @@
 import sgMail from "@sendgrid/mail";
 import "server-only";
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+const getRequiredEnv = (name: "SENDGRID_API_KEY" | "MAIL_FROM"): string => {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`${name} is not set`);
+  }
+
+  return value;
+};
+
+const sendgridApiKey = getRequiredEnv("SENDGRID_API_KEY");
+const mailFrom = getRequiredEnv("MAIL_FROM");
+
+sgMail.setApiKey(sendgridApiKey);
 
 export type SendEmailParams = {
   to: string | string[];
@@ -14,7 +27,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
   try {
     await sgMail.send({
       to,
-      from: process.env.MAIL_FROM!,
+      from: mailFrom,
       subject,
       html,
       text,

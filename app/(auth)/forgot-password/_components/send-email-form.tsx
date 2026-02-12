@@ -1,13 +1,13 @@
 "use client";
 
-import { forgotPasswordAction } from "@/http/controllers/forgot-password-controller";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Button, Card, Flex, Form, Input, Typography, message } from "antd";
+import { Button, Card, Flex, Form, Input, message, Typography } from "antd";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { forgotPasswordAction } from "@/http/actions/password.action";
 import { PendingConfirmationForm } from "./pending-confirmation-form";
 
 const schema = z.object({

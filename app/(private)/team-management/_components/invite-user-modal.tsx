@@ -1,9 +1,9 @@
 "use client";
 
-import { inviteUserAction } from "@/http/controllers/invite-user-controller";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Form, Input, Modal, Select } from "antd";
 import { useState } from "react";
+import { inviteUserAction } from "@/http/actions/invitation.action";
 
 export const InviteUserModal = () => {
   const [isOpen, setIsOpen] = useState(false);

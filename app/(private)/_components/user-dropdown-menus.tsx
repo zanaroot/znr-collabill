@@ -1,8 +1,5 @@
 "use client";
 
-import { logoutAction } from "@/http/controllers/logout";
-import { getShortName } from "@/lib/get-short-name";
-import { client } from "@/packages/hono";
 import {
   LogoutOutlined,
   SettingOutlined,
@@ -10,12 +7,15 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Avatar, Dropdown } from "antd";
+import { logoutAction } from "@/http/actions/auth.action";
+import { getShortName } from "@/lib/get-short-name";
+import { client } from "@/packages/hono";
 
 export const UserDropdownMenus = () => {
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
-      const res = await client.api.users.$get();
+      const res = await client.api.users.me.$get();
       return await res.json();
     },
   });
