@@ -1,1 +1,0 @@
-.ai/entrypoints/GEMINI.md
