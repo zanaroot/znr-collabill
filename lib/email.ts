@@ -1,7 +1,7 @@
-import sgMail from "@sendgrid/mail";
+import * as Brevo from "@getbrevo/brevo";
 import "server-only";
 
-const getRequiredEnv = (name: "SENDGRID_API_KEY" | "MAIL_FROM"): string => {
+const getRequiredEnv = (name: "BREVO_API_KEY" | "MAIL_FROM"): string => {
   const value = process.env[name];
 
   if (!value) {
@@ -11,10 +11,11 @@ const getRequiredEnv = (name: "SENDGRID_API_KEY" | "MAIL_FROM"): string => {
   return value;
 };
 
-const sendgridApiKey = getRequiredEnv("SENDGRID_API_KEY");
+const brevoApiKey = getRequiredEnv("BREVO_API_KEY");
 const mailFrom = getRequiredEnv("MAIL_FROM");
 
-sgMail.setApiKey(sendgridApiKey);
+const apiInstance = new Brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, brevoApiKey);
 
 export type SendEmailParams = {
   to: string | string[];
@@ -24,20 +25,20 @@ export type SendEmailParams = {
 };
 
 export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
+  const sendSmtpEmail = new Brevo.SendSmtpEmail();
+
+  const toList = Array.isArray(to) ? to : [to];
+
+  sendSmtpEmail.subject = subject;
+  sendSmtpEmail.htmlContent = html;
+  sendSmtpEmail.textContent = text;
+  sendSmtpEmail.sender = { email: mailFrom };
+  sendSmtpEmail.to = toList.map((email) => ({ email }));
+
   try {
-    await sgMail.send({
-      to,
-      from: mailFrom,
-      subject,
-      html,
-      text,
-    });
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
   } catch (error) {
-    console.error(
-      "SendGrid error:",
-      (error as unknown as { response?: { body?: unknown } })?.response?.body ||
-        error,
-    );
+    console.error("Brevo error:", error);
     throw error;
   }
 }
