@@ -27,6 +27,7 @@ export const tasks = pgTable("tasks", {
   validatedBy: uuid("validated_by").references(() => users.id),
   gitRepo: text("git_repo"),
   gitBranch: text("git_branch"),
+  gitPullRequest: text("git_pull_request"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -3,10 +3,10 @@ import {
   BellOutlined,
   ContactsOutlined,
   LeftOutlined,
+  ProjectOutlined,
   ProjectTwoTone,
   QuestionCircleOutlined,
   RightOutlined,
-  UploadOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons";
 import {
@@ -69,9 +69,9 @@ export const PrivateLayout = ({ children }: { children: ReactNode }) => {
               label: <Link href="/team-management">Team Management</Link>,
             },
             {
-              key: "3",
-              icon: <UploadOutlined />,
-              label: "nav 3",
+              key: "projects",
+              icon: <ProjectOutlined />,
+              label: <Link href="/projects">Projects</Link>,
             },
           ]}
         />
