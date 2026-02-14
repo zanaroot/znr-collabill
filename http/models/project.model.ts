@@ -4,7 +4,12 @@ export const projectSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255),
   description: z.string().nullable(),
-  gitRepo: z.string().url().nullable().or(z.literal("")).or(z.string().length(0)),
+  gitRepo: z
+    .string()
+    .url()
+    .nullable()
+    .or(z.literal(""))
+    .or(z.string().length(0)),
   createdBy: z.string().uuid().nullable(),
   createdAt: z.date().nullable().or(z.string()),
 });

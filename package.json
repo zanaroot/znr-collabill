@@ -10,10 +10,13 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:pull": "drizzle-kit pull",
+    "db:seed": "npx tsx db/seed.ts",
+    "db:seed:dev": "npx tsx db/seed-dev.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
-    "create:user": "npx tsx http/scripts/create-user.ts"
+    "format": "biome format",
+    "format:fix": "biome format --write .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ant-design/icons": "~6.1.0",

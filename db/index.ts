@@ -27,4 +27,5 @@ if (!global.dbInstance) {
   global.dbInstance = drizzle(global.postgresClient, { schema });
 }
 
+export const dbClient = global.postgresClient;
 export const db = global.dbInstance;

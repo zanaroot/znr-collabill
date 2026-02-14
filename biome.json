@@ -33,8 +33,44 @@
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "react": "all",
+      "next": "recommended",
+      "project": "recommended"
+    },
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "a11y": {
+        "recommended": true,
+        "useButtonType": "error"
+      },
+      "correctness": {
+        "recommended": true,
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error",
+        "useExhaustiveDependencies": "error"
+      },
+      "style": {
+        "recommended": true,
+        "useComponentExportOnlyModules": "off",
+        "noNamespace": "error",
+        "noNonNullAssertion": "error",
+        "noParameterAssign": {
+          "level": "error",
+          "options": {
+            "propertyAssignment": "deny"
+          }
+        },
+        "useConst": "error",
+        "useImportType": "error"
+      },
+      "suspicious": {
+        "recommended": true,
+        "noArrayIndexKey": "error",
+        "noExplicitAny": "error",
+        "noImplicitAnyLet": "error",
+        "noVar": "error"
+      }
     }
   },
   "assist": {
