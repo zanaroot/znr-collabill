@@ -36,6 +36,20 @@
       "when": 1770729332052,
       "tag": "0004_salty_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775000000000,
+      "tag": "0005_known_smasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776000000000,
+      "tag": "0006_silent_hobgoblin",
+      "breakpoints": true
     }
   ]
 }

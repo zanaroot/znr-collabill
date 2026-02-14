@@ -6,6 +6,7 @@ import {
   updateProjectSchema,
 } from "@/http/models/project.model";
 import * as projectRepository from "@/http/repositories/project.repository";
+import * as taskRepository from "@/http/repositories/task.repository";
 
 const factory = createFactory<AuthEnv>();
 
@@ -82,6 +83,14 @@ export const deleteProject = factory.createHandlers(async (c) => {
 
   if (!id) {
     return c.json({ error: "Project ID is required" }, 400);
+  }
+
+  const taskCount = await taskRepository.countTasksByProjectId(id);
+  if (taskCount > 0) {
+    return c.json(
+      { error: "Project has active tasks. Close or reassign them first." },
+      400,
+    );
   }
 
   const project = await projectRepository.findProjectById(id);

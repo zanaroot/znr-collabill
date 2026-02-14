@@ -12,6 +12,7 @@ import {
   updateProjectSchema,
 } from "@/http/models/project.model";
 import * as projectRepository from "@/http/repositories/project.repository";
+import * as taskRepository from "@/http/repositories/task.repository";
 import { getCurrentUser } from "./get-current-user";
 
 export const createProjectAction = async (
@@ -80,6 +81,14 @@ export const deleteProjectAction = async (
     if (project.createdBy !== user.id) {
       return {
         error: "Only the creator can delete the project",
+        success: false,
+      };
+    }
+
+    const taskCount = await taskRepository.countTasksByProjectId(id);
+    if (taskCount > 0) {
+      return {
+        error: "Project has tasks. Complete or reassign them before deleting.",
         success: false,
       };
     }

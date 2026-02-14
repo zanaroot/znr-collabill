@@ -7,9 +7,11 @@ export const taskStatusEnum = pgEnum("task_status", [
   "IN_PROGRESS",
   "IN_REVIEW",
   "VALIDATED",
+  "BLOCKED",
+  "TRASH",
 ]);
 
-export const taskSizeEnum = pgEnum("task_size", ["XS", "S", "M", "L"]);
+export const taskSizeEnum = pgEnum("task_size", ["XS", "S", "M", "L", "XL"]);
 
 export const invoiceStatusEnum = pgEnum("invoice_status", [
   "DRAFT",

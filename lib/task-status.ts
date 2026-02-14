@@ -3,6 +3,8 @@ export const TASK_STATUSES = [
   "IN_PROGRESS",
   "IN_REVIEW",
   "VALIDATED",
+  "BLOCKED",
+  "TRASH",
 ] as const;
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];

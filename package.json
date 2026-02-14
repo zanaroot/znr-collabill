@@ -10,8 +10,8 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:pull": "drizzle-kit pull",
-    "db:seed": "npx tsx db/seed.ts",
-    "db:seed:dev": "npx tsx db/seed-dev.ts",
+    "db:seed": "tsx db/seed.ts",
+    "db:seed:dev": "tsx db/seed-dev.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format",
@@ -43,16 +43,15 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.15",
     "@tailwindcss/postcss": "^4",
-    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/uuid": "^11.0.0",
     "dotenv": "^17.2.4",
     "drizzle-kit": "^0.31.8",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

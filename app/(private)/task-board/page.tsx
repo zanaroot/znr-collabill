@@ -1,17 +1,12 @@
-import { CreateBoard } from "@/app/(private)/task-board/_components/create-board";
-import { db } from "@/db";
+import { TaskBoard } from "@/app/(private)/task-board/_components/task-board";
+import { getCurrentUser } from "@/http/actions/get-current-user";
 
 const TaskBoardPage = async () => {
-  const tasksData = await db.query.tasks.findMany();
-  const tasksDataNonNull = tasksData.map((t) => ({
-    ...t,
-    status: t.status ?? "TODO",
-  }));
+  const user = await getCurrentUser();
 
   return (
     <div className="p-6">
-      <h1 className="mb-4 text-xl font-semibold">Task Board</h1>
-      <CreateBoard tasks={tasksDataNonNull} />
+      <TaskBoard currentUserId={user?.id} />
     </div>
   );
 };
