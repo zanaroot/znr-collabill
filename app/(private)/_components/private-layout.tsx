@@ -7,9 +7,11 @@ import {
   ProjectTwoTone,
   QuestionCircleOutlined,
   RightOutlined,
+  SwapOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons";
 import {
+  Avatar,
   Badge,
   Breadcrumb,
   Button,
@@ -20,15 +22,27 @@ import {
   Typography,
   theme,
 } from "antd";
-import Link from "next/link";
+import Link from "next/link"
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 
 const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
+type Organization = {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: Date | null;
+};
 
-export const PrivateLayout = ({ children }: { children: ReactNode }) => {
+export const PrivateLayout = ({
+  children,
+  organization,
+}: {
+  children: ReactNode;
+  organization?: Organization | null;
+}) => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const {
@@ -36,6 +50,13 @@ export const PrivateLayout = ({ children }: { children: ReactNode }) => {
   } = theme.useToken();
 
   const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
+
+  const abbreviation = organization?.name
+    ? organization.name
+      .split(" ")
+      .map(word => word[0].toUpperCase())
+      .join("")
+    : "FB";
 
   return (
     <Layout>
@@ -47,13 +68,21 @@ export const PrivateLayout = ({ children }: { children: ReactNode }) => {
           items={[
             {
               key: "logo",
-              icon: <ProjectTwoTone />,
+              icon: (
+                <Avatar
+                  shape="square"
+                >
+                  {abbreviation}
+                </Avatar>
+              ),
               label: (
-                <Flex vertical>
-                  <Title level={5} style={{ margin: 0 }}>
-                    Flow Board
-                  </Title>
-                  <Text type="secondary">Small team plan</Text>
+                <Flex>
+                  <Flex vertical>
+                    <Title level={5} style={{ margin: 0 }}>
+                      {organization?.name ?? 'Flow Board'}
+                    </Title>
+                    <Text type="secondary">{organization?.slug ?? 'Small team plan'}</Text>
+                  </Flex>
                 </Flex>
               ),
               className: "pointer-events-none mb-6! mt-4!",

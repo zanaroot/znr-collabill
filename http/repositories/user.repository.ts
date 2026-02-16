@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { userRoles, users } from "@/db/schema";
+import { organizationMembers, organizations, userRoles, users } from "@/db/schema";
 
 export const findUserByEmail = async (email: string) => {
   const [user] = await db
@@ -59,4 +59,15 @@ export const updateUserRole = async (
     await tx.delete(userRoles).where(eq(userRoles.userId, userId));
     await tx.insert(userRoles).values({ userId, role });
   });
+};
+
+export const getOrganizations = async (userId: string) => {
+  const membership = await db
+    .select()
+    .from(organizationMembers)
+    .innerJoin(organizations, eq(organizationMembers.organizationId, organizations.id))
+    .where(eq(organizationMembers.userId, userId))
+    .limit(1);
+
+  return membership[0]?.organizations ?? null;
 };
