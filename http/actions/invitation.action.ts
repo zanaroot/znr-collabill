@@ -17,6 +17,7 @@ import {
   findValidInvitationByToken,
   upsertInvitation,
 } from "@/http/repositories/invitation.repository";
+import { getUserOrganizations } from "@/http/repositories/organization.repository";
 import {
   findUserByEmail,
   hasUserRole,
@@ -39,6 +40,13 @@ export const inviteUserAction = async (
       return { error: "Forbidden", success: false };
     }
 
+    const orgs = await getUserOrganizations(currentUser.id);
+    const organizationId = orgs[0]?.id;
+
+    if (!organizationId) {
+      return { error: "No organization found", success: false };
+    }
+
     const parsed = inviteUserSchema.safeParse(input);
 
     if (!parsed.success) {
@@ -55,7 +63,7 @@ export const inviteUserAction = async (
     const token = uuidv4();
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
-    await upsertInvitation({ email, token, role, expiresAt });
+    await upsertInvitation({ email, token, role, expiresAt, organizationId });
 
     const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/create-password?token=${token}`;
 
@@ -93,6 +101,13 @@ export const createPasswordAction = async (
       return { error: "Invalid or expired invitation token", success: false };
     }
 
+    if (!invitation.organizationId) {
+      return {
+        error: "Invalid invitation: missing organization",
+        success: false,
+      };
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await createUserFromInvitation({
@@ -101,6 +116,7 @@ export const createPasswordAction = async (
       passwordHash: hashedPassword,
       role: invitation.role,
       invitationId: invitation.id,
+      organizationId: invitation.organizationId,
     });
 
     if (!newUser) {

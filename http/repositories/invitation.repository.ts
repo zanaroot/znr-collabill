@@ -2,7 +2,12 @@
 
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db";
-import { invitations, userRoles, users } from "@/db/schema";
+import {
+  invitations,
+  organizationMembers,
+  userRoles,
+  users,
+} from "@/db/schema";
 
 export const findValidInvitationByToken = async (token: string) => {
   const [invitation] = await db
@@ -20,6 +25,7 @@ export const upsertInvitation = async (data: {
   email: string;
   token: string;
   role: "OWNER" | "COLLABORATOR";
+  organizationId: string;
   expiresAt: Date;
 }) => {
   await db
@@ -30,6 +36,7 @@ export const upsertInvitation = async (data: {
       set: {
         token: data.token,
         role: data.role,
+        organizationId: data.organizationId,
         expiresAt: data.expiresAt,
         createdAt: new Date(),
       },
@@ -40,8 +47,14 @@ export const deleteInvitationById = async (id: string) => {
   await db.delete(invitations).where(eq(invitations.id, id));
 };
 
-export const getAllInvitations = async () => {
-  return db.select().from(invitations).orderBy(invitations.createdAt);
+export const getAllInvitations = async (organizationId?: string) => {
+  const query = db.select().from(invitations).orderBy(invitations.createdAt);
+
+  if (organizationId) {
+    return query.where(eq(invitations.organizationId, organizationId));
+  }
+
+  return query;
 };
 
 export const createUserFromInvitation = async (data: {
@@ -50,6 +63,7 @@ export const createUserFromInvitation = async (data: {
   passwordHash: string;
   role: "OWNER" | "COLLABORATOR";
   invitationId: string;
+  organizationId: string;
 }) => {
   return db.transaction(async (tx) => {
     const [existingUser] = await tx
@@ -69,6 +83,16 @@ export const createUserFromInvitation = async (data: {
       })
       .returning();
 
+    // Add to organization
+    await tx.insert(organizationMembers).values({
+      userId: newUser.id,
+      organizationId: data.organizationId,
+      role: data.role,
+    });
+
+    // Also add to global roles for backward compatibility if needed,
+    // but preferably organizationMembers is enough.
+    // However, existing code checks userRoles. So we keep it.
     await tx.insert(userRoles).values({
       userId: newUser.id,
       role: data.role,

@@ -224,7 +224,7 @@ export function ProjectList() {
 
       <Drawer
         title={editingProject ? "Edit project" : "Create a new project"}
-        width={400}
+        size={400}
         onClose={() => {
           setIsDrawerOpen(false);
           setEditingProject(null);
