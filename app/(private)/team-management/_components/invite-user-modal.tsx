@@ -1,19 +1,24 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, Modal, Select } from "antd";
 import { useState } from "react";
 import { inviteUserAction } from "@/http/actions/invitation.action";
+import { teamKeys } from "../_hooks/use-team";
 
 export const InviteUserModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [form] = Form.useForm();
+  const queryClient = useQueryClient();
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: inviteUserAction,
-    onSuccess: () => {
-      form.resetFields();
-      setIsOpen(false);
+    onSuccess: (data) => {
+      if (data.success) {
+        form.resetFields();
+        setIsOpen(false);
+        queryClient.invalidateQueries({ queryKey: teamKeys.invitations() });
+      }
     },
   });
 

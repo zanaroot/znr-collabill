@@ -40,6 +40,10 @@ export const deleteInvitationById = async (id: string) => {
   await db.delete(invitations).where(eq(invitations.id, id));
 };
 
+export const getAllInvitations = async () => {
+  return db.select().from(invitations).orderBy(invitations.createdAt);
+};
+
 export const createUserFromInvitation = async (data: {
   email: string;
   name: string;

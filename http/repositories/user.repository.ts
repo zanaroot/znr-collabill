@@ -32,3 +32,31 @@ export const hasUserRole = async (
 
   return !!record;
 };
+
+export const getAllUsersWithRoles = async () => {
+  const allUsers = await db.query.users.findMany({
+    with: {
+      roles: true,
+    },
+    orderBy: (users, { desc }) => [desc(users.createdAt)],
+  });
+
+  return allUsers;
+};
+
+export const deleteUser = async (id: string) => {
+  return db.transaction(async (tx) => {
+    await tx.delete(userRoles).where(eq(userRoles.userId, id));
+    await tx.delete(users).where(eq(users.id, id));
+  });
+};
+
+export const updateUserRole = async (
+  userId: string,
+  role: "OWNER" | "COLLABORATOR",
+) => {
+  await db.transaction(async (tx) => {
+    await tx.delete(userRoles).where(eq(userRoles.userId, userId));
+    await tx.insert(userRoles).values({ userId, role });
+  });
+};
