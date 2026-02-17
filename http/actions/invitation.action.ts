@@ -13,15 +13,15 @@ import {
   inviteUserSchema,
 } from "@/http/models/invitation.model";
 import {
+  acceptInvitation,
   createUserFromInvitation,
+  deleteInvitationById,
+  findPendingInvitation,
   findValidInvitationByToken,
   upsertInvitation,
 } from "@/http/repositories/invitation.repository";
-import { getUserOrganizations } from "@/http/repositories/organization.repository";
-import {
-  findUserByEmail,
-  hasUserRole,
-} from "@/http/repositories/user.repository";
+import { isUserInOrganization } from "@/http/repositories/organization.repository";
+import { findUserByEmail } from "@/http/repositories/user.repository";
 import { sendEmail } from "@/lib/email";
 
 export const inviteUserAction = async (
@@ -34,14 +34,11 @@ export const inviteUserAction = async (
       return { error: "Unauthorized", success: false };
     }
 
-    const isOwner = await hasUserRole(currentUser.id, "OWNER");
-
-    if (!isOwner) {
+    if (currentUser.organizationRole !== "OWNER") {
       return { error: "Forbidden", success: false };
     }
 
-    const orgs = await getUserOrganizations(currentUser.id);
-    const organizationId = orgs[0]?.id;
+    const organizationId = currentUser.organizationId;
 
     if (!organizationId) {
       return { error: "No organization found", success: false };
@@ -54,10 +51,29 @@ export const inviteUserAction = async (
     }
 
     const { email, role } = parsed.data;
-    const existingUser = await findUserByEmail(email);
 
+    // 1. Check if user is already a member of the target organization
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return { error: "User already exists", success: false };
+      const isMember = await isUserInOrganization(
+        organizationId,
+        existingUser.id,
+      );
+      if (isMember) {
+        return {
+          error: "User is already a member of this organization",
+          success: false,
+        };
+      }
+    }
+
+    // 2. Check if there is an existing pending invitation for this organization and email
+    const pendingInvite = await findPendingInvitation(organizationId, email);
+    if (pendingInvite) {
+      return {
+        error: "An invitation for this user is already pending",
+        success: false,
+      };
     }
 
     const token = uuidv4();
@@ -135,9 +151,66 @@ export const createPasswordAction = async (
 
 export const getInvitationByToken = async (token: string) => {
   try {
-    return await findValidInvitationByToken(token);
+    const invitation = await findValidInvitationByToken(token);
+    if (!invitation) return null;
+
+    const existingUser = await findUserByEmail(invitation.email);
+
+    return {
+      ...invitation,
+      exists: !!existingUser,
+    };
   } catch (error) {
     console.error("Get invitation by token error:", error);
     return null;
+  }
+};
+
+export const acceptInvitationAction = async (
+  token: string,
+): Promise<ActionResponse> => {
+  try {
+    const invitation = await findValidInvitationByToken(token);
+
+    if (!invitation || !invitation.organizationId) {
+      return { error: "Invalid or expired invitation token", success: false };
+    }
+
+    const existingUser = await findUserByEmail(invitation.email);
+
+    if (!existingUser) {
+      return { error: "User not found", success: false };
+    }
+
+    await acceptInvitation({
+      userId: existingUser.id,
+      organizationId: invitation.organizationId,
+      role: invitation.role,
+      invitationId: invitation.id,
+    });
+
+    return { message: "Invitation accepted successfully", success: true };
+  } catch (error) {
+    console.error("Accept invitation error:", error);
+    return { error: "Something went wrong", success: false };
+  }
+};
+
+export const declineInvitationAction = async (
+  token: string,
+): Promise<ActionResponse> => {
+  try {
+    const invitation = await findValidInvitationByToken(token);
+
+    if (!invitation) {
+      return { error: "Invalid or expired invitation token", success: false };
+    }
+
+    await deleteInvitationById(invitation.id);
+
+    return { message: "Invitation declined successfully", success: true };
+  } catch (error) {
+    console.error("Decline invitation error:", error);
+    return { error: "Something went wrong", success: false };
   }
 };

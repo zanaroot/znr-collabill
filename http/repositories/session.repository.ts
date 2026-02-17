@@ -2,10 +2,11 @@
 
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db";
-import { sessions, users } from "@/db/schema";
+import { organizations, sessions, users } from "@/db/schema";
 
 export const createSession = async (data: {
   userId: string;
+  organizationId?: string;
   token: string;
   expiresAt: Date;
 }) => {
@@ -14,16 +15,47 @@ export const createSession = async (data: {
 };
 
 export const findValidSessionByToken = async (token: string) => {
-  const [result] = await db
-    .select({ user: users, session: sessions })
+  const results = await db
+    .select({
+      user: users,
+      session: sessions,
+    })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
     .where(and(eq(sessions.token, token), gt(sessions.expiresAt, new Date())))
     .limit(1);
 
-  return result ?? null;
+  if (results.length === 0) return null;
+
+  const result = results[0];
+
+  let organization = null;
+  if (result.session.organizationId) {
+    const orgs = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, result.session.organizationId))
+      .limit(1);
+    organization = orgs[0] ?? null;
+  }
+
+  return {
+    user: result.user,
+    session: result.session,
+    organization,
+  };
 };
 
 export const deleteSessionByToken = async (token: string) => {
   await db.delete(sessions).where(eq(sessions.token, token));
+};
+
+export const updateSessionOrganization = async (
+  token: string,
+  organizationId: string,
+) => {
+  await db
+    .update(sessions)
+    .set({ organizationId })
+    .where(eq(sessions.token, token));
 };

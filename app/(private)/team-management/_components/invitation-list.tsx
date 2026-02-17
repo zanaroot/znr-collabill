@@ -4,7 +4,11 @@ import { DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Button, Card, Modal, message, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { Invitation } from "@/http/models/user.model";
-import { useInvitations, useRevokeInvitation } from "../_hooks/use-team";
+import {
+  useCurrentUser,
+  useInvitations,
+  useRevokeInvitation,
+} from "../_hooks/use-team";
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -12,6 +16,7 @@ const { confirm } = Modal;
 export function InvitationList() {
   const { data: invitations, isLoading } = useInvitations();
   const revokeMutation = useRevokeInvitation();
+  const { data: currentUser } = useCurrentUser();
 
   const handleRevoke = (id: string) => {
     confirm({
@@ -70,7 +75,13 @@ export function InvitationList() {
     },
   ];
 
-  if (!invitations || invitations.length === 0) return null;
+  if (
+    !invitations ||
+    invitations.length === 0 ||
+    currentUser?.organizationRole !== "OWNER"
+  ) {
+    return null;
+  }
 
   return (
     <Card

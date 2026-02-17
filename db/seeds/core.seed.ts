@@ -112,14 +112,20 @@ async function seedRolesAndRates(core: {
   collaboratorRole: SeedUserInput["role"];
   owner: typeof users.$inferSelect;
   ownerRole: SeedUserInput["role"];
+  organizationId: string;
 }) {
-  await db
-    .insert(userRoles)
-    .values([
-      { userId: core.owner.id, role: core.ownerRole },
-      { userId: core.collaborator.id, role: core.collaboratorRole },
-    ])
-    .onConflictDoNothing();
+  await db.insert(userRoles).values([
+    {
+      userId: core.owner.id,
+      role: core.ownerRole,
+      organizationId: core.organizationId,
+    },
+    {
+      userId: core.collaborator.id,
+      role: core.collaboratorRole,
+      organizationId: core.organizationId,
+    },
+  ]);
 
   await db
     .insert(collaboratorRates)
@@ -233,6 +239,7 @@ export async function seedCore(): Promise<CoreSeedResult> {
     collaboratorRole: collaboratorInput.role,
     owner,
     ownerRole: ownerInput.role,
+    organizationId: organization.id,
   });
 
   const project = await getOrCreateSeedProject(owner.id);

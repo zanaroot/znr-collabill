@@ -4,31 +4,18 @@ import {
   ContactsOutlined,
   LeftOutlined,
   ProjectOutlined,
-  ProjectTwoTone,
   QuestionCircleOutlined,
   RightOutlined,
-  SwapOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons";
-import {
-  Avatar,
-  Badge,
-  Breadcrumb,
-  Button,
-  Flex,
-  Layout,
-  Menu,
-  Space,
-  Typography,
-  theme,
-} from "antd";
-import Link from "next/link"
+import { Badge, Breadcrumb, Button, Layout, Menu, Space, theme } from "antd";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
+import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 
 const { Header, Sider, Content } = Layout;
-const { Text, Title } = Typography;
 type Organization = {
   id: string;
   name: string;
@@ -51,42 +38,18 @@ export const PrivateLayout = ({
 
   const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
 
-  const abbreviation = organization?.name
-    ? organization.name
-      .split(" ")
-      .map(word => word[0].toUpperCase())
-      .join("")
-    : "FB";
-
   return (
     <Layout>
       <Sider collapsible collapsed={collapsed} trigger={null} theme="light">
+        <OrganizationSwitcher
+          currentOrganization={organization}
+          collapsed={collapsed}
+        />
         <Menu
           theme="light"
           mode="inline"
           selectedKeys={[selectedKey]}
           items={[
-            {
-              key: "logo",
-              icon: (
-                <Avatar
-                  shape="square"
-                >
-                  {abbreviation}
-                </Avatar>
-              ),
-              label: (
-                <Flex>
-                  <Flex vertical>
-                    <Title level={5} style={{ margin: 0 }}>
-                      {organization?.name ?? 'Flow Board'}
-                    </Title>
-                    <Text type="secondary">{organization?.slug ?? 'Small team plan'}</Text>
-                  </Flex>
-                </Flex>
-              ),
-              className: "pointer-events-none mb-6! mt-4!",
-            },
             {
               key: "task-board",
               icon: <ContactsOutlined />,

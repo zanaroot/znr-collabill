@@ -13,7 +13,8 @@ export type UserWithRoles = {
   email: string;
   name: string;
   createdAt: string | Date | null;
-  roles: UserRole[];
+  role: Role;
+  joinedAt: string | Date | null;
 };
 
 export type Invitation = {

@@ -68,14 +68,13 @@ export function MemberList() {
       key: "email",
     },
     {
-      title: "Roles",
-      dataIndex: "roles",
-      key: "roles",
-      render: (roles: { role: "OWNER" | "COLLABORATOR" }[], record) => {
-        const primaryRole = roles[0]?.role || "COLLABORATOR";
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
+      render: (role: "OWNER" | "COLLABORATOR", record) => {
         return (
           <Select
-            value={primaryRole}
+            value={role}
             disabled={
               record.id === currentUser?.id || updateRoleMutation.isPending
             }
@@ -91,8 +90,8 @@ export function MemberList() {
     },
     {
       title: "Joined At",
-      dataIndex: "createdAt",
-      key: "createdAt",
+      dataIndex: "joinedAt",
+      key: "joinedAt",
       render: (date: string | Date) =>
         date ? new Date(date).toLocaleDateString() : "-",
     },

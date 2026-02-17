@@ -1,12 +1,27 @@
+"use client";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { AuthUser } from "@/http/models/auth.model";
 import type { Invitation, UserWithRoles } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 
 export const teamKeys = {
   all: ["team"] as const,
+  currentUser: () => [...teamKeys.all, "currentUser"] as const,
   users: () => [...teamKeys.all, "users"] as const,
   invitations: () => [...teamKeys.all, "invitations"] as const,
 };
+
+export function useCurrentUser() {
+  return useQuery({
+    queryKey: teamKeys.currentUser(),
+    queryFn: async () => {
+      const res = await client.api.users.me.$get();
+      if (!res.ok) throw new Error("Failed to fetch current user");
+      return (await res.json()) as AuthUser;
+    },
+  });
+}
 
 export function useUsers() {
   return useQuery({

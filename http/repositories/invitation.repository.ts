@@ -32,15 +32,33 @@ export const upsertInvitation = async (data: {
     .insert(invitations)
     .values(data)
     .onConflictDoUpdate({
-      target: invitations.email,
+      target: [invitations.email, invitations.organizationId],
       set: {
         token: data.token,
         role: data.role,
-        organizationId: data.organizationId,
         expiresAt: data.expiresAt,
         createdAt: new Date(),
       },
     });
+};
+
+export const findPendingInvitation = async (
+  organizationId: string,
+  email: string,
+) => {
+  const [invitation] = await db
+    .select()
+    .from(invitations)
+    .where(
+      and(
+        eq(invitations.organizationId, organizationId),
+        eq(invitations.email, email),
+        gt(invitations.expiresAt, new Date()),
+      ),
+    )
+    .limit(1);
+
+  return invitation ?? null;
 };
 
 export const deleteInvitationById = async (id: string) => {
@@ -96,10 +114,36 @@ export const createUserFromInvitation = async (data: {
     await tx.insert(userRoles).values({
       userId: newUser.id,
       role: data.role,
+      organizationId: data.organizationId,
     });
 
     await tx.delete(invitations).where(eq(invitations.id, data.invitationId));
 
     return newUser;
+  });
+};
+
+export const acceptInvitation = async (data: {
+  userId: string;
+  organizationId: string;
+  role: "OWNER" | "COLLABORATOR";
+  invitationId: string;
+}) => {
+  return db.transaction(async (tx) => {
+    // Add to organization
+    await tx.insert(organizationMembers).values({
+      userId: data.userId,
+      organizationId: data.organizationId,
+      role: data.role,
+    });
+
+    // Also add to global roles for backward compatibility
+    await tx.insert(userRoles).values({
+      userId: data.userId,
+      role: data.role,
+      organizationId: data.organizationId,
+    });
+
+    await tx.delete(invitations).where(eq(invitations.id, data.invitationId));
   });
 };
