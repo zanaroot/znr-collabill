@@ -89,7 +89,7 @@ export const OrganizationSwitcher = ({
             <Text strong ellipsis style={{ margin: 0, lineHeight: 1.2 }}>
               {currentOrganization?.name ?? "Flow Board"}
             </Text>
-            <Text type="secondary" size="small" ellipsis>
+            <Text type="secondary" ellipsis>
               {currentOrganization?.slug ?? "Small team plan"}{" "}
               <SwapOutlined size={10} />
             </Text>

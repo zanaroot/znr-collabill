@@ -9,7 +9,7 @@ import type {
 } from "@/http/models/project.model";
 
 export const createProject = async (
-  input: CreateProjectInput & { createdBy: string },
+  input: CreateProjectInput & { createdBy: string; organizationId: string },
 ) => {
   return await db.transaction(async (tx) => {
     const [project] = await tx
@@ -18,6 +18,7 @@ export const createProject = async (
         name: input.name,
         description: input.description,
         gitRepo: input.gitRepo,
+        organizationId: input.organizationId,
         createdBy: input.createdBy,
       })
       .returning();
@@ -38,6 +39,14 @@ export const findProjectById = async (id: string) => {
     .where(eq(projects.id, id))
     .limit(1);
   return project ?? null;
+};
+
+export const findProjectsByOrganizationId = async (organizationId: string) => {
+  return await db
+    .select()
+    .from(projects)
+    .where(eq(projects.organizationId, organizationId))
+    .orderBy(projects.createdAt);
 };
 
 export const findProjectsByUserId = async (userId: string) => {

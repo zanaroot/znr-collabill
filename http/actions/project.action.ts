@@ -22,6 +22,10 @@ export const createProjectAction = async (
     const user = await getCurrentUser();
     if (!user) return { error: "Unauthorized", success: false };
 
+    if (!user.organizationId) {
+      return { error: "Organization not found", success: false };
+    }
+
     const parsed = createProjectSchema.safeParse(input);
     if (!parsed.success) {
       return { error: "Invalid data", success: false };
@@ -30,6 +34,7 @@ export const createProjectAction = async (
     const project = await projectRepository.createProject({
       ...parsed.data,
       createdBy: user.id,
+      organizationId: user.organizationId,
     });
 
     revalidatePath("/projects");

@@ -12,7 +12,14 @@ const factory = createFactory<AuthEnv>();
 
 export const getProjects = factory.createHandlers(async (c) => {
   const user = c.get("user");
-  const projects = await projectRepository.findProjectsByUserId(user.id);
+
+  if (!user.organizationId) {
+    return c.json({ error: "No organization found" }, 404);
+  }
+
+  const projects = await projectRepository.findProjectsByOrganizationId(
+    user.organizationId,
+  );
   return c.json(projects);
 });
 
@@ -24,14 +31,13 @@ export const getProject = factory.createHandlers(async (c) => {
     return c.json({ error: "Project ID is required" }, 400);
   }
 
-  const isMember = await projectRepository.isProjectMember(id, user.id);
-  if (!isMember) {
-    return c.json({ error: "Unauthorized" }, 403);
-  }
-
   const project = await projectRepository.findProjectById(id);
   if (!project) {
     return c.json({ error: "Project not found" }, 404);
+  }
+
+  if (project.organizationId !== user.organizationId) {
+    return c.json({ error: "Unauthorized" }, 403);
   }
 
   return c.json(project);
@@ -43,9 +49,14 @@ export const createProject = factory.createHandlers(
     const user = c.get("user");
     const data = c.req.valid("json");
 
+    if (!user.organizationId) {
+      return c.json({ error: "No organization found" }, 404);
+    }
+
     const project = await projectRepository.createProject({
       ...data,
       createdBy: user.id,
+      organizationId: user.organizationId,
     });
 
     return c.json(project, 201);
@@ -63,17 +74,21 @@ export const updateProject = factory.createHandlers(
       return c.json({ error: "Project ID is required" }, 400);
     }
 
-    const isMember = await projectRepository.isProjectMember(id, user.id);
-    if (!isMember) {
-      return c.json({ error: "Unauthorized" }, 403);
-    }
-
-    const project = await projectRepository.updateProject(id, data);
+    const project = await projectRepository.findProjectById(id);
     if (!project) {
       return c.json({ error: "Project not found" }, 404);
     }
 
-    return c.json(project);
+    if (project.organizationId !== user.organizationId) {
+      return c.json({ error: "Unauthorized" }, 403);
+    }
+
+    const updated = await projectRepository.updateProject(id, data);
+    if (!updated) {
+      return c.json({ error: "Project not found" }, 404);
+    }
+
+    return c.json(updated);
   },
 );
 
