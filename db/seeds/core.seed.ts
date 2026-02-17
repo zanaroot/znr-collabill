@@ -114,18 +114,21 @@ async function seedRolesAndRates(core: {
   ownerRole: SeedUserInput["role"];
   organizationId: string;
 }) {
-  await db.insert(userRoles).values([
-    {
-      userId: core.owner.id,
-      role: core.ownerRole,
-      organizationId: core.organizationId,
-    },
-    {
-      userId: core.collaborator.id,
-      role: core.collaboratorRole,
-      organizationId: core.organizationId,
-    },
-  ]);
+  await db
+    .insert(userRoles)
+    .values([
+      {
+        userId: core.owner.id,
+        role: core.ownerRole,
+        organizationId: core.organizationId,
+      },
+      {
+        userId: core.collaborator.id,
+        role: core.collaboratorRole,
+        organizationId: core.organizationId,
+      },
+    ])
+    .onConflictDoNothing();
 
   await db
     .insert(collaboratorRates)

@@ -2,7 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type {
   ActionResponse,
@@ -20,6 +20,23 @@ import {
 } from "@/http/repositories/session.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { generateSessionToken, getSessionExpirationDate } from "@/lib/session";
+
+const shouldUseSecureCookie = async () => {
+  const hdrs = await headers();
+  const forwardedProto = hdrs.get("x-forwarded-proto");
+  if (forwardedProto) {
+    return forwardedProto === "https";
+  }
+
+  const host = hdrs.get("host") ?? "";
+  const isLocalhost =
+    host.includes("localhost") || host.startsWith("127.0.0.1") || host === "";
+  if (isLocalhost) {
+    return false;
+  }
+
+  return process.env.NODE_ENV === "production";
+};
 
 export const registerAction = async (
   input: RegisterInput,
@@ -60,7 +77,7 @@ export const registerAction = async (
     const cookieStore = await cookies();
     cookieStore.set("session_token", sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: await shouldUseSecureCookie(),
       sameSite: "lax",
       expires: expiresAt,
       path: "/",
@@ -119,7 +136,7 @@ export const signInAction = async (
     const cookieStore = await cookies();
     cookieStore.set("session_token", sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: await shouldUseSecureCookie(),
       sameSite: "lax",
       expires: expiresAt,
       path: "/",

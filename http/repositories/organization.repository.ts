@@ -62,6 +62,16 @@ export const registerOrganizationAndOwner = async (data: {
   });
 };
 
+export const getOrganizationById = async (organizationId: string) => {
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, organizationId))
+    .limit(1);
+
+  return org ?? null;
+};
+
 export const createOrganization = async (name: string, ownerId: string) => {
   return db.transaction(async (tx) => {
     let slug = generateSlug(name);

@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/http/actions/get-current-user";
-import { getUserOrganizations } from "@/http/repositories/organization.repository";
-import { getOrganizations } from "@/http/repositories/user.repository";
+import {
+  getOrganizationById,
+  getUserOrganizations,
+} from "@/http/repositories/organization.repository";
 import { PrivateLayout as PrivateLayoutComponent } from "./_components/private-layout";
 
 const PrivateLayout = async ({ children }: { children: ReactNode }) => {
@@ -20,7 +22,7 @@ const PrivateLayout = async ({ children }: { children: ReactNode }) => {
     return redirect("/create-organization");
   }
 
-  const organization = await getOrganizations(user.id);
+  const organization = await getOrganizationById(user.organizationId);
 
   return (
     <div>

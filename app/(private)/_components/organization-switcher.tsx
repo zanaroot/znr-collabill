@@ -14,6 +14,7 @@ import {
   getUserOrganizationsAction,
   selectOrganizationAction,
 } from "@/http/actions/organization.action";
+import { useRouter } from "next/navigation";
 
 const { Text } = Typography;
 
@@ -22,6 +23,7 @@ type Organization = {
   name: string;
   slug: string;
 };
+
 
 export const OrganizationSwitcher = ({
   currentOrganization,
@@ -35,11 +37,13 @@ export const OrganizationSwitcher = ({
     queryFn: () => getUserOrganizationsAction(),
   });
 
+  const router = useRouter();
   const { mutateAsync: selectOrg, isPending } = useMutation({
     mutationFn: selectOrganizationAction,
     onSuccess: (data) => {
       if (data.success) {
         message.success("Organization switched!");
+        router.refresh();
       } else {
         message.error(data.error || "Something went wrong.");
       }
@@ -48,9 +52,9 @@ export const OrganizationSwitcher = ({
 
   const abbreviation = currentOrganization?.name
     ? currentOrganization.name
-        .split(" ")
-        .map((word) => word[0].toUpperCase())
-        .join("")
+      .split(" ")
+      .map((word) => word[0].toUpperCase())
+      .join("")
     : "FB";
 
   const items: MenuProps["items"] = (organizations || []).map((org) => ({
@@ -74,6 +78,7 @@ export const OrganizationSwitcher = ({
   // Add a divider and "Manage Organizations" if needed later
   // items.push({ type: 'divider' });
   // items.push({ key: 'manage', label: 'Manage Organizations' });
+
 
   return (
     <Dropdown menu={{ items }} trigger={["click"]}>
