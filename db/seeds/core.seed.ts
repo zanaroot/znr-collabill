@@ -117,16 +117,16 @@ async function seedRolesAndRates(core: {
   await db
     .insert(userRoles)
     .values([
-      {
-        userId: core.owner.id,
-        role: core.ownerRole,
-        organizationId: core.organizationId,
-      },
-      {
-        userId: core.collaborator.id,
-        role: core.collaboratorRole,
-        organizationId: core.organizationId,
-      },
+    {
+      userId: core.owner.id,
+      role: core.ownerRole,
+      organizationId: core.organizationId,
+    },
+    {
+      userId: core.collaborator.id,
+      role: core.collaboratorRole,
+      organizationId: core.organizationId,
+    },
     ])
     .onConflictDoNothing();
 

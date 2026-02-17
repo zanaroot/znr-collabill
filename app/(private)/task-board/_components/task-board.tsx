@@ -1,8 +1,9 @@
-"use client";
+ "use client";
 
 import { Select, Spin, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
+import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
 import { useTasks } from "../_hooks/use-tasks";
 import { CreateBoard } from "./create-board";
 
@@ -16,6 +17,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
   const [projectId, setProjectId] = useState<string | undefined>();
   const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
+  const { data: users } = useUsers();
   const taskCount = tasks?.length ?? 0;
   const selectedProject = useMemo(
     () => projects?.find((project) => project.id === projectId),
@@ -80,6 +82,12 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           projectId={projectId}
           projectName={selectedProject?.name}
           isProjectOwner={selectedProject?.createdBy === currentUserId}
+          members={
+            users?.map((user) => ({
+              id: user.id,
+              name: user.name || user.email,
+            })) ?? []
+          }
         />
       )}
     </div>

@@ -28,6 +28,11 @@ import {
   useUpdateTask,
 } from "../_hooks/use-tasks";
 
+type User = {
+  id: string;
+  name: string;
+};
+
 const { Paragraph, Text } = Typography;
 const { TextArea } = Input;
 
@@ -62,6 +67,7 @@ const defaultFormValues = (status: TaskStatus) => ({
   priorityLabel: "Low priority" as PriorityLabel,
   dueDate: "",
   status,
+  assigneeId: undefined as string | undefined
 });
 
 const TASK_SIZE_OPTIONS = TASK_SIZES.map((size) => ({
@@ -82,6 +88,7 @@ type CreateBoardProps = {
   projectId?: string;
   projectName?: string;
   isProjectOwner: boolean;
+  members: User[];
 };
 
 export function CreateBoard({
@@ -89,6 +96,7 @@ export function CreateBoard({
   projectId,
   projectName,
   isProjectOwner,
+  members,
 }: CreateBoardProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<TaskModel | null>(null);
@@ -109,9 +117,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-        from: activeTask.status,
-        isProjectOwner,
-      })
+      from: activeTask.status,
+      isProjectOwner,
+    })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -136,6 +144,7 @@ export function CreateBoard({
       priorityLabel: PRIORITY_LABEL_FROM_VALUE(task.priority),
       dueDate: task.dueDate ?? "",
       status: task.status,
+      assigneeId: task.assignedTo ?? undefined
     });
     setDrawerOpen(true);
   };
@@ -167,6 +176,7 @@ export function CreateBoard({
       priority: PRIORITY_VALUE[formValues.priorityLabel],
       dueDate: formValues.dueDate || undefined,
       status: formValues.status,
+      assigneeId: formValues.assigneeId
     };
 
     if (activeTask) {
@@ -456,6 +466,26 @@ export function CreateBoard({
                 </Space>
               </Space>
             </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <Space orientation="vertical" size={8} style={{ width: "100%" }}>
+                <Text strong>Assignee</Text>
+                <Select
+                  value={formValues.assigneeId}
+                  onChange={(value) =>
+                    setFormValues((prev) => ({ ...prev, assigneeId: value }))
+                  }
+                  placeholder="Select a member"
+                  options={members.map((member) => ({
+                    label: member.name,
+                    value: member.id,
+                  }))}
+                  style={{ width: "100%" }}
+                  allowClear
+                />
+
+              </Space>
+            </div>
+
           </Space>
         </div>
       </Drawer>
