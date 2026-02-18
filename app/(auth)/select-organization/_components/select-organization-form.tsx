@@ -22,6 +22,7 @@ export const SelectOrganizationForm = () => {
       if (data.success) {
         message.success("Organization selected!");
         router.push("/task-board");
+        router.refresh();
       } else {
         message.error(data.error || "Something went wrong.");
       }
