@@ -1,8 +1,8 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { Button, Card, Form, Input, message, Typography } from "antd";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { createOrganizationAction } from "@/http/actions/organization.action";
 
 const { Title } = Typography;
@@ -13,24 +13,26 @@ interface OrganizationForm {
 
 export const CreateOrganization = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values: OrganizationForm) => {
-    setLoading(true);
-    try {
-      const result = await createOrganizationAction(values.name);
-      if (result.success) {
+  const { mutateAsync: createOrg, isPending: loading } = useMutation({
+    mutationFn: (values: OrganizationForm) =>
+      createOrganizationAction(values.name),
+    onSuccess: (data) => {
+      if (data.success) {
         message.success("Organization created successfully!");
         router.push("/task-board");
       } else {
-        message.error(result.error || "Error creating the organization.");
+        message.error(data.error || "Error creating the organization.");
       }
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error(error);
       message.error("Error creating the organization.");
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+
+  const onFinish = async (values: OrganizationForm) => {
+    await createOrg(values);
   };
 
   return (
