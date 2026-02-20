@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { projectMembers, projects } from "@/db/schema";
+import { organizationMembers, projectMembers, projects } from "@/db/schema";
 import type {
   CreateProjectInput,
   UpdateProjectInput,
@@ -96,4 +96,41 @@ export const isProjectMember = async (projectId: string, userId: string) => {
     )
     .limit(1);
   return !!member;
+};
+
+export const isOrganizationMember = async (
+  organizationId: string,
+  userId: string,
+) => {
+  const [member] = await db
+    .select()
+    .from(organizationMembers)
+    .where(
+      and(
+        eq(organizationMembers.organizationId, organizationId),
+        eq(organizationMembers.userId, userId),
+      ),
+    )
+    .limit(1);
+  return !!member;
+};
+
+export const getOrganizationRole = async (
+  userId: string,
+  organizationId: string,
+) => {
+  const [member] = await db
+    .select()
+    .from(organizationMembers) // ou ta table qui relie users <-> org
+    .where(
+      and(
+        eq(organizationMembers.userId, userId),
+        eq(organizationMembers.organizationId, organizationId),
+      ),
+    )
+    .limit(1);
+
+  if (!member) return null;
+
+  return member.role; // role = "owner" ou "collaborator"
 };

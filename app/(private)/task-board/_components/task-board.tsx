@@ -7,8 +7,6 @@ import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
 import { useTasks } from "../_hooks/use-tasks";
 import { CreateBoard } from "./create-board";
 
-
-
 const { Title, Text } = Typography;
 
 type TaskBoardProps = {
@@ -16,7 +14,6 @@ type TaskBoardProps = {
 };
 
 export function TaskBoard({ currentUserId }: TaskBoardProps) {
-
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
   const [projectId, setProjectId] = useState<string | undefined>();
   const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
