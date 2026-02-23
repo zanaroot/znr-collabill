@@ -7,7 +7,6 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Avatar, Dropdown } from "antd";
-import { logoutAction } from "@/http/actions/auth.action";
 import { getShortName } from "@/lib/get-short-name";
 import { client } from "@/packages/hono";
 
@@ -21,8 +20,13 @@ export const UserDropdownMenus = () => {
   });
 
   const { mutateAsync: logout } = useMutation({
-    mutationFn: logoutAction,
-    onSuccess: () => {},
+    mutationFn: async () => {
+      const res = await client.api.auth.logout.$post();
+      return await res.json();
+    },
+    onSuccess: () => {
+      window.location.href = "/";
+    },
     onError: () => {},
   });
 

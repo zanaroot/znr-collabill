@@ -79,7 +79,7 @@ export const createUserFromInvitation = async (data: {
   email: string;
   name: string;
   passwordHash: string;
-  role: "ADMIN" | "COLLABORATOR";
+  role: "ADMIN" | "COLLABORATOR" | "OWNER";
   invitationId: string;
   organizationId: string;
 }) => {
@@ -126,7 +126,7 @@ export const createUserFromInvitation = async (data: {
 export const acceptInvitation = async (data: {
   userId: string;
   organizationId: string;
-  role: "ADMIN" | "COLLABORATOR";
+  role: "ADMIN" | "COLLABORATOR" | "OWNER";
   invitationId: string;
 }) => {
   return db.transaction(async (tx) => {
