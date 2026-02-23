@@ -1,9 +1,7 @@
 "use client";
 
-
 import { Select, Spin, Typography } from "antd";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
 
 import { useEffect, useMemo, useState } from "react";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
@@ -55,7 +53,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-linear-to-r from-slate-50 to-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <Title level={3} style={{ margin: 0 }}>
