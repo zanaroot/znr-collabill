@@ -28,12 +28,17 @@ export const InviteUserModal = () => {
 
   const handleFinish = async (values: {
     email: string;
-    role: "OWNER" | "COLLABORATOR";
+    role: "ADMIN" | "COLLABORATOR";
   }) => {
     await mutateAsync(values);
   };
 
-  if (currentUser?.organizationRole !== "OWNER") {
+  const canInvite =
+    currentUser &&
+    (currentUser.organizationRole === "OWNER" ||
+      currentUser.organizationRole === "ADMIN");
+
+  if (!canInvite) {
     return null;
   }
 
@@ -67,7 +72,7 @@ export const InviteUserModal = () => {
             <Select
               defaultActiveFirstOption
               options={[
-                { value: "OWNER", label: "Owner" },
+                { value: "ADMIN", label: "Admin" },
                 { value: "COLLABORATOR", label: "Collaborator" },
               ]}
             />

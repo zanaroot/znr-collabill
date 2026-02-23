@@ -25,11 +25,6 @@ export const getUsers = factory.createHandlers(async (c) => {
     return c.json({ error: "No organization found" }, 404);
   }
 
-  const isOwner = currentUser.organizationRole === "OWNER";
-  if (!isOwner) {
-    return c.json({ error: "Forbidden" }, 403);
-  }
-
   const members = await getOrganizationMembers(currentUser.organizationId);
   return c.json(members);
 });
@@ -87,7 +82,10 @@ export const removeUser = factory.createHandlers(async (c) => {
 });
 
 export const updateUserRoleHandler = factory.createHandlers(
-  zValidator("json", z.object({ role: z.enum(["OWNER", "COLLABORATOR"]) })),
+  zValidator(
+    "json",
+    z.object({ role: z.enum(["OWNER", "ADMIN", "COLLABORATOR"]) }),
+  ),
   async (c) => {
     const currentUser = c.get("user");
     const isOwner = currentUser.organizationRole === "OWNER";

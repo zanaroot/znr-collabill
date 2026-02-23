@@ -1,10 +1,13 @@
 "server only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   organizationMembers,
   organizations,
+  projectMembers,
+  projects,
+  tasks,
   userRoles,
   users,
 } from "@/db/schema";
@@ -168,7 +171,7 @@ export const isUserInOrganization = async (
 export const updateOrganizationMemberRole = async (
   organizationId: string,
   userId: string,
-  role: "OWNER" | "COLLABORATOR",
+  role: "OWNER" | "ADMIN" | "COLLABORATOR",
 ) => {
   await db.transaction(async (tx) => {
     await tx
@@ -215,5 +218,122 @@ export const removeOrganizationMember = async (
           eq(userRoles.userId, userId),
         ),
       );
+  });
+};
+
+type OrganizationMemberSummary = {
+  id: string;
+  name: string;
+  email: string;
+  role: "OWNER" | "ADMIN" | "COLLABORATOR";
+};
+
+export type OwnedOrganization = {
+  id: string;
+  name: string;
+  members: OrganizationMemberSummary[];
+};
+
+export const getOrganizationsOwnedByUser = async (
+  userId: string,
+): Promise<OwnedOrganization[]> => {
+  const ownedOrgs = await db
+    .select({
+      id: organizations.id,
+      name: organizations.name,
+    })
+    .from(organizations)
+    .innerJoin(
+      organizationMembers,
+      eq(organizations.id, organizationMembers.organizationId),
+    )
+    .where(
+      and(
+        eq(organizationMembers.userId, userId),
+        eq(organizationMembers.role, "OWNER"),
+      ),
+    )
+    .orderBy(organizations.createdAt);
+
+  if (ownedOrgs.length === 0) return [];
+
+  const organizationIds = ownedOrgs.map((o) => o.id);
+
+  const members = await db
+    .select({
+      organizationId: organizationMembers.organizationId,
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: organizationMembers.role,
+    })
+    .from(organizationMembers)
+    .innerJoin(users, eq(organizationMembers.userId, users.id))
+    .where(inArray(organizationMembers.organizationId, organizationIds))
+    .orderBy(organizationMembers.joinedAt);
+
+  const byOrgId = new Map<string, OrganizationMemberSummary[]>();
+  for (const m of members) {
+    const list = byOrgId.get(m.organizationId) ?? [];
+    list.push({
+      id: m.id,
+      name: m.name,
+      email: m.email,
+      role: m.role,
+    });
+    byOrgId.set(m.organizationId, list);
+  }
+
+  return ownedOrgs.map((org) => ({
+    ...org,
+    members: byOrgId.get(org.id) ?? [],
+  }));
+};
+
+export const isOrganizationOwner = async (
+  organizationId: string,
+  userId: string,
+) => {
+  const [record] = await db
+    .select({ userId: organizationMembers.userId })
+    .from(organizationMembers)
+    .where(
+      and(
+        eq(organizationMembers.organizationId, organizationId),
+        eq(organizationMembers.userId, userId),
+        eq(organizationMembers.role, "OWNER"),
+      ),
+    )
+    .limit(1);
+
+  return !!record;
+};
+
+export const deleteOrganizationById = async (organizationId: string) => {
+  await db.transaction(async (tx) => {
+    const orgProjects = await tx
+      .select({ id: projects.id })
+      .from(projects)
+      .where(eq(projects.organizationId, organizationId));
+
+    const projectIds = orgProjects.map((p) => p.id);
+
+    if (projectIds.length > 0) {
+      await tx.delete(tasks).where(inArray(tasks.projectId, projectIds));
+      await tx
+        .delete(projectMembers)
+        .where(inArray(projectMembers.projectId, projectIds));
+    }
+
+    await tx
+      .delete(projects)
+      .where(eq(projects.organizationId, organizationId));
+    await tx
+      .delete(organizationMembers)
+      .where(eq(organizationMembers.organizationId, organizationId));
+    await tx
+      .delete(userRoles)
+      .where(eq(userRoles.organizationId, organizationId));
+    await tx.delete(organizations).where(eq(organizations.id, organizationId));
   });
 };

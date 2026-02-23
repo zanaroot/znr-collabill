@@ -67,7 +67,7 @@ const defaultFormValues = (status: TaskStatus) => ({
   priorityLabel: "Low priority" as PriorityLabel,
   dueDate: "",
   status,
-  assignedTo: undefined as string | undefined,
+  assigneeId: undefined as string | undefined,
 });
 
 const TASK_SIZE_OPTIONS = TASK_SIZES.map((size) => ({
@@ -88,7 +88,6 @@ type CreateBoardProps = {
   projectId?: string;
   projectName?: string;
   isProjectOwner: boolean;
-  onProjectClick?: () => void;
   members: User[];
 };
 
@@ -97,7 +96,6 @@ export function CreateBoard({
   projectId,
   projectName,
   isProjectOwner,
-  onProjectClick,
   members,
 }: CreateBoardProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -146,7 +144,7 @@ export function CreateBoard({
       priorityLabel: PRIORITY_LABEL_FROM_VALUE(task.priority),
       dueDate: task.dueDate ?? "",
       status: task.status,
-      assignedTo: task.assignedTo ?? undefined,
+      assigneeId: task.assignedTo ?? undefined,
     });
     setDrawerOpen(true);
   };
@@ -158,7 +156,7 @@ export function CreateBoard({
 
   const handleSave = () => {
     if (!formValues.title.trim()) return;
-    console.log(formValues.assignedTo);
+
     if (
       activeTask &&
       activeTask.status !== formValues.status &&
@@ -178,7 +176,7 @@ export function CreateBoard({
       priority: PRIORITY_VALUE[formValues.priorityLabel],
       dueDate: formValues.dueDate || undefined,
       status: formValues.status,
-      assignedTo: formValues.assignedTo,
+      assigneeId: formValues.assigneeId,
     };
 
     if (activeTask) {
@@ -286,7 +284,6 @@ export function CreateBoard({
                 onDragStartTask={handleDragStartTask}
                 onDragEndTask={handleDragEndTask}
                 onDropTask={handleDropTask}
-                members={members}
               />
             </div>
           ))}
@@ -329,15 +326,7 @@ export function CreateBoard({
               Project context
             </Text>
             <div className="mt-1 flex items-center justify-between gap-3">
-              <Text
-                strong
-                style={{
-                  fontSize: 16,
-                  cursor: onProjectClick ? "pointer" : "default",
-                  color: onProjectClick ? "#1677ff" : "inherit",
-                }}
-                onClick={onProjectClick}
-              >
+              <Text strong style={{ fontSize: 16 }}>
                 {projectName ?? "Select a project"}
               </Text>
               <Text type="secondary">
@@ -481,9 +470,9 @@ export function CreateBoard({
               <Space orientation="vertical" size={8} style={{ width: "100%" }}>
                 <Text strong>Assignee</Text>
                 <Select
-                  value={formValues.assignedTo}
+                  value={formValues.assigneeId}
                   onChange={(value) =>
-                    setFormValues((prev) => ({ ...prev, assignedTo: value }))
+                    setFormValues((prev) => ({ ...prev, assigneeId: value }))
                   }
                   placeholder="Select a member"
                   options={members.map((member) => ({
@@ -516,7 +505,6 @@ type ColumnProps = {
   onDragStartTask: (taskId: string) => void;
   onDragEndTask: () => void;
   onDropTask: (taskId: string, status: TaskStatus) => void;
-  members: User[];
 };
 
 function Column({
@@ -533,7 +521,6 @@ function Column({
   onDragStartTask,
   onDragEndTask,
   onDropTask,
-  members,
 }: ColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const canDropCurrentTask =
@@ -606,88 +593,75 @@ function Column({
       >
         {tasks.length > 0 ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {tasks.map((task) => {
-              // console.log("TASK OBJECT:", task);
-              const assignedMember = members.find(
-                (member) => member.id === task.assignedTo,
-              );
-              return (
-                <Card
-                  key={task.id}
-                  size="small"
-                  type="inner"
-                  style={{
-                    borderRadius: 10,
-                    cursor: canDragFromStatus(task.status) ? "grab" : "pointer",
-                    opacity: draggingTaskId === task.id ? 0.6 : 1,
-                    borderColor: "#e2e8f0",
-                    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)",
-                  }}
-                  onClick={() => onEdit(task)}
-                  draggable={
-                    Boolean(projectId) && canDragFromStatus(task.status)
+            {tasks.map((task) => (
+              <Card
+                key={task.id}
+                size="small"
+                type="inner"
+                style={{
+                  borderRadius: 10,
+                  cursor: canDragFromStatus(task.status) ? "grab" : "pointer",
+                  opacity: draggingTaskId === task.id ? 0.6 : 1,
+                  borderColor: "#e2e8f0",
+                  boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)",
+                }}
+                onClick={() => onEdit(task)}
+                draggable={Boolean(projectId) && canDragFromStatus(task.status)}
+                onDragStart={(event) => {
+                  if (!canDragFromStatus(task.status)) {
+                    event.preventDefault();
+                    return;
                   }
-                  onDragStart={(event) => {
-                    if (!canDragFromStatus(task.status)) {
-                      event.preventDefault();
-                      return;
-                    }
-                    event.dataTransfer.setData("text/plain", task.id);
-                    onDragStartTask(task.id);
-                  }}
-                  onDragEnd={() => {
-                    setIsDragOver(false);
-                    onDragEndTask();
-                  }}
-                >
-                  <div className="flex h-36 flex-col">
-                    <div className="mb-2 flex items-start justify-between gap-2">
-                      <Text strong>{task.title}</Text>
-                      <Tag color={priorityTagColor(task.priority)}>
-                        {priorityLabelFromValue(task.priority)}
-                      </Tag>
-                    </div>
-
-                    <div className="min-h-0 flex-1 overflow-hidden">
-                      {task.description ? (
-                        <Paragraph
-                          type="secondary"
-                          ellipsis={{ rows: 3 }}
-                          style={{ marginBottom: 0 }}
-                        >
-                          {task.description}
-                        </Paragraph>
-                      ) : (
-                        <Paragraph
-                          type="secondary"
-                          italic
-                          ellipsis={{ rows: 3 }}
-                          style={{ marginBottom: 0 }}
-                        >
-                          No description
-                        </Paragraph>
-                      )}
-                    </div>
-
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <Tag variant="filled" color="default">
-                        Size {task.size}
-                      </Tag>
-                      {task.dueDate ? (
-                        <Tag variant="filled" color="processing">
-                          Due {formatDueDate(task.dueDate)}
-                        </Tag>
-                      ) : null}
-                      {assignedMember && (
-                        <Tag color="blue">
-                          Assigned to {assignedMember.name}
-                        </Tag>
-                      )}
-                    </div>
+                  event.dataTransfer.setData("text/plain", task.id);
+                  onDragStartTask(task.id);
+                }}
+                onDragEnd={() => {
+                  setIsDragOver(false);
+                  onDragEndTask();
+                }}
+              >
+                <div className="flex h-36 flex-col">
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <Text strong>{task.title}</Text>
+                    <Tag color={priorityTagColor(task.priority)}>
+                      {priorityLabelFromValue(task.priority)}
+                    </Tag>
                   </div>
-                </Card>
-              );
-            })}
+
+                  <div className="min-h-0 flex-1 overflow-hidden">
+                    {task.description ? (
+                      <Paragraph
+                        type="secondary"
+                        ellipsis={{ rows: 3 }}
+                        style={{ marginBottom: 0 }}
+                      >
+                        {task.description}
+                      </Paragraph>
+                    ) : (
+                      <Paragraph
+                        type="secondary"
+                        italic
+                        ellipsis={{ rows: 3 }}
+                        style={{ marginBottom: 0 }}
+                      >
+                        No description
+                      </Paragraph>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Tag variant="filled" color="default">
+                      Size {task.size}
+                    </Tag>
+                    {task.dueDate ? (
+                      <Tag variant="filled" color="processing">
+                        Due {formatDueDate(task.dueDate)}
+                      </Tag>
+                    ) : null}
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         ) : (
           <Empty

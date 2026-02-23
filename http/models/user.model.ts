@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const roleEnum = z.enum(["OWNER", "COLLABORATOR"]);
+export const roleEnum = z.enum(["OWNER", "ADMIN", "COLLABORATOR"]);
 export type Role = z.infer<typeof roleEnum>;
 
 export type UserRole = {

@@ -91,7 +91,7 @@ export function useUpdateUserRole() {
       role,
     }: {
       id: string;
-      role: "OWNER" | "COLLABORATOR";
+      role: "ADMIN" | "COLLABORATOR";
     }) => {
       const res = await client.api.users[":id"].role.$patch({
         param: { id },

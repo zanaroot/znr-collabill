@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const inviteUserSchema = z.object({
   email: z.email(),
-  role: z.enum(["OWNER", "COLLABORATOR"]).default("COLLABORATOR"),
+  role: z.enum(["ADMIN", "COLLABORATOR"]).default("COLLABORATOR"),
 });
 
 export type InviteUserInput = z.infer<typeof inviteUserSchema>;

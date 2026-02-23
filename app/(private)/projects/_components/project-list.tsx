@@ -27,6 +27,7 @@ import {
   createProjectSchema,
   type Project,
 } from "@/http/models/project.model";
+import { useCurrentUser } from "../../team-management/_hooks/use-team";
 import {
   useCreateProject,
   useDeleteProject,
@@ -45,6 +46,7 @@ export function ProjectList() {
   const [selectedProjectForDetails, setSelectedProjectForDetails] =
     useState<Project | null>(null);
 
+  const { data: currentUser } = useCurrentUser();
   const { data: projects, isLoading: isFetching } = useProjects();
   const createProjectMutation = useCreateProject();
   const updateProjectMutation = useUpdateProject();
@@ -210,9 +212,11 @@ export function ProjectList() {
             <Title level={4} style={{ margin: 0 }}>
               Projects
             </Title>
-            <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
-              New Project
-            </Button>
+            {currentUser?.organizationRole === "OWNER" && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
+                New Project
+              </Button>
+            )}
           </Flex>
         }
       >

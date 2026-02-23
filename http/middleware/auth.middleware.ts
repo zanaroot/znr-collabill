@@ -22,7 +22,7 @@ export const authMiddleware = createMiddleware<AuthEnv>(
       return c.redirect("/", 302);
     }
 
-    let organizationRole: "OWNER" | "COLLABORATOR" | null = null;
+    let organizationRole: "OWNER" | "ADMIN" | "COLLABORATOR" | null = null;
     if (result.session.organizationId) {
       const members = await db
         .select({ role: organizationMembers.role })

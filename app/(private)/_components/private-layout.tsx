@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ApartmentOutlined,
   BellOutlined,
   ContactsOutlined,
   LeftOutlined,
@@ -15,7 +16,13 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { type ReactNode, Suspense, useState } from "react";
 import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
+
+
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
+
+
+import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
+
 
 const { Header, Sider, Content } = Layout;
 
@@ -59,11 +66,13 @@ export const PrivateLayout = ({
 }) => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { data: currentUser } = useCurrentUser();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
+  const isOwner = currentUser?.organizationRole === "OWNER";
 
   return (
     <Layout>
@@ -100,6 +109,19 @@ export const PrivateLayout = ({
                 </Link>
               ),
             },
+            ...(isOwner
+              ? [
+                {
+                  key: "type-organization",
+                  icon: <ApartmentOutlined />,
+                  label: (
+                    <Link href="/type-organization" prefetch={true}>
+                      Type organization
+                    </Link>
+                  ),
+                },
+              ]
+              : []),
           ]}
         />
         <Button

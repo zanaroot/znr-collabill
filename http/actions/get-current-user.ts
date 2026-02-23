@@ -16,7 +16,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   const result = await findValidSessionByToken(token);
   if (!result) return null;
 
-  let organizationRole: "OWNER" | "COLLABORATOR" | null = null;
+  let organizationRole: "OWNER" | "ADMIN" | "COLLABORATOR" | null = null;
   if (result.session.organizationId) {
     const members = await db
       .select({ role: organizationMembers.role })

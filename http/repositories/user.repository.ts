@@ -28,7 +28,7 @@ export const findUserById = async (id: string) => {
 export const hasUserRole = async (
   userId: string,
   organizationId: string,
-  role: "OWNER" | "COLLABORATOR",
+  role: "OWNER" | "ADMIN" | "COLLABORATOR",
 ) => {
   const [record] = await db
     .select({ userId: userRoles.userId })
@@ -66,7 +66,7 @@ export const deleteUser = async (id: string) => {
 export const updateUserRole = async (
   userId: string,
   organizationId: string,
-  role: "OWNER" | "COLLABORATOR",
+  role: "OWNER" | "ADMIN" | "COLLABORATOR",
 ) => {
   await db.transaction(async (tx) => {
     await tx

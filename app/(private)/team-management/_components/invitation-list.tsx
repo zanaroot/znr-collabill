@@ -47,9 +47,11 @@ export function InvitationList() {
       title: "Role",
       dataIndex: "role",
       key: "role",
-      render: (role: string) => (
-        <Tag color={role === "OWNER" ? "gold" : "blue"}>{role}</Tag>
-      ),
+      render: (role: string) => {
+        const color =
+          role === "OWNER" ? "gold" : role === "ADMIN" ? "purple" : "blue";
+        return <Tag color={color}>{role}</Tag>;
+      },
     },
     {
       title: "Expires At",

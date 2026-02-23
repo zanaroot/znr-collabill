@@ -24,7 +24,7 @@ export const findValidInvitationByToken = async (token: string) => {
 export const upsertInvitation = async (data: {
   email: string;
   token: string;
-  role: "OWNER" | "COLLABORATOR";
+  role: "ADMIN" | "COLLABORATOR";
   organizationId: string;
   expiresAt: Date;
 }) => {
@@ -79,7 +79,7 @@ export const createUserFromInvitation = async (data: {
   email: string;
   name: string;
   passwordHash: string;
-  role: "OWNER" | "COLLABORATOR";
+  role: "ADMIN" | "COLLABORATOR";
   invitationId: string;
   organizationId: string;
 }) => {
@@ -126,7 +126,7 @@ export const createUserFromInvitation = async (data: {
 export const acceptInvitation = async (data: {
   userId: string;
   organizationId: string;
-  role: "OWNER" | "COLLABORATOR";
+  role: "ADMIN" | "COLLABORATOR";
   invitationId: string;
 }) => {
   return db.transaction(async (tx) => {

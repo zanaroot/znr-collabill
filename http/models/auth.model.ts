@@ -22,7 +22,7 @@ export type AuthUser = {
   name: string;
   organizationId: string | null;
   organizationName: string | null;
-  organizationRole: "OWNER" | "COLLABORATOR" | null;
+  organizationRole: "OWNER" | "ADMIN" | "COLLABORATOR" | null;
 };
 
 export type AuthEnv = {
