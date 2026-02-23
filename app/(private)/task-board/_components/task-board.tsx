@@ -1,6 +1,7 @@
 "use client";
 
 import { Select, Spin, Tag, Typography } from "antd";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ProjectDetailsDrawer } from "@/app/(private)/projects/_components/project-details-drawer";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
@@ -15,8 +16,15 @@ type TaskBoardProps = {
 };
 
 export function TaskBoard({ currentUserId }: TaskBoardProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const projectIdParam = searchParams.get("projectId");
+
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
-  const [projectId, setProjectId] = useState<string | undefined>();
+  const [projectId, setProjectId] = useState<string | undefined>(
+    projectIdParam || undefined,
+  );
   const [isProjectDetailsOpen, setIsProjectDetailsOpen] = useState(false);
   const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
   const { data: users } = useUsers();
@@ -27,10 +35,22 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
   );
 
   useEffect(() => {
-    if (!projectId && projects?.length) {
-      setProjectId(projects[0].id);
+    if (projectId) {
+      if (projectIdParam !== projectId) {
+        const params = new URLSearchParams(searchParams);
+        params.set("projectId", projectId);
+        router.replace(`${pathname}?${params.toString()}`);
+      }
+    } else if (projects?.length && !projectIdParam) {
+      const defaultId = projects[0].id;
+      setProjectId(defaultId);
+      const params = new URLSearchParams(searchParams);
+      params.set("projectId", defaultId);
+      router.replace(`${pathname}?${params.toString()}`);
+    } else if (projectIdParam && projectIdParam !== projectId) {
+      setProjectId(projectIdParam);
     }
-  }, [projects, projectId]);
+  }, [projects, projectId, searchParams, pathname, router, projectIdParam]);
 
   return (
     <div className="space-y-6">

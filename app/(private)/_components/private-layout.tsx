@@ -1,4 +1,5 @@
 "use client";
+
 import {
   BellOutlined,
   ContactsOutlined,
@@ -10,12 +11,38 @@ import {
 } from "@ant-design/icons";
 import { Badge, Breadcrumb, Button, Layout, Menu, Space, theme } from "antd";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { type ReactNode, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { type ReactNode, Suspense, useState } from "react";
 import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
+import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 
 const { Header, Sider, Content } = Layout;
+
+const ROUTE_TITLES: Record<string, string> = {
+  "task-board": "Task Board",
+  "team-management": "Team Management",
+  projects: "Projects",
+};
+
+const DynamicBreadcrumb = ({ selectedKey }: { selectedKey: string }) => {
+  const searchParams = useSearchParams();
+  const { data: projects } = useProjects();
+  const projectId = searchParams.get("projectId");
+
+  const pageTitle = ROUTE_TITLES[selectedKey] || "Dashboard";
+  const items = [{ title: "Dashboard" }, { title: pageTitle }];
+
+  if (selectedKey === "task-board" && projectId && projects) {
+    const project = projects.find((p) => p.id === projectId);
+    if (project) {
+      items.push({ title: project.name });
+    }
+  }
+
+  return <Breadcrumb items={items} />;
+};
+
 type Organization = {
   id: string;
   name: string;
@@ -102,16 +129,9 @@ export const PrivateLayout = ({
           style={{ padding: 0, background: colorBgContainer }}
           className="flex items-center px-4! justify-between"
         >
-          <Breadcrumb
-            items={[
-              {
-                title: "Dashboard",
-              },
-              {
-                title: "Flow Board",
-              },
-            ]}
-          />
+          <Suspense fallback={<Breadcrumb items={[{ title: "Dashboard" }]} />}>
+            <DynamicBreadcrumb selectedKey={selectedKey} />
+          </Suspense>
           <Space size={16}>
             <QuestionCircleOutlined />
             <Badge dot>
