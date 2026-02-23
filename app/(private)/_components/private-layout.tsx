@@ -58,12 +58,20 @@ export const PrivateLayout = ({
             {
               key: "team-management",
               icon: <UsergroupAddOutlined />,
-              label: <Link href="/team-management" prefetch={true}>Team Management</Link>,
+              label: (
+                <Link href="/team-management" prefetch={true}>
+                  Team Management
+                </Link>
+              ),
             },
             {
               key: "projects",
               icon: <ProjectOutlined />,
-              label: <Link href="/projects" prefetch={true}>Projects</Link>,
+              label: (
+                <Link href="/projects" prefetch={true}>
+                  Projects
+                </Link>
+              ),
             },
           ]}
         />

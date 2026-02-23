@@ -1,4 +1,6 @@
+import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
+import { z } from "zod";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   deleteInvitationById,
@@ -55,7 +57,8 @@ export const revokeInvitation = factory.createHandlers(async (c) => {
     return c.json({ error: "Forbidden" }, 403);
   }
 
-  const { id } = c.req.param();
+  const id = c.req.param("id");
+  if (!id) return c.json({ error: "ID required" }, 400);
   await deleteInvitationById(id);
   return c.json({ message: "Invitation revoked" });
 });
@@ -68,7 +71,9 @@ export const removeUser = factory.createHandlers(async (c) => {
     return c.json({ error: "Forbidden" }, 403);
   }
 
-  const { id } = c.req.param();
+  const id = c.req.param("id");
+  if (!id) return c.json({ error: "ID required" }, 400);
+
   if (id === currentUser.id) {
     return c.json({ error: "Cannot remove yourself" }, 400);
   }
@@ -81,25 +86,29 @@ export const removeUser = factory.createHandlers(async (c) => {
   return c.json({ message: "User removed from organization" });
 });
 
-export const updateUserRoleHandler = factory.createHandlers(async (c) => {
-  const currentUser = c.get("user");
-  const isOwner = currentUser.organizationRole === "OWNER";
+export const updateUserRoleHandler = factory.createHandlers(
+  zValidator("json", z.object({ role: z.enum(["OWNER", "COLLABORATOR"]) })),
+  async (c) => {
+    const currentUser = c.get("user");
+    const isOwner = currentUser.organizationRole === "OWNER";
 
-  if (!isOwner) {
-    return c.json({ error: "Forbidden" }, 403);
-  }
+    if (!isOwner) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
 
-  const { id } = c.req.param();
-  const { role } = await c.req.json<{ role: "OWNER" | "COLLABORATOR" }>();
+    const id = c.req.param("id");
+    if (!id) return c.json({ error: "ID required" }, 400);
+    const { role } = c.req.valid("json");
 
-  if (id === currentUser.id) {
-    return c.json({ error: "Cannot change your own role" }, 400);
-  }
+    if (id === currentUser.id) {
+      return c.json({ error: "Cannot change your own role" }, 400);
+    }
 
-  if (!currentUser.organizationId) {
-    return c.json({ error: "No organization found" }, 404);
-  }
+    if (!currentUser.organizationId) {
+      return c.json({ error: "No organization found" }, 404);
+    }
 
-  await updateOrganizationMemberRole(currentUser.organizationId, id, role);
-  return c.json({ message: "Role updated" });
-});
+    await updateOrganizationMemberRole(currentUser.organizationId, id, role);
+    return c.json({ message: "Role updated" });
+  },
+);

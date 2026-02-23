@@ -1,7 +1,8 @@
 "use client";
 
-import { Select, Spin, Typography } from "antd";
+import { Select, Spin, Tag, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
+import { ProjectDetailsDrawer } from "@/app/(private)/projects/_components/project-details-drawer";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
 import { useTasks } from "../_hooks/use-tasks";
@@ -16,11 +17,12 @@ type TaskBoardProps = {
 export function TaskBoard({ currentUserId }: TaskBoardProps) {
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
   const [projectId, setProjectId] = useState<string | undefined>();
+  const [isProjectDetailsOpen, setIsProjectDetailsOpen] = useState(false);
   const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
   const { data: users } = useUsers();
   const taskCount = tasks?.length ?? 0;
   const selectedProject = useMemo(
-    () => projects?.find((project) => project.id === projectId),
+    () => projects?.find((project) => project.id === projectId) ?? null,
     [projects, projectId],
   );
 
@@ -65,9 +67,23 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700">
-            {selectedProject?.name ?? "No project selected"}
-          </span>
+          {selectedProject ? (
+            <Tag
+              color="blue"
+              style={{
+                cursor: "pointer",
+                borderRadius: 999,
+                padding: "2px 12px",
+              }}
+              onClick={() => setIsProjectDetailsOpen(true)}
+            >
+              {selectedProject.name}
+            </Tag>
+          ) : (
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700">
+              No project selected
+            </span>
+          )}
           <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700">
             {taskCount} tasks
           </span>
@@ -82,6 +98,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           projectId={projectId}
           projectName={selectedProject?.name}
           isProjectOwner={selectedProject?.createdBy === currentUserId}
+          onProjectClick={() => setIsProjectDetailsOpen(true)}
           members={
             users?.map((user) => ({
               id: user.id,
@@ -90,6 +107,12 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           }
         />
       )}
+
+      <ProjectDetailsDrawer
+        project={selectedProject}
+        open={isProjectDetailsOpen}
+        onClose={() => setIsProjectDetailsOpen(false)}
+      />
     </div>
   );
 }

@@ -67,7 +67,7 @@ const defaultFormValues = (status: TaskStatus) => ({
   priorityLabel: "Low priority" as PriorityLabel,
   dueDate: "",
   status,
-  assignedTo: undefined as string | undefined
+  assignedTo: undefined as string | undefined,
 });
 
 const TASK_SIZE_OPTIONS = TASK_SIZES.map((size) => ({
@@ -88,6 +88,7 @@ type CreateBoardProps = {
   projectId?: string;
   projectName?: string;
   isProjectOwner: boolean;
+  onProjectClick?: () => void;
   members: User[];
 };
 
@@ -96,6 +97,7 @@ export function CreateBoard({
   projectId,
   projectName,
   isProjectOwner,
+  onProjectClick,
   members,
 }: CreateBoardProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -117,9 +119,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-      from: activeTask.status,
-      isProjectOwner,
-    })
+        from: activeTask.status,
+        isProjectOwner,
+      })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -144,7 +146,7 @@ export function CreateBoard({
       priorityLabel: PRIORITY_LABEL_FROM_VALUE(task.priority),
       dueDate: task.dueDate ?? "",
       status: task.status,
-      assignedTo: task.assignedTo ?? undefined
+      assignedTo: task.assignedTo ?? undefined,
     });
     setDrawerOpen(true);
   };
@@ -156,7 +158,7 @@ export function CreateBoard({
 
   const handleSave = () => {
     if (!formValues.title.trim()) return;
-    console.log(formValues.assignedTo)
+    console.log(formValues.assignedTo);
     if (
       activeTask &&
       activeTask.status !== formValues.status &&
@@ -176,7 +178,7 @@ export function CreateBoard({
       priority: PRIORITY_VALUE[formValues.priorityLabel],
       dueDate: formValues.dueDate || undefined,
       status: formValues.status,
-      assignedTo: formValues.assignedTo
+      assignedTo: formValues.assignedTo,
     };
 
     if (activeTask) {
@@ -327,7 +329,15 @@ export function CreateBoard({
               Project context
             </Text>
             <div className="mt-1 flex items-center justify-between gap-3">
-              <Text strong style={{ fontSize: 16 }}>
+              <Text
+                strong
+                style={{
+                  fontSize: 16,
+                  cursor: onProjectClick ? "pointer" : "default",
+                  color: onProjectClick ? "#1677ff" : "inherit",
+                }}
+                onClick={onProjectClick}
+              >
                 {projectName ?? "Select a project"}
               </Text>
               <Text type="secondary">
@@ -483,10 +493,8 @@ export function CreateBoard({
                   style={{ width: "100%" }}
                   allowClear
                 />
-
               </Space>
             </div>
-
           </Space>
         </div>
       </Drawer>
@@ -525,7 +533,7 @@ function Column({
   onDragStartTask,
   onDragEndTask,
   onDropTask,
-  members
+  members,
 }: ColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const canDropCurrentTask =
@@ -600,7 +608,9 @@ function Column({
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {tasks.map((task) => {
               // console.log("TASK OBJECT:", task);
-              const assignedMember = members.find(member => member.id === task.assignedTo);
+              const assignedMember = members.find(
+                (member) => member.id === task.assignedTo,
+              );
               return (
                 <Card
                   key={task.id}
@@ -614,7 +624,9 @@ function Column({
                     boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)",
                   }}
                   onClick={() => onEdit(task)}
-                  draggable={Boolean(projectId) && canDragFromStatus(task.status)}
+                  draggable={
+                    Boolean(projectId) && canDragFromStatus(task.status)
+                  }
                   onDragStart={(event) => {
                     if (!canDragFromStatus(task.status)) {
                       event.preventDefault();
@@ -673,9 +685,8 @@ function Column({
                       )}
                     </div>
                   </div>
-
                 </Card>
-              )
+              );
             })}
           </div>
         ) : (

@@ -2,7 +2,12 @@
 
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { organizationMembers, projectMembers, projects } from "@/db/schema";
+import {
+  organizationMembers,
+  projectMembers,
+  projects,
+  users,
+} from "@/db/schema";
 import type {
   CreateProjectInput,
   UpdateProjectInput,
@@ -46,6 +51,31 @@ export const findProjectsByOrganizationId = async (organizationId: string) => {
     .select()
     .from(projects)
     .where(eq(projects.organizationId, organizationId))
+    .orderBy(projects.createdAt);
+};
+
+export const findProjectsForCollaborator = async (
+  organizationId: string,
+  userId: string,
+) => {
+  return await db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      description: projects.description,
+      gitRepo: projects.gitRepo,
+      organizationId: projects.organizationId,
+      createdBy: projects.createdBy,
+      createdAt: projects.createdAt,
+    })
+    .from(projects)
+    .innerJoin(projectMembers, eq(projects.id, projectMembers.projectId))
+    .where(
+      and(
+        eq(projects.organizationId, organizationId),
+        eq(projectMembers.userId, userId),
+      ),
+    )
     .orderBy(projects.createdAt);
 };
 
@@ -133,4 +163,25 @@ export const getOrganizationRole = async (
   if (!member) return null;
 
   return member.role; // role = "owner" ou "collaborator"
+};
+
+export const findProjectMembers = async (projectId: string) => {
+  return await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+    })
+    .from(users)
+    .innerJoin(projectMembers, eq(users.id, projectMembers.userId))
+    .where(eq(projectMembers.projectId, projectId));
+};
+
+export const addProjectMember = async (projectId: string, userId: string) => {
+  const [member] = await db
+    .insert(projectMembers)
+    .values({ projectId, userId })
+    .onConflictDoNothing()
+    .returning();
+  return member ?? null;
 };
