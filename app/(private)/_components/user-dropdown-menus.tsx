@@ -20,8 +20,6 @@ export const UserDropdownMenus = () => {
     },
   });
 
-  console.log(currentUser);
-
   const { mutateAsync: logout } = useMutation({
     mutationFn: logoutAction,
     onSuccess: () => {},
