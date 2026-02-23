@@ -6,6 +6,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { organizations } from "./organization";
 import { users } from "./user";
 
 export const projects = pgTable("projects", {
@@ -13,6 +14,9 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   description: text("description"),
   gitRepo: text("git_repo"),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id),
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -31,6 +35,10 @@ export const projectMembers = pgTable(
 );
 
 export const projectsRelations = relations(projects, ({ many, one }) => ({
+  organization: one(organizations, {
+    fields: [projects.organizationId],
+    references: [organizations.id],
+  }),
   creator: one(users, {
     fields: [projects.createdBy],
     references: [users.id],

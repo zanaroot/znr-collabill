@@ -1,9 +1,19 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
-import type { ActionResponse, SignInInput } from "@/http/models/auth.model";
-import { signInSchema } from "@/http/models/auth.model";
+import { revalidatePath } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
+import type {
+  ActionResponse,
+  RegisterInput,
+  SignInInput,
+} from "@/http/models/auth.model";
+import { registerSchema, signInSchema } from "@/http/models/auth.model";
+import {
+  getUserOrganizations,
+  registerOrganizationAndOwner,
+} from "@/http/repositories/organization.repository";
 import {
   createSession,
   deleteSessionByToken,
@@ -11,9 +21,82 @@ import {
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { generateSessionToken, getSessionExpirationDate } from "@/lib/session";
 
+const shouldUseSecureCookie = async () => {
+  const hdrs = await headers();
+  const forwardedProto = hdrs.get("x-forwarded-proto");
+  if (forwardedProto) {
+    return forwardedProto === "https";
+  }
+
+  const host = hdrs.get("host") ?? "";
+  const isLocalhost =
+    host.includes("localhost") || host.startsWith("127.0.0.1") || host === "";
+  if (isLocalhost) {
+    return false;
+  }
+
+  return process.env.NODE_ENV === "production";
+};
+
+export const registerAction = async (
+  input: RegisterInput,
+): Promise<ActionResponse> => {
+  try {
+    const parsed = registerSchema.safeParse(input);
+
+    if (!parsed.success) {
+      return { error: "Invalid data", success: false };
+    }
+
+    const { email, password, name, organizationName } = parsed.data;
+
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+      return { error: "User already exists", success: false };
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const { user, organization } = await registerOrganizationAndOwner({
+      email,
+      name,
+      passwordHash,
+      organizationName,
+    });
+
+    const sessionToken = generateSessionToken();
+    const expiresAt = getSessionExpirationDate(7);
+
+    await createSession({
+      userId: user.id,
+      organizationId: organization.id,
+      token: sessionToken,
+      expiresAt,
+    });
+
+    const cookieStore = await cookies();
+    cookieStore.set("session_token", sessionToken, {
+      httpOnly: true,
+      secure: await shouldUseSecureCookie(),
+      sameSite: "lax",
+      expires: expiresAt,
+      path: "/",
+    });
+
+    revalidatePath("/");
+
+    return { message: "Registration successful", success: true };
+  } catch (error) {
+    console.error("Registration error:", error);
+    return { error: "Something went wrong", success: false };
+  }
+};
+
 export const signInAction = async (
   input: SignInInput,
-): Promise<ActionResponse> => {
+): Promise<
+  ActionResponse & { redirectToOrganization?: boolean; orgCount?: number }
+> => {
   try {
     const parsed = signInSchema.safeParse(input);
 
@@ -34,11 +117,18 @@ export const signInAction = async (
       return { error: "Invalid password", success: false };
     }
 
+    const userOrgs = await getUserOrganizations(user.id);
+    const orgCount = userOrgs.length;
+    const primaryOrgId = orgCount === 1 ? userOrgs[0].id : undefined;
+
     const sessionToken = generateSessionToken();
     const expiresAt = getSessionExpirationDate(7);
 
+    // If more than one org, we create a session without organizationId first,
+    // or we'll let the selection page update it.
     await createSession({
       userId: user.id,
+      organizationId: primaryOrgId,
       token: sessionToken,
       expiresAt,
     });
@@ -46,13 +136,28 @@ export const signInAction = async (
     const cookieStore = await cookies();
     cookieStore.set("session_token", sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: await shouldUseSecureCookie(),
       sameSite: "lax",
       expires: expiresAt,
       path: "/",
     });
 
-    return { message: "Sign in successful", success: true };
+    revalidatePath("/");
+
+    if (orgCount === 0) {
+      return {
+        message: "Sign in successful",
+        success: true,
+        redirectToOrganization: true,
+        orgCount: 0,
+      };
+    }
+
+    return {
+      message: "Sign in successful",
+      success: true,
+      orgCount,
+    };
   } catch (error) {
     console.error("Sign in error:", error);
     return { error: "Something went wrong", success: false };
@@ -68,4 +173,5 @@ export const logoutAction = async () => {
   }
 
   cookieStore.delete("session_token");
+  redirect("/");
 };

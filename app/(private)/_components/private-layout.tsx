@@ -1,63 +1,91 @@
 "use client";
+
 import {
+  ApartmentOutlined,
   BellOutlined,
   ContactsOutlined,
   LeftOutlined,
   ProjectOutlined,
-  ProjectTwoTone,
   QuestionCircleOutlined,
   RightOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons";
-import {
-  Badge,
-  Breadcrumb,
-  Button,
-  Flex,
-  Layout,
-  Menu,
-  Space,
-  Typography,
-  theme,
-} from "antd";
+import { Badge, Breadcrumb, Button, Layout, Menu, Space, theme } from "antd";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { type ReactNode, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { type ReactNode, Suspense, useState } from "react";
+import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 
-const { Header, Sider, Content } = Layout;
-const { Text, Title } = Typography;
 
-export const PrivateLayout = ({ children }: { children: ReactNode }) => {
+import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
+
+
+import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
+
+
+const { Header, Sider, Content } = Layout;
+
+const ROUTE_TITLES: Record<string, string> = {
+  "task-board": "Task Board",
+  "team-management": "Team Management",
+  projects: "Projects",
+};
+
+const DynamicBreadcrumb = ({ selectedKey }: { selectedKey: string }) => {
+  const searchParams = useSearchParams();
+  const { data: projects } = useProjects();
+  const projectId = searchParams.get("projectId");
+
+  const pageTitle = ROUTE_TITLES[selectedKey] || "Dashboard";
+  const items = [{ title: "Dashboard" }, { title: pageTitle }];
+
+  if (selectedKey === "task-board" && projectId && projects) {
+    const project = projects.find((p) => p.id === projectId);
+    if (project) {
+      items.push({ title: project.name });
+    }
+  }
+
+  return <Breadcrumb items={items} />;
+};
+
+type Organization = {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: Date | null;
+};
+
+export const PrivateLayout = ({
+  children,
+  organization,
+}: {
+  children: ReactNode;
+  organization?: Organization | null;
+}) => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { data: currentUser } = useCurrentUser();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
+  const isOwner = currentUser?.organizationRole === "OWNER";
 
   return (
     <Layout>
       <Sider collapsible collapsed={collapsed} trigger={null} theme="light">
+        <OrganizationSwitcher
+          currentOrganization={organization}
+          collapsed={collapsed}
+        />
         <Menu
           theme="light"
           mode="inline"
           selectedKeys={[selectedKey]}
           items={[
-            {
-              key: "logo",
-              icon: <ProjectTwoTone />,
-              label: (
-                <Flex vertical>
-                  <Title level={5} style={{ margin: 0 }}>
-                    Flow Board
-                  </Title>
-                  <Text type="secondary">Small team plan</Text>
-                </Flex>
-              ),
-              className: "pointer-events-none mb-6! mt-4!",
-            },
             {
               key: "task-board",
               icon: <ContactsOutlined />,
@@ -66,13 +94,34 @@ export const PrivateLayout = ({ children }: { children: ReactNode }) => {
             {
               key: "team-management",
               icon: <UsergroupAddOutlined />,
-              label: <Link href="/team-management">Team Management</Link>,
+              label: (
+                <Link href="/team-management" prefetch={true}>
+                  Team Management
+                </Link>
+              ),
             },
             {
               key: "projects",
               icon: <ProjectOutlined />,
-              label: <Link href="/projects">Projects</Link>,
+              label: (
+                <Link href="/projects" prefetch={true}>
+                  Projects
+                </Link>
+              ),
             },
+            ...(isOwner
+              ? [
+                {
+                  key: "type-organization",
+                  icon: <ApartmentOutlined />,
+                  label: (
+                    <Link href="/type-organization" prefetch={true}>
+                      Type organization
+                    </Link>
+                  ),
+                },
+              ]
+              : []),
           ]}
         />
         <Button
@@ -102,16 +151,9 @@ export const PrivateLayout = ({ children }: { children: ReactNode }) => {
           style={{ padding: 0, background: colorBgContainer }}
           className="flex items-center px-4! justify-between"
         >
-          <Breadcrumb
-            items={[
-              {
-                title: "Dashboard",
-              },
-              {
-                title: "Flow Board",
-              },
-            ]}
-          />
+          <Suspense fallback={<Breadcrumb items={[{ title: "Dashboard" }]} />}>
+            <DynamicBreadcrumb selectedKey={selectedKey} />
+          </Suspense>
           <Space size={16}>
             <QuestionCircleOutlined />
             <Badge dot>

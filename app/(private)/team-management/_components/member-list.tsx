@@ -1,12 +1,15 @@
 "use client";
 
 import { DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
 import { Button, Card, Modal, message, Select, Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { UserWithRoles } from "@/http/models/user.model";
-import { client } from "@/packages/hono";
-import { useDeleteUser, useUpdateUserRole, useUsers } from "../_hooks/use-team";
+import {
+  useCurrentUser,
+  useDeleteUser,
+  useUpdateUserRole,
+  useUsers,
+} from "../_hooks/use-team";
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -15,14 +18,8 @@ export function MemberList() {
   const { data: users, isLoading } = useUsers();
   const deleteMutation = useDeleteUser();
   const updateRoleMutation = useUpdateUserRole();
-
-  const { data: currentUser } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const res = await client.api.users.me.$get();
-      return await res.json();
-    },
-  });
+  const { data: currentUser } = useCurrentUser();
+  const isOwner = currentUser?.organizationRole === "OWNER";
 
   const handleDelete = (id: string) => {
     confirm({
@@ -45,7 +42,7 @@ export function MemberList() {
 
   const handleRoleChange = async (
     id: string,
-    role: "OWNER" | "COLLABORATOR",
+    role: "ADMIN" | "COLLABORATOR",
   ) => {
     try {
       await updateRoleMutation.mutateAsync({ id, role });
@@ -68,21 +65,22 @@ export function MemberList() {
       key: "email",
     },
     {
-      title: "Roles",
-      dataIndex: "roles",
-      key: "roles",
-      render: (roles: { role: "OWNER" | "COLLABORATOR" }[], record) => {
-        const primaryRole = roles[0]?.role || "COLLABORATOR";
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
+      render: (role: "ADMIN" | "COLLABORATOR", record) => {
         return (
           <Select
-            value={primaryRole}
+            value={role}
             disabled={
-              record.id === currentUser?.id || updateRoleMutation.isPending
+              !isOwner ||
+              record.id === currentUser?.id ||
+              updateRoleMutation.isPending
             }
             onChange={(value) => handleRoleChange(record.id, value)}
             style={{ width: 130 }}
             options={[
-              { value: "OWNER", label: "Owner" },
+              { value: "ADMIN", label: "Admin" },
               { value: "COLLABORATOR", label: "Collaborator" },
             ]}
           />
@@ -91,8 +89,8 @@ export function MemberList() {
     },
     {
       title: "Joined At",
-      dataIndex: "createdAt",
-      key: "createdAt",
+      dataIndex: "joinedAt",
+      key: "joinedAt",
       render: (date: string | Date) =>
         date ? new Date(date).toLocaleDateString() : "-",
     },

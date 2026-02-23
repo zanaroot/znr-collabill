@@ -34,10 +34,10 @@ const LandingPage = () => {
             </Paragraph>
 
             <Space size="large">
-              <Button type="primary" size="large" href="/task-board">
+              <Button type="primary" size="large" href="/sign-up">
                 Get Started
               </Button>
-              <Button size="large" href="/auth/login">
+              <Button size="large" href="/sign-in">
                 View Demo
               </Button>
             </Space>
@@ -120,7 +120,7 @@ const LandingPage = () => {
           Start managing projects and paying collaborators the smart way.
         </Paragraph>
 
-        <Button type="primary" size="large">
+        <Button type="primary" size="large" href="/sign-up">
           Create your account
         </Button>
       </section>

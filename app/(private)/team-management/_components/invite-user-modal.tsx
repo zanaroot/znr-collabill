@@ -4,12 +4,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, Modal, Select } from "antd";
 import { useState } from "react";
 import { inviteUserAction } from "@/http/actions/invitation.action";
-import { teamKeys } from "../_hooks/use-team";
+import { teamKeys, useCurrentUser } from "../_hooks/use-team";
 
 export const InviteUserModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
+  const { data: currentUser } = useCurrentUser();
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: inviteUserAction,
@@ -20,14 +21,26 @@ export const InviteUserModal = () => {
         queryClient.invalidateQueries({ queryKey: teamKeys.invitations() });
       }
     },
+    onError: (error) => {
+      console.error(error);
+    },
   });
 
   const handleFinish = async (values: {
     email: string;
-    role: "OWNER" | "COLLABORATOR";
+    role: "ADMIN" | "COLLABORATOR";
   }) => {
     await mutateAsync(values);
   };
+
+  const canInvite =
+    currentUser &&
+    (currentUser.organizationRole === "OWNER" ||
+      currentUser.organizationRole === "ADMIN");
+
+  if (!canInvite) {
+    return null;
+  }
 
   return (
     <>
@@ -59,7 +72,7 @@ export const InviteUserModal = () => {
             <Select
               defaultActiveFirstOption
               options={[
-                { value: "OWNER", label: "Owner" },
+                { value: "ADMIN", label: "Admin" },
                 { value: "COLLABORATOR", label: "Collaborator" },
               ]}
             />

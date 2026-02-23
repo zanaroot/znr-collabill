@@ -9,6 +9,7 @@ import { client } from "@/packages/hono";
 export const projectKeys = {
   all: ["projects"] as const,
   lists: () => [...projectKeys.all, "list"] as const,
+  members: (id: string) => [...projectKeys.all, id, "members"] as const,
 };
 
 type ErrorResponse = {
@@ -23,6 +24,55 @@ export function useProjects() {
       const res = await client.api.projects.$get();
       if (!res.ok) throw new Error("Failed to fetch projects");
       return (await res.json()) as Project[];
+    },
+  });
+}
+
+export function useProjectMembers(projectId: string) {
+  return useQuery({
+    queryKey: projectKeys.members(projectId),
+    queryFn: async () => {
+      const res = await client.api.projects[":id"].members.$get({
+        param: { id: projectId },
+      });
+      if (!res.ok) throw new Error("Failed to fetch project members");
+      return (await res.json()) as {
+        id: string;
+        name: string;
+        email: string;
+      }[];
+    },
+    enabled: !!projectId,
+  });
+}
+
+export function useAddProjectMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      userId,
+    }: {
+      projectId: string;
+      userId: string;
+    }) => {
+      const res = await client.api.projects[":id"].members.$post({
+        param: { id: projectId },
+        json: { userId },
+      });
+      if (!res.ok) {
+        const error = (await res.json()) as ErrorResponse;
+        throw new Error(
+          error.error || error.message || "Failed to add project member",
+        );
+      }
+      return (await res.json()) as { message: string };
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.members(variables.projectId),
+      });
     },
   });
 }

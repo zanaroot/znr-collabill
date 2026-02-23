@@ -7,7 +7,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import {
+  acceptInvitationAction,
   createPasswordAction,
+  declineInvitationAction,
   getInvitationByToken,
 } from "@/http/actions/invitation.action";
 
@@ -52,6 +54,33 @@ export const CreatePasswordForm = () => {
     },
   });
 
+  const { mutateAsync: acceptInvitation, isPending: isAccepting } = useMutation(
+    {
+      mutationFn: acceptInvitationAction,
+      onSuccess: (data) => {
+        if (data.success) {
+          message.success("Successfully joined the organization!");
+          router.push("/sign-in");
+        } else {
+          message.error(data.error || "Something went wrong.");
+        }
+      },
+    },
+  );
+
+  const { mutateAsync: declineInvitation, isPending: isDeclining } =
+    useMutation({
+      mutationFn: declineInvitationAction,
+      onSuccess: (data) => {
+        if (data.success) {
+          message.success("Invitation declined.");
+          router.push("/");
+        } else {
+          message.error(data.error || "Something went wrong.");
+        }
+      },
+    });
+
   const { data: invitation, isLoading } = useQuery({
     queryKey: ["invitation", token],
     queryFn: async () => {
@@ -90,6 +119,37 @@ export const CreatePasswordForm = () => {
       message.error("An unexpected error occurred.");
     }
   };
+
+  if (invitation.exists) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Card title="Join Organization" className="w-[400px]">
+          <Typography.Paragraph>
+            Welcome back! You have been invited to join an organization. Since
+            you already have an account, you can just accept the invitation.
+          </Typography.Paragraph>
+          <div className="flex flex-col gap-4 mt-8">
+            <Button
+              type="primary"
+              onClick={() => acceptInvitation(invitation.token)}
+              loading={isAccepting}
+              block
+            >
+              Accept Invitation
+            </Button>
+            <Button
+              danger
+              onClick={() => declineInvitation(invitation.token)}
+              loading={isDeclining}
+              block
+            >
+              Decline Invitation
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-[400px]">

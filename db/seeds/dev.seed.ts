@@ -35,10 +35,13 @@ async function seedPasswordResetTokens(ownerId: string) {
   });
 }
 
-async function seedInvitations() {
+async function seedInvitations(organizationId: string) {
   const email = "new-collaborator@collabill.local";
   const existing = await db.query.invitations.findFirst({
-    where: eq(invitations.email, email),
+    where: and(
+      eq(invitations.email, email),
+      eq(invitations.organizationId, organizationId),
+    ),
   });
 
   if (existing) {
@@ -46,6 +49,7 @@ async function seedInvitations() {
   }
 
   await db.insert(invitations).values({
+    organizationId,
     email,
     token: "seed-invitation-token",
     role: "COLLABORATOR",
@@ -188,7 +192,7 @@ export async function seedDev() {
   const core = await seedCore();
 
   await seedPasswordResetTokens(core.owner.id);
-  await seedInvitations();
+  await seedInvitations(core.organization.id);
   await seedSessions(core.owner.id);
   await seedPresences(core.collaborator.id);
   await seedInvoicesAndLines({

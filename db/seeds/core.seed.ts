@@ -3,6 +3,8 @@ import { and, eq } from "drizzle-orm";
 import { db } from "../index";
 import {
   collaboratorRates,
+  organizationMembers,
+  organizations,
   projectMembers,
   projects,
   tasks,
@@ -21,6 +23,7 @@ export type CoreSeedResult = {
   owner: typeof users.$inferSelect;
   password: string;
   project: typeof projects.$inferSelect;
+  organization: typeof organizations.$inferSelect;
 };
 
 const seedUsers: SeedUserInput[] = [
@@ -63,17 +66,67 @@ async function getOrCreateUser(input: SeedUserInput, passwordHash: string) {
   return created;
 }
 
+async function getOrCreateOrganization(
+  ownerId: string,
+  collaboratorId: string,
+) {
+  const slug = "seed-organization";
+  const existing = await db.query.organizations.findFirst({
+    where: eq(organizations.slug, slug),
+  });
+
+  if (existing) {
+    return existing;
+  }
+
+  const [created] = await db
+    .insert(organizations)
+    .values({
+      name: "Seed Organization",
+      slug,
+    })
+    .returning();
+
+  if (!created) {
+    throw new Error("Failed to create seed organization.");
+  }
+
+  await db.insert(organizationMembers).values([
+    {
+      organizationId: created.id,
+      userId: ownerId,
+      role: "OWNER",
+    },
+    {
+      organizationId: created.id,
+      userId: collaboratorId,
+      role: "COLLABORATOR",
+    },
+  ]);
+
+  return created;
+}
+
 async function seedRolesAndRates(core: {
   collaborator: typeof users.$inferSelect;
   collaboratorRole: SeedUserInput["role"];
   owner: typeof users.$inferSelect;
   ownerRole: SeedUserInput["role"];
+  organizationId: string;
 }) {
   await db
     .insert(userRoles)
     .values([
-      { userId: core.owner.id, role: core.ownerRole },
-      { userId: core.collaborator.id, role: core.collaboratorRole },
+      {
+        userId: core.owner.id,
+        role: core.ownerRole,
+        organizationId: core.organizationId,
+      },
+      {
+        userId: core.collaborator.id,
+        role: core.collaboratorRole,
+        organizationId: core.organizationId,
+      },
     ])
     .onConflictDoNothing();
 
@@ -182,12 +235,14 @@ export async function seedCore(): Promise<CoreSeedResult> {
   const passwordHash = await hash(seedPassword, 10);
   const owner = await getOrCreateUser(ownerInput, passwordHash);
   const collaborator = await getOrCreateUser(collaboratorInput, passwordHash);
+  const organization = await getOrCreateOrganization(owner.id, collaborator.id);
 
   await seedRolesAndRates({
     collaborator,
     collaboratorRole: collaboratorInput.role,
     owner,
     ownerRole: ownerInput.role,
+    organizationId: organization.id,
   });
 
   const project = await getOrCreateSeedProject(owner.id);
@@ -198,5 +253,5 @@ export async function seedCore(): Promise<CoreSeedResult> {
     projectId: project.id,
   });
 
-  return { collaborator, owner, password: seedPassword, project };
+  return { collaborator, owner, password: seedPassword, project, organization };
 }

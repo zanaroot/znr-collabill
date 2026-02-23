@@ -13,7 +13,29 @@ import {
 const factory = createFactory<AuthEnv>();
 
 const ensureMembership = async (userId: string, projectId: string) => {
-  return await projectRepository.isProjectMember(projectId, userId);
+  const project = await projectRepository.findProjectById(projectId);
+  if (!project) return false;
+
+  const isProjectMember = await projectRepository.isProjectMember(
+    projectId,
+    userId,
+  );
+  if (isProjectMember) return true;
+
+  const isOrgMember = await projectRepository.isOrganizationMember(
+    project.organizationId,
+    userId,
+  );
+  if (!isOrgMember) return false;
+
+  const orgRole = await projectRepository.getOrganizationRole(
+    userId,
+    project.organizationId,
+  );
+
+  if (orgRole === "OWNER") return true;
+
+  return false;
 };
 
 export const getTasksByProject = factory.createHandlers(async (c) => {

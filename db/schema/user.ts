@@ -8,6 +8,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { roleEnum } from "./enums";
+import { organizations } from "./organization";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -24,8 +25,11 @@ export const userRoles = pgTable(
       .notNull()
       .references(() => users.id),
     role: roleEnum("role").notNull(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
   },
-  (t) => [primaryKey({ columns: [t.userId, t.role] })],
+  (t) => [primaryKey({ columns: [t.userId, t.role, t.organizationId] })],
 );
 
 export const collaboratorRates = pgTable("collaborator_rates", {

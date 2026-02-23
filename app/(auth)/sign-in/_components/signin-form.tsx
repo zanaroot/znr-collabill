@@ -19,7 +19,13 @@ export const SignInForm = () => {
     onSuccess: (data) => {
       if (data.success) {
         message.success("Sign in successful!");
-        router.push("/task-board");
+        if (data.orgCount === 0) {
+          router.push("/create-organization");
+        } else if (data.orgCount && data.orgCount > 1) {
+          router.push("/select-organization");
+        } else {
+          router.push("/task-board");
+        }
       } else {
         message.error(data.error || "Something went wrong.");
       }
@@ -65,6 +71,9 @@ export const SignInForm = () => {
             </Link>
           </Form.Item>
         </Flex>
+        <div style={{ textAlign: "center", marginTop: 16 }}>
+          Don't have an account? <Link href="/sign-up">Sign up</Link>
+        </div>
       </Form>
     </Card>
   );

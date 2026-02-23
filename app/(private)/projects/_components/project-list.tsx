@@ -27,12 +27,14 @@ import {
   createProjectSchema,
   type Project,
 } from "@/http/models/project.model";
+import { useCurrentUser } from "../../team-management/_hooks/use-team";
 import {
   useCreateProject,
   useDeleteProject,
   useProjects,
   useUpdateProject,
 } from "../_hooks/use-projects";
+import { ProjectDetailsDrawer } from "./project-details-drawer";
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -41,7 +43,10 @@ const { TextArea } = Input;
 export function ProjectList() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [selectedProjectForDetails, setSelectedProjectForDetails] =
+    useState<Project | null>(null);
 
+  const { data: currentUser } = useCurrentUser();
   const { data: projects, isLoading: isFetching } = useProjects();
   const createProjectMutation = useCreateProject();
   const updateProjectMutation = useUpdateProject();
@@ -207,9 +212,11 @@ export function ProjectList() {
             <Title level={4} style={{ margin: 0 }}>
               Projects
             </Title>
-            <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
-              New Project
-            </Button>
+            {currentUser?.organizationRole === "OWNER" && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
+                New Project
+              </Button>
+            )}
           </Flex>
         }
       >
@@ -219,12 +226,34 @@ export function ProjectList() {
           rowKey="id"
           loading={isFetching}
           pagination={{ pageSize: 10 }}
+          onRow={(record) => ({
+            onClick: (event) => {
+              // Don't open details if clicking on buttons or links
+              const target = event.target as HTMLElement;
+              if (
+                target.tagName === "BUTTON" ||
+                target.tagName === "A" ||
+                target.closest("button") ||
+                target.closest("a")
+              ) {
+                return;
+              }
+              setSelectedProjectForDetails(record);
+            },
+            style: { cursor: "pointer" },
+          })}
         />
       </Card>
 
+      <ProjectDetailsDrawer
+        project={selectedProjectForDetails}
+        open={!!selectedProjectForDetails}
+        onClose={() => setSelectedProjectForDetails(null)}
+      />
+
       <Drawer
         title={editingProject ? "Edit project" : "Create a new project"}
-        width={400}
+        size={400}
         onClose={() => {
           setIsDrawerOpen(false);
           setEditingProject(null);

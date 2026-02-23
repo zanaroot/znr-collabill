@@ -1,8 +1,13 @@
 "use client";
 
+
 import { Select, Spin, Typography } from "antd";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+
 import { useEffect, useMemo, useState } from "react";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
+import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
 import { useTasks } from "../_hooks/use-tasks";
 import { CreateBoard } from "./create-board";
 
@@ -13,9 +18,17 @@ type TaskBoardProps = {
 };
 
 export function TaskBoard({ currentUserId }: TaskBoardProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const projectIdParam = searchParams.get("projectId");
+
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
-  const [projectId, setProjectId] = useState<string | undefined>();
+  const [projectId, setProjectId] = useState<string | undefined>(
+    projectIdParam || undefined,
+  );
   const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
+  const { data: users } = useUsers();
   const taskCount = tasks?.length ?? 0;
   const selectedProject = useMemo(
     () => projects?.find((project) => project.id === projectId),
@@ -23,10 +36,22 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
   );
 
   useEffect(() => {
-    if (!projectId && projects?.length) {
-      setProjectId(projects[0].id);
+    if (projectId) {
+      if (projectIdParam !== projectId) {
+        const params = new URLSearchParams(searchParams);
+        params.set("projectId", projectId);
+        router.replace(`${pathname}?${params.toString()}`);
+      }
+    } else if (projects?.length && !projectIdParam) {
+      const defaultId = projects[0].id;
+      setProjectId(defaultId);
+      const params = new URLSearchParams(searchParams);
+      params.set("projectId", defaultId);
+      router.replace(`${pathname}?${params.toString()}`);
+    } else if (projectIdParam && projectIdParam !== projectId) {
+      setProjectId(projectIdParam);
     }
-  }, [projects, projectId]);
+  }, [projects, projectId, searchParams, pathname, router, projectIdParam]);
 
   return (
     <div className="space-y-6">
@@ -80,6 +105,12 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           projectId={projectId}
           projectName={selectedProject?.name}
           isProjectOwner={selectedProject?.createdBy === currentUserId}
+          members={
+            users?.map((user) => ({
+              id: user.id,
+              name: user.name || user.email,
+            })) ?? []
+          }
         />
       )}
     </div>

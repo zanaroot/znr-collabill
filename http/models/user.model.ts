@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const roleEnum = z.enum(["OWNER", "COLLABORATOR"]);
+export const roleEnum = z.enum(["OWNER", "ADMIN", "COLLABORATOR"]);
 export type Role = z.infer<typeof roleEnum>;
 
 export type UserRole = {
@@ -13,7 +13,8 @@ export type UserWithRoles = {
   email: string;
   name: string;
   createdAt: string | Date | null;
-  roles: UserRole[];
+  role: Role;
+  joinedAt: string | Date | null;
 };
 
 export type Invitation = {
