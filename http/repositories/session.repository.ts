@@ -52,7 +52,7 @@ export const deleteSessionByToken = async (token: string) => {
 
 export const updateSessionOrganization = async (
   token: string,
-  organizationId: string,
+  organizationId: string | null,
 ) => {
   await db
     .update(sessions)
