@@ -13,8 +13,9 @@ import {
   Tag,
   Typography,
 } from "antd";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createOrganizationAction, deleteOrganizationAction } from "@/http/actions/organization.action";
+import { createOrganizationAction } from "@/http/actions/organization.action";
 import type { Role } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 import { useCurrentUser } from "../../team-management/_hooks/use-team";
@@ -74,6 +75,8 @@ export default function OrganizationType() {
     },
   });
 
+  const router = useRouter();
+
   const handleDelete = (id: string) => {
     Modal.confirm({
       title: "Delete Organization",
@@ -88,15 +91,10 @@ export default function OrganizationType() {
           await deleteMutation.mutateAsync(id);
           message.success("Organization deleted");
 
-          const response = await deleteOrganizationAction(id);
+          await deleteMutation.mutateAsync(id);
+          message.success("Organization deleted");
+          router.push("/select-organization");
 
-          if (response.success) {
-            message.success(response.message || "Organization deleted");
-
-            queryClient.invalidateQueries({ queryKey: ["organizations", "owned"] });
-          } else {
-            message.error(response.error || "Delete failed");
-          }
         } catch (error) {
           message.error((error as Error).message || "Delete failed");
         }
@@ -127,6 +125,10 @@ export default function OrganizationType() {
     }
   }
 
+  const handleCancel = () => {
+    setOpen(false)
+  }
+
   return (
     <div style={{ padding: 24 }}>
       <div
@@ -150,6 +152,7 @@ export default function OrganizationType() {
         <Modal
           title='create organization'
           open={open}
+          onCancel={handleCancel}
           onOk={handleCreate}
         >
           <Input
@@ -198,6 +201,11 @@ export default function OrganizationType() {
                 </div>
 
                 <Tag
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
                   color={
                     member.role === "OWNER"
                       ? "gold"

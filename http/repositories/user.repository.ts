@@ -89,8 +89,7 @@ export const getOrganizations = async (userId: string) => {
       organizations,
       eq(organizationMembers.organizationId, organizations.id),
     )
-    .where(eq(organizationMembers.userId, userId))
-    .limit(1);
+    .where(eq(organizationMembers.userId, userId));
 
-  return membership[0]?.organizations ?? null;
+  return membership.map((m) => m.organizations);
 };

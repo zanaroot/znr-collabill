@@ -6,7 +6,6 @@ import { getCurrentUser } from "@/http/actions/get-current-user";
 import type { ActionResponse } from "@/http/models/auth.model";
 import {
   createOrganization,
-  deleteOrganizationById,
   getUserOrganizations,
 } from "@/http/repositories/organization.repository";
 import { updateSessionOrganization } from "@/http/repositories/session.repository";
@@ -75,41 +74,35 @@ export const getUserOrganizationsAction = async () => {
   }
 };
 
-export const deleteOrganizationAction = async (
-  organizationId: string,
-): Promise<ActionResponse> => {
-  try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { error: "Unauthorized", success: false };
-    }
+// export const deleteOrganizationAction = async (
+//   organizationId: string,
+// ): Promise<ActionResponse> => {
+//   try {
+//     const currentUser = await getCurrentUser();
+//     if (!currentUser) {
+//       return { error: "Unauthorized", success: false };
+//     }
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get("session_token")?.value;
+//     const cookieStore = await cookies();
+//     const token = cookieStore.get("session_token")?.value;
 
-    await deleteOrganizationById(organizationId);
+//     await deleteOrganizationById(organizationId);
 
-    if (token) {
-      const remainingOrganizations = await getUserOrganizations(currentUser.id);
-      // const ownedOrgs = remainingOrganizations.filter(
-      //   (org) => org.role === "OWNER",
-      // );
+//     if (token) {
+//       const remainingOrganizations = await getUserOrganizations(currentUser.id);
 
-      // if (ownedOrgs.length > 0) {
-      //   await updateSessionOrganization(token, ownedOrgs[0].id);
-      // }
-      if (remainingOrganizations.length > 0) {
-        await updateSessionOrganization(token, remainingOrganizations[0].id);
-      } else {
-        await updateSessionOrganization(token, null);
-      }
-    }
+//       if (remainingOrganizations.length > 0) {
+//         await updateSessionOrganization(token, remainingOrganizations[0].id);
+//       } else {
+//         await updateSessionOrganization(token, null);
+//       }
+//     }
 
-    revalidatePath("/organizations");
+//     revalidatePath("/organizations");
 
-    return { success: true, message: "Organization deleted" };
-  } catch (error) {
-    console.error(error);
-    return { error: "Something went wrong", success: false };
-  }
-};
+//     return { success: true, message: "Organization deleted" };
+//   } catch (error) {
+//     console.error(error);
+//     return { error: "Something went wrong", success: false };
+//   }
+// };
