@@ -27,7 +27,6 @@ import {
   useDeleteTask,
   useUpdateTask,
 } from "../_hooks/use-tasks";
-import { projectMembers } from "@/db/schema";
 
 type User = {
   id: string;
@@ -118,9 +117,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-      from: activeTask.status,
-      isProjectOwner,
-    })
+        from: activeTask.status,
+        isProjectOwner,
+      })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -482,7 +481,6 @@ export function CreateBoard({
                     value: member.id,
                   }))}
                   style={{ width: "100%" }}
-
                 />
               </Space>
             </div>
@@ -653,7 +651,6 @@ function Column({
                     )}
                   </div>
 
-
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <Tag variant="filled" color="default">
                       Size {task.size}
@@ -665,7 +662,8 @@ function Column({
                     ) : null}
                     {task.assignedTo && (
                       <Tag variant="filled" color="blue">
-                         {members.find(m => m.id === task.assignedTo)?.name || 'Unknown'}
+                        {members.find((m) => m.id === task.assignedTo)?.name ||
+                          "Unknown"}
                       </Tag>
                     )}
                   </div>

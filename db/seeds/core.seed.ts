@@ -152,7 +152,11 @@ async function seedRolesAndRates(core: {
     });
 }
 
-async function getOrCreateSeedProject(ownerId: string, organizationId: string) {
+async function getOrCreateSeedProject(
+  ownerId: string,
+  organizationId: string,
+  collaboratorId: string,
+) {
   const existing = await db.query.projects.findFirst({
     where: and(
       eq(projects.name, "Seed Project"),
@@ -172,6 +176,9 @@ async function getOrCreateSeedProject(ownerId: string, organizationId: string) {
       gitRepo: "https://github.com/example/collabill-seed",
       createdBy: ownerId,
       organizationId,
+      rates: {
+        [collaboratorId]: 1.1, // 10% bonus for this project
+      },
     })
     .returning();
 
@@ -246,7 +253,11 @@ export async function seedCore(): Promise<CoreSeedResult> {
     organizationId: organization.id,
   });
 
-  const project = await getOrCreateSeedProject(owner.id, organization.id);
+  const project = await getOrCreateSeedProject(
+    owner.id,
+    organization.id,
+    collaborator.id,
+  );
 
   await seedProjectMembershipAndTasks({
     collaboratorId: collaborator.id,

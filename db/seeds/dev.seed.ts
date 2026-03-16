@@ -1,12 +1,19 @@
 import { and, eq } from "drizzle-orm";
+import {
+  type CollaboratorRates,
+  calculatePresenceUnitPrice,
+  calculateTaskUnitPrice,
+} from "../../lib/invoice-utils";
 import { db } from "../index";
 import {
   auditLogs,
+  collaboratorRates,
   invitations,
   invoiceLines,
   invoices,
   passwordResetTokens,
   presences,
+  projects,
   sessions,
   tasks,
 } from "../schema";
@@ -87,6 +94,18 @@ async function seedInvoicesAndLines(input: {
   collaboratorId: string;
   projectId: string;
 }) {
+  const project = await db.query.projects.findFirst({
+    where: eq(projects.id, input.projectId),
+  });
+
+  const userRates = await db.query.collaboratorRates.findFirst({
+    where: eq(collaboratorRates.userId, input.collaboratorId),
+  });
+
+  if (!project || !userRates) {
+    throw new Error("Project or user rates not found for seeding invoices.");
+  }
+
   let invoice = await db.query.invoices.findFirst({
     where: and(
       eq(invoices.userId, input.collaboratorId),
@@ -103,7 +122,7 @@ async function seedInvoicesAndLines(input: {
         periodStart: "2026-02-01",
         periodEnd: "2026-02-28",
         status: "DRAFT",
-        totalAmount: "1200",
+        totalAmount: "0", // Will be updated if needed or left as is for seed
         note: "Seed invoice for local development",
       })
       .returning();
@@ -130,13 +149,19 @@ async function seedInvoicesAndLines(input: {
   });
 
   if (!existingPresenceLine) {
+    const unitPrice = calculatePresenceUnitPrice(
+      input.collaboratorId,
+      userRates as unknown as CollaboratorRates,
+      project.rates,
+    );
+    const quantity = 3;
     await db.insert(invoiceLines).values({
       invoiceId: invoice.id,
       type: "PRESENCE",
       label: "Presence days",
-      quantity: 3,
-      unitPrice: "400",
-      total: "1200",
+      quantity,
+      unitPrice: unitPrice.toString(),
+      total: (unitPrice * quantity).toString(),
     });
   }
 
@@ -155,15 +180,33 @@ async function seedInvoicesAndLines(input: {
     return;
   }
 
+  const unitPrice = calculateTaskUnitPrice(
+    input.collaboratorId,
+    projectTask.size,
+    userRates as unknown as CollaboratorRates,
+    project.rates,
+  );
+  const quantity = 1;
+
   await db.insert(invoiceLines).values({
     invoiceId: invoice.id,
     type: "TASK",
     referenceId: projectTask.id,
     label: "Validated task",
-    quantity: 1,
-    unitPrice: "400",
-    total: "400",
+    quantity,
+    unitPrice: unitPrice.toString(),
+    total: (unitPrice * quantity).toString(),
   });
+
+  // Update total amount of invoice
+  const lines = await db.query.invoiceLines.findMany({
+    where: eq(invoiceLines.invoiceId, invoice.id),
+  });
+  const totalAmount = lines.reduce((acc, line) => acc + Number(line.total), 0);
+  await db
+    .update(invoices)
+    .set({ totalAmount: totalAmount.toString() })
+    .where(eq(invoices.id, invoice.id));
 }
 
 async function seedAuditLogs(ownerId: string, projectId: string) {

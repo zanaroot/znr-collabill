@@ -25,6 +25,7 @@ export const createProject = async (
         gitRepo: input.gitRepo,
         organizationId: input.organizationId,
         createdBy: input.createdBy,
+        rates: input.rates ?? {},
       })
       .returning();
 
@@ -66,6 +67,7 @@ export const findProjectsForCollaborator = async (
       gitRepo: projects.gitRepo,
       organizationId: projects.organizationId,
       createdBy: projects.createdBy,
+      rates: projects.rates,
       createdAt: projects.createdAt,
     })
     .from(projects)
@@ -87,6 +89,7 @@ export const findProjectsByUserId = async (userId: string) => {
       description: projects.description,
       gitRepo: projects.gitRepo,
       createdBy: projects.createdBy,
+      rates: projects.rates,
       createdAt: projects.createdAt,
     })
     .from(projects)

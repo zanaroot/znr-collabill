@@ -11,6 +11,7 @@ export const projectSchema = z.object({
     .or(z.literal(""))
     .or(z.string().length(0)),
   createdBy: z.string().uuid().nullable(),
+  rates: z.record(z.string().uuid(), z.number()).nullable(),
   createdAt: z.date().nullable().or(z.string()),
 });
 
@@ -20,6 +21,7 @@ export const createProjectSchema = z.object({
   name: z.string().min(1, "Name is required").max(255),
   description: z.string().optional(),
   gitRepo: z.string().url("Invalid URL").optional().or(z.literal("")),
+  rates: z.record(z.string().uuid(), z.number()).optional(),
 });
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
@@ -28,6 +30,7 @@ export const updateProjectSchema = z.object({
   name: z.string().min(1, "Name is required").max(255).optional(),
   description: z.string().optional(),
   gitRepo: z.string().url("Invalid URL").optional().or(z.literal("")),
+  rates: z.record(z.string().uuid(), z.number()).optional(),
 });
 
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;

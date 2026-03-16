@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -18,6 +19,7 @@ export const projects = pgTable("projects", {
     .notNull()
     .references(() => organizations.id),
   createdBy: uuid("created_by").references(() => users.id),
+  rates: jsonb("rates").$type<Record<string, number>>().default({}),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -53,20 +53,27 @@ export const updateProjectAction = async (
     const user = await getCurrentUser();
     if (!user) return { error: "Unauthorized", success: false };
 
-    const isMember = await projectRepository.isProjectMember(id, user.id);
-    if (!isMember) return { error: "Unauthorized", success: false };
+    const project = await projectRepository.findProjectById(id);
+    if (!project) return { error: "Project not found", success: false };
+
+    if (project.createdBy !== user.id) {
+      return {
+        error: "Only the creator can update the project",
+        success: false,
+      };
+    }
 
     const parsed = updateProjectSchema.safeParse(input);
     if (!parsed.success) {
       return { error: "Invalid data", success: false };
     }
 
-    const project = await projectRepository.updateProject(id, parsed.data);
+    const updated = await projectRepository.updateProject(id, parsed.data);
 
     revalidatePath("/projects");
     revalidatePath(`/projects/${id}`);
 
-    return { success: true, data: project };
+    return { success: true, data: updated as Project };
   } catch (error) {
     console.error("Update project error:", error);
     return { error: "Something went wrong", success: false };
