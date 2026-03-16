@@ -2,7 +2,7 @@ import { createFactory } from "hono/factory";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   deleteOrganizationById,
-  getOrganizationsOwnedByUser,
+  getUserOrganizationsWithMembers,
   isOrganizationOwner,
 } from "@/http/repositories/organization.repository";
 
@@ -15,7 +15,7 @@ export const getOwnedOrganizations = factory.createHandlers(async (c) => {
     return c.json({ error: "Forbidden" }, 403);
   }
 
-  const organizations = await getOrganizationsOwnedByUser(currentUser.id);
+  const organizations = await getUserOrganizationsWithMembers(currentUser.id);
   return c.json(organizations);
 });
 

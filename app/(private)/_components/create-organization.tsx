@@ -22,6 +22,7 @@ export const CreateOrganization = ({ onSuccess }: CreateOrganizationProps) => {
             message.success(response.message);
             setOpen(false);
             setName("");
+            onSuccess?.();
         } else {
             message.error(response.error)
         }

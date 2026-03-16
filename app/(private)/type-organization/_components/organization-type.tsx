@@ -42,8 +42,8 @@ export default function OrganizationType() {
   const canView = currentUser?.organizationRole === "OWNER";
 
   const { data: organizations, isLoading } = useQuery({
-    queryKey: ["organizations", "owned"],
-    enabled: !!currentUser && canView,
+    queryKey: ["organizations", "all"],
+    enabled: !!currentUser,
     queryFn: async () => {
       const res = await client.api.organizations.$get();
       if (!res.ok) {

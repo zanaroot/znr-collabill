@@ -290,6 +290,57 @@ export const getOrganizationsOwnedByUser = async (
   }));
 };
 
+export const getUserOrganizationsWithMembers = async (
+  userId: string,
+): Promise<OwnedOrganization[]> => {
+  const userOrgs = await db
+    .select({
+      id: organizations.id,
+      name: organizations.name,
+    })
+    .from(organizations)
+    .innerJoin(
+      organizationMembers,
+      eq(organizations.id, organizationMembers.organizationId),
+    )
+    .where(eq(organizationMembers.userId, userId))
+    .orderBy(organizations.createdAt);
+
+  if (userOrgs.length === 0) return [];
+
+  const organizationIds = userOrgs.map((o) => o.id);
+
+  const members = await db
+    .select({
+      organizationId: organizationMembers.organizationId,
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: organizationMembers.role,
+    })
+    .from(organizationMembers)
+    .innerJoin(users, eq(organizationMembers.userId, users.id))
+    .where(inArray(organizationMembers.organizationId, organizationIds))
+    .orderBy(organizationMembers.joinedAt);
+
+  const byOrgId = new Map<string, OrganizationMemberSummary[]>();
+  for (const m of members) {
+    const list = byOrgId.get(m.organizationId) ?? [];
+    list.push({
+      id: m.id,
+      name: m.name,
+      email: m.email,
+      role: m.role,
+    });
+    byOrgId.set(m.organizationId, list);
+  }
+
+  return userOrgs.map((org) => ({
+    ...org,
+    members: byOrgId.get(org.id) ?? [],
+  }));
+};
+
 export const isOrganizationOwner = async (
   organizationId: string,
   userId: string,
