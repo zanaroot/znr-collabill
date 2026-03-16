@@ -19,6 +19,7 @@ import { createOrganizationAction } from "@/http/actions/organization.action";
 import type { Role } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 import { useCurrentUser } from "../../team-management/_hooks/use-team";
+import { CreateOrganization } from "@/app/(private)/_components/create-organization";
 
 const { Title, Text } = Typography;
 
@@ -36,8 +37,6 @@ type Organization = {
 };
 
 export default function OrganizationType() {
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState("")
   const queryClient = useQueryClient();
   const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
   const canView = currentUser?.organizationRole === "OWNER";
@@ -111,23 +110,6 @@ export default function OrganizationType() {
     return <Result status="403" title="403" subTitle="Forbidden" />;
   }
 
-  const handleCreate = async () => {
-    if (!name) return;
-
-    const response = await createOrganizationAction(name)
-
-    if (response.success) {
-      message.success(response.message);
-      setOpen(false);
-      setName("");
-    } else {
-      message.error(response.error)
-    }
-  }
-
-  const handleCancel = () => {
-    setOpen(false)
-  }
 
   return (
     <div style={{ padding: 24 }}>
@@ -142,25 +124,8 @@ export default function OrganizationType() {
         <Title level={2} style={{ margin: 0 }}>
           My Organizations
         </Title>
-
-        <Button
-          type="primary"
-          onClick={() => setOpen(true)} >
-          <PlusOutlined />
-          Create Organization
-        </Button>
-        <Modal
-          title='create organization'
-          open={open}
-          onCancel={handleCancel}
-          onOk={handleCreate}
-        >
-          <Input
-            placeholder="Organization name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </Modal>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        </div>
       </div>
 
       {isLoading ? (

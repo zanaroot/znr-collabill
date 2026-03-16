@@ -15,6 +15,8 @@ import {
   getUserOrganizationsAction,
   selectOrganizationAction,
 } from "@/http/actions/organization.action";
+import { CreateOrganization } from "@/app/(private)/_components/create-organization";
+import { queryClient } from "@/packages/react-query";
 
 const { Text } = Typography;
 
@@ -51,9 +53,9 @@ export const OrganizationSwitcher = ({
 
   const abbreviation = currentOrganization?.name
     ? currentOrganization.name
-        .split(" ")
-        .map((word) => word[0].toUpperCase())
-        .join("")
+      .split(" ")
+      .map((word) => word[0].toUpperCase())
+      .join("")
     : "FB";
 
   const items: MenuProps["items"] = (organizations || []).map((org) => ({
@@ -74,9 +76,19 @@ export const OrganizationSwitcher = ({
     disabled: isPending,
   }));
 
-  // Add a divider and "Manage Organizations" if needed later
-  // items.push({ type: 'divider' });
-  // items.push({ key: 'manage', label: 'Manage Organizations' });
+  items.push({
+    key: "create-organization",
+    label: (
+      <div style={{ minWidth: 160 }}>
+        <CreateOrganization
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["userOrganizations"] });
+          }}
+        />
+      </div>
+    ),
+  });
+
 
   return (
     <Dropdown menu={{ items }} trigger={["click"]}>
