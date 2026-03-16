@@ -27,6 +27,7 @@ import {
   useDeleteTask,
   useUpdateTask,
 } from "../_hooks/use-tasks";
+import { projectMembers } from "@/db/schema";
 
 type User = {
   id: string;
@@ -117,9 +118,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-        from: activeTask.status,
-        isProjectOwner,
-      })
+      from: activeTask.status,
+      isProjectOwner,
+    })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -176,7 +177,7 @@ export function CreateBoard({
       priority: PRIORITY_VALUE[formValues.priorityLabel],
       dueDate: formValues.dueDate || undefined,
       status: formValues.status,
-      assigneeId: formValues.assigneeId,
+      assignedTo: formValues.assigneeId,
     };
 
     if (activeTask) {
@@ -284,6 +285,7 @@ export function CreateBoard({
                 onDragStartTask={handleDragStartTask}
                 onDragEndTask={handleDragEndTask}
                 onDropTask={handleDropTask}
+                members={members}
               />
             </div>
           ))}
@@ -480,7 +482,7 @@ export function CreateBoard({
                     value: member.id,
                   }))}
                   style={{ width: "100%" }}
-                  allowClear
+
                 />
               </Space>
             </div>
@@ -505,6 +507,7 @@ type ColumnProps = {
   onDragStartTask: (taskId: string) => void;
   onDragEndTask: () => void;
   onDropTask: (taskId: string, status: TaskStatus) => void;
+  members: User[];
 };
 
 function Column({
@@ -521,6 +524,7 @@ function Column({
   onDragStartTask,
   onDragEndTask,
   onDropTask,
+  members,
 }: ColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const canDropCurrentTask =
@@ -649,6 +653,7 @@ function Column({
                     )}
                   </div>
 
+
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <Tag variant="filled" color="default">
                       Size {task.size}
@@ -658,6 +663,11 @@ function Column({
                         Due {formatDueDate(task.dueDate)}
                       </Tag>
                     ) : null}
+                    {task.assignedTo && (
+                      <Tag variant="filled" color="blue">
+                         {members.find(m => m.id === task.assignedTo)?.name || 'Unknown'}
+                      </Tag>
+                    )}
                   </div>
                 </div>
               </Card>

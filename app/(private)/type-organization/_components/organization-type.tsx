@@ -163,12 +163,14 @@ export default function OrganizationType() {
         </Modal>
       </div>
 
-      <List
-        loading={isLoading}
-        dataSource={organizations ?? []}
-        locale={{ emptyText: "No organizations" }}
-        renderItem={(org) => (
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : organizations?.length === 0 ? (
+        <p>No organizations</p>
+      ) : (
+        (organizations ?? []).map((org) => (
           <Card
+            key={org.id}
             style={{ marginBottom: 20 }}
             title={org.name}
             extra={
@@ -183,7 +185,7 @@ export default function OrganizationType() {
               />
             }
           >
-            <Title level={5}>Members</Title>
+            <Title level={5}>Members :</Title>
 
             {org.members.map((member) => (
               <div
@@ -219,8 +221,8 @@ export default function OrganizationType() {
               </div>
             ))}
           </Card>
-        )}
-      />
+        ))
+      )}
     </div >
   );
 }
