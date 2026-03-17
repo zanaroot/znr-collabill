@@ -1,12 +1,10 @@
 "use client";
 
-import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Button,
   Card,
-  Input,
-  List,
   Modal,
   message,
   Result,
@@ -14,12 +12,9 @@ import {
   Typography,
 } from "antd";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { createOrganizationAction } from "@/http/actions/organization.action";
 import type { Role } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 import { useCurrentUser } from "../../team-management/_hooks/use-team";
-import { CreateOrganization } from "@/app/(private)/_components/create-organization";
 
 const { Title, Text } = Typography;
 
@@ -61,16 +56,20 @@ export default function OrganizationType() {
       const res = await client.api.organizations[":id"].$delete({
         param: { id },
       });
+
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
+
         throw new Error(body?.error || "Delete failed");
       }
+
       return await res.json();
     },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organizations", "owned"] });
+      queryClient.invalidateQueries({ queryKey: ["organizations", "all"] });
     },
   });
 
@@ -86,14 +85,9 @@ export default function OrganizationType() {
       cancelText: "Cancel",
       onOk: async () => {
         try {
-
-          await deleteMutation.mutateAsync(id);
-          message.success("Organization deleted");
-
           await deleteMutation.mutateAsync(id);
           message.success("Organization deleted");
           router.push("/select-organization");
-
         } catch (error) {
           message.error((error as Error).message || "Delete failed");
         }

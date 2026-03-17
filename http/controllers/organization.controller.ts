@@ -22,18 +22,9 @@ export const getOwnedOrganizations = factory.createHandlers(async (c) => {
 export const deleteOrganization = factory.createHandlers(async (c) => {
   const currentUser = c.get("user");
 
-  if (currentUser.organizationRole !== "OWNER") {
-    return c.json({ error: "Forbidden" }, 403);
-  }
-
   const id = c.req.param("id");
   if (!id) return c.json({ error: "ID required" }, 400);
 
-  const canDelete = await isOrganizationOwner(id, currentUser.id);
-  if (!canDelete) {
-    return c.json({ error: "Forbidden" }, 403);
-  }
-
-  await deleteOrganizationById(id);
+  await deleteOrganizationById(id, currentUser.id);
   return c.json({ message: "Organization deleted" });
 });

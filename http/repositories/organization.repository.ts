@@ -360,8 +360,31 @@ export const isOrganizationOwner = async (
   return !!record;
 };
 
-export const deleteOrganizationById = async (organizationId: string) => {
+export const deleteOrganizationById = async (
+  organizationId: string,
+  userId: string,
+) => {
   await db.transaction(async (tx) => {
+  
+    const membership = await tx
+      .select({ role: organizationMembers.role })
+      .from(organizationMembers)
+      .where(
+        and(
+          eq(organizationMembers.organizationId, organizationId),
+          eq(organizationMembers.userId, userId),
+        ),
+      )
+      .limit(1);
+
+    if (!membership.length) {
+      throw new Error("You are not a member of this organization");
+    }
+
+    if (membership[0].role !== "OWNER") {
+      throw new Error("Only the owner can delete this organization");
+    }
+
     const orgProjects = await tx
       .select({ id: projects.id })
       .from(projects)
@@ -379,12 +402,15 @@ export const deleteOrganizationById = async (organizationId: string) => {
     await tx
       .delete(projects)
       .where(eq(projects.organizationId, organizationId));
+
     await tx
       .delete(organizationMembers)
       .where(eq(organizationMembers.organizationId, organizationId));
+
     await tx
       .delete(userRoles)
       .where(eq(userRoles.organizationId, organizationId));
+
     await tx.delete(organizations).where(eq(organizations.id, organizationId));
   });
 };
