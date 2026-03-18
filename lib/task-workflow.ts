@@ -29,6 +29,11 @@ export const canTransitionTaskStatus = ({
     return to === "TRASH" || to === "IN_PROGRESS" || to === "VALIDATED";
   }
 
+  if (from === "VALIDATED") {
+    if (!isProjectOwner) return false;
+    return to === "IN_REVIEW";
+  }
+
   return COMMON_TRANSITIONS[from].includes(to);
 };
 
@@ -38,6 +43,10 @@ export const getAllowedTaskTransitions = ({
 }: Omit<TaskWorkflowContext, "to">): TaskStatus[] => {
   if (from === "IN_REVIEW") {
     return isProjectOwner ? ["TRASH", "IN_PROGRESS", "VALIDATED"] : [];
+  }
+
+  if (from === "VALIDATED") {
+    return isProjectOwner ? ["IN_REVIEW"] : [];
   }
 
   return [...COMMON_TRANSITIONS[from]];

@@ -365,7 +365,6 @@ export const deleteOrganizationById = async (
   userId: string,
 ) => {
   await db.transaction(async (tx) => {
-  
     const membership = await tx
       .select({ role: organizationMembers.role })
       .from(organizationMembers)

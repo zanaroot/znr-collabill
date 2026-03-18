@@ -4,6 +4,7 @@ import {
   ApartmentOutlined,
   BellOutlined,
   ContactsOutlined,
+  FileTextOutlined,
   LeftOutlined,
   ProjectOutlined,
   QuestionCircleOutlined,
@@ -27,6 +28,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "task-board": "Task Board",
   "team-management": "Team Management",
   projects: "Projects",
+  "invoice-lines": "Invoice Lines",
 };
 
 const DynamicBreadcrumb = ({ selectedKey }: { selectedKey: string }) => {
@@ -103,6 +105,15 @@ export const PrivateLayout = ({
               label: (
                 <Link href="/projects" prefetch={true}>
                   Projects
+                </Link>
+              ),
+            },
+            {
+              key: "invoice-lines",
+              icon: <FileTextOutlined />,
+              label: (
+                <Link href="/invoice-lines" prefetch={true}>
+                  Invoice Lines
                 </Link>
               ),
             },

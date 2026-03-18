@@ -3,6 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
+  collaboratorRates,
   organizationMembers,
   organizations,
   userRoles,
@@ -54,6 +55,16 @@ export const getAllUsersWithRoles = async () => {
   });
 
   return allUsers;
+};
+
+export const findCollaboratorRatesByUserId = async (userId: string) => {
+  const [rates] = await db
+    .select()
+    .from(collaboratorRates)
+    .where(eq(collaboratorRates.userId, userId))
+    .limit(1);
+
+  return rates ?? null;
 };
 
 export const deleteUser = async (id: string) => {

@@ -3,8 +3,10 @@ import { createFactory } from "hono/factory";
 import type { AuthEnv } from "@/http/models/auth.model";
 import type { UpdateTaskSystemInput } from "@/http/models/task.model";
 import { createTaskSchema, updateTaskSchema } from "@/http/models/task.model";
+import * as invoiceRepository from "@/http/repositories/invoice.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
+import * as userRepository from "@/http/repositories/user.repository";
 import {
   canDeleteTaskByStatus,
   canTransitionTaskStatus,
@@ -127,9 +129,68 @@ export const updateTask = factory.createHandlers(
       if (payload.status === "VALIDATED") {
         updates.validatedAt = new Date();
         updates.validatedBy = user.id;
-      } else if (task.validatedAt) {
+
+        const assignedTo =
+          payload.assignedTo !== undefined
+            ? payload.assignedTo
+            : task.assignedTo;
+        const taskSize = payload.size !== undefined ? payload.size : task.size;
+        const taskTitle =
+          payload.title !== undefined ? payload.title : task.title;
+
+
+        if (assignedTo) {
+          const rates =
+            await userRepository.findCollaboratorRatesByUserId(assignedTo);
+          if (rates) {
+            const now = new Date();
+            let invoice = await invoiceRepository.findDraftInvoice(
+              assignedTo,
+              now.getMonth() + 1,
+              now.getFullYear(),
+            );
+            if (!invoice) {
+              invoice = await invoiceRepository.createInvoice(
+                assignedTo,
+                now.getMonth() + 1,
+                now.getFullYear(),
+              );
+            }
+
+            let unitPrice = "0";
+            switch (taskSize) {
+              case "XS":
+                unitPrice = rates.rateXs || "0";
+                break;
+              case "S":
+                unitPrice = rates.rateS || "0";
+                break;
+              case "M":
+                unitPrice = rates.rateM || "0";
+                break;
+              case "L":
+                unitPrice = rates.rateL || "0";
+                break;
+              case "XL":
+                unitPrice = rates.rateL || "0"; // XL uses L for now
+                break;
+            }
+
+            await invoiceRepository.createInvoiceLine({
+              invoiceId: invoice.id,
+              type: "TASK",
+              referenceId: task.id,
+              label: taskTitle,
+              quantity: 1,
+              unitPrice: unitPrice,
+            });
+          }
+        }
+      } else if (task.status === "VALIDATED") {
         updates.validatedAt = null;
         updates.validatedBy = null;
+        // Delete invoice line
+        await invoiceRepository.deleteInvoiceLineByReference(task.id, "TASK");
       }
     }
 

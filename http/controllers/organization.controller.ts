@@ -3,7 +3,6 @@ import type { AuthEnv } from "@/http/models/auth.model";
 import {
   deleteOrganizationById,
   getUserOrganizationsWithMembers,
-  isOrganizationOwner,
 } from "@/http/repositories/organization.repository";
 
 const factory = createFactory<AuthEnv>();
