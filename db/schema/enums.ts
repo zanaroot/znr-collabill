@@ -18,3 +18,11 @@ export const invoiceStatusEnum = pgEnum("invoice_status", [
   "VALIDATED",
   "PAID",
 ]);
+
+export const presenceStatusEnum = pgEnum("presence_status", [
+  "OFFICE",
+  "REMOTE",
+  "ON_SITE",
+  "SICK",
+  "VACATION",
+]);

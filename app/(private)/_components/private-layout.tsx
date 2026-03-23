@@ -4,6 +4,7 @@ import {
   ApartmentOutlined,
   BellOutlined,
   ContactsOutlined,
+  FileTextOutlined,
   LeftOutlined,
   ProjectOutlined,
   QuestionCircleOutlined,
@@ -16,10 +17,9 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { type ReactNode, Suspense, useState } from "react";
 import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
-
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
-
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
+import { PresenceModal } from "./presence-modal";
 
 const { Header, Sider, Content } = Layout;
 
@@ -27,6 +27,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "task-board": "Task Board",
   "team-management": "Team Management",
   projects: "Projects",
+  invoices: "Invoices",
 };
 
 const DynamicBreadcrumb = ({ selectedKey }: { selectedKey: string }) => {
@@ -57,12 +58,15 @@ type Organization = {
 export const PrivateLayout = ({
   children,
   organization,
+  isMissingPresence = false,
 }: {
   children: ReactNode;
   organization?: Organization | null;
+  isMissingPresence?: boolean;
 }) => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [showPresenceModal, setShowPresenceModal] = useState(isMissingPresence);
   const { data: currentUser } = useCurrentUser();
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -73,6 +77,10 @@ export const PrivateLayout = ({
 
   return (
     <Layout>
+      <PresenceModal
+        open={showPresenceModal}
+        onSuccess={() => setShowPresenceModal(false)}
+      />
       <Sider collapsible collapsed={collapsed} trigger={null} theme="light">
         <OrganizationSwitcher
           currentOrganization={organization}
@@ -103,6 +111,15 @@ export const PrivateLayout = ({
               label: (
                 <Link href="/projects" prefetch={true}>
                   Projects
+                </Link>
+              ),
+            },
+            {
+              key: "invoices",
+              icon: <FileTextOutlined />,
+              label: (
+                <Link href="/invoices" prefetch>
+                  Invoices
                 </Link>
               ),
             },

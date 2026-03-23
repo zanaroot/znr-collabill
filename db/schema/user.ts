@@ -42,6 +42,9 @@ export const collaboratorRates = pgTable("collaborator_rates", {
   rateS: numeric("rate_s", { precision: 10, scale: 2 }).notNull(),
   rateM: numeric("rate_m", { precision: 10, scale: 2 }).notNull(),
   rateL: numeric("rate_l", { precision: 10, scale: 2 }).notNull(),
+  rateXl: numeric("rate_xl", { precision: 10, scale: 2 })
+    .notNull()
+    .default("0"),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 

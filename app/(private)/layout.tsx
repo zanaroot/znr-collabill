@@ -5,6 +5,8 @@ import {
   getOrganizationById,
   getUserOrganizations,
 } from "@/http/repositories/organization.repository";
+import { findPresenceByUserIdAndDate } from "@/http/repositories/presence.repository";
+import { getISODate } from "@/lib/date";
 import { PrivateLayout as PrivateLayoutComponent } from "./_components/private-layout";
 
 const PrivateLayout = async ({ children }: { children: ReactNode }) => {
@@ -24,9 +26,18 @@ const PrivateLayout = async ({ children }: { children: ReactNode }) => {
 
   const organization = await getOrganizationById(user.organizationId);
 
+  const todayPresence = await findPresenceByUserIdAndDate(
+    user.id,
+    getISODate(),
+  );
+  const isMissingPresence = !todayPresence;
+
   return (
     <div>
-      <PrivateLayoutComponent organization={organization}>
+      <PrivateLayoutComponent
+        organization={organization}
+        isMissingPresence={isMissingPresence}
+      >
         {children}
       </PrivateLayoutComponent>
     </div>

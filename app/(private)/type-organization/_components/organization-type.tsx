@@ -2,15 +2,7 @@
 
 import { DeleteOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Button,
-  Card,
-  Modal,
-  message,
-  Result,
-  Tag,
-  Typography,
-} from "antd";
+import { Button, Card, Modal, message, Result, Tag, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import type { Role } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
@@ -95,7 +87,6 @@ export default function OrganizationType() {
     });
   };
 
-
   if (isLoadingUser) {
     return null;
   }
@@ -103,7 +94,6 @@ export default function OrganizationType() {
   if (!canView) {
     return <Result status="403" title="403" subTitle="Forbidden" />;
   }
-
 
   return (
     <div style={{ padding: 24 }}>
@@ -118,8 +108,14 @@ export default function OrganizationType() {
         <Title level={2} style={{ margin: 0 }}>
           My Organizations
         </Title>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 24,
+          }}
+        ></div>
       </div>
 
       {isLoading ? (
@@ -182,6 +178,6 @@ export default function OrganizationType() {
           </Card>
         ))
       )}
-    </div >
+    </div>
   );
 }

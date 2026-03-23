@@ -11,11 +11,11 @@ import {
   Typography,
 } from "antd";
 import { useRouter } from "next/navigation";
+import { CreateOrganization } from "@/app/(private)/_components/create-organization";
 import {
   getUserOrganizationsAction,
   selectOrganizationAction,
 } from "@/http/actions/organization.action";
-import { CreateOrganization } from "@/app/(private)/_components/create-organization";
 import { queryClient } from "@/packages/react-query";
 
 const { Text } = Typography;
@@ -53,9 +53,9 @@ export const OrganizationSwitcher = ({
 
   const abbreviation = currentOrganization?.name
     ? currentOrganization.name
-      .split(" ")
-      .map((word) => word[0].toUpperCase())
-      .join("")
+        .split(" ")
+        .map((word) => word[0].toUpperCase())
+        .join("")
     : "FB";
 
   const items: MenuProps["items"] = (organizations || []).map((org) => ({
@@ -88,7 +88,6 @@ export const OrganizationSwitcher = ({
       </div>
     ),
   });
-
 
   return (
     <Dropdown menu={{ items }} trigger={["click"]}>

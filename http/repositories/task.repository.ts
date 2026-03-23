@@ -1,8 +1,13 @@
 "server only";
 
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { tasks } from "@/db/schema";
+import {
+  collaboratorRates,
+  organizationMembers,
+  tasks,
+  users,
+} from "@/db/schema";
 import type {
   CreateTaskInput,
   UpdateTaskSystemInput,
@@ -59,4 +64,40 @@ export const deleteTask = async (id: string) => {
 
 export const countTasksByProjectId = async (projectId: string) => {
   return await db.$count(tasks, eq(tasks.projectId, projectId));
+};
+
+export const getValidatedTaskSummaryByOrganization = async (
+  organizationId: string,
+) => {
+  return await db
+    .select({
+      userId: users.id,
+      userName: users.name,
+      size: tasks.size,
+      taskCount: count(tasks.id),
+      rateXs: collaboratorRates.rateXs,
+      rateS: collaboratorRates.rateS,
+      rateM: collaboratorRates.rateM,
+      rateL: collaboratorRates.rateL,
+      rateXl: collaboratorRates.rateXl,
+    })
+    .from(tasks)
+    .innerJoin(users, eq(tasks.assignedTo, users.id))
+    .innerJoin(organizationMembers, eq(users.id, organizationMembers.userId))
+    .leftJoin(collaboratorRates, eq(users.id, collaboratorRates.userId))
+    .where(
+      and(
+        eq(organizationMembers.organizationId, organizationId),
+        eq(tasks.status, "VALIDATED"),
+      ),
+    )
+    .groupBy(
+      users.id,
+      tasks.size,
+      collaboratorRates.rateXs,
+      collaboratorRates.rateS,
+      collaboratorRates.rateM,
+      collaboratorRates.rateL,
+      collaboratorRates.rateXl,
+    );
 };
