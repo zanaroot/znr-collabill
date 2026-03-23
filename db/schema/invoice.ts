@@ -9,6 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { invoiceStatusEnum } from "./enums";
+import { iterations } from "./iteration";
 import { users } from "./user";
 
 export const invoices = pgTable("invoices", {
@@ -16,6 +17,7 @@ export const invoices = pgTable("invoices", {
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id),
+  iterationId: uuid("iteration_id").references(() => iterations.id),
   periodStart: date("period_start").notNull(),
   periodEnd: date("period_end").notNull(),
   status: invoiceStatusEnum("status").default("DRAFT"),
@@ -43,6 +45,10 @@ export const invoicesRelations = relations(invoices, ({ many, one }) => ({
   user: one(users, {
     fields: [invoices.userId],
     references: [users.id],
+  }),
+  iteration: one(iterations, {
+    fields: [invoices.iterationId],
+    references: [iterations.id],
   }),
   lines: many(invoiceLines),
 }));

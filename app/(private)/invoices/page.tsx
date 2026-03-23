@@ -3,8 +3,10 @@ import { getCurrentUser } from "@/http/actions/get-current-user";
 import { getOrganizationMembers } from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
+import { findIterationById, findIterationsByOrganizationId } from "@/http/repositories/iteration.repository";
 import { InvoicePrintable } from "./_components/invoice-printable";
 import { MemberFilter } from "./_components/member-filter";
+import { IterationFilter } from "./_components/iteration-filter";
 import {
   type PresenceSummary,
   PresenceSummaryTable,
@@ -17,10 +19,10 @@ import {
 export const InvoicesPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ memberId?: string }>;
+  searchParams: Promise<{ memberId?: string; iterationId?: string }>;
 }) => {
   const user = await getCurrentUser();
-  const { memberId } = await searchParams;
+  const { memberId, iterationId } = await searchParams;
 
   if (!user || !user.organizationId) {
     return redirect("/");
@@ -29,16 +31,24 @@ export const InvoicesPage = async ({
   const isOwner = user.organizationRole === "OWNER";
   const targetUserId = isOwner && memberId ? memberId : user.id;
 
+  const [iterations, selectedIteration] = await Promise.all([
+    findIterationsByOrganizationId(user.organizationId),
+    iterationId ? findIterationById(iterationId) : Promise.resolve(null),
+  ]);
+
   const [presenceSummary, taskSummary, members] = await Promise.all([
     getPresenceSummaryByOrganization(
       user.id,
       user.organizationId,
       targetUserId,
+      selectedIteration?.startDate,
+      selectedIteration?.endDate,
     ),
     getValidatedTaskSummaryByOrganization(
       user.id,
       user.organizationId,
       targetUserId,
+      iterationId,
     ),
     isOwner ? getOrganizationMembers(user.organizationId) : Promise.resolve([]),
   ]);
@@ -54,11 +64,12 @@ export const InvoicesPage = async ({
         <h1 className="text-2xl font-semibold">Invoices & Summary</h1>
       </div>
 
-      {isOwner && (
-        <div className="no-print">
+      <div className="no-print flex flex-col gap-4">
+        <IterationFilter iterations={iterations} />
+        {isOwner && (
           <MemberFilter members={members} currentUserId={user.id} />
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 no-print">
         <h2 className="text-lg font-medium mb-4">Daily Presence Summary</h2>
@@ -78,6 +89,7 @@ export const InvoicesPage = async ({
         organizationName={user.organizationName || "Organization"}
         organizationId={user.organizationId}
         targetUserName={targetUserName}
+        iterationName={selectedIteration?.name}
       />
     </div>
   );

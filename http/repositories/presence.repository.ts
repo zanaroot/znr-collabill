@@ -1,6 +1,6 @@
 "server only";
 
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
 import {
   collaboratorRates,
@@ -74,8 +74,20 @@ export const getPresenceSummaryByOrganization = async (
   userId: string,
   organizationId: string,
   targetUserId?: string,
-) =>
-  await db
+  startDate?: string,
+  endDate?: string,
+) => {
+  const presenceFilters = [eq(users.id, presences.userId)];
+
+  if (startDate) {
+    presenceFilters.push(gte(presences.date, startDate));
+  }
+
+  if (endDate) {
+    presenceFilters.push(lte(presences.date, endDate));
+  }
+
+  return await db
     .select({
       userId: users.id,
       userName: users.name,
@@ -85,7 +97,7 @@ export const getPresenceSummaryByOrganization = async (
     .from(users)
     .innerJoin(organizationMembers, eq(users.id, organizationMembers.userId))
     .leftJoin(collaboratorRates, eq(users.id, collaboratorRates.userId))
-    .leftJoin(presences, eq(users.id, presences.userId))
+    .leftJoin(presences, and(...presenceFilters))
     .where(
       and(
         eq(organizationMembers.userId, targetUserId ?? userId),
@@ -93,3 +105,4 @@ export const getPresenceSummaryByOrganization = async (
       ),
     )
     .groupBy(users.id, collaboratorRates.dailyRate);
+};

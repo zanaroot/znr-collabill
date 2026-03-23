@@ -3,6 +3,7 @@ import { createFactory } from "hono/factory";
 import type { AuthEnv } from "@/http/models/auth.model";
 import type { UpdateTaskSystemInput } from "@/http/models/task.model";
 import { createTaskSchema, updateTaskSchema } from "@/http/models/task.model";
+import * as iterationRepository from "@/http/repositories/iteration.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import {
@@ -52,6 +53,28 @@ export const getTasksByProject = factory.createHandlers(async (c) => {
   }
 
   const tasks = await taskRepository.findTasksByProjectId(projectId);
+  return c.json(tasks);
+});
+
+export const getTasksByIteration = factory.createHandlers(async (c) => {
+  const iterationId = c.req.param("iterationId");
+  const user = c.get("user");
+
+  if (!iterationId) {
+    return c.json({ error: "Iteration ID is required" }, 400);
+  }
+
+  // Check if iteration belongs to user's organization
+  const iteration = await iterationRepository.findIterationById(iterationId);
+  if (!iteration) {
+    return c.json({ error: "Iteration not found" }, 404);
+  }
+
+  if (iteration.organizationId !== user.organizationId) {
+    return c.json({ error: "Unauthorized" }, 403);
+  }
+
+  const tasks = await taskRepository.findTasksByIterationId(iterationId);
   return c.json(tasks);
 });
 

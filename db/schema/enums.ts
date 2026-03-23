@@ -26,3 +26,9 @@ export const presenceStatusEnum = pgEnum("presence_status", [
   "SICK",
   "VACATION",
 ]);
+
+export const iterationStatusEnum = pgEnum("iteration_status", [
+  "OPEN",
+  "CLOSED",
+  "ARCHIVED",
+]);

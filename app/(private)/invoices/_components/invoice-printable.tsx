@@ -16,6 +16,7 @@ type InvoicePrintableProps = {
   organizationName: string;
   organizationId: string;
   targetUserName?: string;
+  iterationName?: string;
 };
 
 export const InvoicePrintable = ({
@@ -24,6 +25,7 @@ export const InvoicePrintable = ({
   organizationName,
   organizationId,
   targetUserName,
+  iterationName,
 }: InvoicePrintableProps) => {
   const handlePrint = () => {
     window.print();
@@ -72,7 +74,6 @@ export const InvoicePrintable = ({
           icon={<PrinterOutlined />}
           onClick={handlePrint}
           type="primary"
-          size="large"
           className="shadow-md"
         >
           Print Invoice
@@ -88,7 +89,12 @@ export const InvoicePrintable = ({
             <Title level={2} className="m-0! text-gray-800">
               {organizationName}
             </Title>
-            <Text type="secondary" className="text-sm uppercase tracking-widest">Billing Summary</Text>
+            <div className="flex flex-col">
+              <Text type="secondary" className="text-sm uppercase tracking-widest">Billing Summary</Text>
+              {iterationName && (
+                <Text strong className="text-blue-600 uppercase text-xs tracking-wider">{iterationName}</Text>
+              )}
+            </div>
           </div>
           <div className="text-right flex flex-col items-end">
             <Title level={1} className="m-0! text-blue-600 font-black tracking-tighter">

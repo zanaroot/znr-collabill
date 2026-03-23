@@ -26,12 +26,27 @@ App URL: `http://localhost:3000`
 
 ## Environment Variables
 
-Used in code:
+- `DATABASE_URL`: PostgreSQL connection string.
+- `BREVO_API_KEY`: API key for Brevo (or another email provider) to send emails.
+- `MAIL_FROM`: The "From" address for outgoing emails.
+- `CRON_SECRET`: A secret token to secure the cron job endpoint.
 
-- `DATABASE_URL` (`db/index.ts`, `drizzle.config.ts`)
-- `NEXT_PUBLIC_APP_URL` (password reset/invitation links in `http/actions/password.action.ts`, `http/actions/invitation.action.ts`)
-- `SENDGRID_API_KEY`, `MAIL_FROM` (`lib/email.ts`)
-- `NODE_ENV` (secure session cookie in `http/actions/auth.action.ts`)
+## Cron Jobs
+
+The application includes an endpoint to automatically close iterations when their `endDate` has passed. This is useful for automating your billing or sprint cycles.
+
+To trigger this job, you need to set up a cron job that sends a `POST` request to the following endpoint:
+
+`POST /api/cron/close-iterations`
+
+You must include the `CRON_SECRET` in the `Authorization` header as a bearer token:
+
+```bash
+curl -X POST "https://your-app-url.com/api/cron/close-iterations" 
+     -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+
+You can use services like [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs), GitHub Actions schedules, or any other cron job provider.
 
 ## Commands
 

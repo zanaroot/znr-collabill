@@ -21,6 +21,14 @@ export const findTasksByProjectId = async (projectId: string) => {
     .orderBy(asc(tasks.priority), desc(tasks.createdAt));
 };
 
+export const findTasksByIterationId = async (iterationId: string) => {
+  return await db
+    .select()
+    .from(tasks)
+    .where(eq(tasks.iterationId, iterationId))
+    .orderBy(asc(tasks.priority), desc(tasks.createdAt));
+};
+
 export const findTaskById = async (id: string) => {
   const [task] = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
   return task ?? null;
@@ -31,6 +39,7 @@ export const createTask = async (input: CreateTaskInput) => {
     .insert(tasks)
     .values({
       projectId: input.projectId,
+      iterationId: input.iterationId,
       title: input.title,
       description: input.description,
       size: input.size,
@@ -70,7 +79,18 @@ export const getValidatedTaskSummaryByOrganization = async (
   userId: string,
   organizationId: string,
   targetUserId?: string,
+  iterationId?: string,
 ) => {
+  const whereClauses = [
+    eq(organizationMembers.userId, targetUserId ?? userId),
+    eq(organizationMembers.organizationId, organizationId),
+    eq(tasks.status, "VALIDATED"),
+  ];
+
+  if (iterationId) {
+    whereClauses.push(eq(tasks.iterationId, iterationId));
+  }
+
   return await db
     .select({
       userId: users.id,
@@ -87,13 +107,7 @@ export const getValidatedTaskSummaryByOrganization = async (
     .innerJoin(users, eq(tasks.assignedTo, users.id))
     .innerJoin(organizationMembers, eq(users.id, organizationMembers.userId))
     .leftJoin(collaboratorRates, eq(users.id, collaboratorRates.userId))
-    .where(
-      and(
-        eq(organizationMembers.userId, targetUserId ?? userId),
-        eq(organizationMembers.organizationId, organizationId),
-        eq(tasks.status, "VALIDATED"),
-      ),
-    )
+    .where(and(...whereClauses))
     .groupBy(
       users.id,
       tasks.size,

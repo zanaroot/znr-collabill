@@ -3,6 +3,7 @@
 import {
   ApartmentOutlined,
   BellOutlined,
+  CalendarOutlined,
   ContactsOutlined,
   FileTextOutlined,
   LeftOutlined,
@@ -27,6 +28,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "task-board": "Task Board",
   "team-management": "Team Management",
   projects: "Projects",
+  iterations: "Iterations",
   invoices: "Invoices",
 };
 
@@ -81,7 +83,18 @@ export const PrivateLayout = ({
         open={showPresenceModal}
         onSuccess={() => setShowPresenceModal(false)}
       />
-      <Sider collapsible collapsed={collapsed} trigger={null} theme="light">
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        trigger={null}
+        theme="light"
+        style={{
+          position: "sticky",
+          top: 0,
+          left: 0,
+          height: "100vh",
+        }}
+      >
         <OrganizationSwitcher
           currentOrganization={organization}
           collapsed={collapsed}
@@ -115,6 +128,15 @@ export const PrivateLayout = ({
               ),
             },
             {
+              key: "iterations",
+              icon: <CalendarOutlined />,
+              label: (
+                <Link href="/iterations" prefetch={true}>
+                  Iterations
+                </Link>
+              ),
+            },
+            {
               key: "invoices",
               icon: <FileTextOutlined />,
               label: (
@@ -125,16 +147,16 @@ export const PrivateLayout = ({
             },
             ...(isOwner
               ? [
-                  {
-                    key: "type-organization",
-                    icon: <ApartmentOutlined />,
-                    label: (
-                      <Link href="/type-organization" prefetch={true}>
-                        Type organization
-                      </Link>
-                    ),
-                  },
-                ]
+                {
+                  key: "type-organization",
+                  icon: <ApartmentOutlined />,
+                  label: (
+                    <Link href="/type-organization" prefetch={true}>
+                      Type organization
+                    </Link>
+                  ),
+                },
+              ]
               : []),
           ]}
         />
@@ -163,7 +185,7 @@ export const PrivateLayout = ({
       <Layout>
         <Header
           style={{ padding: 0, background: colorBgContainer }}
-          className="flex items-center px-4! justify-between"
+          className="flex items-center px-4! justify-between sticky top-0 z-10"
         >
           <Suspense fallback={<Breadcrumb items={[{ title: "Dashboard" }]} />}>
             <DynamicBreadcrumb selectedKey={selectedKey} />
