@@ -413,3 +413,24 @@ export const deleteOrganizationById = async (
     await tx.delete(organizations).where(eq(organizations.id, organizationId));
   });
 };
+
+export const getOrganizationOwner = async (organizationId: string) => {
+  const [owner] = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: organizationMembers.role,
+    })
+    .from(organizationMembers)
+    .innerJoin(users, eq(organizationMembers.userId, users.id))
+    .where(
+      and(
+        eq(organizationMembers.organizationId, organizationId),
+        eq(organizationMembers.role, "OWNER"),
+      ),
+    )
+    .limit(1);
+
+  return owner ?? null;
+};

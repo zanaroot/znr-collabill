@@ -2,8 +2,8 @@ import { createFactory } from "hono/factory";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   deleteOrganizationById,
+  getOrganizationOwner,
   getUserOrganizationsWithMembers,
-  isOrganizationOwner,
 } from "@/http/repositories/organization.repository";
 
 const factory = createFactory<AuthEnv>();
@@ -27,4 +27,12 @@ export const deleteOrganization = factory.createHandlers(async (c) => {
 
   await deleteOrganizationById(id, currentUser.id);
   return c.json({ message: "Organization deleted" });
+});
+
+export const organizationOwner = factory.createHandlers(async (c) => {
+  const id = c.req.param("id");
+  if (!id) return c.json({ error: "ID required" }, 400);
+
+  const owner = await getOrganizationOwner(id);
+  return c.json(owner);
 });
