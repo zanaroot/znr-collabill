@@ -4,6 +4,7 @@ import { getOrganizationMembers } from "@/http/repositories/organization.reposit
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
 import { findIterationById, findIterationsByOrganizationId } from "@/http/repositories/iteration.repository";
+import { findInvoiceByIterationAndUser } from "@/http/repositories/invoice.repository";
 import { InvoicePrintable } from "./_components/invoice-printable";
 import { MemberFilter } from "./_components/member-filter";
 import { IterationFilter } from "./_components/iteration-filter";
@@ -36,7 +37,7 @@ export const InvoicesPage = async ({
     iterationId ? findIterationById(iterationId) : Promise.resolve(null),
   ]);
 
-  const [presenceSummary, taskSummary, members] = await Promise.all([
+  const [presenceSummary, taskSummary, members, existingInvoice] = await Promise.all([
     getPresenceSummaryByOrganization(
       user.id,
       user.organizationId,
@@ -51,6 +52,7 @@ export const InvoicesPage = async ({
       iterationId,
     ),
     isOwner ? getOrganizationMembers(user.organizationId) : Promise.resolve([]),
+    iterationId ? findInvoiceByIterationAndUser(iterationId, targetUserId) : Promise.resolve(null),
   ]);
 
   const targetUserName =
@@ -89,7 +91,12 @@ export const InvoicesPage = async ({
         organizationName={user.organizationName || "Organization"}
         organizationId={user.organizationId}
         targetUserName={targetUserName}
+        targetUserId={targetUserId}
+        iterationId={iterationId}
+        periodStart={selectedIteration?.startDate}
+        periodEnd={selectedIteration?.endDate}
         iterationName={selectedIteration?.name}
+        existingInvoice={existingInvoice}
       />
     </div>
   );

@@ -2,9 +2,10 @@
 
 import { PrinterOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Divider, Space, Tag, Typography } from "antd";
-import { useMemo } from "react";
+import { Button, Divider, Space, Tag, Typography, message } from "antd";
+import { useMemo, useState } from "react";
 import { client } from "@/packages/hono";
+import { validateInvoiceAction } from "@/http/actions/invoice.action";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary } from "./task-summary-table";
 
@@ -16,7 +17,12 @@ type InvoicePrintableProps = {
   organizationName: string;
   organizationId: string;
   targetUserName?: string;
+  targetUserId: string;
+  iterationId?: string;
+  periodStart?: string;
+  periodEnd?: string;
   iterationName?: string;
+  existingInvoice?: unknown;
 };
 
 export const InvoicePrintable = ({
@@ -25,8 +31,14 @@ export const InvoicePrintable = ({
   organizationName,
   organizationId,
   targetUserName,
+  targetUserId,
+  iterationId,
+  periodStart,
+  periodEnd,
   iterationName,
+  existingInvoice,
 }: InvoicePrintableProps) => {
+  const [isValidating, setIsValidating] = useState(false);
   const handlePrint = () => {
     window.print();
   };
@@ -69,7 +81,31 @@ export const InvoicePrintable = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end no-print">
+      <div className="flex justify-end gap-3 no-print">
+        {!existingInvoice && targetUserId && iterationId && periodStart && periodEnd && (
+          <Button
+            type="default"
+            loading={isValidating}
+            onClick={async () => {
+              setIsValidating(true);
+              const res = await validateInvoiceAction({
+                organizationId,
+                targetUserId,
+                iterationId,
+                periodStart,
+                periodEnd,
+                presenceData,
+                taskData,
+              });
+              setIsValidating(false);
+              if (res.error) message.error(res.error);
+              else message.success("Invoice validated successfully!");
+            }}
+            className="shadow-md font-medium text-green-600 border-green-200 bg-green-50 hover:bg-green-100 hover:border-green-300"
+          >
+            Validate Invoice
+          </Button>
+        )}
         <Button
           icon={<PrinterOutlined />}
           onClick={handlePrint}
@@ -109,8 +145,8 @@ export const InvoicePrintable = ({
                 <Text type="secondary" className="font-medium">Date:</Text>
                 <Text strong>{invoiceDate}</Text>
               </div>
-              <Tag color="blue" className="mt-2 border-none px-3 py-1 font-semibold no-print">
-                DRAFT
+              <Tag color={existingInvoice ? "green" : "blue"} className="mt-2 border-none px-3 py-1 font-semibold no-print text-center">
+                {existingInvoice ? "VALIDATED" : "DRAFT"}
               </Tag>
             </div>
           </div>
