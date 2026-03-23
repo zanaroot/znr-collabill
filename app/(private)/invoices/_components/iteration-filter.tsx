@@ -2,6 +2,7 @@
 
 import { Select, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 const { Text } = Typography;
 
@@ -20,6 +21,19 @@ export const IterationFilter = ({ iterations }: IterationFilterProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const iterationId = searchParams.get("iterationId");
+
+  useEffect(() => {
+    if (!iterationId && iterations.length > 0) {
+      const today = new Date().toISOString().split("T")[0];
+      const current =
+        iterations.find((it) => it.startDate <= today && it.endDate >= today) ||
+        iterations[0];
+      
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("iterationId", current.id);
+      router.replace(`/invoices?${params.toString()}`);
+    }
+  }, [iterationId, iterations, router, searchParams]);
 
   const handleChange = (value: string | undefined) => {
     const params = new URLSearchParams(searchParams.toString());

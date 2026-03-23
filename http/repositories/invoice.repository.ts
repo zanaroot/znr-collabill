@@ -49,3 +49,15 @@ export const createInvoiceWithLines = async (
     return invoice;
   });
 };
+
+export const markInvoiceAsPaid = async (id: string) => {
+  const [invoice] = await db
+    .update(invoices)
+    .set({
+      status: "PAID",
+      paidAt: new Date(),
+    })
+    .where(eq(invoices.id, id))
+    .returning();
+  return invoice;
+};

@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/http/actions/get-current-user";
+import { findInvoiceByIterationAndUser } from "@/http/repositories/invoice.repository";
+import { findIterationById, findIterationsByOrganizationId } from "@/http/repositories/iteration.repository";
 import { getOrganizationMembers } from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
-import { findIterationById, findIterationsByOrganizationId } from "@/http/repositories/iteration.repository";
-import { findInvoiceByIterationAndUser } from "@/http/repositories/invoice.repository";
 import { InvoicePrintable } from "./_components/invoice-printable";
-import { MemberFilter } from "./_components/member-filter";
 import { IterationFilter } from "./_components/iteration-filter";
+import { MemberFilter } from "./_components/member-filter";
 import {
   type PresenceSummary,
   PresenceSummaryTable,
@@ -73,17 +73,21 @@ export const InvoicesPage = async ({
         )}
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 no-print">
-        <h2 className="text-lg font-medium mb-4">Daily Presence Summary</h2>
-        <PresenceSummaryTable
-          data={presenceSummary as unknown as PresenceSummary[]}
-        />
-      </div>
+      {presenceSummary.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 no-print">
+          <h2 className="text-lg font-medium mb-4">Daily Presence Summary</h2>
+          <PresenceSummaryTable
+            data={presenceSummary as unknown as PresenceSummary[]}
+          />
+        </div>
+      )}
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 no-print">
-        <h2 className="text-lg font-medium mb-4">Validated Tasks Summary</h2>
-        <TaskSummaryTable data={taskSummary as unknown as RawTaskSummary[]} />
-      </div>
+      {taskSummary.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 no-print">
+          <h2 className="text-lg font-medium mb-4">Validated Tasks Summary</h2>
+          <TaskSummaryTable data={taskSummary as unknown as RawTaskSummary[]} />
+        </div>
+      )}
 
       <InvoicePrintable
         presenceData={presenceSummary as unknown as PresenceSummary[]}
@@ -97,6 +101,7 @@ export const InvoicesPage = async ({
         periodEnd={selectedIteration?.endDate}
         iterationName={selectedIteration?.name}
         existingInvoice={existingInvoice}
+        isOwner={isOwner}
       />
     </div>
   );

@@ -2,10 +2,10 @@
 
 import { PrinterOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Divider, Space, Tag, Typography, message } from "antd";
+import { Button, Divider, message, Space, Tag, Typography } from "antd";
 import { useMemo, useState } from "react";
+import { markInvoiceAsPaidAction, validateInvoiceAction } from "@/http/actions/invoice.action";
 import { client } from "@/packages/hono";
-import { validateInvoiceAction } from "@/http/actions/invoice.action";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary } from "./task-summary-table";
 
@@ -22,7 +22,8 @@ type InvoicePrintableProps = {
   periodStart?: string;
   periodEnd?: string;
   iterationName?: string;
-  existingInvoice?: unknown;
+  existingInvoice?: { id: string; status: string | null } | null;
+  isOwner?: boolean;
 };
 
 export const InvoicePrintable = ({
@@ -37,8 +38,10 @@ export const InvoicePrintable = ({
   periodEnd,
   iterationName,
   existingInvoice,
+  isOwner,
 }: InvoicePrintableProps) => {
   const [isValidating, setIsValidating] = useState(false);
+  const [isMarkingPaid, setIsMarkingPaid] = useState(false);
   const handlePrint = () => {
     window.print();
   };
@@ -106,14 +109,32 @@ export const InvoicePrintable = ({
             Validate Invoice
           </Button>
         )}
-        <Button
-          icon={<PrinterOutlined />}
-          onClick={handlePrint}
-          type="primary"
-          className="shadow-md"
-        >
-          Print Invoice
-        </Button>
+        {existingInvoice?.status === "VALIDATED" && isOwner && (
+          <Button
+            type="primary"
+            loading={isMarkingPaid}
+            className="bg-purple-600 hover:bg-purple-500 shadow-md border-purple-600"
+            onClick={async () => {
+              setIsMarkingPaid(true);
+              const res = await markInvoiceAsPaidAction(existingInvoice.id);
+              setIsMarkingPaid(false);
+              if (res.error) message.error(res.error);
+              else message.success("Invoice marked as paid!");
+            }}
+          >
+            Mark as Paid
+          </Button>
+        )}
+        {existingInvoice?.status !== "PAID" && isOwner && (
+          <Button
+            icon={<PrinterOutlined />}
+            onClick={handlePrint}
+            type="primary"
+            className="shadow-md"
+          >
+            Print Invoice
+          </Button>
+        )}
       </div>
 
       <div className="bg-white p-8 md:p-12 rounded-xl shadow-lg border border-gray-100 invoice-container print:shadow-none print:border-none print:p-0 print:m-0 w-full max-w-4xl mx-auto">
@@ -145,8 +166,8 @@ export const InvoicePrintable = ({
                 <Text type="secondary" className="font-medium">Date:</Text>
                 <Text strong>{invoiceDate}</Text>
               </div>
-              <Tag color={existingInvoice ? "green" : "blue"} className="mt-2 border-none px-3 py-1 font-semibold no-print text-center">
-                {existingInvoice ? "VALIDATED" : "DRAFT"}
+              <Tag color={existingInvoice ? (existingInvoice.status === "PAID" ? "purple" : "green") : "blue"} className="mt-2 border-none px-3 py-1 font-semibold no-print text-center">
+                {existingInvoice ? existingInvoice.status : "DRAFT"}
               </Tag>
             </div>
           </div>

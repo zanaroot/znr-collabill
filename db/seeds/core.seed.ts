@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "../index";
 import {
   collaboratorRates,
+  iterations,
   organizationMembers,
   organizations,
   projectMembers,
@@ -24,6 +25,7 @@ export type CoreSeedResult = {
   password: string;
   project: typeof projects.$inferSelect;
   organization: typeof organizations.$inferSelect;
+  iteration: typeof iterations.$inferSelect;
 };
 
 const seedUsers: SeedUserInput[] = [
@@ -182,10 +184,38 @@ async function getOrCreateSeedProject(ownerId: string, organizationId: string) {
   return created;
 }
 
+async function getOrCreateIteration(organizationId: string) {
+  const existing = await db.query.iterations.findFirst({
+    where: eq(iterations.name, "Seed Iteration"),
+  });
+
+  if (existing) {
+    return existing;
+  }
+
+  const [created] = await db
+    .insert(iterations)
+    .values({
+      name: "Seed Iteration",
+      organizationId,
+      startDate: "2026-01-01",
+      endDate: "2026-01-31",
+      status: "OPEN",
+    })
+    .returning();
+
+  if (!created) {
+    throw new Error("Failed to create seed iteration.");
+  }
+
+  return created;
+}
+
 async function seedProjectMembershipAndTasks(input: {
   collaboratorId: string;
   ownerId: string;
   projectId: string;
+  iterationId: string;
 }) {
   await db
     .insert(projectMembers)
@@ -207,6 +237,7 @@ async function seedProjectMembershipAndTasks(input: {
   await db.insert(tasks).values([
     {
       projectId: input.projectId,
+      iterationId: input.iterationId,
       title: "Set up project backlog",
       description: "Create initial backlog and milestones.",
       size: "S",
@@ -216,12 +247,23 @@ async function seedProjectMembershipAndTasks(input: {
     },
     {
       projectId: input.projectId,
+      iterationId: input.iterationId,
       title: "Implement first feature",
       description: "Build and validate the first seed feature.",
       size: "M",
       priority: 2,
       status: "IN_PROGRESS",
       assignedTo: input.collaboratorId,
+    },
+    {
+      projectId: input.projectId,
+      iterationId: input.iterationId,
+      title: "Validate completed feature",
+      description: "Review and validate the completed feature work.",
+      size: "M",
+      priority: 3,
+      status: "IN_REVIEW",
+      assignedTo: input.ownerId,
     },
   ]);
 }
@@ -247,12 +289,21 @@ export async function seedCore(): Promise<CoreSeedResult> {
   });
 
   const project = await getOrCreateSeedProject(owner.id, organization.id);
+  const iteration = await getOrCreateIteration(organization.id);
 
   await seedProjectMembershipAndTasks({
     collaboratorId: collaborator.id,
     ownerId: owner.id,
     projectId: project.id,
+    iterationId: iteration.id,
   });
 
-  return { collaborator, owner, password: seedPassword, project, organization };
+  return {
+    collaborator,
+    owner,
+    password: seedPassword,
+    project,
+    organization,
+    iteration,
+  };
 }

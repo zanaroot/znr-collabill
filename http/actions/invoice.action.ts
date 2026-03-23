@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "./get-current-user";
-import { createInvoiceWithLines } from "@/http/repositories/invoice.repository";
+import { createInvoiceWithLines, markInvoiceAsPaid } from "@/http/repositories/invoice.repository";
 import type { RawTaskSummary } from "@/app/(private)/invoices/_components/task-summary-table";
 
 type ValidateInvoiceArgs = {
@@ -83,5 +83,21 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
   } catch (error) {
     console.error("Failed to create invoice:", error);
     return { error: "Failed to validate invoice" };
+  }
+};
+
+export const markInvoiceAsPaidAction = async (invoiceId: string) => {
+  const user = await getCurrentUser();
+  if (!user || user.organizationRole !== "OWNER") {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    await markInvoiceAsPaid(invoiceId);
+    revalidatePath("/invoices");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to mark invoice as paid:", error);
+    return { error: "Failed to mark invoice as paid" };
   }
 };
