@@ -71,9 +71,11 @@ export const findRecentPresences = async (userId: string, limit = 5) => {
 };
 
 export const getPresenceSummaryByOrganization = async (
+  userId: string,
   organizationId: string,
-) => {
-  return await db
+  targetUserId?: string,
+) =>
+  await db
     .select({
       userId: users.id,
       userName: users.name,
@@ -84,6 +86,10 @@ export const getPresenceSummaryByOrganization = async (
     .innerJoin(organizationMembers, eq(users.id, organizationMembers.userId))
     .leftJoin(collaboratorRates, eq(users.id, collaboratorRates.userId))
     .leftJoin(presences, eq(users.id, presences.userId))
-    .where(eq(organizationMembers.organizationId, organizationId))
+    .where(
+      and(
+        eq(organizationMembers.userId, targetUserId ?? userId),
+        eq(organizationMembers.organizationId, organizationId),
+      ),
+    )
     .groupBy(users.id, collaboratorRates.dailyRate);
-};

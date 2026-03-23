@@ -81,6 +81,18 @@ export const updateUserRole = async (
   });
 };
 
+export const updateUser = async (
+  id: string,
+  data: { name?: string; email?: string },
+) => {
+  const [user] = await db
+    .update(users)
+    .set(data)
+    .where(eq(users.id, id))
+    .returning();
+  return user;
+};
+
 export const getOrganizations = async (userId: string) => {
   const membership = await db
     .select()

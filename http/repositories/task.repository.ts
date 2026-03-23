@@ -67,7 +67,9 @@ export const countTasksByProjectId = async (projectId: string) => {
 };
 
 export const getValidatedTaskSummaryByOrganization = async (
+  userId: string,
   organizationId: string,
+  targetUserId?: string,
 ) => {
   return await db
     .select({
@@ -87,6 +89,7 @@ export const getValidatedTaskSummaryByOrganization = async (
     .leftJoin(collaboratorRates, eq(users.id, collaboratorRates.userId))
     .where(
       and(
+        eq(organizationMembers.userId, targetUserId ?? userId),
         eq(organizationMembers.organizationId, organizationId),
         eq(tasks.status, "VALIDATED"),
       ),

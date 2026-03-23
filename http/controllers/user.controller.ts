@@ -11,6 +11,7 @@ import {
   removeOrganizationMember,
   updateOrganizationMemberRole,
 } from "@/http/repositories/organization.repository";
+import { updateUser } from "@/http/repositories/user.repository";
 
 const factory = createFactory<AuthEnv>();
 
@@ -18,6 +19,24 @@ export const getMe = factory.createHandlers(async (c) => {
   const user = c.get("user");
   return c.json(user);
 });
+
+export const updateMe = factory.createHandlers(
+  zValidator(
+    "json",
+    z.object({
+      name: z.string().min(1, "Name is required").optional(),
+      email: z.string().email("Invalid email").optional(),
+    }),
+  ),
+  async (c) => {
+    const user = c.get("user");
+    const { name, email } = c.req.valid("json");
+
+    const updatedUser = await updateUser(user.id, { name, email });
+
+    return c.json(updatedUser);
+  },
+);
 
 export const getUsers = factory.createHandlers(async (c) => {
   const currentUser = c.get("user");

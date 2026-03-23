@@ -7,10 +7,13 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Avatar, Dropdown } from "antd";
+import { useState } from "react";
 import { getShortName } from "@/lib/get-short-name";
 import { client } from "@/packages/hono";
+import { ProfileDrawer } from "./profile-drawer";
 
 export const UserDropdownMenus = () => {
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
@@ -27,36 +30,44 @@ export const UserDropdownMenus = () => {
     onSuccess: () => {
       window.location.href = "/";
     },
-    onError: () => {},
   });
 
   const shortName = getShortName(currentUser?.name);
 
   return (
-    <Dropdown
-      menu={{
-        items: [
-          {
-            icon: <UserOutlined />,
-            key: "profile",
-            label: "Profile",
-          },
-          {
-            icon: <SettingOutlined />,
-            key: "settings",
-            label: "Settings",
-          },
-          {
-            icon: <LogoutOutlined />,
-            key: "logout",
-            label: "Logout",
-            onClick: () => logout(),
-          },
-        ],
-      }}
-      trigger={["click"]}
-    >
-      <Avatar className="cursor-pointer">{shortName}</Avatar>
-    </Dropdown>
+    <>
+      <Dropdown
+        menu={{
+          items: [
+            {
+              icon: <UserOutlined />,
+              key: "profile",
+              label: "Profile",
+              onClick: () => setDrawerOpen(true),
+            },
+            {
+              icon: <SettingOutlined />,
+              key: "settings",
+              label: "Settings",
+            },
+            {
+              icon: <LogoutOutlined />,
+              key: "logout",
+              label: "Logout",
+              onClick: () => logout(),
+            },
+          ],
+        }}
+        trigger={["click"]}
+      >
+        <Avatar className="cursor-pointer">{shortName}</Avatar>
+      </Dropdown>
+
+      <ProfileDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        currentUser={currentUser}
+      />
+    </>
   );
 };

@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/http/actions/get-current-user";
+import { getOrganizationMembers } from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
+import { MemberFilter } from "./_components/member-filter";
 import {
   type PresenceSummary,
   PresenceSummaryTable,
@@ -11,21 +13,42 @@ import {
   TaskSummaryTable,
 } from "./_components/task-summary-table";
 
-export const InvoicesPage = async () => {
+export const InvoicesPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ memberId?: string }>;
+}) => {
   const user = await getCurrentUser();
+  const { memberId } = await searchParams;
 
   if (!user || !user.organizationId) {
     return redirect("/");
   }
 
-  const [presenceSummary, taskSummary] = await Promise.all([
-    getPresenceSummaryByOrganization(user.organizationId),
-    getValidatedTaskSummaryByOrganization(user.organizationId),
+  const isOwner = user.organizationRole === "OWNER";
+  const targetUserId = isOwner && memberId ? memberId : user.id;
+
+  const [presenceSummary, taskSummary, members] = await Promise.all([
+    getPresenceSummaryByOrganization(
+      user.id,
+      user.organizationId,
+      targetUserId,
+    ),
+    getValidatedTaskSummaryByOrganization(
+      user.id,
+      user.organizationId,
+      targetUserId,
+    ),
+    isOwner ? getOrganizationMembers(user.organizationId) : Promise.resolve([]),
   ]);
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-semibold">Invoices & Summary</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Invoices & Summary</h1>
+      </div>
+
+      {isOwner && <MemberFilter members={members} currentUserId={user.id} />}
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
         <h2 className="text-lg font-medium mb-4">Daily Presence Summary</h2>
