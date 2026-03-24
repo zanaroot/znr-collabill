@@ -10,6 +10,27 @@ jobs:
   build-and-check:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: collabill_db
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://user:password@localhost:5432/collabill_db
+      BREVO_API_KEY: CI_DUMMY_KEY
+      MAIL_FROM: CI <ci@collabill.local>
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -35,7 +56,3 @@ jobs:
 
       - name: Build project
         run: pnpm build
-        env:
-          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          MAIL_FROM: ${{ secrets.MAIL_FROM }}
