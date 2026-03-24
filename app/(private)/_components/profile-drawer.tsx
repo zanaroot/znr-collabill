@@ -74,6 +74,7 @@ export const ProfileDrawer = ({
       }}
       open={open}
       size={400}
+      forceRender
       extra={
         <Space>
           {!editing ? (
@@ -107,33 +108,33 @@ export const ProfileDrawer = ({
           </Descriptions>
 
           <Divider />
-
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={onFinish}
-            disabled={!editing}
-          >
-            <Form.Item
-              name="name"
-              label="Full Name"
-              rules={[{ required: true, message: "Please enter your name" }]}
-            >
-              <Input placeholder="Enter your name" />
-            </Form.Item>
-            <Form.Item
-              name="email"
-              label="Email Address"
-              rules={[
-                { required: true, message: "Please enter your email" },
-                { type: "email", message: "Please enter a valid email" },
-              ]}
-            >
-              <Input placeholder="Enter your email" disabled />
-            </Form.Item>
-          </Form>
         </>
       )}
+
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        disabled={!editing}
+      >
+        <Form.Item
+          name="name"
+          label="Full Name"
+          rules={[{ required: true, message: "Please enter your name" }]}
+        >
+          <Input placeholder="Enter your name" />
+        </Form.Item>
+        <Form.Item
+          name="email"
+          label="Email Address"
+          rules={[
+            { required: true, message: "Please enter your email" },
+            { type: "email", message: "Please enter a valid email" },
+          ]}
+        >
+          <Input placeholder="Enter your email" disabled />
+        </Form.Item>
+      </Form>
     </Drawer>
   );
 };

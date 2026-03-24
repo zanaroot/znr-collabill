@@ -21,6 +21,7 @@ import {
 } from "@/http/repositories/password-reset.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { sendEmail } from "@/lib/email";
+import { publicEnv } from "@/packages/env";
 
 export const forgotPasswordAction = async (
   input: ForgotPasswordInput,
@@ -46,7 +47,7 @@ export const forgotPasswordAction = async (
 
     await createPasswordResetToken({ userId: user.id, token, expiresAt });
 
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/reset-password?token=${token}`;
+    const resetLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
 
     await sendEmail({
       to: parsed.data.email,

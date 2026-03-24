@@ -186,6 +186,7 @@ export const IterationList = ({
         width={400}
         onClose={handleCloseDrawer}
         open={drawerOpen}
+        forceRender
         extra={
           <Space>
             <Button onClick={handleCloseDrawer}>Cancel</Button>

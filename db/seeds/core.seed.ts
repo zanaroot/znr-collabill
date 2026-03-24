@@ -1,5 +1,6 @@
 import { hash } from "bcryptjs";
 import { and, eq } from "drizzle-orm";
+import { serverEnv } from "../../packages/env/server";
 import { db } from "../index";
 import {
   collaboratorRates,
@@ -30,18 +31,18 @@ export type CoreSeedResult = {
 
 const seedUsers: SeedUserInput[] = [
   {
-    email: process.env.SEED_OWNER_EMAIL ?? "owner@collabill.local",
+    email: serverEnv.SEED_OWNER_EMAIL,
     name: "Seed Owner",
     role: "OWNER",
   },
   {
-    email: process.env.SEED_COLLABORATOR_EMAIL ?? "collab@collabill.local",
+    email: serverEnv.SEED_COLLABORATOR_EMAIL,
     name: "Seed Collaborator",
     role: "COLLABORATOR",
   },
 ];
 
-const seedPassword = process.env.SEED_PASSWORD ?? "password123";
+const seedPassword = serverEnv.SEED_PASSWORD;
 
 async function getOrCreateUser(input: SeedUserInput, passwordHash: string) {
   const existing = await db.query.users.findFirst({

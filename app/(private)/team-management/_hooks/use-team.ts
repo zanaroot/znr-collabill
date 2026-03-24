@@ -2,7 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AuthUser } from "@/http/models/auth.model";
-import type { CollaboratorRate, Invitation, UserWithRoles } from "@/http/models/user.model";
+import type {
+  CollaboratorRate,
+  Invitation,
+  UserWithRoles,
+} from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 
 export const teamKeys = {
@@ -10,7 +14,8 @@ export const teamKeys = {
   currentUser: () => [...teamKeys.all, "currentUser"] as const,
   users: () => [...teamKeys.all, "users"] as const,
   invitations: () => [...teamKeys.all, "invitations"] as const,
-  collaboratorRates: (userId: string) => [...teamKeys.all, "collaboratorRates", userId] as const,
+  collaboratorRates: (userId: string) =>
+    [...teamKeys.all, "collaboratorRates", userId] as const,
 };
 
 export function useCurrentUser() {
@@ -152,7 +157,9 @@ export function useUpdateCollaboratorRates() {
       return await res.json();
     },
     onSuccess: (_, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: teamKeys.collaboratorRates(userId) });
+      queryClient.invalidateQueries({
+        queryKey: teamKeys.collaboratorRates(userId),
+      });
     },
   });
 }

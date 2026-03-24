@@ -20,6 +20,7 @@ import {
 } from "@/http/repositories/session.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { generateSessionToken, getSessionExpirationDate } from "@/lib/session";
+import { serverEnv } from "@/packages/env/server";
 
 const shouldUseSecureCookie = async () => {
   const hdrs = await headers();
@@ -35,7 +36,7 @@ const shouldUseSecureCookie = async () => {
     return false;
   }
 
-  return process.env.NODE_ENV === "production";
+  return serverEnv.NODE_ENV === "production";
 };
 
 export const registerAction = async (

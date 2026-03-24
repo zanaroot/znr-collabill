@@ -15,7 +15,7 @@ import {
 } from "antd";
 import { type DragEvent, type MouseEvent, useMemo, useState } from "react";
 import { useIterations } from "@/app/(private)/_hooks/use-iterations";
-import { projectMembers } from "@/db/schema";
+import type { Iteration } from "@/http/models/iteration.model";
 import type { Task as TaskModel } from "@/http/models/task.model";
 import { TASK_SIZES, type TaskSize } from "@/lib/task-size";
 import { TASK_STATUSES, type TaskStatus } from "@/lib/task-status";
@@ -448,7 +448,7 @@ export function CreateBoard({
                   }
                   placeholder="Select an iteration"
                   allowClear
-                  options={iterations.map((it: any) => ({
+                  options={iterations.map((it: Iteration) => ({
                     label: it.name,
                     value: it.id,
                   }))}

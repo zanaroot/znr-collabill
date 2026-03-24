@@ -8,6 +8,7 @@ This file provides essential information for AI agents operating in this reposit
 
 ```bash
 pnpm install           # Install dependencies
+cp .env.example .env.dev # Initialize local env file
 docker compose up -d   # Start PostgreSQL database
 pnpm dev               # Start Next.js dev server (http://localhost:3000)
 ```
@@ -27,6 +28,7 @@ pnpm lint:fix          # Biome auto-fix (formatting + lint)
 pnpm format            # Biome format only
 pnpm format:fix       # Biome format write
 pnpm typecheck         # TypeScript type check (tsc --noEmit)
+pnpm env:set -- <KEY> <VALUE> # Set or update an env var in .env.dev via scripts/env-set.sh
 ```
 
 ### Database

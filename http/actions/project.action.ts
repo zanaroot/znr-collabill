@@ -62,6 +62,9 @@ export const updateProjectAction = async (
     }
 
     const project = await projectRepository.updateProject(id, parsed.data);
+    if (!project) {
+      return { error: "Project not found", success: false };
+    }
 
     revalidatePath("/projects");
     revalidatePath(`/projects/${id}`);

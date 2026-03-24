@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useIterations } from "@/app/(private)/_hooks/use-iterations";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
+import type { Iteration } from "@/http/models/iteration.model";
 import { useTasks } from "../_hooks/use-tasks";
 import { CreateBoard } from "./create-board";
 
@@ -46,7 +47,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
   );
 
   const selectedIteration = useMemo(
-    () => iterations?.find((it: any) => it.id === iterationId),
+    () => iterations?.find((it: Iteration) => it.id === iterationId),
     [iterations, iterationId],
   );
 
@@ -136,7 +137,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
                   onChange={(value) => setIterationId(value)}
                   placeholder="All Iterations"
                   allowClear
-                  options={iterations?.map((it: any) => ({
+                  options={iterations?.map((it: Iteration) => ({
                     label: `${it.name} (${it.startDate} to ${it.endDate})`,
                     value: it.id,
                   }))}

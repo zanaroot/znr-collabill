@@ -65,7 +65,6 @@ export const deleteIteration = async (id: string) => {
 };
 
 export const findCurrentIteration = async (organizationId: string) => {
-  const now = new Date().toISOString().split("T")[0];
   const [iteration] = await db
     .select()
     .from(iterations)

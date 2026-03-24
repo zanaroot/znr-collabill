@@ -11,6 +11,7 @@ export const projectSchema = z.object({
     .or(z.literal(""))
     .or(z.string().length(0)),
   baseRate: z.number().default(0),
+  organizationId: z.string().uuid(),
   createdBy: z.string().uuid().nullable(),
   createdAt: z.date().nullable().or(z.string()),
 });

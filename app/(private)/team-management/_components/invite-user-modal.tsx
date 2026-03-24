@@ -51,6 +51,7 @@ export const InviteUserModal = () => {
         title="Invite User"
         footer={null}
         destroyOnHidden
+        forceRender
         open={isOpen}
         onCancel={() => setIsOpen(false)}
         centered

@@ -11,13 +11,13 @@ Collabill is a Next.js 16 app for collaboration and billing workflows. It uses:
 
 - Node.js + pnpm
 - PostgreSQL (local or via Docker)
-- `.env` file (start from `.env.example`)
+- `.env.dev` file (start from `.env.example`)
 
 ## Quickstart
 
 ```bash
 pnpm install
-cp .env.example .env
+cp .env.example .env.dev
 docker compose up -d
 pnpm dev
 ```
@@ -27,8 +27,20 @@ App URL: `http://localhost:3000`
 ## Environment Variables
 
 - `DATABASE_URL`: PostgreSQL connection string.
+- `NEXT_PUBLIC_APP_URL`: Public app base URL used to build links in emails.
 - `BREVO_API_KEY`: API key for Brevo (or another email provider) to send emails.
 - `MAIL_FROM`: The "From" address for outgoing emails.
+- `SEED_OWNER_EMAIL`, `SEED_COLLABORATOR_EMAIL`, `SEED_PASSWORD`: Optional seed overrides for `pnpm db:seed` and `pnpm db:seed:dev`.
+
+Use `pnpm env:set -- <KEY> <VALUE>` to add a new variable to `.env.dev` or update an existing one via `dotenvx` through `scripts/env-set.sh`.
+
+Examples:
+
+```bash
+pnpm env:set -- BREVO_API_KEY "xkeysib-..."
+pnpm env:set -- RESEND_API_KEY "re_..."
+pnpm env:set -- SOME_EXISTING_KEY "new-value"
+```
 
 ## Scheduled Maintenance
 
@@ -55,6 +67,7 @@ curl -X POST "https://your-app-url.com/api/maintenance/iterations/close-stale" \
 pnpm dev
 pnpm build
 pnpm start
+pnpm env:set -- <KEY> <VALUE>
 
 pnpm lint
 pnpm lint:fix

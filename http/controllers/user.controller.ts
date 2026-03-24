@@ -14,8 +14,8 @@ import {
 } from "@/http/repositories/organization.repository";
 import {
   getCollaboratorRate,
-  upsertCollaboratorRate,
   updateUser,
+  upsertCollaboratorRate,
 } from "@/http/repositories/user.repository";
 
 const factory = createFactory<AuthEnv>();

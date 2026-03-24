@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "brevo": {
+      "source": "membranedev/application-skills",
+      "sourceType": "github",
+      "computedHash": "682854fe8e47abd26f2613e2ca47d37719b4b6e588bffdd9aa7009bf8b0864f6"
+    }
+  }
+}

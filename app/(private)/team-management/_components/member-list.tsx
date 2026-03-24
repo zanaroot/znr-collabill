@@ -1,8 +1,23 @@
 "use client";
 
-import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { Button, Card, Modal, message, Select, Table, Typography, Flex, Input } from "antd";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
+import {
+  Button,
+  Card,
+  Flex,
+  Input,
+  Modal,
+  message,
+  Select,
+  Table,
+  Typography,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
+import React, { useState } from "react";
 import type { CollaboratorRate, UserWithRoles } from "@/http/models/user.model";
 import {
   useCollaboratorRates,
@@ -12,7 +27,6 @@ import {
   useUpdateUserRole,
   useUsers,
 } from "../_hooks/use-team";
-import React, { useState } from "react";
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -113,7 +127,7 @@ export function MemberList() {
   const handleBaseRateMChange = (value: string) => {
     const m = Number(value); // 🔥 mieux que parseFloat
 
-    if (isNaN(m)) return; // sécurité
+    if (Number.isNaN(m)) return; // sécurité
 
     setBaseRateM(value);
 
@@ -243,7 +257,11 @@ export function MemberList() {
               placeholder="0"
               suffix="€"
               value={baseRateM}
-              onChange={isOwner ? (e) => handleBaseRateMChange(e.target.value) : undefined}
+              onChange={
+                isOwner
+                  ? (e) => handleBaseRateMChange(e.target.value)
+                  : undefined
+              }
               readOnly={!isOwner}
             />
           </Flex>
@@ -289,7 +307,11 @@ export function MemberList() {
               placeholder="0"
               suffix="€"
               value={rates.dailyRate}
-              onChange={isOwner ? (e) => handleRateChange("dailyRate", e.target.value) : undefined}
+              onChange={
+                isOwner
+                  ? (e) => handleRateChange("dailyRate", e.target.value)
+                  : undefined
+              }
               readOnly={!isOwner}
             />
           </Flex>

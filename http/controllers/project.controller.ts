@@ -179,7 +179,10 @@ export const addProjectMember = factory.createHandlers(
       return c.json({ error: "Unauthorized" }, 403);
     }
 
-    // Check if user to add belongs to the same organization
+    if (!user.organizationId) {
+      return c.json({ error: "No organization found" }, 404);
+    }
+
     const isOrgMember = await projectRepository.isOrganizationMember(
       user.organizationId,
       userId,

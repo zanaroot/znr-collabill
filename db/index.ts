@@ -1,18 +1,7 @@
-import { config } from "dotenv";
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { serverEnv } from "../packages/env/server";
 import * as schema from "./schema";
-
-// Load environment variables from .env file
-config();
-
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error(
-    "DATABASE_URL is not set. Please configure your .env file with a valid PostgreSQL connection string.",
-  );
-}
 
 declare global {
   var dbInstance: PostgresJsDatabase<typeof schema> | undefined;
@@ -20,7 +9,7 @@ declare global {
 }
 
 if (!global.postgresClient) {
-  global.postgresClient = postgres(connectionString);
+  global.postgresClient = postgres(serverEnv.DATABASE_URL);
 }
 
 if (!global.dbInstance) {

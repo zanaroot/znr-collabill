@@ -23,6 +23,7 @@ import {
 import { isUserInOrganization } from "@/http/repositories/organization.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { sendEmail } from "@/lib/email";
+import { publicEnv } from "@/packages/env";
 
 export const inviteUserAction = async (
   input: InviteUserInput,
@@ -81,7 +82,7 @@ export const inviteUserAction = async (
 
     await upsertInvitation({ email, token, role, expiresAt, organizationId });
 
-    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/create-password?token=${token}`;
+    const inviteLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/create-password?token=${token}`;
 
     await sendEmail({
       to: email,
