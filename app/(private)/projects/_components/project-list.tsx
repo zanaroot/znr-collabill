@@ -14,6 +14,7 @@ import {
   Flex,
   Form,
   Input,
+  InputNumber,
   Modal,
   message,
   Table,
@@ -63,6 +64,7 @@ export function ProjectList() {
       name: "",
       description: "",
       gitRepo: "",
+      baseRate: 0,
     },
   });
 
@@ -73,12 +75,14 @@ export function ProjectList() {
         name: editingProject.name,
         description: editingProject.description || "",
         gitRepo: editingProject.gitRepo || "",
+        baseRate: editingProject.baseRate || 0,
       });
     } else {
       reset({
         name: "",
         description: "",
         gitRepo: "",
+        baseRate: 0,
       });
     }
   }, [editingProject, reset]);
@@ -315,6 +319,25 @@ export function ProjectList() {
                   {...field}
                   rows={4}
                   placeholder="Enter project description"
+                />
+              </Form.Item>
+            )}
+          />
+
+          <Controller
+            name="baseRate"
+            control={control}
+            render={({ field }) => (
+              <Form.Item
+                label="Base Rate"
+                validateStatus={errors.baseRate ? "error" : ""}
+                help={errors.baseRate?.message}
+              >
+                <InputNumber
+                  {...field}
+                  min={0}
+                  step={0.01}
+                  placeholder="Enter base rate"
                 />
               </Form.Item>
             )}

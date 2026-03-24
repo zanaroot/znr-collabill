@@ -5,6 +5,7 @@ import {
   text,
   timestamp,
   uuid,
+  numeric,
 } from "drizzle-orm/pg-core";
 import { organizations } from "./organization";
 import { users } from "./user";
@@ -14,6 +15,7 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   description: text("description"),
   gitRepo: text("git_repo"),
+  baseRate: numeric("base_rate", { precision: 10, scale: 2 }).default("0"),
   organizationId: uuid("organization_id")
     .notNull()
     .references(() => organizations.id),
