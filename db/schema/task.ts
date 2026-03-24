@@ -8,7 +8,6 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { taskSizeEnum, taskStatusEnum } from "./enums";
-import { iterations } from "./iteration";
 import { projects } from "./project";
 import { users } from "./user";
 
@@ -17,7 +16,6 @@ export const tasks = pgTable("tasks", {
   projectId: uuid("project_id")
     .notNull()
     .references(() => projects.id),
-  iterationId: uuid("iteration_id").references(() => iterations.id),
   title: text("title").notNull(),
   description: text("description"),
   size: taskSizeEnum("size").notNull(),
@@ -37,10 +35,6 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
   project: one(projects, {
     fields: [tasks.projectId],
     references: [projects.id],
-  }),
-  iteration: one(iterations, {
-    fields: [tasks.iterationId],
-    references: [iterations.id],
   }),
   assignee: one(users, {
     fields: [tasks.assignedTo],

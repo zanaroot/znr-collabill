@@ -1,9 +1,9 @@
 import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
+import { z } from "zod";
 import type { AuthEnv } from "@/http/models/auth.model";
 import type { UpdateTaskSystemInput } from "@/http/models/task.model";
 import { createTaskSchema, updateTaskSchema } from "@/http/models/task.model";
-import * as iterationRepository from "@/http/repositories/iteration.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import {
@@ -56,27 +56,36 @@ export const getTasksByProject = factory.createHandlers(async (c) => {
   return c.json(tasks);
 });
 
-export const getTasksByIteration = factory.createHandlers(async (c) => {
-  const iterationId = c.req.param("iterationId");
-  const user = c.get("user");
+export const getTasksByPeriod = factory.createHandlers(
+  zValidator(
+    "query",
+    z.object({
+      startDate: z.string(),
+      endDate: z.string(),
+    }),
+  ),
+  async (c) => {
+    const projectId = c.req.param("projectId");
+    const { startDate, endDate } = c.req.valid("query");
+    const user = c.get("user");
 
-  if (!iterationId) {
-    return c.json({ error: "Iteration ID is required" }, 400);
-  }
+    if (!projectId) {
+      return c.json({ error: "Project ID is required" }, 400);
+    }
 
-  // Check if iteration belongs to user's organization
-  const iteration = await iterationRepository.findIterationById(iterationId);
-  if (!iteration) {
-    return c.json({ error: "Iteration not found" }, 404);
-  }
+    const isMember = await ensureMembership(user.id, projectId);
+    if (!isMember) {
+      return c.json({ error: "Unauthorized" }, 403);
+    }
 
-  if (iteration.organizationId !== user.organizationId) {
-    return c.json({ error: "Unauthorized" }, 403);
-  }
-
-  const tasks = await taskRepository.findTasksByIterationId(iterationId);
-  return c.json(tasks);
-});
+    const tasks = await taskRepository.findTasksByProjectIdAndPeriod(
+      projectId,
+      new Date(startDate),
+      new Date(endDate),
+    );
+    return c.json(tasks);
+  },
+);
 
 export const createTask = factory.createHandlers(
   zValidator("json", createTaskSchema),

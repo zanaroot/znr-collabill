@@ -3,7 +3,6 @@
 import {
   ApartmentOutlined,
   BellOutlined,
-  CalendarOutlined,
   ContactsOutlined,
   FileTextOutlined,
   LeftOutlined,
@@ -28,7 +27,6 @@ const ROUTE_TITLES: Record<string, string> = {
   "task-board": "Task Board",
   "team-management": "Team Management",
   projects: "Projects",
-  iterations: "Iterations",
   invoices: "Invoices",
 };
 
@@ -124,15 +122,6 @@ export const PrivateLayout = ({
               label: (
                 <Link href="/projects" prefetch={true}>
                   Projects
-                </Link>
-              ),
-            },
-            {
-              key: "iterations",
-              icon: <CalendarOutlined />,
-              label: (
-                <Link href="/iterations" prefetch={true}>
-                  Iterations
                 </Link>
               ),
             },

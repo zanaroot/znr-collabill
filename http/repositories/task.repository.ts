@@ -1,6 +1,6 @@
 "server only";
 
-import { and, asc, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, lte, ne, or } from "drizzle-orm";
 import { db } from "@/db";
 import {
   collaboratorRates,
@@ -21,11 +21,46 @@ export const findTasksByProjectId = async (projectId: string) => {
     .orderBy(asc(tasks.priority), desc(tasks.createdAt));
 };
 
-export const findTasksByIterationId = async (iterationId: string) => {
+export const findTasksByProjectIdAndPeriod = async (
+  projectId: string,
+  startDate: Date,
+  endDate: Date,
+) => {
+  const isCurrentPeriod = endDate >= new Date();
+
+  const whereClauses = [eq(tasks.projectId, projectId)];
+
+  if (isCurrentPeriod) {
+    // Current period: show all non-validated tasks OR tasks validated in this period
+    const validatedInPeriod = and(
+      eq(tasks.status, "VALIDATED"),
+      gte(tasks.validatedAt, startDate),
+      lte(tasks.validatedAt, endDate),
+    );
+    if (validatedInPeriod) {
+      const condition = or(ne(tasks.status, "VALIDATED"), validatedInPeriod);
+      if (condition) {
+        whereClauses.push(condition);
+      }
+    } else {
+      whereClauses.push(ne(tasks.status, "VALIDATED"));
+    }
+  } else {
+    // Past period: ONLY show tasks validated in that period
+    const validatedInPeriod = and(
+      eq(tasks.status, "VALIDATED"),
+      gte(tasks.validatedAt, startDate),
+      lte(tasks.validatedAt, endDate),
+    );
+    if (validatedInPeriod) {
+      whereClauses.push(validatedInPeriod);
+    }
+  }
+
   return await db
     .select()
     .from(tasks)
-    .where(eq(tasks.iterationId, iterationId))
+    .where(and(...whereClauses))
     .orderBy(asc(tasks.priority), desc(tasks.createdAt));
 };
 
@@ -39,7 +74,6 @@ export const createTask = async (input: CreateTaskInput) => {
     .insert(tasks)
     .values({
       projectId: input.projectId,
-      iterationId: input.iterationId,
       title: input.title,
       description: input.description,
       size: input.size,
@@ -79,7 +113,8 @@ export const getValidatedTaskSummaryByOrganization = async (
   userId: string,
   organizationId: string,
   targetUserId?: string,
-  iterationId?: string,
+  startDate?: Date,
+  endDate?: Date,
 ) => {
   const whereClauses = [
     eq(organizationMembers.userId, targetUserId ?? userId),
@@ -87,8 +122,11 @@ export const getValidatedTaskSummaryByOrganization = async (
     eq(tasks.status, "VALIDATED"),
   ];
 
-  if (iterationId) {
-    whereClauses.push(eq(tasks.iterationId, iterationId));
+  if (startDate && endDate) {
+    whereClauses.push(
+      gte(tasks.validatedAt, startDate),
+      lte(tasks.validatedAt, endDate),
+    );
   }
 
   return await db

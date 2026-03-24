@@ -1,11 +1,9 @@
 "use client";
 
-import { Button, Card, Form, Input, Typography } from "antd";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-
-const { Title, Text } = Typography;
+import { Button, Card, Form, Input, Typography } from "antd";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface OrganizationForm {
   name: string;
@@ -24,15 +22,14 @@ export const OrgStep = () => {
     <Card
       title={
         <div className="text-center mt-10">
-          <Typography.Title level={3}>
-            Create an Organization
-          </Typography.Title>
+          <Typography.Title level={3}>Create an Organization</Typography.Title>
           <Typography.Text style={{ color: "#666" }}>
             First, tell us the name of your organization.
           </Typography.Text>
         </div>
       }
-      style={{ width: 500 }}>
+      style={{ width: 500 }}
+    >
       <Form layout="vertical" onFinish={onFinish} initialValues={{ name: "" }}>
         <Form.Item
           label="Organization Name"

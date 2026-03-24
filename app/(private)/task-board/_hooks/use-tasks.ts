@@ -15,21 +15,27 @@ export const taskKeys = {
   all: ["tasks"] as const,
   project: (projectId: string) =>
     [...taskKeys.all, "project", projectId] as const,
-  iteration: (iterationId: string) =>
-    [...taskKeys.all, "iteration", iterationId] as const,
+  period: (projectId: string, startDate: string, endDate: string) =>
+    [...taskKeys.all, "period", projectId, startDate, endDate] as const,
 };
 
-export function useTasks(projectId?: string, iterationId?: string) {
+export function useTasks(
+  projectId?: string,
+  startDate?: string,
+  endDate?: string,
+) {
   return useQuery({
-    queryKey: iterationId
-      ? taskKeys.iteration(iterationId)
-      : projectId
-        ? taskKeys.project(projectId)
-        : taskKeys.all,
+    queryKey:
+      projectId && startDate && endDate
+        ? taskKeys.period(projectId, startDate, endDate)
+        : projectId
+          ? taskKeys.project(projectId)
+          : taskKeys.all,
     queryFn: async () => {
-      if (iterationId) {
-        const res = await client.api.tasks.iteration[":iterationId"].$get({
-          param: { iterationId },
+      if (projectId && startDate && endDate) {
+        const res = await client.api.tasks.project[":projectId"].period.$get({
+          param: { projectId },
+          query: { startDate, endDate },
         });
         if (!res.ok) throw new Error("Failed to fetch tasks");
         return (await res.json()) as Task[];
@@ -45,7 +51,7 @@ export function useTasks(projectId?: string, iterationId?: string) {
 
       return [] as Task[];
     },
-    enabled: Boolean(projectId || iterationId),
+    enabled: Boolean(projectId),
   });
 }
 
@@ -72,10 +78,8 @@ export function useCreateTask() {
         queryClient.invalidateQueries({
           queryKey: taskKeys.project(task.projectId),
         });
-      }
-      if (task.iterationId) {
         queryClient.invalidateQueries({
-          queryKey: taskKeys.iteration(task.iterationId),
+          queryKey: [...taskKeys.all, "period", task.projectId],
         });
       }
     },
@@ -105,11 +109,9 @@ export function useUpdateTask() {
       queryClient.invalidateQueries({
         queryKey: taskKeys.project(task.projectId),
       });
-      if (task.iterationId) {
-        queryClient.invalidateQueries({
-          queryKey: taskKeys.iteration(task.iterationId),
-        });
-      }
+      queryClient.invalidateQueries({
+        queryKey: [...taskKeys.all, "period", task.projectId],
+      });
     },
   });
 }
@@ -121,11 +123,9 @@ export function useDeleteTask() {
     mutationFn: async ({
       id,
       projectId,
-      iterationId,
     }: {
       id: string;
       projectId: string;
-      iterationId?: string;
     }) => {
       const res = await client.api.tasks[":id"].$delete({
         param: { id },
@@ -138,17 +138,15 @@ export function useDeleteTask() {
         );
       }
 
-      return { projectId, iterationId };
+      return { projectId };
     },
-    onSuccess: ({ projectId, iterationId }) => {
+    onSuccess: ({ projectId }) => {
       queryClient.invalidateQueries({
         queryKey: taskKeys.project(projectId),
       });
-      if (iterationId) {
-        queryClient.invalidateQueries({
-          queryKey: taskKeys.iteration(iterationId),
-        });
-      }
+      queryClient.invalidateQueries({
+        queryKey: [...taskKeys.all, "period", projectId],
+      });
     },
   });
 }

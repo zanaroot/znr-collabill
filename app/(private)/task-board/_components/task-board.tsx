@@ -4,10 +4,13 @@ import { Select, Spin, Typography } from "antd";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useEffect, useMemo, useState } from "react";
-import { useIterations } from "@/app/(private)/_hooks/use-iterations";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
-import type { Iteration } from "@/http/models/iteration.model";
+import {
+  getCurrentPeriod,
+  getMonthlyPeriods,
+  getPeriodById,
+} from "@/lib/periods";
 import { useTasks } from "../_hooks/use-tasks";
 import { CreateBoard } from "./create-board";
 
@@ -22,21 +25,29 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const projectIdParam = searchParams.get("projectId");
-  const iterationIdParam = searchParams.get("iterationId");
+  const periodIdParam = searchParams.get("periodId");
+
+  const periods = useMemo(() => getMonthlyPeriods(), []);
+  const currentPeriod = useMemo(() => getCurrentPeriod(), []);
 
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
-  const { data: iterations, isLoading: isLoadingIterations } = useIterations();
 
   const [projectId, setProjectId] = useState<string | undefined>(
     projectIdParam || undefined,
   );
-  const [iterationId, setIterationId] = useState<string | undefined>(
-    iterationIdParam || undefined,
+  const [periodId, setPeriodId] = useState<string | undefined>(
+    periodIdParam || currentPeriod.id,
+  );
+
+  const selectedPeriod = useMemo(
+    () => getPeriodById(periodId || currentPeriod.id),
+    [periodId, currentPeriod.id],
   );
 
   const { data: tasks, isLoading: isLoadingTasks } = useTasks(
     projectId,
-    iterationId,
+    selectedPeriod?.startDate,
+    selectedPeriod?.endDate,
   );
   const { data: users } = useUsers();
   const taskCount = tasks?.length ?? 0;
@@ -44,11 +55,6 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
   const selectedProject = useMemo(
     () => projects?.find((project) => project.id === projectId),
     [projects, projectId],
-  );
-
-  const selectedIteration = useMemo(
-    () => iterations?.find((it: Iteration) => it.id === iterationId),
-    [iterations, iterationId],
   );
 
   useEffect(() => {
@@ -60,11 +66,8 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
       changed = true;
     }
 
-    if (iterationId && iterationIdParam !== iterationId) {
-      params.set("iterationId", iterationId);
-      changed = true;
-    } else if (!iterationId && iterationIdParam) {
-      params.delete("iterationId");
+    if (periodId && periodIdParam !== periodId) {
+      params.set("periodId", periodId);
       changed = true;
     }
 
@@ -73,12 +76,12 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
     }
   }, [
     projectId,
-    iterationId,
+    periodId,
     searchParams,
     pathname,
     router,
     projectIdParam,
-    iterationIdParam,
+    periodIdParam,
   ]);
 
   useEffect(() => {
@@ -110,11 +113,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
                 </Text>
                 <Select
                   value={projectId}
-                  onChange={(value) => {
-                    setProjectId(value);
-                    setIterationId(undefined); // Reset iteration when project changes?
-                    // Actually, iterations are org-wide, so maybe not?
-                  }}
+                  onChange={(value) => setProjectId(value)}
                   options={projects.map((project) => ({
                     label: project.name,
                     value: project.id,
@@ -125,27 +124,22 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
               </div>
             ) : null}
 
-            {isLoadingIterations ? (
-              <Spin />
-            ) : (
-              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-                <Text type="secondary" className="min-w-[70px]">
-                  Iteration
-                </Text>
-                <Select
-                  value={iterationId}
-                  onChange={(value) => setIterationId(value)}
-                  placeholder="All Iterations"
-                  allowClear
-                  options={iterations?.map((it: Iteration) => ({
-                    label: `${it.name} (${it.startDate} to ${it.endDate})`,
-                    value: it.id,
-                  }))}
-                  style={{ minWidth: 260 }}
-                  size="large"
-                />
-              </div>
-            )}
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+              <Text type="secondary" className="min-w-[70px]">
+                Period
+              </Text>
+              <Select
+                value={periodId}
+                onChange={(value) => setPeriodId(value)}
+                placeholder="Select Period"
+                options={periods.map((p) => ({
+                  label: p.name,
+                  value: p.id,
+                }))}
+                style={{ minWidth: 260 }}
+                size="large"
+              />
+            </div>
           </div>
         </div>
 
@@ -153,9 +147,9 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700">
             {selectedProject?.name ?? "No project selected"}
           </span>
-          {selectedIteration && (
+          {selectedPeriod && (
             <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-              Iteration: {selectedIteration.name}
+              Period: {selectedPeriod.name}
             </span>
           )}
           <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700">
@@ -170,7 +164,6 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
         <CreateBoard
           tasks={tasks ?? []}
           projectId={projectId}
-          iterationId={iterationId}
           projectName={selectedProject?.name}
           isProjectOwner={selectedProject?.createdBy === currentUserId}
           members={

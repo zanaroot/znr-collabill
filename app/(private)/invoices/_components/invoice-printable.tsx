@@ -21,10 +21,10 @@ type InvoicePrintableProps = {
   organizationId: string;
   targetUserName?: string;
   targetUserId: string;
-  iterationId?: string;
+  periodId?: string;
   periodStart?: string;
   periodEnd?: string;
-  iterationName?: string;
+  periodName?: string;
   existingInvoice?: { id: string; status: string | null } | null;
   isOwner?: boolean;
 };
@@ -36,10 +36,9 @@ export const InvoicePrintable = ({
   organizationId,
   targetUserName,
   targetUserId,
-  iterationId,
   periodStart,
   periodEnd,
-  iterationName,
+  periodName,
   existingInvoice,
   isOwner,
 }: InvoicePrintableProps) => {
@@ -89,34 +88,29 @@ export const InvoicePrintable = ({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end gap-3 no-print">
-        {!existingInvoice &&
-          targetUserId &&
-          iterationId &&
-          periodStart &&
-          periodEnd && (
-            <Button
-              type="default"
-              loading={isValidating}
-              onClick={async () => {
-                setIsValidating(true);
-                const res = await validateInvoiceAction({
-                  organizationId,
-                  targetUserId,
-                  iterationId,
-                  periodStart,
-                  periodEnd,
-                  presenceData,
-                  taskData,
-                });
-                setIsValidating(false);
-                if (res.error) message.error(res.error);
-                else message.success("Invoice validated successfully!");
-              }}
-              className="shadow-md font-medium text-green-600 border-green-200 bg-green-50 hover:bg-green-100 hover:border-green-300"
-            >
-              Validate Invoice
-            </Button>
-          )}
+        {!existingInvoice && targetUserId && periodStart && periodEnd && (
+          <Button
+            type="default"
+            loading={isValidating}
+            onClick={async () => {
+              setIsValidating(true);
+              const res = await validateInvoiceAction({
+                organizationId,
+                targetUserId,
+                periodStart,
+                periodEnd,
+                presenceData,
+                taskData,
+              });
+              setIsValidating(false);
+              if (res.error) message.error(res.error);
+              else message.success("Invoice validated successfully!");
+            }}
+            className="shadow-md font-medium text-green-600 border-green-200 bg-green-50 hover:bg-green-100 hover:border-green-300"
+          >
+            Validate Invoice
+          </Button>
+        )}
         {existingInvoice?.status === "VALIDATED" && isOwner && (
           <Button
             type="primary"
@@ -161,12 +155,12 @@ export const InvoicePrintable = ({
               >
                 Billing Summary
               </Text>
-              {iterationName && (
+              {periodName && (
                 <Text
                   strong
                   className="text-blue-600 uppercase text-xs tracking-wider"
                 >
-                  {iterationName}
+                  {periodName}
                 </Text>
               )}
             </div>

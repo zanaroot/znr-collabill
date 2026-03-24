@@ -6,12 +6,7 @@ import { useEffect } from "react";
 
 const { Text } = Typography;
 
-type Iteration = {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-};
+import { getCurrentPeriod, getMonthlyPeriods } from "@/lib/periods";
 
 type Member = {
   id: string;
@@ -20,42 +15,38 @@ type Member = {
 };
 
 type InvoiceFiltersProps = {
-  iterations: Iteration[];
   members: Member[];
   currentUserId: string;
   showMemberFilter?: boolean;
 };
 
 export const InvoiceFilters = ({
-  iterations,
   members,
   currentUserId,
   showMemberFilter = false,
 }: InvoiceFiltersProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const iterationId = searchParams.get("iterationId");
+  const periodId = searchParams.get("periodId");
   const selectedMemberId = searchParams.get("memberId") || currentUserId;
 
-  useEffect(() => {
-    if (!iterationId && iterations.length > 0) {
-      const today = new Date().toISOString().split("T")[0];
-      const current =
-        iterations.find((it) => it.startDate <= today && it.endDate >= today) ||
-        iterations[0];
+  const periods = getMonthlyPeriods();
+  const currentPeriod = getCurrentPeriod();
 
+  useEffect(() => {
+    if (!periodId) {
       const params = new URLSearchParams(searchParams.toString());
-      params.set("iterationId", current.id);
+      params.set("periodId", currentPeriod.id);
       router.replace(`/invoices?${params.toString()}`);
     }
-  }, [iterationId, iterations, router, searchParams]);
+  }, [periodId, currentPeriod.id, router, searchParams]);
 
-  const handleIterationChange = (value: string | undefined) => {
+  const handlePeriodChange = (value: string | undefined) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
-      params.set("iterationId", value);
+      params.set("periodId", value);
     } else {
-      params.delete("iterationId");
+      params.delete("periodId");
     }
     router.push(`/invoices?${params.toString()}`);
   };
@@ -71,28 +62,30 @@ export const InvoiceFilters = ({
   };
 
   return (
-    <div className="flex items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-      <Text strong className="whitespace-nowrap">
-        Filter by Iteration:
-      </Text>
-      <Select
-        placeholder="Select iteration"
-        className="w-full max-w-md"
-        value={iterationId || undefined}
-        onChange={handleIterationChange}
-        allowClear
-        options={iterations.map((it) => ({
-          label: `${it.name} (${it.startDate} to ${it.endDate})`,
-          value: it.id,
-        }))}
-      />
+    <div className="flex flex-col md:flex-row md:items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+      <div className="flex items-center gap-2">
+        <Text strong className="whitespace-nowrap">
+          Filter by Period:
+        </Text>
+        <Select
+          placeholder="Select period"
+          className="w-full md:min-w-[200px]"
+          value={periodId || undefined}
+          onChange={handlePeriodChange}
+          allowClear
+          options={periods.map((p) => ({
+            label: p.name,
+            value: p.id,
+          }))}
+        />
+      </div>
       {showMemberFilter && (
         <div className="flex items-center gap-2">
           <Text strong className="whitespace-nowrap">
             Filter by Member:
           </Text>
           <Select
-            style={{ width: 200 }}
+            className="w-full md:min-w-[200px]"
             value={selectedMemberId}
             onChange={handleMemberChange}
             options={members.map((m) => ({

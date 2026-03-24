@@ -47,3 +47,4 @@ next-env.d.ts
 .opencode
 CLAUDE.md
 GEMINI.md
+.env

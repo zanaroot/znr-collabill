@@ -7,15 +7,20 @@ import { invoiceLines, invoices } from "@/db/schema/invoice";
 type CreateInvoiceInput = typeof invoices.$inferInsert;
 type CreateInvoiceLineInput = typeof invoiceLines.$inferInsert;
 
-export const findInvoiceByIterationAndUser = async (
-  iterationId: string,
+export const findInvoiceByPeriodAndUser = async (
+  periodStart: string,
+  periodEnd: string,
   userId: string,
 ) => {
   const [invoice] = await db
     .select()
     .from(invoices)
     .where(
-      and(eq(invoices.iterationId, iterationId), eq(invoices.userId, userId)),
+      and(
+        eq(invoices.periodStart, periodStart),
+        eq(invoices.periodEnd, periodEnd),
+        eq(invoices.userId, userId),
+      ),
     )
     .limit(1);
 

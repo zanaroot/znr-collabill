@@ -8,7 +8,6 @@ const taskStatusEnum = z.enum(TASK_STATUSES);
 export const taskSchema = z.object({
   id: z.string().uuid(),
   projectId: z.string().uuid(),
-  iterationId: z.string().uuid().nullable().optional(),
   title: z.string().min(1),
   description: z.string().nullable().optional(),
   size: taskSizeEnum,
@@ -30,7 +29,6 @@ export type TaskSizeValue = TaskSize;
 
 export const createTaskSchema = z.object({
   projectId: z.string().uuid(),
-  iterationId: z.string().uuid().optional().nullable(),
   title: z.string().min(1),
   description: z.string().optional(),
   size: taskSizeEnum,
@@ -46,7 +44,6 @@ export const createTaskSchema = z.object({
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
 export const updateTaskSchema = z.object({
-  iterationId: z.string().uuid().optional().nullable(),
   title: z.string().min(1).optional(),
   description: z.string().optional(),
   size: taskSizeEnum.optional(),

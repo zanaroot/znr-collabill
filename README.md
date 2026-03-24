@@ -42,25 +42,6 @@ pnpm env:set -- RESEND_API_KEY "re_..."
 pnpm env:set -- SOME_EXISTING_KEY "new-value"
 ```
 
-## Scheduled Maintenance
-
-The application includes an endpoint to close iterations when their `endDate` has passed.
-
-`POST /api/maintenance/iterations/close-stale`
-
-This endpoint now uses the normal API authentication flow instead of a separate cron secret:
-
-- It is protected by the existing API auth middleware.
-- It requires an authenticated user with the `OWNER` role.
-- It accepts either the normal session cookie or an `Authorization: Bearer <session_token>` header.
-
-Example:
-
-```bash
-curl -X POST "https://your-app-url.com/api/maintenance/iterations/close-stale" \
-     -H "Authorization: Bearer YOUR_SESSION_TOKEN"
-```
-
 ## Commands
 
 ```bash

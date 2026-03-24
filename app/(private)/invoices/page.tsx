@@ -1,13 +1,10 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/http/actions/get-current-user";
-import { findInvoiceByIterationAndUser } from "@/http/repositories/invoice.repository";
-import {
-  findIterationById,
-  findIterationsByOrganizationId,
-} from "@/http/repositories/iteration.repository";
+import { findInvoiceByPeriodAndUser } from "@/http/repositories/invoice.repository";
 import { getOrganizationMembers } from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
+import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
 import { InvoiceFilters } from "./_components/invoice-filters";
 import { InvoicePrintable } from "./_components/invoice-printable";
 import {
@@ -22,10 +19,10 @@ import {
 export default async function InvoicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ memberId?: string; iterationId?: string }>;
+  searchParams: Promise<{ memberId?: string; periodId?: string }>;
 }) {
   const user = await getCurrentUser();
-  const { memberId, iterationId } = await searchParams;
+  const { memberId, periodId } = await searchParams;
 
   if (!user || !user.organizationId) {
     return redirect("/");
@@ -34,10 +31,9 @@ export default async function InvoicesPage({
   const isOwner = user.organizationRole === "OWNER";
   const targetUserId = isOwner && memberId ? memberId : user.id;
 
-  const [iterations, selectedIteration] = await Promise.all([
-    findIterationsByOrganizationId(user.organizationId),
-    iterationId ? findIterationById(iterationId) : Promise.resolve(null),
-  ]);
+  const currentPeriod = getCurrentPeriod();
+  const selectedPeriod =
+    getPeriodById(periodId || currentPeriod.id) || currentPeriod;
 
   const [presenceSummary, taskSummary, members, existingInvoice] =
     await Promise.all([
@@ -45,21 +41,26 @@ export default async function InvoicesPage({
         user.id,
         user.organizationId,
         targetUserId,
-        selectedIteration?.startDate,
-        selectedIteration?.endDate,
+        selectedPeriod.startDate,
+        selectedPeriod.endDate,
       ),
       getValidatedTaskSummaryByOrganization(
         user.id,
         user.organizationId,
         targetUserId,
-        iterationId,
+        selectedPeriod.startDate
+          ? new Date(selectedPeriod.startDate)
+          : undefined,
+        selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : undefined,
       ),
       isOwner
         ? getOrganizationMembers(user.organizationId)
         : Promise.resolve([]),
-      iterationId
-        ? findInvoiceByIterationAndUser(iterationId, targetUserId)
-        : Promise.resolve(null),
+      findInvoiceByPeriodAndUser(
+        selectedPeriod.startDate,
+        selectedPeriod.endDate,
+        targetUserId,
+      ),
     ]);
 
   const targetUserName =
@@ -75,7 +76,6 @@ export default async function InvoicesPage({
 
       <div className="no-print flex flex-col gap-4">
         <InvoiceFilters
-          iterations={iterations}
           members={members}
           currentUserId={user.id}
           showMemberFilter={isOwner}
@@ -105,10 +105,10 @@ export default async function InvoicesPage({
         organizationId={user.organizationId}
         targetUserName={targetUserName}
         targetUserId={targetUserId}
-        iterationId={iterationId}
-        periodStart={selectedIteration?.startDate}
-        periodEnd={selectedIteration?.endDate}
-        iterationName={selectedIteration?.name}
+        periodId={selectedPeriod.id}
+        periodStart={selectedPeriod.startDate}
+        periodEnd={selectedPeriod.endDate}
+        periodName={selectedPeriod.name}
         existingInvoice={existingInvoice}
         isOwner={isOwner}
       />

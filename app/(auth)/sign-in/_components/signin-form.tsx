@@ -1,11 +1,20 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { Button, Card, Flex, Form, Input, message, Divider, Typography } from "antd";
+import {
+  Button,
+  Card,
+  Divider,
+  Flex,
+  Form,
+  Input,
+  message,
+  Typography,
+} from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
 import { signInAction } from "@/http/actions/auth.action";
-import Title from "antd/es/skeleton/Title";
 
 type DataType = {
   email: string;
@@ -48,7 +57,9 @@ export const SignInForm = () => {
             <Typography.Title level={3} className="mb-1">
               Sign In
             </Typography.Title>
-            <Typography.Text type="secondary">Sign in to your account</Typography.Text>
+            <Typography.Text type="secondary">
+              Sign in to your account
+            </Typography.Text>
           </div>
         }
         className="w-[450px] shadow-lg p-8"
@@ -100,8 +111,13 @@ export const SignInForm = () => {
           <Divider plain>Or</Divider>
 
           <div className="text-center mt-4">
-            <Typography.Text type="secondary">Don't have an account? </Typography.Text>
-            <Link href="/sign-up" className="text-blue-600 font-medium hover:underline">
+            <Typography.Text type="secondary">
+              Don't have an account?{" "}
+            </Typography.Text>
+            <Link
+              href="/sign-up"
+              className="text-blue-600 font-medium hover:underline"
+            >
               Sign up
             </Link>
           </div>

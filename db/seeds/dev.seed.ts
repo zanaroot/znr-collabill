@@ -86,7 +86,6 @@ async function seedPresences(collaboratorId: string) {
 async function seedInvoicesAndLines(input: {
   collaboratorId: string;
   projectId: string;
-  iterationId: string;
 }) {
   let invoice = await db.query.invoices.findFirst({
     where: and(
@@ -101,7 +100,6 @@ async function seedInvoicesAndLines(input: {
       .insert(invoices)
       .values({
         userId: input.collaboratorId,
-        iterationId: input.iterationId,
         periodStart: "2026-02-01",
         periodEnd: "2026-02-28",
         status: "DRAFT",
@@ -200,7 +198,6 @@ export async function seedDev() {
   await seedInvoicesAndLines({
     collaboratorId: core.collaborator.id,
     projectId: core.project.id,
-    iterationId: core.iteration.id,
   });
   await seedAuditLogs(core.owner.id, core.project.id);
 

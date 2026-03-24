@@ -14,8 +14,6 @@ import {
   Typography,
 } from "antd";
 import { type DragEvent, type MouseEvent, useMemo, useState } from "react";
-import { useIterations } from "@/app/(private)/_hooks/use-iterations";
-import type { Iteration } from "@/http/models/iteration.model";
 import type { Task as TaskModel } from "@/http/models/task.model";
 import { TASK_SIZES, type TaskSize } from "@/lib/task-size";
 import { TASK_STATUSES, type TaskStatus } from "@/lib/task-status";
@@ -62,7 +60,7 @@ const PRIORITY_LABEL_FROM_VALUE = (value?: number | null): PriorityLabel => {
   return "Low priority";
 };
 
-const defaultFormValues = (status: TaskStatus, iterationId?: string) => ({
+const defaultFormValues = (status: TaskStatus) => ({
   title: "",
   description: "",
   size: "M" as TaskSize,
@@ -70,7 +68,6 @@ const defaultFormValues = (status: TaskStatus, iterationId?: string) => ({
   dueDate: "",
   status,
   assigneeId: undefined as string | undefined,
-  iterationId: iterationId as string | undefined,
 });
 
 const TASK_SIZE_OPTIONS = TASK_SIZES.map((size) => ({
@@ -92,7 +89,6 @@ type CreateBoardProps = {
   projectName?: string;
   isProjectOwner: boolean;
   members: User[];
-  iterationId?: string;
 };
 
 export function CreateBoard({
@@ -101,15 +97,13 @@ export function CreateBoard({
   projectName,
   isProjectOwner,
   members,
-  iterationId: selectedIterationId,
 }: CreateBoardProps) {
-  const { data: iterations = [] } = useIterations();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<TaskModel | null>(null);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [boardView, setBoardView] = useState<BoardView>("ACTIVE");
   const [formValues, setFormValues] = useState<TaskFormValues>(() =>
-    defaultFormValues("TODO", selectedIterationId),
+    defaultFormValues("TODO"),
   );
 
   const createTaskMutation = useCreateTask();
@@ -137,7 +131,7 @@ export function CreateBoard({
 
   const openCreateDrawer = (status: TaskStatus) => {
     setActiveTask(null);
-    setFormValues(defaultFormValues(status, selectedIterationId));
+    setFormValues(defaultFormValues(status));
     setDrawerOpen(true);
   };
 
@@ -151,7 +145,6 @@ export function CreateBoard({
       dueDate: task.dueDate ?? "",
       status: task.status,
       assigneeId: task.assignedTo ?? undefined,
-      iterationId: task.iterationId ?? undefined,
     });
     setDrawerOpen(true);
   };
@@ -184,7 +177,6 @@ export function CreateBoard({
       dueDate: formValues.dueDate || undefined,
       status: formValues.status,
       assignedTo: formValues.assigneeId,
-      iterationId: formValues.iterationId,
     };
 
     if (activeTask) {
@@ -207,7 +199,6 @@ export function CreateBoard({
       {
         id: activeTask.id,
         projectId,
-        iterationId: activeTask.iterationId ?? undefined,
       },
       { onSuccess: handleClose },
     );
@@ -436,25 +427,6 @@ export function CreateBoard({
                   />
                 </Space>
               </div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <Space orientation="vertical" size={8} style={{ width: "100%" }}>
-                <Text strong>Iteration</Text>
-                <Select
-                  value={formValues.iterationId}
-                  onChange={(value) =>
-                    setFormValues((prev) => ({ ...prev, iterationId: value }))
-                  }
-                  placeholder="Select an iteration"
-                  allowClear
-                  options={iterations.map((it: Iteration) => ({
-                    label: it.name,
-                    value: it.id,
-                  }))}
-                  style={{ width: "100%" }}
-                />
-              </Space>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-4">

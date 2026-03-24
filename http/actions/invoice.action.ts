@@ -11,7 +11,6 @@ import { getCurrentUser } from "./get-current-user";
 type ValidateInvoiceArgs = {
   targetUserId: string;
   organizationId: string;
-  iterationId: string;
   periodStart: string;
   periodEnd: string;
   presenceData: {
@@ -29,14 +28,7 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
     return { error: "Unauthorized" };
   }
 
-  const {
-    targetUserId,
-    iterationId,
-    periodStart,
-    periodEnd,
-    presenceData,
-    taskData,
-  } = args;
+  const { targetUserId, periodStart, periodEnd, presenceData, taskData } = args;
 
   let totalAmount = 0;
   const linesInput: Parameters<typeof createInvoiceWithLines>[1] = [];
@@ -83,7 +75,6 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
     await createInvoiceWithLines(
       {
         userId: targetUserId,
-        iterationId: iterationId || null,
         periodStart,
         periodEnd,
         status: "VALIDATED",

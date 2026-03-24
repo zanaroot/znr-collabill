@@ -1,8 +1,6 @@
 import { Hono } from "hono";
 import { authMiddleware } from "@/http/middleware/auth.middleware";
 import { authRoutes } from "./auth.route";
-import { iterationRoutes } from "./iteration.route";
-import { maintenanceRoutes } from "./maintenance.route";
 import { organizationRoutes } from "./organization.route";
 import { projectRoutes } from "./project.route";
 import { taskRoutes } from "./task.route";
@@ -15,8 +13,6 @@ export const app = new Hono()
   .route("/users", userRoutes)
   .route("/organizations", organizationRoutes)
   .route("/projects", projectRoutes)
-  .route("/tasks", taskRoutes)
-  .route("/iterations", iterationRoutes)
-  .route("/maintenance", maintenanceRoutes);
+  .route("/tasks", taskRoutes);
 
 export type AppType = typeof app;
