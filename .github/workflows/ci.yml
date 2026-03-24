@@ -35,3 +35,7 @@ jobs:
 
       - name: Build project
         run: pnpm build
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
