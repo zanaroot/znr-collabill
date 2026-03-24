@@ -1,30 +1,18 @@
 "use client";
 
-import {
-  DeleteOutlined,
-  EditOutlined,
-  ExclamationCircleOutlined,
-} from "@ant-design/icons";
-import {
-  Button,
-  Card,
-  Flex,
-  Input,
-  Modal,
-  message,
-  Select,
-  Table,
-  Typography,
-} from "antd";
+import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { Button, Card, Modal, message, Select, Table, Typography, Flex, Input } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useState } from "react";
-import type { UserWithRoles } from "@/http/models/user.model";
+import type { CollaboratorRate, UserWithRoles } from "@/http/models/user.model";
 import {
+  useCollaboratorRates,
   useCurrentUser,
   useDeleteUser,
+  useUpdateCollaboratorRates,
   useUpdateUserRole,
   useUsers,
 } from "../_hooks/use-team";
+import React, { useState } from "react";
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -32,11 +20,22 @@ const { confirm } = Modal;
 export function MemberList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
+  const [rates, setRates] = useState<CollaboratorRate>(() => ({
+    rateXs: "0",
+    rateS: "0",
+    rateM: "0",
+    rateL: "0",
+    rateXl: "0",
+    dailyRate: "0",
+  }));
+  const [baseRateM, setBaseRateM] = useState<string>("0");
   const { data: users, isLoading } = useUsers();
   const deleteMutation = useDeleteUser();
   const updateRoleMutation = useUpdateUserRole();
+  const updateRatesMutation = useUpdateCollaboratorRates();
   const { data: currentUser } = useCurrentUser();
   const isOwner = currentUser?.organizationRole === "OWNER";
+  const { data: currentRates } = useCollaboratorRates(selectedUser?.id || "");
 
   const handleDelete = (id: string) => {
     confirm({
@@ -77,11 +76,70 @@ export function MemberList() {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedUser(null);
+    setRates({
+      rateXs: "0",
+      rateS: "0",
+      rateM: "0",
+      rateL: "0",
+      rateXl: "0",
+      dailyRate: "0",
+    });
+    setBaseRateM("0");
   };
 
-  const handleSave = () => {
-    setIsModalOpen(false);
+  const handleSave = async () => {
+    if (!selectedUser) return;
+
+    try {
+      await updateRatesMutation.mutateAsync({
+        userId: selectedUser.id,
+        rates,
+      });
+      message.success("Rates updated successfully");
+      setIsModalOpen(false);
+      setSelectedUser(null);
+    } catch (error) {
+      message.error((error as Error).message || "Failed to update rates");
+    }
   };
+
+  const handleRateChange = (field: keyof CollaboratorRate, value: string) => {
+    setRates((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleBaseRateMChange = (value: string) => {
+    const m = Number(value); // 🔥 mieux que parseFloat
+
+    if (isNaN(m)) return; // sécurité
+
+    setBaseRateM(value);
+
+    setRates({
+      rateXs: (m / 4).toString(),
+      rateS: (m / 2).toString(),
+      rateM: m.toString(),
+      rateL: (m * 2).toString(),
+      rateXl: (m * 4).toString(),
+      dailyRate: rates.dailyRate, // ⚠️ garde l'ancien
+    });
+  };
+
+  React.useEffect(() => {
+    if (currentRates && selectedUser) {
+      setRates({
+        rateXs: currentRates.rateXs || "0",
+        rateS: currentRates.rateS || "0",
+        rateM: currentRates.rateM || "0",
+        rateL: currentRates.rateL || "0",
+        rateXl: currentRates.rateXl || "0",
+        dailyRate: currentRates.dailyRate || "0",
+      });
+      setBaseRateM(currentRates.rateM || "0");
+    }
+  }, [currentRates, selectedUser]);
 
   const columns: ColumnsType<UserWithRoles> = [
     {
@@ -173,26 +231,67 @@ export function MemberList() {
         title={`Size settings for ${selectedUser?.name || "Member"}`}
         open={isModalOpen}
         onCancel={closeModal}
-        onOk={handleSave}
+        onOk={isOwner ? handleSave : undefined}
+        okButtonProps={{ disabled: !isOwner }}
+        cancelButtonProps={{ children: isOwner ? "Cancel" : "Close" }}
+        confirmLoading={updateRatesMutation.isPending}
       >
         <Flex vertical gap={10}>
           <Flex gap={1} vertical>
-            <Input prefix="XS :" placeholder="0" suffix="€" />
+            <Input
+              prefix="M (Base) :"
+              placeholder="0"
+              suffix="€"
+              value={baseRateM}
+              onChange={isOwner ? (e) => handleBaseRateMChange(e.target.value) : undefined}
+              readOnly={!isOwner}
+            />
           </Flex>
           <Flex gap={1} vertical>
-            <Input prefix="S :" placeholder="0" suffix="€" />
+            <Input
+              prefix="XS  :"
+              placeholder="0"
+              suffix="€"
+              value={rates.rateXs}
+              readOnly
+            />
           </Flex>
           <Flex gap={1} vertical>
-            <Input prefix="M :" placeholder="0" suffix="€" />
+            <Input
+              prefix="S  :"
+              placeholder="0"
+              suffix="€"
+              value={rates.rateS}
+              readOnly
+            />
           </Flex>
           <Flex gap={1} vertical>
-            <Input prefix="L :" placeholder="0" suffix="€" />
+            <Input
+              prefix="L  :"
+              placeholder="0"
+              suffix="€"
+              value={rates.rateL}
+              readOnly
+            />
           </Flex>
           <Flex gap={1} vertical>
-            <Input prefix="XL :" placeholder="0" suffix="€" />
+            <Input
+              prefix="XL  :"
+              placeholder="0"
+              suffix="€"
+              value={rates.rateXl}
+              readOnly
+            />
           </Flex>
           <Flex gap={1} vertical>
-            <Input prefix="Daily :" placeholder="0" suffix="€" />
+            <Input
+              prefix="Daily :"
+              placeholder="0"
+              suffix="€"
+              value={rates.dailyRate}
+              onChange={isOwner ? (e) => handleRateChange("dailyRate", e.target.value) : undefined}
+              readOnly={!isOwner}
+            />
           </Flex>
         </Flex>
       </Modal>

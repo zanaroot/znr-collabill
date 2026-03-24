@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AuthUser } from "@/http/models/auth.model";
-import type { Invitation, UserWithRoles } from "@/http/models/user.model";
+import type { CollaboratorRate, Invitation, UserWithRoles } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 
 export const teamKeys = {
@@ -10,6 +10,7 @@ export const teamKeys = {
   currentUser: () => [...teamKeys.all, "currentUser"] as const,
   users: () => [...teamKeys.all, "users"] as const,
   invitations: () => [...teamKeys.all, "invitations"] as const,
+  collaboratorRates: (userId: string) => [...teamKeys.all, "collaboratorRates", userId] as const,
 };
 
 export function useCurrentUser() {
@@ -105,6 +106,53 @@ export function useUpdateUserRole() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: teamKeys.users() });
+    },
+  });
+}
+
+export function useCollaboratorRates(userId: string) {
+  return useQuery({
+    queryKey: teamKeys.collaboratorRates(userId),
+    queryFn: async () => {
+      const res = await client.api.users[":id"].rates.$get({
+        param: { id: userId },
+      });
+      if (!res.ok) {
+        const error = (await res.json()) as { error?: string };
+        if (res.status === 404) {
+          return null;
+        }
+        throw new Error(error.error || "Failed to fetch collaborator rates");
+      }
+      return (await res.json()) as CollaboratorRate;
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useUpdateCollaboratorRates() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      rates,
+    }: {
+      userId: string;
+      rates: CollaboratorRate;
+    }) => {
+      const res = await client.api.users[":id"].rates.$patch({
+        param: { id: userId },
+        json: rates,
+      });
+      if (!res.ok) {
+        const error = (await res.json()) as { error?: string };
+        throw new Error(error.error || "Failed to update collaborator rates");
+      }
+      return await res.json();
+    },
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.collaboratorRates(userId) });
     },
   });
 }

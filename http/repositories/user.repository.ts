@@ -3,6 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
+  collaboratorRates,
   organizationMembers,
   organizations,
   userRoles,
@@ -104,4 +105,63 @@ export const getOrganizations = async (userId: string) => {
     .where(eq(organizationMembers.userId, userId));
 
   return membership.map((m) => m.organizations);
+};
+
+export const getCollaboratorRate = async (userId: string) => {
+  const [rate] = await db
+    .select()
+    .from(collaboratorRates)
+    .where(eq(collaboratorRates.userId, userId))
+    .limit(1);
+
+  return rate ?? null;
+};
+
+export const upsertCollaboratorRate = async (
+  userId: string,
+  rates: {
+    rateXs: string;
+    rateS: string;
+    rateM: string;
+    rateL: string;
+    rateXl: string;
+    dailyRate: string;
+  },
+) => {
+  const [existingRate] = await db
+    .select()
+    .from(collaboratorRates)
+    .where(eq(collaboratorRates.userId, userId))
+    .limit(1);
+
+  if (existingRate) {
+    const [updatedRate] = await db
+      .update(collaboratorRates)
+      .set({
+        rateXs: rates.rateXs,
+        rateS: rates.rateS,
+        rateM: rates.rateM,
+        rateL: rates.rateL,
+        rateXl: rates.rateXl,
+        dailyRate: rates.dailyRate,
+        updatedAt: new Date(),
+      })
+      .where(eq(collaboratorRates.userId, userId))
+      .returning();
+    return updatedRate;
+  } else {
+    const [newRate] = await db
+      .insert(collaboratorRates)
+      .values({
+        userId,
+        rateXs: rates.rateXs,
+        rateS: rates.rateS,
+        rateM: rates.rateM,
+        rateL: rates.rateL,
+        rateXl: rates.rateXl,
+        dailyRate: rates.dailyRate,
+      })
+      .returning();
+    return newRate;
+  }
 };

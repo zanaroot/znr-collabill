@@ -2,6 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
 import { z } from "zod";
 import type { AuthEnv } from "@/http/models/auth.model";
+import { collaboratorRateSchema } from "@/http/models/user.model";
 import {
   deleteInvitationById,
   getAllInvitations,
@@ -11,7 +12,11 @@ import {
   removeOrganizationMember,
   updateOrganizationMemberRole,
 } from "@/http/repositories/organization.repository";
-import { updateUser } from "@/http/repositories/user.repository";
+import {
+  getCollaboratorRate,
+  upsertCollaboratorRate,
+  updateUser,
+} from "@/http/repositories/user.repository";
 
 const factory = createFactory<AuthEnv>();
 
@@ -127,5 +132,36 @@ export const updateUserRoleHandler = factory.createHandlers(
 
     await updateOrganizationMemberRole(currentUser.organizationId, id, role);
     return c.json({ message: "Role updated" });
+  },
+);
+
+export const getCollaboratorRateHandler = factory.createHandlers(async (c) => {
+  const id = c.req.param("id");
+  if (!id) return c.json({ error: "ID required" }, 400);
+
+  const rate = await getCollaboratorRate(id);
+  if (!rate) {
+    return c.json({ error: "Collaborator rate not found" }, 404);
+  }
+
+  return c.json(rate);
+});
+
+export const updateCollaboratorRateHandler = factory.createHandlers(
+  zValidator("json", collaboratorRateSchema),
+  async (c) => {
+    const currentUser = c.get("user");
+    const isOwner = currentUser.organizationRole === "OWNER";
+
+    if (!isOwner && currentUser.id !== c.req.param("id")) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    const id = c.req.param("id");
+    if (!id) return c.json({ error: "ID required" }, 400);
+    const rates = c.req.valid("json");
+
+    const updatedRate = await upsertCollaboratorRate(id, rates);
+    return c.json(updatedRate);
   },
 );
