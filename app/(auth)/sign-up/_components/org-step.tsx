@@ -3,7 +3,7 @@
 import { Button, Card, Form, Input, Typography } from "antd";
 import { useRouter } from "next/navigation";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 interface OrganizationForm {
   name: string;
@@ -19,13 +19,18 @@ export const OrgStep = () => {
   };
 
   return (
-    <Card style={{ width: 500 }}>
-      <Title level={3} style={{ textAlign: "center" }}>
-        Create an Organization
-      </Title>
-      <p style={{ textAlign: "center", color: "#666", marginBottom: 24 }}>
-        First, tell us the name of your organization.
-      </p>
+    <Card
+      title={
+        <div className="text-center mt-10">
+          <Typography.Title level={3}>
+            Create an Organization
+          </Typography.Title>
+          <Typography.Text style={{ color: "#666" }}>
+            First, tell us the name of your organization.
+          </Typography.Text>
+        </div>
+      }
+      style={{ width: 500 }}>
       <Form layout="vertical" onFinish={onFinish} initialValues={{ name: "" }}>
         <Form.Item
           label="Organization Name"
@@ -34,11 +39,16 @@ export const OrgStep = () => {
             { required: true, message: "Please enter the organization name" },
           ]}
         >
-          <Input placeholder="My Organization" size="large" />
+          <Input placeholder="My Organization" />
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" block size="large">
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            className="bg-blue-600 hover:bg-blue-700 transition-colors rounded-md w-32"
+          >
             Next: Create Owner Account
           </Button>
         </Form.Item>
