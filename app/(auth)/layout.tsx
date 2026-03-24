@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { getCurrentUser } from "@/http/actions/get-current-user";
+import { getCurrentUser } from "@/http/actions/get-current-user.action";
 
 const AuthLayout = async ({ children }: { children: ReactNode }) => {
   const user = await getCurrentUser();

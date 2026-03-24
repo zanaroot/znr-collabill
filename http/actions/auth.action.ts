@@ -19,7 +19,8 @@ import {
   deleteSessionByToken,
 } from "@/http/repositories/session.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
-import { generateSessionToken, getSessionExpirationDate } from "@/lib/session";
+import { getFutureDate } from "@/lib/date";
+import { generateSessionToken } from "@/lib/session-token";
 import { serverEnv } from "@/packages/env/server";
 
 const shouldUseSecureCookie = async () => {
@@ -66,7 +67,7 @@ export const registerAction = async (
     });
 
     const sessionToken = generateSessionToken();
-    const expiresAt = getSessionExpirationDate(7);
+    const expiresAt = getFutureDate(7);
 
     await createSession({
       userId: user.id,
@@ -123,7 +124,7 @@ export const signInAction = async (
     const primaryOrgId = orgCount === 1 ? userOrgs[0].id : undefined;
 
     const sessionToken = generateSessionToken();
-    const expiresAt = getSessionExpirationDate(7);
+    const expiresAt = getFutureDate(7);
 
     // If more than one org, we create a session without organizationId first,
     // or we'll let the selection page update it.

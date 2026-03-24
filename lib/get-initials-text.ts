@@ -1,4 +1,4 @@
-export const getShortName = (name?: unknown, max = 2): string => {
+export const getInitials = (name?: unknown, max = 2): string => {
   if (name == null) return "";
 
   const str = String(name);

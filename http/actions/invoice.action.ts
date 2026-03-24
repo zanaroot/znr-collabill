@@ -6,7 +6,7 @@ import {
   createInvoiceWithLines,
   markInvoiceAsPaid,
 } from "@/http/repositories/invoice.repository";
-import { getCurrentUser } from "./get-current-user";
+import { getCurrentUser } from "./get-current-user.action";
 
 type ValidateInvoiceArgs = {
   targetUserId: string;

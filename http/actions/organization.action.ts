@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { getCurrentUser } from "@/http/actions/get-current-user";
+import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import type { ActionResponse } from "@/http/models/auth.model";
 import {
   createOrganization,

@@ -2,7 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
-import { getCurrentUser } from "@/http/actions/get-current-user";
+import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import type { ActionResponse } from "@/http/models/auth.model";
 import type {
   CreatePasswordInput,
@@ -22,7 +22,7 @@ import {
 } from "@/http/repositories/invitation.repository";
 import { isUserInOrganization } from "@/http/repositories/organization.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
-import { sendEmail } from "@/lib/email";
+import { sendEmail } from "@/packages/email";
 import { publicEnv } from "@/packages/env";
 
 export const inviteUserAction = async (

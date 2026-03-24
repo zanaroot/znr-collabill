@@ -20,7 +20,7 @@ import {
   findValidResetToken,
 } from "@/http/repositories/password-reset.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
-import { sendEmail } from "@/lib/email";
+import { sendEmail } from "@/packages/email";
 import { publicEnv } from "@/packages/env";
 
 export const forgotPasswordAction = async (

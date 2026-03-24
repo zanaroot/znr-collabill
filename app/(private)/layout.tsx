@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { getCurrentUser } from "@/http/actions/get-current-user";
+import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import {
   getOrganizationById,
   getUserOrganizations,

@@ -1,4 +1,4 @@
-import type { TaskStatus } from "@/lib/task-status";
+import type { TaskStatus } from "@/http/models/task.model";
 
 type TaskWorkflowContext = {
   from: TaskStatus;

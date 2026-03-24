@@ -3,7 +3,10 @@
 import { Button, Modal, message, Radio, Space, Typography } from "antd";
 import { useEffect, useState, useTransition } from "react";
 import { markPresenceAction } from "@/http/actions/presence.action";
-import { PRESENCE_STATUSES, type PresenceStatus } from "@/lib/presence-status";
+import {
+  PRESENCE_STATUSES,
+  type PresenceStatus,
+} from "@/http/models/presence.model";
 
 const { Text, Title } = Typography;
 

@@ -9,7 +9,7 @@ import {
 } from "@/http/models/presence.model";
 import * as presenceRepository from "@/http/repositories/presence.repository";
 import { getISODate } from "@/lib/date";
-import { getCurrentUser } from "./get-current-user";
+import { getCurrentUser } from "./get-current-user.action";
 
 export const checkTodayPresenceAction = async (): Promise<Presence | null> => {
   const user = await getCurrentUser();

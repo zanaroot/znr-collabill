@@ -10,12 +10,10 @@ import {
   message,
   Typography,
 } from "antd";
-import { useRouter } from "next/navigation";
 import { CreateOrganization } from "@/app/(private)/_components/create-organization";
-import {
-  getUserOrganizationsAction,
-  selectOrganizationAction,
-} from "@/http/actions/organization.action";
+import { taskKeys } from "@/app/(private)/task-board/_hooks/use-tasks";
+import { getInitials } from "@/lib/get-initials-text";
+import { client } from "@/packages/hono";
 import { queryClient } from "@/packages/react-query";
 
 const { Text } = Typography;
@@ -35,28 +33,34 @@ export const OrganizationSwitcher = ({
 }) => {
   const { data: organizations } = useQuery({
     queryKey: ["userOrganizations"],
-    queryFn: () => getUserOrganizationsAction(),
+    queryFn: async () => {
+      const res = await client.api.organizations.me.$get();
+      return await res.json();
+    },
   });
 
-  const router = useRouter();
   const { mutateAsync: selectOrg, isPending } = useMutation({
-    mutationFn: selectOrganizationAction,
+    mutationFn: async (id: string) => {
+      const res = await client.api.organizations[":id"].select.$post({
+        param: { id },
+      });
+      return await res.json();
+    },
     onSuccess: (data) => {
-      if (data.success) {
+      if ("success" in data && data.success) {
         message.success("Organization switched!");
-        router.refresh();
+
+        queryClient.invalidateQueries({ queryKey: taskKeys.all });
+        window.location.reload();
       } else {
-        message.error(data.error || "Something went wrong.");
+        message.error(
+          ("error" in data ? data.error : null) || "Something went wrong.",
+        );
       }
     },
   });
 
-  const abbreviation = currentOrganization?.name
-    ? currentOrganization.name
-        .split(" ")
-        .map((word) => word[0].toUpperCase())
-        .join("")
-    : "FB";
+  const abbreviation = getInitials(currentOrganization?.name);
 
   const items: MenuProps["items"] = (organizations || []).map((org) => ({
     key: org.id,
@@ -68,9 +72,9 @@ export const OrganizationSwitcher = ({
         )}
       </Flex>
     ),
-    onClick: () => {
+    onClick: async () => {
       if (org.id !== currentOrganization?.id) {
-        selectOrg(org.id);
+        await selectOrg(org.id);
       }
     },
     disabled: isPending,

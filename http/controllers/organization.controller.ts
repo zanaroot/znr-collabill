@@ -36,3 +36,30 @@ export const organizationOwner = factory.createHandlers(async (c) => {
   const owner = await getOrganizationOwner(id);
   return c.json(owner);
 });
+
+export const selectOrganization = factory.createHandlers(async (c) => {
+  const { getCookie } = await import("hono/cookie");
+  const { updateSessionOrganization } = await import(
+    "@/http/repositories/session.repository"
+  );
+
+  const id = c.req.param("id");
+  if (!id) return c.json({ error: "ID required" }, 400);
+
+  const token = getCookie(c, "session_token");
+  if (!token) return c.json({ error: "Unauthorized" }, 401);
+
+  await updateSessionOrganization(token, id);
+
+  return c.json({ message: "Organization selected", success: true });
+});
+
+export const getMyOrganizations = factory.createHandlers(async (c) => {
+  const { getUserOrganizations } = await import(
+    "@/http/repositories/organization.repository"
+  );
+  const currentUser = c.get("user");
+
+  const organizations = await getUserOrganizations(currentUser.id);
+  return c.json(organizations);
+});

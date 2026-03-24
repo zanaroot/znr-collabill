@@ -8,7 +8,7 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Avatar, Dropdown } from "antd";
 import { useState } from "react";
-import { getShortName } from "@/lib/get-short-name";
+import { getInitials } from "@/lib/get-initials-text";
 import { client } from "@/packages/hono";
 import { ProfileDrawer } from "./profile-drawer";
 
@@ -32,7 +32,7 @@ export const UserDropdownMenus = () => {
     },
   });
 
-  const shortName = getShortName(currentUser?.name);
+  const shortName = getInitials(currentUser?.name);
 
   return (
     <>

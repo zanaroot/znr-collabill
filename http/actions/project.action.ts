@@ -13,7 +13,7 @@ import {
 } from "@/http/models/project.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
-import { getCurrentUser } from "./get-current-user";
+import { getCurrentUser } from "./get-current-user.action";
 
 export const createProjectAction = async (
   input: CreateProjectInput,

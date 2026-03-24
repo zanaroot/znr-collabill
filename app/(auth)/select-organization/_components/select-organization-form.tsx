@@ -3,28 +3,35 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Card, List, message, Typography } from "antd";
 import { useRouter } from "next/navigation";
-import {
-  getUserOrganizationsAction,
-  selectOrganizationAction,
-} from "@/http/actions/organization.action";
+import { client } from "@/packages/hono";
 
 export const SelectOrganizationForm = () => {
   const router = useRouter();
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ["userOrganizations"],
-    queryFn: getUserOrganizationsAction,
+    queryFn: async () => {
+      const res = await client.api.organizations.me.$get();
+      return await res.json();
+    },
   });
 
   const { mutateAsync: selectOrg, isPending } = useMutation({
-    mutationFn: selectOrganizationAction,
+    mutationFn: async (id: string) => {
+      const res = await client.api.organizations[":id"].select.$post({
+        param: { id },
+      });
+      return await res.json();
+    },
     onSuccess: (data) => {
-      if (data.success) {
+      if ("success" in data && data.success) {
         message.success("Organization selected!");
         router.push("/task-board");
         router.refresh();
       } else {
-        message.error(data.error || "Something went wrong.");
+        message.error(
+          ("error" in data ? data.error : null) || "Something went wrong.",
+        );
       }
     },
   });
@@ -49,15 +56,21 @@ export const SelectOrganizationForm = () => {
           dataSource={organizations}
           renderItem={(org) => (
             <List.Item
+              className="group transition-colors hover:bg-slate-50"
               actions={[
-                <Button
-                  key="select"
-                  type="primary"
-                  loading={isPending}
-                  onClick={() => selectOrg(org.id)}
+                <div
+                  key="select-wrapper"
+                  className="opacity-0 transition-opacity group-hover:opacity-100"
                 >
-                  Select
-                </Button>,
+                  <Button
+                    key="select"
+                    type="primary"
+                    loading={isPending}
+                    onClick={() => selectOrg(org.id)}
+                  >
+                    Select
+                  </Button>
+                </div>,
               ]}
             >
               <List.Item.Meta title={org.name} description={org.slug} />

@@ -1,5 +1,14 @@
 import { z } from "zod";
-import { PRESENCE_STATUSES, type PresenceStatus } from "@/lib/presence-status";
+
+export const PRESENCE_STATUSES = [
+  "OFFICE",
+  "REMOTE",
+  "ON_SITE",
+  "SICK",
+  "VACATION",
+] as const;
+
+export type PresenceStatus = (typeof PRESENCE_STATUSES)[number];
 
 const presenceStatusEnum = z.enum(PRESENCE_STATUSES);
 

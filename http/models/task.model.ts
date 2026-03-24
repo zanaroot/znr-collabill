@@ -1,6 +1,17 @@
 import { z } from "zod";
-import { TASK_SIZES, type TaskSize } from "@/lib/task-size";
-import { TASK_STATUSES, type TaskStatus } from "@/lib/task-status";
+
+export const TASK_SIZES = ["XS", "S", "M", "L", "XL"] as const;
+export type TaskSize = (typeof TASK_SIZES)[number];
+
+export const TASK_STATUSES = [
+  "TODO",
+  "IN_PROGRESS",
+  "IN_REVIEW",
+  "VALIDATED",
+  "BLOCKED",
+  "TRASH",
+] as const;
+export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 const taskSizeEnum = z.enum(TASK_SIZES);
 const taskStatusEnum = z.enum(TASK_STATUSES);

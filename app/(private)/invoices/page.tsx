@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/http/actions/get-current-user";
+import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import { findInvoiceByPeriodAndUser } from "@/http/repositories/invoice.repository";
 import { getOrganizationMembers } from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";

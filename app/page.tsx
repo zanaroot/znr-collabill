@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/http/actions/get-current-user";
+import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import LandingPage from "./_components/landing-page";
 
 const Page = async () => {

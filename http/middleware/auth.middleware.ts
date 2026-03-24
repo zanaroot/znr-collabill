@@ -53,6 +53,33 @@ export const authMiddleware = createMiddleware<AuthEnv>(
   },
 );
 
+export const adminMiddleware = createMiddleware<AuthEnv>(
+  async (c: Context, next: Next) => {
+    const user = c.get("user");
+
+    if (
+      !user ||
+      (user.organizationRole !== "OWNER" && user.organizationRole !== "ADMIN")
+    ) {
+      return c.json({ error: "Forbidden: Admin or Owner role required" }, 403);
+    }
+
+    await next();
+  },
+);
+
+export const ownerMiddleware = createMiddleware<AuthEnv>(
+  async (c: Context, next: Next) => {
+    const user = c.get("user");
+
+    if (!user || user.organizationRole !== "OWNER") {
+      return c.json({ error: "Forbidden: Owner role required" }, 403);
+    }
+
+    await next();
+  },
+);
+
 const getCookieValue = (c: Context, name: string): string | undefined => {
   const cookie = c.req.header("Cookie");
   if (!cookie) return undefined;

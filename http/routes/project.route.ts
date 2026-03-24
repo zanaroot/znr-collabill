@@ -8,12 +8,16 @@ import {
   getProjects,
   updateProject,
 } from "@/http/controllers/project.controller";
+import {
+  adminMiddleware,
+  ownerMiddleware,
+} from "@/http/middleware/auth.middleware";
 
 export const projectRoutes = new Hono()
   .get("/", ...getProjects)
   .get("/:id", ...getProject)
-  .post("/", ...createProject)
-  .put("/:id", ...updateProject)
-  .delete("/:id", ...deleteProject)
+  .post("/", ownerMiddleware, ...createProject)
+  .put("/:id", ownerMiddleware, adminMiddleware, ...updateProject)
+  .delete("/:id", ownerMiddleware, adminMiddleware, ...deleteProject)
   .get("/:id/members", ...getProjectMembers)
-  .post("/:id/members", ...addProjectMember);
+  .post("/:id/members", ownerMiddleware, adminMiddleware, ...addProjectMember);
