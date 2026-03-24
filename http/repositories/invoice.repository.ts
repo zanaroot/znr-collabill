@@ -14,16 +14,18 @@ export const findInvoiceByIterationAndUser = async (
   const [invoice] = await db
     .select()
     .from(invoices)
-    .where(and(eq(invoices.iterationId, iterationId), eq(invoices.userId, userId)))
+    .where(
+      and(eq(invoices.iterationId, iterationId), eq(invoices.userId, userId)),
+    )
     .limit(1);
-    
+
   if (!invoice) return null;
-  
+
   const lines = await db
     .select()
     .from(invoiceLines)
     .where(eq(invoiceLines.invoiceId, invoice.id));
-    
+
   return { ...invoice, lines };
 };
 

@@ -29,24 +29,25 @@ App URL: `http://localhost:3000`
 - `DATABASE_URL`: PostgreSQL connection string.
 - `BREVO_API_KEY`: API key for Brevo (or another email provider) to send emails.
 - `MAIL_FROM`: The "From" address for outgoing emails.
-- `CRON_SECRET`: A secret token to secure the cron job endpoint.
 
-## Cron Jobs
+## Scheduled Maintenance
 
-The application includes an endpoint to automatically close iterations when their `endDate` has passed. This is useful for automating your billing or sprint cycles.
+The application includes an endpoint to close iterations when their `endDate` has passed.
 
-To trigger this job, you need to set up a cron job that sends a `POST` request to the following endpoint:
+`POST /api/maintenance/iterations/close-stale`
 
-`POST /api/cron/close-iterations`
+This endpoint now uses the normal API authentication flow instead of a separate cron secret:
 
-You must include the `CRON_SECRET` in the `Authorization` header as a bearer token:
+- It is protected by the existing API auth middleware.
+- It requires an authenticated user with the `OWNER` role.
+- It accepts either the normal session cookie or an `Authorization: Bearer <session_token>` header.
+
+Example:
 
 ```bash
-curl -X POST "https://your-app-url.com/api/cron/close-iterations" 
-     -H "Authorization: Bearer YOUR_CRON_SECRET"
+curl -X POST "https://your-app-url.com/api/maintenance/iterations/close-stale" \
+     -H "Authorization: Bearer YOUR_SESSION_TOKEN"
 ```
-
-You can use services like [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs), GitHub Actions schedules, or any other cron job provider.
 
 ## Commands
 

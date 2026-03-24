@@ -3,13 +3,15 @@
 import { and, desc, eq, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { iterations } from "@/db/schema";
-import { getISODate } from "@/lib/date";
 import type {
   CreateIterationInput,
   UpdateIterationInput,
 } from "@/http/models/iteration.model";
+import { getISODate } from "@/lib/date";
 
-export const findIterationsByOrganizationId = async (organizationId: string) => {
+export const findIterationsByOrganizationId = async (
+  organizationId: string,
+) => {
   return await db
     .select()
     .from(iterations)

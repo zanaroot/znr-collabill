@@ -14,6 +14,7 @@ import {
   Typography,
 } from "antd";
 import { type DragEvent, type MouseEvent, useMemo, useState } from "react";
+import { useIterations } from "@/app/(private)/_hooks/use-iterations";
 import { projectMembers } from "@/db/schema";
 import type { Task as TaskModel } from "@/http/models/task.model";
 import { TASK_SIZES, type TaskSize } from "@/lib/task-size";
@@ -28,7 +29,6 @@ import {
   useDeleteTask,
   useUpdateTask,
 } from "../_hooks/use-tasks";
-import { useIterations } from "@/app/(private)/_hooks/use-iterations";
 
 type User = {
   id: string;
@@ -204,7 +204,11 @@ export function CreateBoard({
     if (!activeTask || !projectId) return;
 
     deleteTaskMutation.mutate(
-      { id: activeTask.id, projectId, iterationId: activeTask.iterationId ?? undefined },
+      {
+        id: activeTask.id,
+        projectId,
+        iterationId: activeTask.iterationId ?? undefined,
+      },
       { onSuccess: handleClose },
     );
   };

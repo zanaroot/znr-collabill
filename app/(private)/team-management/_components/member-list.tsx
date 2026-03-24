@@ -1,8 +1,23 @@
 "use client";
 
-import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { Button, Card, Modal, message, Select, Table, Typography, Flex, Input } from "antd";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
+import {
+  Button,
+  Card,
+  Flex,
+  Input,
+  Modal,
+  message,
+  Select,
+  Table,
+  Typography,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { useState } from "react";
 import type { UserWithRoles } from "@/http/models/user.model";
 import {
   useCurrentUser,
@@ -10,7 +25,6 @@ import {
   useUpdateUserRole,
   useUsers,
 } from "../_hooks/use-team";
-import { useState } from "react";
 
 const { Title } = Typography;
 const { confirm } = Modal;

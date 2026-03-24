@@ -1,5 +1,5 @@
-import { createFactory } from "hono/factory";
 import { zValidator } from "@hono/zod-validator";
+import { createFactory } from "hono/factory";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   createIterationSchema,
@@ -21,7 +21,9 @@ export const iterationController = {
     if (!user.organizationId) {
       return c.json({ error: "No organization found" }, 404);
     }
-    const iterations = await findIterationsByOrganizationId(user.organizationId);
+    const iterations = await findIterationsByOrganizationId(
+      user.organizationId,
+    );
     return c.json(iterations);
   }),
 
@@ -42,7 +44,7 @@ export const iterationController = {
     async (c) => {
       const user = c.get("user");
       const input = c.req.valid("json");
-      
+
       if (!user.organizationId) {
         return c.json({ error: "No organization found" }, 404);
       }

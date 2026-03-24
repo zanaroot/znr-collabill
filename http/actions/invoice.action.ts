@@ -1,9 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "./get-current-user";
-import { createInvoiceWithLines, markInvoiceAsPaid } from "@/http/repositories/invoice.repository";
 import type { RawTaskSummary } from "@/app/(private)/invoices/_components/task-summary-table";
+import {
+  createInvoiceWithLines,
+  markInvoiceAsPaid,
+} from "@/http/repositories/invoice.repository";
+import { getCurrentUser } from "./get-current-user";
 
 type ValidateInvoiceArgs = {
   targetUserId: string;
@@ -11,7 +14,12 @@ type ValidateInvoiceArgs = {
   iterationId: string;
   periodStart: string;
   periodEnd: string;
-  presenceData: { userId: string; userName: string; presenceCount: number; dailyRate: string | number | null }[];
+  presenceData: {
+    userId: string;
+    userName: string;
+    presenceCount: number;
+    dailyRate: string | number | null;
+  }[];
   taskData: RawTaskSummary[];
 };
 
@@ -21,7 +29,14 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
     return { error: "Unauthorized" };
   }
 
-  const { targetUserId, iterationId, periodStart, periodEnd, presenceData, taskData } = args;
+  const {
+    targetUserId,
+    iterationId,
+    periodStart,
+    periodEnd,
+    presenceData,
+    taskData,
+  } = args;
 
   let totalAmount = 0;
   const linesInput: Parameters<typeof createInvoiceWithLines>[1] = [];
@@ -46,10 +61,11 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
   // Map tasks
   for (const t of taskData) {
     const size = t.size.toLowerCase();
-    const rateKey = `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
+    const rateKey =
+      `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
     const rate = Number(t[rateKey] || 0);
     const amount = t.taskCount * rate;
-    
+
     if (amount > 0) {
       totalAmount += amount;
       linesInput.push({

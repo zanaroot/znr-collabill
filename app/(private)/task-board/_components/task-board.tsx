@@ -25,7 +25,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
 
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
   const { data: iterations, isLoading: isLoadingIterations } = useIterations();
-  
+
   const [projectId, setProjectId] = useState<string | undefined>(
     projectIdParam || undefined,
   );
@@ -33,10 +33,13 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
     iterationIdParam || undefined,
   );
 
-  const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId, iterationId);
+  const { data: tasks, isLoading: isLoadingTasks } = useTasks(
+    projectId,
+    iterationId,
+  );
   const { data: users } = useUsers();
   const taskCount = tasks?.length ?? 0;
-  
+
   const selectedProject = useMemo(
     () => projects?.find((project) => project.id === projectId),
     [projects, projectId],
@@ -67,7 +70,15 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
     if (changed) {
       router.replace(`${pathname}?${params.toString()}`);
     }
-  }, [projectId, iterationId, searchParams, pathname, router, projectIdParam, iterationIdParam]);
+  }, [
+    projectId,
+    iterationId,
+    searchParams,
+    pathname,
+    router,
+    projectIdParam,
+    iterationIdParam,
+  ]);
 
   useEffect(() => {
     if (!projectId && projects?.length && !projectIdParam) {
@@ -93,12 +104,14 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
               <Spin />
             ) : projects?.length ? (
               <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-                <Text type="secondary" className="min-w-[70px]">Project</Text>
+                <Text type="secondary" className="min-w-[70px]">
+                  Project
+                </Text>
                 <Select
                   value={projectId}
                   onChange={(value) => {
                     setProjectId(value);
-                    setIterationId(undefined); // Reset iteration when project changes? 
+                    setIterationId(undefined); // Reset iteration when project changes?
                     // Actually, iterations are org-wide, so maybe not?
                   }}
                   options={projects.map((project) => ({
@@ -115,7 +128,9 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
               <Spin />
             ) : (
               <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-                <Text type="secondary" className="min-w-[70px]">Iteration</Text>
+                <Text type="secondary" className="min-w-[70px]">
+                  Iteration
+                </Text>
                 <Select
                   value={iterationId}
                   onChange={(value) => setIterationId(value)}

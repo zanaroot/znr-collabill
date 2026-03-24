@@ -1,13 +1,15 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/http/actions/get-current-user";
 import { findInvoiceByIterationAndUser } from "@/http/repositories/invoice.repository";
-import { findIterationById, findIterationsByOrganizationId } from "@/http/repositories/iteration.repository";
+import {
+  findIterationById,
+  findIterationsByOrganizationId,
+} from "@/http/repositories/iteration.repository";
 import { getOrganizationMembers } from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
+import { InvoiceFilters } from "./_components/invoice-filters";
 import { InvoicePrintable } from "./_components/invoice-printable";
-import { IterationFilter } from "./_components/iteration-filter";
-import { MemberFilter } from "./_components/member-filter";
 import {
   type PresenceSummary,
   PresenceSummaryTable,
@@ -17,11 +19,11 @@ import {
   TaskSummaryTable,
 } from "./_components/task-summary-table";
 
-export const InvoicesPage = async ({
+export default async function InvoicesPage({
   searchParams,
 }: {
   searchParams: Promise<{ memberId?: string; iterationId?: string }>;
-}) => {
+}) {
   const user = await getCurrentUser();
   const { memberId, iterationId } = await searchParams;
 
@@ -37,23 +39,28 @@ export const InvoicesPage = async ({
     iterationId ? findIterationById(iterationId) : Promise.resolve(null),
   ]);
 
-  const [presenceSummary, taskSummary, members, existingInvoice] = await Promise.all([
-    getPresenceSummaryByOrganization(
-      user.id,
-      user.organizationId,
-      targetUserId,
-      selectedIteration?.startDate,
-      selectedIteration?.endDate,
-    ),
-    getValidatedTaskSummaryByOrganization(
-      user.id,
-      user.organizationId,
-      targetUserId,
-      iterationId,
-    ),
-    isOwner ? getOrganizationMembers(user.organizationId) : Promise.resolve([]),
-    iterationId ? findInvoiceByIterationAndUser(iterationId, targetUserId) : Promise.resolve(null),
-  ]);
+  const [presenceSummary, taskSummary, members, existingInvoice] =
+    await Promise.all([
+      getPresenceSummaryByOrganization(
+        user.id,
+        user.organizationId,
+        targetUserId,
+        selectedIteration?.startDate,
+        selectedIteration?.endDate,
+      ),
+      getValidatedTaskSummaryByOrganization(
+        user.id,
+        user.organizationId,
+        targetUserId,
+        iterationId,
+      ),
+      isOwner
+        ? getOrganizationMembers(user.organizationId)
+        : Promise.resolve([]),
+      iterationId
+        ? findInvoiceByIterationAndUser(iterationId, targetUserId)
+        : Promise.resolve(null),
+    ]);
 
   const targetUserName =
     targetUserId === user.id
@@ -67,10 +74,12 @@ export const InvoicesPage = async ({
       </div>
 
       <div className="no-print flex flex-col gap-4">
-        <IterationFilter iterations={iterations} />
-        {isOwner && (
-          <MemberFilter members={members} currentUserId={user.id} />
-        )}
+        <InvoiceFilters
+          iterations={iterations}
+          members={members}
+          currentUserId={user.id}
+          showMemberFilter={isOwner}
+        />
       </div>
 
       {presenceSummary.length > 0 && (
@@ -105,6 +114,4 @@ export const InvoicesPage = async ({
       />
     </div>
   );
-};
-
-export default InvoicesPage;
+}

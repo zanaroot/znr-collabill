@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { client } from "@/packages/hono";
 import type {
   CreateIterationInput,
   Iteration,
   UpdateIterationInput,
 } from "@/http/models/iteration.model";
+import { client } from "@/packages/hono";
 
 export const useIterations = () => {
   return useQuery({
@@ -53,7 +53,13 @@ export const useCreateIteration = () => {
 export const useUpdateIteration = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateIterationInput }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateIterationInput;
+    }) => {
       const res = await client.api.iterations[":id"].$patch({
         param: { id },
         json: data,
