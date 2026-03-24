@@ -2,6 +2,8 @@
 
 import { Button, Card, Form, Input, Typography } from "antd";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
@@ -43,14 +45,22 @@ export const OrgStep = () => {
         </Form.Item>
 
         <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            block
-            className="bg-blue-600 hover:bg-blue-700 transition-colors rounded-md w-32"
-          >
-            Next: Create Owner Account
-          </Button>
+          <div className="flex flex-col items-center gap-4">
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              className="bg-blue-600 hover:bg-blue-700 transition-colors rounded-md max-w-full"
+            >
+              Next: Create Owner Account
+            </Button>
+
+            <Link href="/sign-in" prefetch>
+              <Button type="link" icon={<ArrowLeftOutlined />}>
+                Back
+              </Button>
+            </Link>
+          </div>
         </Form.Item>
       </Form>
     </Card>
