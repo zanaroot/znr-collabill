@@ -32,25 +32,31 @@ export const userRoles = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.role, t.organizationId] })],
 );
 
-export const collaboratorRates = pgTable("collaborator_rates", {
-  userId: uuid("user_id")
-    .notNull()
-    .primaryKey()
-    .references(() => users.id),
-  dailyRate: numeric("daily_rate", { precision: 10, scale: 2 }).notNull(),
-  rateXs: numeric("rate_xs", { precision: 10, scale: 2 }).notNull(),
-  rateS: numeric("rate_s", { precision: 10, scale: 2 }).notNull(),
-  rateM: numeric("rate_m", { precision: 10, scale: 2 }).notNull(),
-  rateL: numeric("rate_l", { precision: 10, scale: 2 }).notNull(),
-  rateXl: numeric("rate_xl", { precision: 10, scale: 2 })
-    .notNull()
-    .default("0"),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const collaboratorRates = pgTable(
+  "collaborator_rates",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    dailyRate: numeric("daily_rate", { precision: 10, scale: 2 }).notNull(),
+    rateXs: numeric("rate_xs", { precision: 10, scale: 2 }).notNull(),
+    rateS: numeric("rate_s", { precision: 10, scale: 2 }).notNull(),
+    rateM: numeric("rate_m", { precision: 10, scale: 2 }).notNull(),
+    rateL: numeric("rate_l", { precision: 10, scale: 2 }).notNull(),
+    rateXl: numeric("rate_xl", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.organizationId] })],
+);
 
-export const usersRelations = relations(users, ({ many, one }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   roles: many(userRoles),
-  collaboratorRate: one(collaboratorRates),
+  collaboratorRates: many(collaboratorRates),
 }));
 
 export const userRolesRelations = relations(userRoles, ({ one }) => ({
@@ -66,6 +72,10 @@ export const collaboratorRatesRelations = relations(
     user: one(users, {
       fields: [collaboratorRates.userId],
       references: [users.id],
+    }),
+    organization: one(organizations, {
+      fields: [collaboratorRates.organizationId],
+      references: [organizations.id],
     }),
   }),
 );

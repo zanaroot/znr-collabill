@@ -15,6 +15,7 @@ const presenceStatusEnum = z.enum(PRESENCE_STATUSES);
 export const presenceSchema = z.object({
   id: z.uuid(),
   userId: z.uuid(),
+  organizationId: z.uuid(),
   date: z.string(), // YYYY-MM-DD
   checkInAt: z.date(),
   checkOutAt: z.date().nullable(),
@@ -27,6 +28,7 @@ export type Presence = z.infer<typeof presenceSchema>;
 export type PresenceStatusValue = PresenceStatus;
 
 export const markPresenceSchema = z.object({
+  organizationId: z.string().uuid(),
   date: z.string().optional(),
   status: presenceStatusEnum.optional().default("OFFICE"),
 });

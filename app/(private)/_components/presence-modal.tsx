@@ -12,24 +12,32 @@ const { Text, Title } = Typography;
 
 interface PresenceModalProps {
   open: boolean;
+  organizationId?: string;
   onSuccess: () => void;
 }
 
-export const PresenceModal = ({ open, onSuccess }: PresenceModalProps) => {
+export const PresenceModal = ({
+  open,
+  organizationId,
+  onSuccess,
+}: PresenceModalProps) => {
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState<PresenceStatus>("OFFICE");
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Only show if open prop is true
     if (open) {
       setIsVisible(true);
     }
   }, [open]);
 
   const handleCheckIn = () => {
+    if (!organizationId) {
+      message.error("Organization ID is required");
+      return;
+    }
     startTransition(async () => {
-      const result = await markPresenceAction({ status });
+      const result = await markPresenceAction({ status, organizationId });
       if (result.success) {
         message.success("Presence marked successfully!");
         setIsVisible(false);
@@ -63,7 +71,7 @@ export const PresenceModal = ({ open, onSuccess }: PresenceModalProps) => {
           buttonStyle="solid"
           className="mb-8"
         >
-          <Space direction="vertical" className="w-full">
+          <Space orientation="vertical" className="w-full">
             {PRESENCE_STATUSES.map((s) => (
               <Radio.Button
                 key={s}

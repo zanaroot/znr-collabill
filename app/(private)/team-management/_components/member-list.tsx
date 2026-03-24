@@ -35,6 +35,7 @@ export function MemberList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
   const [rates, setRates] = useState<CollaboratorRate>(() => ({
+    organizationId: "",
     rateXs: "0",
     rateS: "0",
     rateM: "0",
@@ -91,6 +92,7 @@ export function MemberList() {
     setIsModalOpen(false);
     setSelectedUser(null);
     setRates({
+      organizationId: currentUser?.organizationId || "",
       rateXs: "0",
       rateS: "0",
       rateM: "0",
@@ -102,12 +104,15 @@ export function MemberList() {
   };
 
   const handleSave = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser || !currentUser?.organizationId) return;
 
     try {
       await updateRatesMutation.mutateAsync({
         userId: selectedUser.id,
-        rates,
+        rates: {
+          ...rates,
+          organizationId: currentUser.organizationId,
+        },
       });
       message.success("Rates updated successfully");
       setIsModalOpen(false);
@@ -132,18 +137,19 @@ export function MemberList() {
     setBaseRateM(value);
 
     setRates({
+      ...rates,
       rateXs: (m / 4).toString(),
       rateS: (m / 2).toString(),
       rateM: m.toString(),
       rateL: (m * 2).toString(),
       rateXl: (m * 4).toString(),
-      dailyRate: rates.dailyRate, // ⚠️ garde l'ancien
     });
   };
 
   React.useEffect(() => {
     if (currentRates && selectedUser) {
       setRates({
+        organizationId: currentRates.organizationId,
         rateXs: currentRates.rateXs || "0",
         rateS: currentRates.rateS || "0",
         rateM: currentRates.rateM || "0",
@@ -152,8 +158,13 @@ export function MemberList() {
         dailyRate: currentRates.dailyRate || "0",
       });
       setBaseRateM(currentRates.rateM || "0");
+    } else if (currentUser?.organizationId) {
+      setRates((prev) => ({
+        ...prev,
+        organizationId: currentUser.organizationId,
+      }));
     }
-  }, [currentRates, selectedUser]);
+  }, [currentRates, selectedUser, currentUser?.organizationId]);
 
   const columns: ColumnsType<UserWithRoles> = [
     {

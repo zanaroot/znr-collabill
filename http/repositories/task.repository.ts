@@ -5,6 +5,7 @@ import { db } from "@/db";
 import {
   collaboratorRates,
   organizationMembers,
+  projects,
   tasks,
   users,
 } from "@/db/schema";
@@ -119,6 +120,7 @@ export const getValidatedTaskSummaryByOrganization = async (
   const whereClauses = [
     eq(organizationMembers.userId, targetUserId ?? userId),
     eq(organizationMembers.organizationId, organizationId),
+    eq(projects.organizationId, organizationId),
     eq(tasks.status, "VALIDATED"),
   ];
 
@@ -142,9 +144,16 @@ export const getValidatedTaskSummaryByOrganization = async (
       rateXl: collaboratorRates.rateXl,
     })
     .from(tasks)
+    .innerJoin(projects, eq(tasks.projectId, projects.id))
     .innerJoin(users, eq(tasks.assignedTo, users.id))
     .innerJoin(organizationMembers, eq(users.id, organizationMembers.userId))
-    .leftJoin(collaboratorRates, eq(users.id, collaboratorRates.userId))
+    .leftJoin(
+      collaboratorRates,
+      and(
+        eq(users.id, collaboratorRates.userId),
+        eq(collaboratorRates.organizationId, organizationId),
+      ),
+    )
     .where(and(...whereClauses))
     .groupBy(
       users.id,

@@ -13,10 +13,11 @@ import { getCurrentUser } from "./get-current-user.action";
 
 export const checkTodayPresenceAction = async (): Promise<Presence | null> => {
   const user = await getCurrentUser();
-  if (!user) return null;
+  if (!user || !user.organizationId) return null;
 
   return await presenceRepository.findPresenceByUserIdAndDate(
     user.id,
+    user.organizationId,
     getISODate(),
   );
 };
@@ -26,15 +27,20 @@ export const markPresenceAction = async (
 ): Promise<ActionResponse & { data?: Presence }> => {
   try {
     const user = await getCurrentUser();
-    if (!user) return { error: "Unauthorized", success: false };
+    if (!user || !user.organizationId)
+      return { error: "Unauthorized", success: false };
 
-    const parsed = markPresenceSchema.safeParse(input);
+    const parsed = markPresenceSchema.safeParse({
+      ...input,
+      organizationId: user.organizationId,
+    });
     if (!parsed.success) {
       return { error: "Invalid data", success: false };
     }
 
     const presence = await presenceRepository.markPresence(
       user.id,
+      user.organizationId,
       parsed.data.status,
       parsed.data.date,
     );

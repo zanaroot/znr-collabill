@@ -60,6 +60,7 @@ export default async function InvoicesPage({
         selectedPeriod.startDate,
         selectedPeriod.endDate,
         targetUserId,
+        user.organizationId,
       ),
     ]);
 

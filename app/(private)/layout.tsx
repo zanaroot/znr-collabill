@@ -28,6 +28,7 @@ const PrivateLayout = async ({ children }: { children: ReactNode }) => {
 
   const todayPresence = await findPresenceByUserIdAndDate(
     user.id,
+    user.organizationId,
     getISODate(),
   );
   const isMissingPresence = !todayPresence;

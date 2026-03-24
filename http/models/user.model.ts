@@ -4,6 +4,7 @@ export const roleEnum = z.enum(["OWNER", "ADMIN", "COLLABORATOR"]);
 export type Role = z.infer<typeof roleEnum>;
 
 export const collaboratorRateSchema = z.object({
+  organizationId: z.string().uuid(),
   rateXs: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid rate format"),
   rateS: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid rate format"),
   rateM: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid rate format"),

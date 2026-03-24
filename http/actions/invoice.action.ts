@@ -72,9 +72,14 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
   }
 
   try {
+    if (!user.organizationId) {
+      return { error: "Organization ID is missing" };
+    }
+
     await createInvoiceWithLines(
       {
         userId: targetUserId,
+        organizationId: user.organizationId,
         periodStart,
         periodEnd,
         status: "VALIDATED",

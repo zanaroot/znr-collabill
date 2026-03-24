@@ -11,6 +11,7 @@ export const findInvoiceByPeriodAndUser = async (
   periodStart: string,
   periodEnd: string,
   userId: string,
+  organizationId: string,
 ) => {
   const [invoice] = await db
     .select()
@@ -20,6 +21,7 @@ export const findInvoiceByPeriodAndUser = async (
         eq(invoices.periodStart, periodStart),
         eq(invoices.periodEnd, periodEnd),
         eq(invoices.userId, userId),
+        eq(invoices.organizationId, organizationId),
       ),
     )
     .limit(1);

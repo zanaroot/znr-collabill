@@ -79,6 +79,7 @@ export const PrivateLayout = ({
     <Layout>
       <PresenceModal
         open={showPresenceModal}
+        organizationId={organization?.id}
         onSuccess={() => setShowPresenceModal(false)}
       />
       <Sider

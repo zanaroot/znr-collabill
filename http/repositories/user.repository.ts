@@ -107,11 +107,19 @@ export const getOrganizations = async (userId: string) => {
   return membership.map((m) => m.organizations);
 };
 
-export const getCollaboratorRate = async (userId: string) => {
+export const getCollaboratorRate = async (
+  userId: string,
+  organizationId: string,
+) => {
   const [rate] = await db
     .select()
     .from(collaboratorRates)
-    .where(eq(collaboratorRates.userId, userId))
+    .where(
+      and(
+        eq(collaboratorRates.userId, userId),
+        eq(collaboratorRates.organizationId, organizationId),
+      ),
+    )
     .limit(1);
 
   return rate ?? null;
@@ -119,6 +127,7 @@ export const getCollaboratorRate = async (userId: string) => {
 
 export const upsertCollaboratorRate = async (
   userId: string,
+  organizationId: string,
   rates: {
     rateXs: string;
     rateS: string;
@@ -131,7 +140,12 @@ export const upsertCollaboratorRate = async (
   const [existingRate] = await db
     .select()
     .from(collaboratorRates)
-    .where(eq(collaboratorRates.userId, userId))
+    .where(
+      and(
+        eq(collaboratorRates.userId, userId),
+        eq(collaboratorRates.organizationId, organizationId),
+      ),
+    )
     .limit(1);
 
   if (existingRate) {
@@ -146,7 +160,12 @@ export const upsertCollaboratorRate = async (
         dailyRate: rates.dailyRate,
         updatedAt: new Date(),
       })
-      .where(eq(collaboratorRates.userId, userId))
+      .where(
+        and(
+          eq(collaboratorRates.userId, userId),
+          eq(collaboratorRates.organizationId, organizationId),
+        ),
+      )
       .returning();
     return updatedRate;
   } else {
@@ -154,6 +173,7 @@ export const upsertCollaboratorRate = async (
       .insert(collaboratorRates)
       .values({
         userId,
+        organizationId,
         rateXs: rates.rateXs,
         rateS: rates.rateS,
         rateM: rates.rateM,

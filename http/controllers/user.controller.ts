@@ -136,10 +136,15 @@ export const updateUserRoleHandler = factory.createHandlers(
 );
 
 export const getCollaboratorRateHandler = factory.createHandlers(async (c) => {
+  const currentUser = c.get("user");
   const id = c.req.param("id");
   if (!id) return c.json({ error: "ID required" }, 400);
 
-  const rate = await getCollaboratorRate(id);
+  if (!currentUser.organizationId) {
+    return c.json({ error: "No organization found" }, 404);
+  }
+
+  const rate = await getCollaboratorRate(id, currentUser.organizationId);
   if (!rate) {
     return c.json({ error: "Collaborator rate not found" }, 404);
   }
@@ -159,9 +164,18 @@ export const updateCollaboratorRateHandler = factory.createHandlers(
 
     const id = c.req.param("id");
     if (!id) return c.json({ error: "ID required" }, 400);
+
+    if (!currentUser.organizationId) {
+      return c.json({ error: "No organization found" }, 404);
+    }
+
     const rates = c.req.valid("json");
 
-    const updatedRate = await upsertCollaboratorRate(id, rates);
+    const updatedRate = await upsertCollaboratorRate(
+      id,
+      currentUser.organizationId,
+      rates,
+    );
     return c.json(updatedRate);
   },
 );

@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { date, pgTable, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import { presenceStatusEnum } from "./enums";
+import { organizations } from "./organization";
 import { users } from "./user";
 
 export const presences = pgTable(
@@ -10,6 +11,9 @@ export const presences = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
     date: date("date").notNull(),
     checkInAt: timestamp("check_in_at").defaultNow().notNull(),
     checkOutAt: timestamp("check_out_at"),
@@ -17,12 +21,16 @@ export const presences = pgTable(
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
-  (t) => [unique().on(t.userId, t.date)],
+  (t) => [unique().on(t.userId, t.date, t.organizationId)],
 );
 
 export const presencesRelations = relations(presences, ({ one }) => ({
   user: one(users, {
     fields: [presences.userId],
     references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [presences.organizationId],
+    references: [organizations.id],
   }),
 }));

@@ -13,9 +13,15 @@ import {
 
 const factory = createFactory<AuthEnv>();
 
-const ensureMembership = async (userId: string, projectId: string) => {
+const ensureMembership = async (
+  userId: string,
+  organizationId: string | null,
+  projectId: string,
+) => {
   const project = await projectRepository.findProjectById(projectId);
   if (!project) return false;
+
+  if (project.organizationId !== organizationId) return false;
 
   const isProjectMember = await projectRepository.isProjectMember(
     projectId,
@@ -47,7 +53,11 @@ export const getTasksByProject = factory.createHandlers(async (c) => {
     return c.json({ error: "Project ID is required" }, 400);
   }
 
-  const isMember = await ensureMembership(user.id, projectId);
+  const isMember = await ensureMembership(
+    user.id,
+    user.organizationId,
+    projectId,
+  );
   if (!isMember) {
     return c.json({ error: "Unauthorized" }, 403);
   }
@@ -73,7 +83,11 @@ export const getTasksByPeriod = factory.createHandlers(
       return c.json({ error: "Project ID is required" }, 400);
     }
 
-    const isMember = await ensureMembership(user.id, projectId);
+    const isMember = await ensureMembership(
+      user.id,
+      user.organizationId,
+      projectId,
+    );
     if (!isMember) {
       return c.json({ error: "Unauthorized" }, 403);
     }
@@ -93,7 +107,11 @@ export const createTask = factory.createHandlers(
     const user = c.get("user");
     const payload = c.req.valid("json");
 
-    const isMember = await ensureMembership(user.id, payload.projectId);
+    const isMember = await ensureMembership(
+      user.id,
+      user.organizationId,
+      payload.projectId,
+    );
     if (!isMember) {
       return c.json({ error: "Unauthorized" }, 403);
     }
@@ -119,7 +137,11 @@ export const updateTask = factory.createHandlers(
       return c.json({ error: "Task not found" }, 404);
     }
 
-    const isMember = await ensureMembership(user.id, task.projectId);
+    const isMember = await ensureMembership(
+      user.id,
+      user.organizationId,
+      task.projectId,
+    );
     if (!isMember) {
       return c.json({ error: "Unauthorized" }, 403);
     }
@@ -187,7 +209,11 @@ export const deleteTask = factory.createHandlers(async (c) => {
     return c.json({ error: "Task not found" }, 404);
   }
 
-  const isMember = await ensureMembership(user.id, task.projectId);
+  const isMember = await ensureMembership(
+    user.id,
+    user.organizationId,
+    task.projectId,
+  );
   if (!isMember) {
     return c.json({ error: "Unauthorized" }, 403);
   }

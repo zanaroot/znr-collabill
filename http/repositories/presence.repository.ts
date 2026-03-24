@@ -13,12 +13,19 @@ import { getISODate } from "@/lib/date";
 
 export const findPresenceByUserIdAndDate = async (
   userId: string,
+  organizationId: string,
   date: string,
 ) => {
   const [presence] = await db
     .select()
     .from(presences)
-    .where(and(eq(presences.userId, userId), eq(presences.date, date)))
+    .where(
+      and(
+        eq(presences.userId, userId),
+        eq(presences.organizationId, organizationId),
+        eq(presences.date, date),
+      ),
+    )
     .limit(1);
 
   return presence ?? null;
@@ -26,6 +33,7 @@ export const findPresenceByUserIdAndDate = async (
 
 export const markPresence = async (
   userId: string,
+  organizationId: string,
   status: PresenceStatusValue = "OFFICE",
   date: string = getISODate(),
 ) => {
@@ -33,12 +41,13 @@ export const markPresence = async (
     .insert(presences)
     .values({
       userId,
+      organizationId,
       date,
       status,
       checkInAt: new Date(),
     })
     .onConflictDoUpdate({
-      target: [presences.userId, presences.date],
+      target: [presences.userId, presences.date, presences.organizationId],
       set: {
         status,
         updatedAt: new Date(),
@@ -49,22 +58,39 @@ export const markPresence = async (
   return presence;
 };
 
-export const checkOut = async (userId: string, date: string = getISODate()) => {
+export const checkOut = async (
+  userId: string,
+  organizationId: string,
+  date: string = getISODate(),
+) => {
   const [presence] = await db
     .update(presences)
     .set({
       checkOutAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(and(eq(presences.userId, userId), eq(presences.date, date)))
+    .where(
+      and(
+        eq(presences.userId, userId),
+        eq(presences.organizationId, organizationId),
+        eq(presences.date, date),
+      ),
+    )
     .returning();
 
   return presence ?? null;
 };
 
-export const findRecentPresences = async (userId: string, limit = 5) => {
+export const findRecentPresences = async (
+  userId: string,
+  organizationId: string,
+  limit = 5,
+) => {
   return await db.query.presences.findMany({
-    where: eq(presences.userId, userId),
+    where: and(
+      eq(presences.userId, userId),
+      eq(presences.organizationId, organizationId),
+    ),
     orderBy: (presences, { desc }) => [desc(presences.date)],
     limit,
   });
@@ -77,7 +103,10 @@ export const getPresenceSummaryByOrganization = async (
   startDate?: string,
   endDate?: string,
 ) => {
-  const presenceFilters = [eq(users.id, presences.userId)];
+  const presenceFilters = [
+    eq(users.id, presences.userId),
+    eq(presences.organizationId, organizationId),
+  ];
 
   if (startDate) {
     presenceFilters.push(gte(presences.date, startDate));
@@ -96,7 +125,13 @@ export const getPresenceSummaryByOrganization = async (
     })
     .from(users)
     .innerJoin(organizationMembers, eq(users.id, organizationMembers.userId))
-    .leftJoin(collaboratorRates, eq(users.id, collaboratorRates.userId))
+    .leftJoin(
+      collaboratorRates,
+      and(
+        eq(users.id, collaboratorRates.userId),
+        eq(collaboratorRates.organizationId, organizationId),
+      ),
+    )
     .leftJoin(presences, and(...presenceFilters))
     .where(
       and(
