@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  Avatar,
   Button,
   Descriptions,
   Divider,
@@ -14,6 +15,8 @@ import {
 } from "antd";
 import { useEffect, useState } from "react";
 import type { AuthUser } from "@/http/models/auth.model";
+import { getAvatarUrlByEmail } from "@/lib/get-avatar-url";
+import { getInitials } from "@/lib/get-initials-text";
 import { client } from "@/packages/hono";
 
 type ProfileDrawerProps = {
@@ -64,6 +67,11 @@ export const ProfileDrawer = ({
     updateProfile(values);
   };
 
+  const currentEmail = Form.useWatch("email", form) as string | undefined;
+  const currentName = Form.useWatch("name", form) as string | undefined;
+  const avatarUrl = getAvatarUrlByEmail(currentEmail);
+  const initials = getInitials(currentName ?? currentUser?.name);
+
   return (
     <Drawer
       title="User Profile"
@@ -98,6 +106,12 @@ export const ProfileDrawer = ({
     >
       {currentUser && (
         <>
+          <div className="mb-4 flex justify-center">
+            <Avatar size={72} src={avatarUrl}>
+              {initials}
+            </Avatar>
+          </div>
+
           <Descriptions column={1} layout="vertical">
             <Descriptions.Item label="Role">
               <Tag color="blue">{currentUser.organizationRole}</Tag>
@@ -132,7 +146,7 @@ export const ProfileDrawer = ({
             { type: "email", message: "Please enter a valid email" },
           ]}
         >
-          <Input placeholder="Enter your email" disabled />
+          <Input placeholder="Enter your email" />
         </Form.Item>
       </Form>
     </Drawer>

@@ -8,6 +8,7 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Avatar, Dropdown } from "antd";
 import { useState } from "react";
+import { getAvatarUrlByEmail } from "@/lib/get-avatar-url";
 import { getInitials } from "@/lib/get-initials-text";
 import { client } from "@/packages/hono";
 import { ProfileDrawer } from "./profile-drawer";
@@ -33,6 +34,7 @@ export const UserDropdownMenus = () => {
   });
 
   const shortName = getInitials(currentUser?.name);
+  const avatarUrl = getAvatarUrlByEmail(currentUser?.email);
 
   return (
     <>
@@ -60,7 +62,9 @@ export const UserDropdownMenus = () => {
         }}
         trigger={["click"]}
       >
-        <Avatar className="cursor-pointer">{shortName}</Avatar>
+        <Avatar className="cursor-pointer" src={avatarUrl}>
+          {shortName}
+        </Avatar>
       </Dropdown>
 
       <ProfileDrawer
