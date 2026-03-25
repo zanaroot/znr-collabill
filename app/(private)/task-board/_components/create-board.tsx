@@ -103,7 +103,7 @@ export function CreateBoard({
   projectName,
   isProjectOwner,
   members,
-  isAdmin
+  isAdmin,
 }: CreateBoardProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -125,9 +125,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-      from: activeTask.status,
-      isProjectOwner,
-    })
+        from: activeTask.status,
+        isProjectOwner,
+      })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -326,24 +326,14 @@ export function CreateBoard({
             {isEditing && (
               <>
                 {activeTask && canDeleteActiveTask && (
-                  <Button
-                    danger
-                    onClick={handleDelete}
-                    loading={isDeleting}
-                  >
+                  <Button danger onClick={handleDelete} loading={isDeleting}>
                     Delete
                   </Button>
                 )}
 
-                <Button onClick={() => setIsEditing(false)}>
-                  Cancel
-                </Button>
+                <Button onClick={() => setIsEditing(false)}>Cancel</Button>
 
-                <Button
-                  type="primary"
-                  onClick={handleSave}
-                  loading={isSaving}
-                >
+                <Button type="primary" onClick={handleSave} loading={isSaving}>
                   {activeTask ? "Save" : "Create"}
                 </Button>
               </>
@@ -381,7 +371,6 @@ export function CreateBoard({
                     }
                     placeholder="What needs to be done?"
                     size="large"
-
                   />
                 ) : (
                   <Typography.Text>{formValues.title}</Typography.Text>
@@ -393,7 +382,6 @@ export function CreateBoard({
               <Space orientation="vertical" size={8} style={{ width: "100%" }}>
                 <Text strong>Description</Text>
                 {isEditing ? (
-
                   <TextArea
                     value={formValues.description}
                     onChange={(event) =>
@@ -405,9 +393,9 @@ export function CreateBoard({
                     rows={5}
                     placeholder="Add implementation details, notes, or links"
                   />
-                ) :
+                ) : (
                   <Typography.Text>{formValues.description}</Typography.Text>
-                }
+                )}
               </Space>
             </div>
 
@@ -430,11 +418,13 @@ export function CreateBoard({
                         }))
                       }
                     />
-                  ) :
-                    <Typography.Text>{formValues.dueDate
-                      ? formatDueDate(formValues.dueDate)
-                      : "No due date"}</Typography.Text>
-                  }
+                  ) : (
+                    <Typography.Text>
+                      {formValues.dueDate
+                        ? formatDueDate(formValues.dueDate)
+                        : "No due date"}
+                    </Typography.Text>
+                  )}
                 </Space>
               </div>
 
@@ -465,13 +455,16 @@ export function CreateBoard({
                         value: status,
                       }))}
                       disabled={
-                        Boolean(activeTask) && activeTaskTransitions.length === 0
+                        Boolean(activeTask) &&
+                        activeTaskTransitions.length === 0
                       }
                       style={{ width: "100%" }}
                     />
-                  ) :
-                    <Typography.Text>{formatStatus(formValues.status)}</Typography.Text>
-                  }
+                  ) : (
+                    <Typography.Text>
+                      {formatStatus(formValues.status)}
+                    </Typography.Text>
+                  )}
                 </Space>
               </div>
             </div>
@@ -498,9 +491,7 @@ export function CreateBoard({
                       block
                     />
                   ) : (
-                    <Tag>
-                      {formValues.priorityLabel}
-                    </Tag>
+                    <Tag>{formValues.priorityLabel}</Tag>
                   )}
                 </Space>
 
@@ -524,9 +515,7 @@ export function CreateBoard({
                       block
                     />
                   ) : (
-                    <Tag>
-                      {formValues.size}
-                    </Tag>
+                    <Tag>{formValues.size}</Tag>
                   )}
                 </Space>
               </Space>
@@ -547,12 +536,12 @@ export function CreateBoard({
                     }))}
                     style={{ width: "100%" }}
                   />
-                ) :
+                ) : (
                   <Typography.Text>
-                    {members.find((m) => m.id === formValues.assigneeId)?.name ||
-                      "Unassigned"}
+                    {members.find((m) => m.id === formValues.assigneeId)
+                      ?.name || "Unassigned"}
                   </Typography.Text>
-                }
+                )}
               </Space>
             </div>
           </Space>

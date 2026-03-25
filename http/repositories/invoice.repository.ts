@@ -7,6 +7,15 @@ import { invoiceLines, invoices } from "@/db/schema/invoice";
 type CreateInvoiceInput = typeof invoices.$inferInsert;
 type CreateInvoiceLineInput = typeof invoiceLines.$inferInsert;
 
+export const findInvoiceById = async (id: string) => {
+  const [invoice] = await db
+    .select()
+    .from(invoices)
+    .where(eq(invoices.id, id))
+    .limit(1);
+  return invoice ?? null;
+};
+
 export const findInvoiceByPeriodAndUser = async (
   periodStart: string,
   periodEnd: string,

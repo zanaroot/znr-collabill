@@ -5,6 +5,7 @@ import { getOrganizationMembers } from "@/http/repositories/organization.reposit
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
+import { InvoiceComments } from "./_components/invoice-comments";
 import { InvoiceFilters } from "./_components/invoice-filters";
 import { InvoicePrintable } from "./_components/invoice-printable";
 import {
@@ -113,6 +114,8 @@ export default async function InvoicesPage({
         existingInvoice={existingInvoice}
         isOwner={isOwner}
       />
+
+      <InvoiceComments invoiceId={existingInvoice?.id ?? null} />
     </div>
   );
 }

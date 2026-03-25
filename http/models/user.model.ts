@@ -4,7 +4,7 @@ export const roleEnum = z.enum(["OWNER", "ADMIN", "COLLABORATOR"]);
 export type Role = z.infer<typeof roleEnum>;
 
 export const collaboratorRateSchema = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: z.uuid(),
   rateXs: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid rate format"),
   rateS: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid rate format"),
   rateM: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid rate format"),
@@ -19,6 +19,7 @@ export type UserWithCollaboratorRate = {
   id: string;
   email: string;
   name: string;
+  avatar: string | null;
   createdAt: string | Date | null;
   role: Role;
   joinedAt: string | Date | null;
@@ -34,6 +35,7 @@ export type UserWithRoles = {
   id: string;
   email: string;
   name: string;
+  avatar: string | null;
   createdAt: string | Date | null;
   role: Role;
   joinedAt: string | Date | null;
@@ -47,3 +49,10 @@ export type Invitation = {
   expiresAt: string | Date;
   createdAt: string | Date | null;
 };
+
+export const allowedAvatarTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];

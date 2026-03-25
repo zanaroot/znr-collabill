@@ -19,6 +19,7 @@ import {
 import { useState } from "react";
 import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
 import type { Project } from "@/http/models/project.model";
+import { getAvatarUrl } from "@/lib/get-avatar-url";
 import { useAddProjectMember, useProjectMembers } from "../_hooks/use-projects";
 
 const { Title, Text, Paragraph } = Typography;
@@ -173,7 +174,12 @@ export function ProjectDetailsDrawer({
                 renderItem={(item) => (
                   <List.Item>
                     <List.Item.Meta
-                      avatar={<Avatar icon={<UserOutlined />} />}
+                      avatar={
+                        <Avatar
+                          src={getAvatarUrl(item.avatar, item.email)}
+                          icon={<UserOutlined />}
+                        />
+                      }
                       title={item.name}
                       description={item.email}
                     />

@@ -1,6 +1,8 @@
+import { readFileSync } from "node:fs";
 import { hash } from "bcryptjs";
 import { and, eq } from "drizzle-orm";
 import { serverEnv } from "../../packages/env/server";
+import { uploadFile } from "../../packages/minio";
 import { db } from "../index";
 import {
   collaboratorRates,
@@ -266,6 +268,22 @@ async function seedProjectMembershipAndTasks(input: {
   ]);
 }
 
+async function uploadSeedAvatar(userId: string) {
+  try {
+    const avatarPath = "/home/tophy/Documents/collabill/public/fake-avatar.png";
+    const buffer = readFileSync(avatarPath);
+    const fileName = "seed-avatar.png";
+    const key = `avatars/${userId}/${Date.now()}-${fileName}`;
+    const url = await uploadFile(buffer, key, "image/png");
+
+    await db.update(users).set({ avatar: url }).where(eq(users.id, userId));
+    return url;
+  } catch (error) {
+    console.error(`Failed to upload seed avatar for user ${userId}:`, error);
+    return null;
+  }
+}
+
 export const seedCore = async (): Promise<CoreSeedResult> => {
   const [ownerInput, adminInput, collaboratorInput] = seedUsers;
 
@@ -277,6 +295,11 @@ export const seedCore = async (): Promise<CoreSeedResult> => {
   const owner = await getOrCreateUser(ownerInput, passwordHash);
   const collaborator = await getOrCreateUser(collaboratorInput, passwordHash);
   const admin = await getOrCreateUser(adminInput, passwordHash);
+
+  // Upload seed avatars
+  await uploadSeedAvatar(owner.id);
+  await uploadSeedAvatar(collaborator.id);
+  await uploadSeedAvatar(admin.id);
   const organization = await getOrCreateOrganization(
     owner.id,
     admin.id,

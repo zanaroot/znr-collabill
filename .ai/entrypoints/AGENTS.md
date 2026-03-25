@@ -163,6 +163,7 @@ This project has specialized skills for common tasks. Use the `skill` tool to lo
 | `react-query` | Server state, data fetching, caching |
 | `vercel-react-best-practices` | React performance optimization |
 | `zod` | Schema validation, type inference |
+| `minio` | Minio S3 storage operations |
 
 Load a skill: `/home/tophy/Documents/collabill <task>` then use `skill` tool with the skill name.
 

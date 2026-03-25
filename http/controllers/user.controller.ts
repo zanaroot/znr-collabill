@@ -6,7 +6,10 @@ import {
   resendInvitationAction,
 } from "@/http/actions/invitation.action";
 import type { AuthEnv } from "@/http/models/auth.model";
-import { collaboratorRateSchema } from "@/http/models/user.model";
+import {
+  allowedAvatarTypes,
+  collaboratorRateSchema,
+} from "@/http/models/user.model";
 import {
   deleteInvitationById,
   getAllInvitations,
@@ -21,8 +24,33 @@ import {
   updateUser,
   upsertCollaboratorRate,
 } from "@/http/repositories/user.repository";
+import { serverEnv } from "@/packages/env/server";
+import { deleteFile, uploadFile } from "@/packages/minio";
 
 const factory = createFactory<AuthEnv>();
+
+const deleteS3FileFromUrl = async (urlStr: string) => {
+  try {
+    let path = "";
+    if (urlStr.startsWith("http")) {
+      const url = new URL(urlStr);
+      path = url.pathname;
+    } else {
+      path = urlStr;
+    }
+
+    const pathParts = path.split("/").filter(Boolean);
+    const bucketIndex = pathParts.indexOf(serverEnv.S3_BUCKET);
+    if (bucketIndex !== -1) {
+      const key = pathParts.slice(bucketIndex + 1).join("/");
+      if (key) {
+        await deleteFile(key);
+      }
+    }
+  } catch (e) {
+    console.error("Failed to delete S3 file:", e);
+  }
+};
 
 export const getMe = factory.createHandlers(async (c) => {
   const user = c.get("user");
@@ -35,15 +63,69 @@ export const updateMe = factory.createHandlers(
     z.object({
       name: z.string().min(1, "Name is required").optional(),
       email: z.string().email("Invalid email").optional(),
+      avatar: z.string().optional().nullable(),
     }),
   ),
   async (c) => {
     const user = c.get("user");
-    const { name, email } = c.req.valid("json");
+    const { name, email, avatar } = c.req.valid("json");
 
-    const updatedUser = await updateUser(user.id, { name, email });
+    if (avatar === null && user.avatar) {
+      await deleteS3FileFromUrl(user.avatar);
+    }
+
+    const updatedUser = await updateUser(user.id, { name, email, avatar });
 
     return c.json(updatedUser);
+  },
+);
+
+export const uploadAvatar = factory.createHandlers(
+  zValidator(
+    "form",
+    z.object({
+      file: z
+        .any()
+        .refine(
+          (file) => file instanceof File && file.size > 0,
+          "File is empty",
+        ),
+    }),
+  ),
+  async (c) => {
+    try {
+      const user = c.get("user");
+      const { file } = c.req.valid("form");
+
+      if (!allowedAvatarTypes.includes(file.type)) {
+        return c.json(
+          { error: "Invalid file type. Only images are allowed." },
+          400,
+        );
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        return c.json({ error: "File size exceeds 5MB limit." }, 400);
+      }
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const fileExtension = file.name.split(".").pop();
+      const fileName = `${Date.now()}.${fileExtension}`;
+      const key = `avatars/${user.id}/${fileName}`;
+
+      if (user.avatar) {
+        await deleteS3FileFromUrl(user.avatar);
+      }
+
+      const url = await uploadFile(buffer, key, file.type);
+
+      await updateUser(user.id, { avatar: url });
+
+      return c.json({ url });
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      return c.json({ error: "Failed to upload avatar" }, 500);
+    }
   },
 );
 

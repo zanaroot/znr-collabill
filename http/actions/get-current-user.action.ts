@@ -35,6 +35,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     id: result.user.id,
     email: result.user.email,
     name: result.user.name,
+    avatar: result.user.avatar ?? null,
     organizationId: result.organization?.id ?? null,
     organizationName: result.organization?.name ?? null,
     organizationRole,

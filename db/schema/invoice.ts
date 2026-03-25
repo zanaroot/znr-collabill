@@ -9,6 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { invoiceStatusEnum } from "./enums";
+import { invoiceComments } from "./invoice-comment";
 import { organizations } from "./organization";
 import { users } from "./user";
 
@@ -53,6 +54,7 @@ export const invoicesRelations = relations(invoices, ({ many, one }) => ({
     references: [organizations.id],
   }),
   lines: many(invoiceLines),
+  comments: many(invoiceComments),
 }));
 
 export const invoiceLinesRelations = relations(invoiceLines, ({ one }) => ({

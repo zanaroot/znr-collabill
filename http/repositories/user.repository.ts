@@ -84,7 +84,7 @@ export const updateUserRole = async (
 
 export const updateUser = async (
   id: string,
-  data: { name?: string; email?: string },
+  data: { name?: string; email?: string; avatar?: string | null },
 ) => {
   const [user] = await db
     .update(users)

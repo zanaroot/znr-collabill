@@ -197,6 +197,7 @@ export const findProjectMembers = async (projectId: string) => {
       id: users.id,
       name: users.name,
       email: users.email,
+      avatar: users.avatar,
     })
     .from(users)
     .innerJoin(projectMembers, eq(users.id, projectMembers.userId))

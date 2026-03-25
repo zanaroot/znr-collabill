@@ -11,6 +11,7 @@ import {
   updateCollaboratorRateHandler,
   updateMe,
   updateUserRoleHandler,
+  uploadAvatar,
 } from "@/http/controllers/user.controller";
 import {
   adminMiddleware,
@@ -20,6 +21,7 @@ import {
 export const userRoutes = new Hono()
   .get("/me", ...getMe)
   .patch("/me", ...updateMe)
+  .post("/me/avatar", ...uploadAvatar)
   .get("/all", ...getUsers)
   .get("/invitations", ...getInvitations)
   .post("/invitations", ownerMiddleware, adminMiddleware, ...createInvitation)

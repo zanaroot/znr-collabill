@@ -15,6 +15,11 @@ export const serverEnv = parseEnv(
     SEED_OWNER_EMAIL: process.env.SEED_OWNER_EMAIL,
     SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL,
     SEED_PASSWORD: process.env.SEED_PASSWORD,
+    S3_ENDPOINT: process.env.S3_ENDPOINT,
+    S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
+    S3_SECRET_KEY: process.env.S3_SECRET_KEY,
+    S3_BUCKET: process.env.S3_BUCKET,
+    S3_REGION: process.env.S3_REGION,
   },
   "server",
 );

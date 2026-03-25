@@ -20,6 +20,7 @@ export type AuthUser = {
   id: string;
   email: string;
   name: string;
+  avatar: string | null;
   organizationId: string | null;
   organizationName: string | null;
   organizationRole: "OWNER" | "ADMIN" | "COLLABORATOR" | null;

@@ -140,6 +140,7 @@ export const getOrganizationMembers = async (organizationId: string) => {
       id: users.id,
       name: users.name,
       email: users.email,
+      avatar: users.avatar,
       role: organizationMembers.role,
       joinedAt: organizationMembers.joinedAt,
     })
@@ -265,8 +266,10 @@ export const getOrganizationsOwnedByUser = async (
       id: users.id,
       name: users.name,
       email: users.email,
+      avatar: users.avatar,
       role: organizationMembers.role,
     })
+
     .from(organizationMembers)
     .innerJoin(users, eq(organizationMembers.userId, users.id))
     .where(inArray(organizationMembers.organizationId, organizationIds))
@@ -316,8 +319,10 @@ export const getUserOrganizationsWithMembers = async (
       id: users.id,
       name: users.name,
       email: users.email,
+      avatar: users.avatar,
       role: organizationMembers.role,
     })
+
     .from(organizationMembers)
     .innerJoin(users, eq(organizationMembers.userId, users.id))
     .where(inArray(organizationMembers.organizationId, organizationIds))
@@ -420,6 +425,7 @@ export const getOrganizationOwner = async (organizationId: string) => {
       id: users.id,
       name: users.name,
       email: users.email,
+      avatar: users.avatar,
       role: organizationMembers.role,
     })
     .from(organizationMembers)

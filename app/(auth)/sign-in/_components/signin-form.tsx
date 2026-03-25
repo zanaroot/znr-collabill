@@ -54,9 +54,7 @@ export const SignInForm = () => {
       <Card
         title={
           <div className="text-center mt-5">
-            <Typography.Title level={3}>
-              Sign In
-            </Typography.Title>
+            <Typography.Title level={3}>Sign In</Typography.Title>
             <Typography.Text type="secondary">
               Sign in to your account
             </Typography.Text>

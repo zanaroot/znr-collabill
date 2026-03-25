@@ -8,7 +8,7 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Avatar, Dropdown } from "antd";
 import { useState } from "react";
-import { getAvatarUrlByEmail } from "@/lib/get-avatar-url";
+import { getAvatarUrl } from "@/lib/get-avatar-url";
 import { getInitials } from "@/lib/get-initials-text";
 import { client } from "@/packages/hono";
 import { ProfileDrawer } from "./profile-drawer";
@@ -34,7 +34,7 @@ export const UserDropdownMenus = () => {
   });
 
   const shortName = getInitials(currentUser?.name);
-  const avatarUrl = getAvatarUrlByEmail(currentUser?.email);
+  const avatarUrl = getAvatarUrl(currentUser?.avatar, currentUser?.email);
 
   return (
     <>
