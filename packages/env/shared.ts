@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-const formatIssues = (issues: z.ZodIssue[]) =>
+const formatIssues = (issues: z.core.$ZodIssue[]) =>
   issues
     .map((issue) => `- ${issue.path.join(".")}: ${issue.message}`)
     .join("\n");
 
 export const publicEnvSchema = z.object({
-  NEXT_PUBLIC_APP_URL: z.string().trim().url().default("http://localhost:3000"),
+  NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000"),
 });
 
 export const serverEnvSchema = publicEnvSchema.extend({
@@ -16,12 +16,9 @@ export const serverEnvSchema = publicEnvSchema.extend({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
-  SEED_COLLABORATOR_EMAIL: z
-    .string()
-    .trim()
-    .email()
-    .default("collab@collabill.local"),
-  SEED_OWNER_EMAIL: z.string().trim().email().default("owner@collabill.local"),
+  SEED_COLLABORATOR_EMAIL: z.email().trim().default("collab@collabill.local"),
+  SEED_OWNER_EMAIL: z.email().trim().default("owner@collabill.local"),
+  SEED_ADMIN_EMAIL: z.email().trim().default("admin@collabill.local"),
   SEED_PASSWORD: z.string().trim().min(8).default("password123"),
 });
 

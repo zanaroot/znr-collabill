@@ -49,6 +49,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
     selectedPeriod?.startDate,
     selectedPeriod?.endDate,
   );
+
   const { data: users } = useUsers();
   const taskCount = tasks?.length ?? 0;
 

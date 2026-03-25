@@ -69,7 +69,22 @@
         "noArrayIndexKey": "error",
         "noExplicitAny": "error",
         "noImplicitAnyLet": "error",
-        "noVar": "error"
+        "noVar": "error",
+        "noConsole": {
+          "level": "off",
+          "options": {
+            "allow": ["error"]
+          }
+        }
+      },
+      "complexity": {
+        "useArrowFunction": "error",
+        "noExcessiveLinesPerFunction": {
+          "level": "warn",
+          "options": {
+            "maxLines": 400
+          }
+        }
       }
     }
   },

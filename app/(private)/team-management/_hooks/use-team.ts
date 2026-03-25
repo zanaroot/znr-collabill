@@ -68,6 +68,26 @@ export function useRevokeInvitation() {
   });
 }
 
+export function useResendInvitation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await client.api.users.invitations[":id"].resend.$post({
+        param: { id },
+      });
+      if (!res.ok) {
+        const error = (await res.json()) as { error?: string };
+        throw new Error(error.error || "Failed to resend invitation");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.invitations() });
+    },
+  });
+}
+
 export function useDeleteUser() {
   const queryClient = useQueryClient();
 

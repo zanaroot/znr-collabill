@@ -1,6 +1,6 @@
 "server only";
 
-import { and, asc, count, desc, eq, gte, lte, ne, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   collaboratorRates,
@@ -14,9 +14,27 @@ import type {
   UpdateTaskSystemInput,
 } from "@/http/models/task.model";
 
+const taskSelectFields = {
+  id: tasks.id,
+  projectId: tasks.projectId,
+  title: tasks.title,
+  description: tasks.description,
+  size: tasks.size,
+  priority: tasks.priority,
+  dueDate: tasks.dueDate,
+  assignedTo: tasks.assignedTo,
+  status: sql`${tasks.status}::text`.as("status"),
+  validatedAt: tasks.validatedAt,
+  validatedBy: tasks.validatedBy,
+  gitRepo: tasks.gitRepo,
+  gitBranch: tasks.gitBranch,
+  gitPullRequest: tasks.gitPullRequest,
+  createdAt: tasks.createdAt,
+};
+
 export const findTasksByProjectId = async (projectId: string) => {
   return await db
-    .select()
+    .select(taskSelectFields)
     .from(tasks)
     .where(eq(tasks.projectId, projectId))
     .orderBy(asc(tasks.priority), desc(tasks.createdAt));
@@ -59,7 +77,7 @@ export const findTasksByProjectIdAndPeriod = async (
   }
 
   return await db
-    .select()
+    .select(taskSelectFields)
     .from(tasks)
     .where(and(...whereClauses))
     .orderBy(asc(tasks.priority), desc(tasks.createdAt));

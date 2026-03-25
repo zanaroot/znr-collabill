@@ -161,7 +161,7 @@ export function MemberList() {
     } else if (currentUser?.organizationId) {
       setRates((prev) => ({
         ...prev,
-        organizationId: currentUser.organizationId,
+        organizationId: currentUser?.organizationId || "",
       }));
     }
   }, [currentRates, selectedUser, currentUser?.organizationId]);

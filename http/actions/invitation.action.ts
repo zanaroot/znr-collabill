@@ -16,8 +16,10 @@ import {
   acceptInvitation,
   createUserFromInvitation,
   deleteInvitationById,
+  findInvitationById,
   findPendingInvitation,
   findValidInvitationByToken,
+  refreshInvitationToken,
   upsertInvitation,
 } from "@/http/repositories/invitation.repository";
 import { isUserInOrganization } from "@/http/repositories/organization.repository";
@@ -212,6 +214,64 @@ export const declineInvitationAction = async (
     return { message: "Invitation declined successfully", success: true };
   } catch (error) {
     console.error("Decline invitation error:", error);
+    return { error: "Something went wrong", success: false };
+  }
+};
+
+export const resendInvitationAction = async (
+  invitationId: string,
+): Promise<ActionResponse> => {
+  try {
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return { error: "Unauthorized", success: false };
+    }
+
+    if (currentUser.organizationRole !== "OWNER") {
+      return { error: "Forbidden", success: false };
+    }
+
+    const organizationId = currentUser.organizationId;
+
+    if (!organizationId) {
+      return { error: "No organization found", success: false };
+    }
+
+    const invitation = await findInvitationById(invitationId);
+
+    if (!invitation) {
+      return { error: "Invitation not found", success: false };
+    }
+
+    if (invitation.organizationId !== organizationId) {
+      return { error: "Forbidden", success: false };
+    }
+
+    if (invitation.expiresAt && invitation.expiresAt <= new Date()) {
+      const newToken = uuidv4();
+      const newExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
+
+      await refreshInvitationToken(invitationId, newToken, newExpiresAt);
+      invitation.token = newToken;
+      invitation.expiresAt = newExpiresAt;
+    }
+
+    const inviteLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/create-password?token=${invitation.token}`;
+
+    await sendEmail({
+      to: invitation.email,
+      subject: "You've been invited to Collabill",
+      html: `
+        <p>You have been invited to join Collabill as a ${invitation.role}.</p>
+        <p>Click <a href="${inviteLink}">here</a> to create your account and set your password.</p>
+        <p>This link will expire in 7 days.</p>
+      `,
+    });
+
+    return { message: "Invitation resent successfully", success: true };
+  } catch (error) {
+    console.error("Resend invitation error:", error);
     return { error: "Something went wrong", success: false };
   }
 };

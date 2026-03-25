@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
 import { z } from "zod";
+import { resendInvitationAction } from "@/http/actions/invitation.action";
 import type { AuthEnv } from "@/http/models/auth.model";
 import { collaboratorRateSchema } from "@/http/models/user.model";
 import {
@@ -80,6 +81,26 @@ export const revokeInvitation = factory.createHandlers(async (c) => {
   if (!id) return c.json({ error: "ID required" }, 400);
   await deleteInvitationById(id);
   return c.json({ message: "Invitation revoked" });
+});
+
+export const resendInvitation = factory.createHandlers(async (c) => {
+  const currentUser = c.get("user");
+  const isOwner = currentUser.organizationRole === "OWNER";
+
+  if (!isOwner) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const id = c.req.param("id");
+  if (!id) return c.json({ error: "ID required" }, 400);
+
+  const result = await resendInvitationAction(id);
+
+  if (!result.success) {
+    return c.json({ error: result.error }, 400);
+  }
+
+  return c.json({ message: result.message });
 });
 
 export const removeUser = factory.createHandlers(async (c) => {

@@ -6,6 +6,7 @@ seedDev()
     console.log("Dev seed complete.");
     console.log(`Owner: ${result.owner.email}`);
     console.log(`Collaborator: ${result.collaborator.email}`);
+    console.log(`Admin: ${result.admin.email}`);
     console.log(`Password: ${result.password}`);
   })
   .catch((error) => {

@@ -13,6 +13,7 @@ export const serverEnv = parseEnv(
     NODE_ENV: process.env.NODE_ENV,
     SEED_COLLABORATOR_EMAIL: process.env.SEED_COLLABORATOR_EMAIL,
     SEED_OWNER_EMAIL: process.env.SEED_OWNER_EMAIL,
+    SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL,
     SEED_PASSWORD: process.env.SEED_PASSWORD,
   },
   "server",

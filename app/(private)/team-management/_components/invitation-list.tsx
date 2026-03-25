@@ -1,12 +1,17 @@
 "use client";
 
-import { DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  ExclamationCircleOutlined,
+  SendOutlined,
+} from "@ant-design/icons";
 import { Button, Card, Modal, message, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { Invitation } from "@/http/models/user.model";
 import {
   useCurrentUser,
   useInvitations,
+  useResendInvitation,
   useRevokeInvitation,
 } from "../_hooks/use-team";
 
@@ -16,6 +21,7 @@ const { confirm } = Modal;
 export function InvitationList() {
   const { data: invitations, isLoading } = useInvitations();
   const revokeMutation = useRevokeInvitation();
+  const resendMutation = useResendInvitation();
   const { data: currentUser } = useCurrentUser();
 
   const handleRevoke = (id: string) => {
@@ -35,6 +41,15 @@ export function InvitationList() {
         }
       },
     });
+  };
+
+  const handleResend = async (id: string) => {
+    try {
+      await resendMutation.mutateAsync(id);
+      message.success("Invitation resent successfully");
+    } catch (_error) {
+      message.error("Failed to resend invitation");
+    }
   };
 
   const columns: ColumnsType<Invitation> = [
@@ -62,17 +77,28 @@ export function InvitationList() {
     {
       title: "Actions",
       key: "actions",
-      width: 100,
+      width: 150,
       render: (_, record) => (
-        <Button
-          danger
-          icon={<DeleteOutlined />}
-          size="small"
-          onClick={() => handleRevoke(record.id)}
-          loading={
-            revokeMutation.isPending && revokeMutation.variables === record.id
-          }
-        />
+        <>
+          <Button
+            icon={<SendOutlined />}
+            size="small"
+            onClick={() => handleResend(record.id)}
+            loading={
+              resendMutation.isPending && resendMutation.variables === record.id
+            }
+            style={{ marginRight: 8 }}
+          />
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            size="small"
+            onClick={() => handleRevoke(record.id)}
+            loading={
+              revokeMutation.isPending && revokeMutation.variables === record.id
+            }
+          />
+        </>
       ),
     },
   ];

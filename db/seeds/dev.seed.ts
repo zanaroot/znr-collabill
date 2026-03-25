@@ -74,18 +74,21 @@ async function seedSessions(ownerId: string) {
   });
 }
 
-async function seedPresences(collaboratorId: string) {
+async function seedPresences(collaboratorId: string, organizationId: string) {
   const dates = ["2026-02-10", "2026-02-11", "2026-02-12"];
 
   await db
     .insert(presences)
-    .values(dates.map((date) => ({ date, userId: collaboratorId })))
+    .values(
+      dates.map((date) => ({ date, userId: collaboratorId, organizationId })),
+    )
     .onConflictDoNothing();
 }
 
 async function seedInvoicesAndLines(input: {
   collaboratorId: string;
   projectId: string;
+  organizationId: string;
 }) {
   let invoice = await db.query.invoices.findFirst({
     where: and(
@@ -99,6 +102,7 @@ async function seedInvoicesAndLines(input: {
     const [created] = await db
       .insert(invoices)
       .values({
+        organizationId: input.organizationId,
         userId: input.collaboratorId,
         periodStart: "2026-02-01",
         periodEnd: "2026-02-28",
@@ -188,18 +192,19 @@ async function seedAuditLogs(ownerId: string, projectId: string) {
   });
 }
 
-export async function seedDev() {
+export const seedDev = async () => {
   const core = await seedCore();
 
   await seedPasswordResetTokens(core.owner.id);
   await seedInvitations(core.organization.id);
   await seedSessions(core.owner.id);
-  await seedPresences(core.collaborator.id);
+  await seedPresences(core.collaborator.id, core.organization.id);
   await seedInvoicesAndLines({
     collaboratorId: core.collaborator.id,
     projectId: core.project.id,
+    organizationId: core.organization.id,
   });
   await seedAuditLogs(core.owner.id, core.project.id);
 
   return core;
-}
+};

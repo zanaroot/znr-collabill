@@ -65,6 +65,27 @@ export const deleteInvitationById = async (id: string) => {
   await db.delete(invitations).where(eq(invitations.id, id));
 };
 
+export const findInvitationById = async (id: string) => {
+  const [invitation] = await db
+    .select()
+    .from(invitations)
+    .where(eq(invitations.id, id))
+    .limit(1);
+
+  return invitation ?? null;
+};
+
+export const refreshInvitationToken = async (
+  id: string,
+  token: string,
+  expiresAt: Date,
+) => {
+  await db
+    .update(invitations)
+    .set({ token, expiresAt, createdAt: new Date() })
+    .where(eq(invitations.id, id));
+};
+
 export const getAllInvitations = async (organizationId?: string) => {
   const query = db.select().from(invitations).orderBy(invitations.createdAt);
 

@@ -80,11 +80,12 @@ const TASK_SIZE_OPTIONS = TASK_SIZES.map((size) => ({
 }));
 
 type TaskFormValues = ReturnType<typeof defaultFormValues>;
-type BoardView = "ACTIVE" | "INACTIVE";
+type BoardView = "ACTIVE" | "INACTIVE" | "ALL";
 
 const BOARD_VIEW_STATUSES: Record<BoardView, TaskStatus[]> = {
   ACTIVE: ["TODO", "IN_PROGRESS", "IN_REVIEW", "VALIDATED"],
   INACTIVE: ["TODO", "BLOCKED", "TRASH"],
+  ALL: ["TODO", "IN_PROGRESS", "IN_REVIEW", "VALIDATED", "BLOCKED", "TRASH"],
 };
 
 type CreateBoardProps = {
@@ -127,10 +128,12 @@ export function CreateBoard({
     : [];
 
   const tasksByStatus = useMemo(() => {
-    return BOARD_VIEW_STATUSES[boardView].map((status) => ({
-      status,
-      tasks: tasks.filter((task) => task.status === status),
-    }));
+    return BOARD_VIEW_STATUSES[boardView].map((status) => {
+      return {
+        status,
+        tasks: tasks.filter((task) => task.status === status),
+      };
+    });
   }, [boardView, tasks]);
 
   const openCreateDrawer = (status: TaskStatus) => {
@@ -254,6 +257,7 @@ export function CreateBoard({
       <div className="mb-3 flex items-center justify-end">
         <Segmented
           options={[
+            { label: "All", value: "ALL" },
             { label: "Active view", value: "ACTIVE" },
             { label: "Inactive view", value: "INACTIVE" },
           ]}

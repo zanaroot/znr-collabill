@@ -5,6 +5,7 @@ import {
   getMe,
   getUsers,
   removeUser,
+  resendInvitation,
   revokeInvitation,
   updateCollaboratorRateHandler,
   updateMe,
@@ -20,6 +21,12 @@ export const userRoutes = new Hono()
   .patch("/me", ...updateMe)
   .get("/all", ...getUsers)
   .get("/invitations", ...getInvitations)
+  .post(
+    "/invitations/:id/resend",
+    ownerMiddleware,
+    adminMiddleware,
+    ...resendInvitation,
+  )
   .delete(
     "/invitations/:id",
     ownerMiddleware,

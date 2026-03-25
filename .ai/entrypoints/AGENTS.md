@@ -2,6 +2,15 @@
 
 This file provides essential information for AI agents operating in this repository.
 
+## Quick Start
+
+```bash
+pnpm install
+cp .env.example .env.dev
+docker compose up -d
+pnpm dev
+```
+
 ## Build, Lint, and Test Commands
 
 ### Development
@@ -135,6 +144,27 @@ Keep colocated folders (`_components/`, `_hooks/`, `_utils/`) as close as possib
 - If used by a single route, put in that route's folder
 - If shared across sibling routes, move to nearest common parent
 - Don't elevate to top-level unless truly shared app-wide
+
+---
+
+## Available Skills
+
+This project has specialized skills for common tasks. Use the `skill` tool to load them:
+
+| Skill | Use When |
+|-------|----------|
+| `ant-design` | Component/layout decisions, theming, Ant Design Pro patterns |
+| `biome` | Biome linter/formatter configuration and rules |
+| `brevo` | Managing Brevo contacts, organizations, deals, pipelines |
+| `drizzle-orm` | Database queries, schema design, migrations |
+| `hono-routing` | Building APIs with Hono, validation, middleware |
+| `next-best-practices` | Next.js patterns, RSC, metadata, routing |
+| `react-hook-form` | Form validation, controlled components |
+| `react-query` | Server state, data fetching, caching |
+| `vercel-react-best-practices` | React performance optimization |
+| `zod` | Schema validation, type inference |
+
+Load a skill: `/home/tophy/Documents/collabill <task>` then use `skill` tool with the skill name.
 
 ---
 
