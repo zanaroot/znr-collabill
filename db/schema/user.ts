@@ -1,10 +1,11 @@
-import { relations } from "drizzle-orm";
+import { eq, relations } from "drizzle-orm";
 import {
   numeric,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { roleEnum } from "./enums";
@@ -30,7 +31,12 @@ export const userRoles = pgTable(
       .notNull()
       .references(() => organizations.id),
   },
-  (t) => [primaryKey({ columns: [t.userId, t.role, t.organizationId] })],
+  (t) => [
+    primaryKey({ columns: [t.userId, t.role, t.organizationId] }),
+    uniqueIndex("user_roles_organization_owner_idx")
+      .on(t.organizationId)
+      .where(eq(t.role, "OWNER")),
+  ],
 );
 
 export const collaboratorRates = pgTable(

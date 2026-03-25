@@ -25,11 +25,22 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      minio:
+        image: minio/minio
+        ports:
+          - "9000:9000"
+          - "9001:9001"
+          
     env:
       DATABASE_URL: postgresql://user:password@localhost:5432/collabill_db
       BREVO_API_KEY: CI_DUMMY_KEY
       MAIL_FROM: CI <ci@collabill.local>
       NEXT_PUBLIC_APP_URL: http://localhost:3000
+      MINIO_ENDPOINT: http://localhost:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: password
+      MINIO_BUCKET: my-buckets
+      MINIO_REGION: us-east-1
 
     steps:
       - name: Checkout code

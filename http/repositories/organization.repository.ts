@@ -175,6 +175,63 @@ export const updateOrganizationMemberRole = async (
   role: "OWNER" | "ADMIN" | "COLLABORATOR",
 ) => {
   await db.transaction(async (tx) => {
+    if (role === "OWNER") {
+      // Find current owner
+      const currentOwner = await tx
+        .select({ userId: organizationMembers.userId })
+        .from(organizationMembers)
+        .where(
+          and(
+            eq(organizationMembers.organizationId, organizationId),
+            eq(organizationMembers.role, "OWNER"),
+          ),
+        )
+        .limit(1);
+
+      if (currentOwner.length > 0 && currentOwner[0].userId !== userId) {
+        // Demote current owner to ADMIN
+        await tx
+          .update(organizationMembers)
+          .set({ role: "ADMIN" })
+          .where(
+            and(
+              eq(organizationMembers.organizationId, organizationId),
+              eq(organizationMembers.userId, currentOwner[0].userId),
+            ),
+          );
+
+        await tx
+          .update(userRoles)
+          .set({ role: "ADMIN" })
+          .where(
+            and(
+              eq(userRoles.organizationId, organizationId),
+              eq(userRoles.userId, currentOwner[0].userId),
+            ),
+          );
+      }
+    } else {
+      // If we are demoting someone who is currently the OWNER, we should block it
+      // because an organization must have an owner.
+      // They should promote someone else to OWNER instead.
+      const member = await tx
+        .select({ role: organizationMembers.role })
+        .from(organizationMembers)
+        .where(
+          and(
+            eq(organizationMembers.organizationId, organizationId),
+            eq(organizationMembers.userId, userId),
+          ),
+        )
+        .limit(1);
+
+      if (member.length > 0 && member[0].role === "OWNER") {
+        throw new Error(
+          "Cannot demote the organization owner. Transfer ownership to another member first.",
+        );
+      }
+    }
+
     await tx
       .update(organizationMembers)
       .set({ role })
@@ -202,6 +259,23 @@ export const removeOrganizationMember = async (
   userId: string,
 ) => {
   await db.transaction(async (tx) => {
+    const member = await tx
+      .select({ role: organizationMembers.role })
+      .from(organizationMembers)
+      .where(
+        and(
+          eq(organizationMembers.organizationId, organizationId),
+          eq(organizationMembers.userId, userId),
+        ),
+      )
+      .limit(1);
+
+    if (member.length > 0 && member[0].role === "OWNER") {
+      throw new Error(
+        "Cannot remove the organization owner. Transfer ownership to another member first or delete the organization.",
+      );
+    }
+
     await tx
       .delete(organizationMembers)
       .where(
