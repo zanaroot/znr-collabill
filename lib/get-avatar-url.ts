@@ -19,11 +19,7 @@ export const getAvatarUrl = (
 };
 
 export const getAvatarUrlByEmail = (email: string | null | undefined) => {
-  const normalizedEmail = email?.trim().toLowerCase();
-
-  if (!normalizedEmail) {
-    return null;
-  }
+  const normalizedEmail = email?.trim().toLowerCase() || "default";
 
   const seed = encodeURIComponent(normalizedEmail);
 

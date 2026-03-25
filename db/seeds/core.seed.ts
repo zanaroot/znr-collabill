@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { hash } from "bcryptjs";
 import { and, eq } from "drizzle-orm";
 import { serverEnv } from "../../packages/env/server";
@@ -270,8 +271,9 @@ async function seedProjectMembershipAndTasks(input: {
 
 async function uploadSeedAvatar(userId: string) {
   try {
-    const avatarPath = "/home/tophy/Documents/collabill/public/fake-avatar.png";
+    const avatarPath = join(process.cwd(), "public", "fake-avatar.png");
     const buffer = readFileSync(avatarPath);
+
     const fileName = "seed-avatar.png";
     const key = `avatars/${userId}/${Date.now()}-${fileName}`;
     const url = await uploadFile(buffer, key, "image/png");
