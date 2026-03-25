@@ -2,10 +2,10 @@
 
 import { UploadOutlined } from "@ant-design/icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { UploadProps } from "antd";
 import {
   Avatar,
   Button,
-  Descriptions,
   Divider,
   Drawer,
   Form,
@@ -15,6 +15,7 @@ import {
   Tag,
   Upload,
 } from "antd";
+import ImgCrop from "antd-img-crop";
 import { useEffect, useState } from "react";
 import type { AuthUser } from "@/http/models/auth.model";
 import { getAvatarUrl } from "@/lib/get-avatar-url";
@@ -47,6 +48,14 @@ export const ProfileDrawer = ({
     }
   }, [currentUser, form]);
 
+  useEffect(() => {
+    return () => {
+      if (avatarFile) {
+        URL.revokeObjectURL(URL.createObjectURL(avatarFile));
+      }
+    };
+  }, [avatarFile]);
+
   const { mutate: removeAvatar } = useMutation({
     mutationFn: async () => {
       const res = await client.api.users.me.$patch({
@@ -66,7 +75,7 @@ export const ProfileDrawer = ({
     },
   });
 
-  const { mutate: uploadAvatar } = useMutation({
+  const { mutate: uploadAvatar, isPending: isUploading } = useMutation({
     mutationFn: async (file: File) => {
       const res = await client.api.users.me.avatar.$post({
         form: { file },
@@ -80,7 +89,6 @@ export const ProfileDrawer = ({
       return await res.json();
     },
     onSuccess: () => {
-      message.success("Avatar updated successfully");
       queryClient.invalidateQueries({ queryKey: ["current-user"] });
     },
     onError: (error) => {
@@ -120,10 +128,10 @@ export const ProfileDrawer = ({
     }
   };
 
-  const handleAvatarChange = (info: { file: { originFileObj?: File } }) => {
-    const file = info.file.originFileObj;
-    if (file) {
-      setAvatarFile(file);
+  const handleAvatarChange: UploadProps["onChange"] = ({ file }) => {
+    const fileObj = file.originFileObj;
+    if (fileObj) {
+      setAvatarFile(fileObj);
     }
   };
 
@@ -157,78 +165,106 @@ export const ProfileDrawer = ({
             <Button type="primary" onClick={() => setEditing(true)}>
               Edit
             </Button>
-          ) : (
-            <>
-              <Button onClick={() => setEditing(false)}>Cancel</Button>
-              <Button
-                type="primary"
-                onClick={() => form.submit()}
-                loading={isPending}
-              >
-                Save
-              </Button>
-            </>
-          )}
+          ) : null}
         </Space>
       }
     >
-      {currentUser && (
-        <>
-          <div className="mb-4 flex flex-col items-center gap-2">
-            <Avatar size={72} src={avatarUrl}>
-              {initials}
-            </Avatar>
-            {editing && (
-              <Upload beforeUpload={() => false} onChange={handleAvatarChange}>
-                <Button icon={<UploadOutlined />} size="small">
-                  Change Avatar
+      <div className="flex flex-col items-center">
+        <div className="w-full flex flex-col items-center text-center gap-3">
+          <Avatar size={320} src={avatarUrl} className="shadow-sm border">
+            {initials}
+          </Avatar>
+
+          {!editing && (
+            <>
+              <div className="flex flex-col items-center">
+                <span className="text-xl font-semibold leading-tight">
+                  {currentName ?? currentUser?.name}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {currentEmail ?? currentUser?.email}
+                </span>
+              </div>
+
+              <div className="w-full mt-3">
+                <Button block onClick={() => setEditing(true)}>
+                  Edit profile
                 </Button>
-              </Upload>
-            )}
-            {editing && currentUser.avatar && (
-              <Button size="small" onClick={handleRemoveAvatar} type="text">
-                Remove
-              </Button>
-            )}
+              </div>
+            </>
+          )}
+
+          {editing && (
+            <div className="flex flex-col items-center gap-2">
+              <ImgCrop rotationSlider>
+                <Upload onChange={handleAvatarChange} showUploadList={false}>
+                  <Button size="small" icon={<UploadOutlined />}>
+                    Change avatar
+                  </Button>
+                </Upload>
+              </ImgCrop>
+
+              {currentUser?.avatar && (
+                <Button
+                  size="small"
+                  type="text"
+                  danger
+                  onClick={handleRemoveAvatar}
+                >
+                  Remove avatar
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <Divider />
+
+        {!editing && (
+          <div className="w-full mt-6 pt-4 text-sm">
+            <div className="flex justify-between py-1">
+              <span className="text-gray-500">Role</span>
+              <Tag color="blue">{currentUser?.organizationRole}</Tag>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-gray-500">Organization</span>
+              <span>{currentUser?.organizationName || "N/A"}</span>
+            </div>
           </div>
+        )}
 
-          <Descriptions column={1} layout="vertical">
-            <Descriptions.Item label="Role">
-              <Tag color="blue">{currentUser.organizationRole}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Organization">
-              {currentUser.organizationName || "N/A"}
-            </Descriptions.Item>
-          </Descriptions>
+        {editing && (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            className="w-full mt-6"
+          >
+            <Form.Item
+              name="name"
+              label="Full Name"
+              rules={[{ required: true, message: "Please enter your name" }]}
+            >
+              <Input placeholder="Enter your name" />
+            </Form.Item>
 
-          <Divider />
-        </>
-      )}
+            <div className="flex gap-2 mt-2">
+              <Button onClick={() => setEditing(false)} block>
+                Cancel
+              </Button>
 
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={onFinish}
-        disabled={!editing}
-      >
-        <Form.Item
-          name="name"
-          label="Full Name"
-          rules={[{ required: true, message: "Please enter your name" }]}
-        >
-          <Input placeholder="Enter your name" />
-        </Form.Item>
-        <Form.Item
-          name="email"
-          label="Email Address"
-          rules={[
-            { required: true, message: "Please enter your email" },
-            { type: "email", message: "Please enter a valid email" },
-          ]}
-        >
-          <Input placeholder="Enter your email" />
-        </Form.Item>
-      </Form>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={isPending || isUploading}
+                block
+              >
+                Save
+              </Button>
+            </div>
+          </Form>
+        )}
+      </div>
     </Drawer>
   );
 };

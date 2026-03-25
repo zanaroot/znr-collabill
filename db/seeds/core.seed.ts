@@ -292,11 +292,11 @@ export const seedCore = async (): Promise<CoreSeedResult> => {
   }
 
   const passwordHash = await hash(seedPassword, 10);
+
   const owner = await getOrCreateUser(ownerInput, passwordHash);
   const collaborator = await getOrCreateUser(collaboratorInput, passwordHash);
   const admin = await getOrCreateUser(adminInput, passwordHash);
 
-  // Upload seed avatars
   await uploadSeedAvatar(owner.id);
   await uploadSeedAvatar(collaborator.id);
   await uploadSeedAvatar(admin.id);
