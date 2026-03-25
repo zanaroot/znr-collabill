@@ -1,7 +1,10 @@
 import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
 import { z } from "zod";
-import { resendInvitationAction } from "@/http/actions/invitation.action";
+import {
+  inviteUserAction,
+  resendInvitationAction,
+} from "@/http/actions/invitation.action";
 import type { AuthEnv } from "@/http/models/auth.model";
 import { collaboratorRateSchema } from "@/http/models/user.model";
 import {
@@ -68,6 +71,33 @@ export const getInvitations = factory.createHandlers(async (c) => {
   const invitations = await getAllInvitations(currentUser.organizationId);
   return c.json(invitations);
 });
+
+export const createInvitation = factory.createHandlers(
+  zValidator(
+    "json",
+    z.object({
+      email: z.string().email("Invalid email"),
+      role: z.enum(["ADMIN", "COLLABORATOR"]).default("COLLABORATOR"),
+    }),
+  ),
+  async (c) => {
+    const currentUser = c.get("user");
+    const isOwner = currentUser.organizationRole === "OWNER";
+
+    if (!isOwner) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    const data = c.req.valid("json");
+    const result = await inviteUserAction(data);
+
+    if (!result.success) {
+      return c.json({ error: result.error }, 400);
+    }
+
+    return c.json({ message: result.message }, 201);
+  },
+);
 
 export const revokeInvitation = factory.createHandlers(async (c) => {
   const currentUser = c.get("user");

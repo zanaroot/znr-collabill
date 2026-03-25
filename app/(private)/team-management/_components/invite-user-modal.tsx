@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Form, Input, Modal, Select } from "antd";
+import { Button, Form, Input, Modal, message, Select } from "antd";
 import { useState } from "react";
-import { inviteUserAction } from "@/http/actions/invitation.action";
+import { client } from "@/packages/hono";
 import { teamKeys, useCurrentUser } from "../_hooks/use-team";
 
 export const InviteUserModal = () => {
@@ -13,16 +13,25 @@ export const InviteUserModal = () => {
   const { data: currentUser } = useCurrentUser();
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: inviteUserAction,
-    onSuccess: (data) => {
-      if (data.success) {
-        form.resetFields();
-        setIsOpen(false);
-        queryClient.invalidateQueries({ queryKey: teamKeys.invitations() });
+    mutationFn: async (data: {
+      email: string;
+      role: "ADMIN" | "COLLABORATOR";
+    }) => {
+      const res = await client.api.users.invitations.$post({ json: data });
+      if (!res.ok) {
+        const error = (await res.json()) as { error?: string };
+        throw new Error(error.error || "Failed to send invitation");
       }
+      return res.json();
     },
-    onError: (error) => {
-      console.error(error);
+    onSuccess: () => {
+      form.resetFields();
+      setIsOpen(false);
+      message.success("Invitation sent successfully");
+      queryClient.invalidateQueries({ queryKey: teamKeys.invitations() });
+    },
+    onError: (error: Error) => {
+      message.error(error.message);
     },
   });
 
@@ -65,7 +74,10 @@ export const InviteUserModal = () => {
           <Form.Item
             name="email"
             label="Email"
-            rules={[{ required: true, message: "Please enter email" }]}
+            rules={[
+              { required: true, message: "Please enter email" },
+              { type: "email", message: "Please enter a valid email" },
+            ]}
           >
             <Input />
           </Form.Item>

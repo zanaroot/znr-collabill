@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import {
+  createInvitation,
   getCollaboratorRateHandler,
   getInvitations,
   getMe,
@@ -21,6 +22,7 @@ export const userRoutes = new Hono()
   .patch("/me", ...updateMe)
   .get("/all", ...getUsers)
   .get("/invitations", ...getInvitations)
+  .post("/invitations", ownerMiddleware, adminMiddleware, ...createInvitation)
   .post(
     "/invitations/:id/resend",
     ownerMiddleware,

@@ -22,7 +22,10 @@ import {
   refreshInvitationToken,
   upsertInvitation,
 } from "@/http/repositories/invitation.repository";
-import { isUserInOrganization } from "@/http/repositories/organization.repository";
+import {
+  getOrganizationById,
+  isUserInOrganization,
+} from "@/http/repositories/organization.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { sendEmail } from "@/packages/email";
 import { publicEnv } from "@/packages/env";
@@ -45,6 +48,11 @@ export const inviteUserAction = async (
 
     if (!organizationId) {
       return { error: "No organization found", success: false };
+    }
+
+    const organization = await getOrganizationById(organizationId);
+    if (!organization) {
+      return { error: "Organization not found", success: false };
     }
 
     const parsed = inviteUserSchema.safeParse(input);
@@ -88,9 +96,9 @@ export const inviteUserAction = async (
 
     await sendEmail({
       to: email,
-      subject: "You've been invited to Collabill",
+      subject: `You've been invited to join ${organization.name} on Collabill`,
       html: `
-        <p>You have been invited to join Collabill as a ${role}.</p>
+        <p>You have been invited by ${currentUser.name} to join <strong>${organization.name}</strong> on Collabill as a ${role}.</p>
         <p>Click <a href="${inviteLink}">here</a> to create your account and set your password.</p>
         <p>This link will expire in 7 days.</p>
       `,
@@ -248,6 +256,11 @@ export const resendInvitationAction = async (
       return { error: "Forbidden", success: false };
     }
 
+    const organization = await getOrganizationById(organizationId);
+    if (!organization) {
+      return { error: "Organization not found", success: false };
+    }
+
     if (invitation.expiresAt && invitation.expiresAt <= new Date()) {
       const newToken = uuidv4();
       const newExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
@@ -261,9 +274,9 @@ export const resendInvitationAction = async (
 
     await sendEmail({
       to: invitation.email,
-      subject: "You've been invited to Collabill",
+      subject: `You've been invited to join ${organization.name} on Collabill`,
       html: `
-        <p>You have been invited to join Collabill as a ${invitation.role}.</p>
+        <p>You have been invited by ${currentUser.name} to join <strong>${organization.name}</strong> on Collabill as a ${invitation.role}.</p>
         <p>Click <a href="${inviteLink}">here</a> to create your account and set your password.</p>
         <p>This link will expire in 7 days.</p>
       `,
