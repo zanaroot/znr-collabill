@@ -94,6 +94,11 @@ type CreateBoardProps = {
   projectName?: string;
   isProjectOwner: boolean;
   members: User[];
+<<<<<<< HEAD
+=======
+  iterationId?: string;
+  isAdmin: boolean;
+>>>>>>> 7316846 (feat: add role-based task permissions and view/edit mode in drawer)
 };
 
 export function CreateBoard({
@@ -102,8 +107,14 @@ export function CreateBoard({
   projectName,
   isProjectOwner,
   members,
+<<<<<<< HEAD
+=======
+  iterationId: selectedIterationId,
+  isAdmin,
+>>>>>>> 7316846 (feat: add role-based task permissions and view/edit mode in drawer)
 }: CreateBoardProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [activeTask, setActiveTask] = useState<TaskModel | null>(null);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [boardView, setBoardView] = useState<BoardView>("ACTIVE");
@@ -122,9 +133,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-        from: activeTask.status,
-        isProjectOwner,
-      })
+      from: activeTask.status,
+      isProjectOwner,
+    })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -140,6 +151,7 @@ export function CreateBoard({
     setActiveTask(null);
     setFormValues(defaultFormValues(status));
     setDrawerOpen(true);
+    setIsEditing(true);
   };
 
   const openEditDrawer = (task: TaskModel) => {
@@ -154,11 +166,13 @@ export function CreateBoard({
       assigneeId: task.assignedTo ?? undefined,
     });
     setDrawerOpen(true);
+    setIsEditing(false);
   };
 
   const handleClose = () => {
     setDrawerOpen(false);
     setActiveTask(null);
+    setIsEditing(false);
   };
 
   const handleSave = () => {
@@ -296,6 +310,7 @@ export function CreateBoard({
                 onDragEndTask={handleDragEndTask}
                 onDropTask={handleDropTask}
                 members={members}
+                canCreateTask={isProjectOwner || isAdmin}
               />
             </div>
           ))}
@@ -310,25 +325,37 @@ export function CreateBoard({
         size="large"
         extra={
           <Space>
-            {activeTask && canDeleteActiveTask && (
-              <Button
-                danger
-                onClick={handleDelete}
-                loading={isDeleting}
-                disabled={isDeleting}
-              >
-                Delete
+            {!isEditing && activeTask && (isProjectOwner || isAdmin) && (
+              <Button type="primary" onClick={() => setIsEditing(true)}>
+                Edit
               </Button>
             )}
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button
-              type="primary"
-              onClick={handleSave}
-              loading={isSaving}
-              disabled={isSaving}
-            >
-              {activeTask ? "Save" : "Create"}
-            </Button>
+
+            {isEditing && (
+              <>
+                {activeTask && canDeleteActiveTask && (
+                  <Button
+                    danger
+                    onClick={handleDelete}
+                    loading={isDeleting}
+                  >
+                    Delete
+                  </Button>
+                )}
+
+                <Button onClick={() => setIsEditing(false)}>
+                  Cancel
+                </Button>
+
+                <Button
+                  type="primary"
+                  onClick={handleSave}
+                  loading={isSaving}
+                >
+                  {activeTask ? "Save" : "Create"}
+                </Button>
+              </>
+            )}
           </Space>
         }
       >
@@ -351,34 +378,44 @@ export function CreateBoard({
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <Space orientation="vertical" size={8} style={{ width: "100%" }}>
                 <Text strong>Task title</Text>
-                <Input
-                  value={formValues.title}
-                  onChange={(event) =>
-                    setFormValues((prev) => ({
-                      ...prev,
-                      title: event.target.value,
-                    }))
-                  }
-                  placeholder="What needs to be done?"
-                  size="large"
-                />
+                {isEditing ? (
+                  <Input
+                    value={formValues.title}
+                    onChange={(event) =>
+                      setFormValues((prev) => ({
+                        ...prev,
+                        title: event.target.value,
+                      }))
+                    }
+                    placeholder="What needs to be done?"
+                    size="large"
+
+                  />
+                ) : (
+                  <Typography.Text>{formValues.title}</Typography.Text>
+                )}
               </Space>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <Space orientation="vertical" size={8} style={{ width: "100%" }}>
                 <Text strong>Description</Text>
-                <TextArea
-                  value={formValues.description}
-                  onChange={(event) =>
-                    setFormValues((prev) => ({
-                      ...prev,
-                      description: event.target.value,
-                    }))
-                  }
-                  rows={5}
-                  placeholder="Add implementation details, notes, or links"
-                />
+                {isEditing ? (
+
+                  <TextArea
+                    value={formValues.description}
+                    onChange={(event) =>
+                      setFormValues((prev) => ({
+                        ...prev,
+                        description: event.target.value,
+                      }))
+                    }
+                    rows={5}
+                    placeholder="Add implementation details, notes, or links"
+                  />
+                ) :
+                  <Typography.Text>{formValues.description}</Typography.Text>
+                }
               </Space>
             </div>
 
@@ -390,16 +427,22 @@ export function CreateBoard({
                   style={{ width: "100%" }}
                 >
                   <Text strong>Due date</Text>
-                  <Input
-                    type="date"
-                    value={formValues.dueDate ?? ""}
-                    onChange={(event) =>
-                      setFormValues((prev) => ({
-                        ...prev,
-                        dueDate: event.target.value || "",
-                      }))
-                    }
-                  />
+                  {isEditing ? (
+                    <Input
+                      type="date"
+                      value={formValues.dueDate ?? ""}
+                      onChange={(event) =>
+                        setFormValues((prev) => ({
+                          ...prev,
+                          dueDate: event.target.value || "",
+                        }))
+                      }
+                    />
+                  ) :
+                    <Typography.Text>{formValues.dueDate
+                      ? formatDueDate(formValues.dueDate)
+                      : "No due date"}</Typography.Text>
+                  }
                 </Space>
               </div>
 
@@ -410,31 +453,58 @@ export function CreateBoard({
                   style={{ width: "100%" }}
                 >
                   <Text strong>Status</Text>
-                  <Select
-                    value={formValues.status}
-                    onChange={(value) =>
-                      setFormValues((prev) => ({
-                        ...prev,
-                        status: value,
-                      }))
-                    }
-                    options={TASK_STATUSES.filter((status) => {
-                      if (!activeTask) return true;
-                      return (
-                        status === activeTask.status ||
-                        activeTaskTransitions.includes(status)
-                      );
-                    }).map((status) => ({
-                      label: formatStatus(status),
-                      value: status,
-                    }))}
-                    disabled={
-                      Boolean(activeTask) && activeTaskTransitions.length === 0
-                    }
-                    style={{ width: "100%" }}
-                  />
+                  {isEditing ? (
+                    <Select
+                      value={formValues.status}
+                      onChange={(value) =>
+                        setFormValues((prev) => ({
+                          ...prev,
+                          status: value,
+                        }))
+                      }
+                      options={TASK_STATUSES.filter((status) => {
+                        if (!activeTask) return true;
+                        return (
+                          status === activeTask.status ||
+                          activeTaskTransitions.includes(status)
+                        );
+                      }).map((status) => ({
+                        label: formatStatus(status),
+                        value: status,
+                      }))}
+                      disabled={
+                        Boolean(activeTask) && activeTaskTransitions.length === 0
+                      }
+                      style={{ width: "100%" }}
+                    />
+                  ) :
+                    <Typography.Text>{formatStatus(formValues.status)}</Typography.Text>
+                  }
                 </Space>
               </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <Space orientation="vertical" size={8} style={{ width: "100%" }}>
+                <Text strong>Iteration</Text>
+                {isEditing ? (
+                  <Select
+                    value={formValues.iterationId}
+                    onChange={(value) =>
+                      setFormValues((prev) => ({ ...prev, iterationId: value }))
+                    }
+                    placeholder="Select an iteration"
+                    allowClear
+                    options={iterations.map((it: any) => ({
+                      label: it.name,
+                      value: it.id,
+                    }))}
+                    style={{ width: "100%" }}
+                  />
+                ) :
+                  <Typography.Text>{formValues.iterationId}</Typography.Text>
+                }
+              </Space>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -445,17 +515,24 @@ export function CreateBoard({
                   style={{ width: "100%" }}
                 >
                   <Text strong>Priority</Text>
-                  <Segmented
-                    options={PRIORITY_LABELS}
-                    value={formValues.priorityLabel}
-                    onChange={(value) =>
-                      setFormValues((prev) => ({
-                        ...prev,
-                        priorityLabel: value as PriorityLabel,
-                      }))
-                    }
-                    block
-                  />
+
+                  {isEditing ? (
+                    <Segmented
+                      options={PRIORITY_LABELS}
+                      value={formValues.priorityLabel}
+                      onChange={(value) =>
+                        setFormValues((prev) => ({
+                          ...prev,
+                          priorityLabel: value as PriorityLabel,
+                        }))
+                      }
+                      block
+                    />
+                  ) : (
+                    <Tag>
+                      {formValues.priorityLabel}
+                    </Tag>
+                  )}
                 </Space>
 
                 <Space
@@ -464,35 +541,49 @@ export function CreateBoard({
                   style={{ width: "100%" }}
                 >
                   <Text strong>Size</Text>
-                  <Segmented
-                    options={TASK_SIZE_OPTIONS}
-                    value={formValues.size}
-                    onChange={(value) =>
-                      setFormValues((prev) => ({
-                        ...prev,
-                        size: value as TaskSize,
-                      }))
-                    }
-                    block
-                  />
+
+                  {isEditing ? (
+                    <Segmented
+                      options={TASK_SIZE_OPTIONS}
+                      value={formValues.size}
+                      onChange={(value) =>
+                        setFormValues((prev) => ({
+                          ...prev,
+                          size: value as TaskSize,
+                        }))
+                      }
+                      block
+                    />
+                  ) : (
+                    <Tag>
+                      {formValues.size}
+                    </Tag>
+                  )}
                 </Space>
               </Space>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <Space orientation="vertical" size={8} style={{ width: "100%" }}>
                 <Text strong>Assignee</Text>
-                <Select
-                  value={formValues.assigneeId}
-                  onChange={(value) =>
-                    setFormValues((prev) => ({ ...prev, assigneeId: value }))
-                  }
-                  placeholder="Select a member"
-                  options={members.map((member) => ({
-                    label: member.name,
-                    value: member.id,
-                  }))}
-                  style={{ width: "100%" }}
-                />
+                {isEditing ? (
+                  <Select
+                    value={formValues.assigneeId}
+                    onChange={(value) =>
+                      setFormValues((prev) => ({ ...prev, assigneeId: value }))
+                    }
+                    placeholder="Select a member"
+                    options={members.map((member) => ({
+                      label: member.name,
+                      value: member.id,
+                    }))}
+                    style={{ width: "100%" }}
+                  />
+                ) :
+                  <Typography.Text>
+                    {members.find((m) => m.id === formValues.assigneeId)?.name ||
+                      "Unassigned"}
+                  </Typography.Text>
+                }
               </Space>
             </div>
           </Space>
@@ -517,6 +608,7 @@ type ColumnProps = {
   onDragEndTask: () => void;
   onDropTask: (taskId: string, status: TaskStatus) => void;
   members: User[];
+  canCreateTask: boolean;
 };
 
 function Column({
@@ -534,6 +626,7 @@ function Column({
   onDragEndTask,
   onDropTask,
   members,
+  canCreateTask,
 }: ColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const canDropCurrentTask =
@@ -590,7 +683,7 @@ function Column({
             size="small"
             icon={<PlusOutlined />}
             onClick={handlePlusClick}
-            disabled={!projectId}
+            disabled={!projectId || !canCreateTask}
           />
         }
         style={{

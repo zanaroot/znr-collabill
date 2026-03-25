@@ -120,7 +120,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
                     value: project.id,
                   }))}
                   style={{ minWidth: 260 }}
-                  size="large"
+
                 />
               </div>
             ) : null}
@@ -167,6 +167,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           projectId={projectId}
           projectName={selectedProject?.name}
           isProjectOwner={selectedProject?.createdBy === currentUserId}
+          isAdmin={selectedProject?.createdBy === currentUserId}
           members={
             users?.map((user) => ({
               id: user.id,
