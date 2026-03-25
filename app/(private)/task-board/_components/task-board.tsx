@@ -138,7 +138,6 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
                   value: p.id,
                 }))}
                 style={{ minWidth: 260 }}
-                size="large"
               />
             </div>
           </div>

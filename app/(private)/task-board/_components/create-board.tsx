@@ -94,11 +94,7 @@ type CreateBoardProps = {
   projectName?: string;
   isProjectOwner: boolean;
   members: User[];
-<<<<<<< HEAD
-=======
-  iterationId?: string;
   isAdmin: boolean;
->>>>>>> 7316846 (feat: add role-based task permissions and view/edit mode in drawer)
 };
 
 export function CreateBoard({
@@ -107,11 +103,7 @@ export function CreateBoard({
   projectName,
   isProjectOwner,
   members,
-<<<<<<< HEAD
-=======
-  iterationId: selectedIterationId,
-  isAdmin,
->>>>>>> 7316846 (feat: add role-based task permissions and view/edit mode in drawer)
+  isAdmin
 }: CreateBoardProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -482,29 +474,6 @@ export function CreateBoard({
                   }
                 </Space>
               </div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <Space orientation="vertical" size={8} style={{ width: "100%" }}>
-                <Text strong>Iteration</Text>
-                {isEditing ? (
-                  <Select
-                    value={formValues.iterationId}
-                    onChange={(value) =>
-                      setFormValues((prev) => ({ ...prev, iterationId: value }))
-                    }
-                    placeholder="Select an iteration"
-                    allowClear
-                    options={iterations.map((it: any) => ({
-                      label: it.name,
-                      value: it.id,
-                    }))}
-                    style={{ width: "100%" }}
-                  />
-                ) :
-                  <Typography.Text>{formValues.iterationId}</Typography.Text>
-                }
-              </Space>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-4">
