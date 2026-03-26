@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useEffect, useMemo, useState } from "react";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
-import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
+import { useUsers, useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
 import {
   getCurrentPeriod,
   getMonthlyPeriods,
@@ -21,6 +21,7 @@ type TaskBoardProps = {
 };
 
 export function TaskBoard({ currentUserId }: TaskBoardProps) {
+  const { data: currentUser } = useCurrentUser();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -165,7 +166,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           projectId={projectId}
           projectName={selectedProject?.name}
           isProjectOwner={selectedProject?.createdBy === currentUserId}
-          isAdmin={selectedProject?.createdBy === currentUserId}
+          isAdmin={currentUser?.organizationRole === "ADMIN" || currentUser?.organizationRole === "OWNER"}
           members={
             users?.map((user) => ({
               id: user.id,

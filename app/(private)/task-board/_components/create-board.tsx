@@ -7,6 +7,7 @@ import {
   Card,
   Drawer,
   Empty,
+  Flex,
   Input,
   Segmented,
   Select,
@@ -360,10 +361,10 @@ export function CreateBoard({
           </div>
 
           <Space orientation="vertical" size={12} style={{ width: "100%" }}>
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <Space orientation="vertical" size={8} style={{ width: "100%" }}>
-                <Text strong>Task title</Text>
-                {isEditing ? (
+            {isEditing ? (
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <Space orientation="vertical" size={8} style={{ width: "100%" }}>
+                  <Text strong>Task title</Text>
                   <Input
                     value={formValues.title}
                     onChange={(event) =>
@@ -375,16 +376,19 @@ export function CreateBoard({
                     placeholder="What needs to be done?"
                     size="large"
                   />
-                ) : (
-                  <Typography.Text>{formValues.title}</Typography.Text>
-                )}
-              </Space>
-            </div>
+                </Space>
+              </div>
+            ) : (
+              <Flex gap={8}>
+                <Text strong>Task title</Text>
+                <Typography.Text>{formValues.title}</Typography.Text>
+              </Flex>
+            )}
 
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <Space orientation="vertical" size={8} style={{ width: "100%" }}>
-                <Text strong>Description</Text>
-                {isEditing ? (
+            {isEditing ? (
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <Space orientation="vertical" size={8} style={{ width: "100%" }}>
+                  <Text strong>Description</Text>
                   <TextArea
                     value={formValues.description}
                     onChange={(event) =>
@@ -396,21 +400,24 @@ export function CreateBoard({
                     rows={5}
                     placeholder="Add implementation details, notes, or links"
                   />
-                ) : (
-                  <Typography.Text>{formValues.description}</Typography.Text>
-                )}
-              </Space>
-            </div>
+                </Space>
+              </div>
+            ) : (
+              <Flex gap={8}>
+                <Text strong>Description</Text>
+                <Typography.Text>{formValues.description}</Typography.Text>
+              </Flex>
+            )}
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <Space
-                  orientation="vertical"
-                  size={8}
-                  style={{ width: "100%" }}
-                >
-                  <Text strong>Due date</Text>
-                  {isEditing ? (
+              {isEditing ? (
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <Space
+                    orientation="vertical"
+                    size={8}
+                    style={{ width: "100%" }}
+                  >
+                    <Text strong>Due date</Text>
                     <Input
                       type="date"
                       value={formValues.dueDate ?? ""}
@@ -421,24 +428,27 @@ export function CreateBoard({
                         }))
                       }
                     />
-                  ) : (
-                    <Typography.Text>
-                      {formValues.dueDate
-                        ? formatDueDate(formValues.dueDate)
-                        : "No due date"}
-                    </Typography.Text>
-                  )}
-                </Space>
-              </div>
+                  </Space>
+                </div>
+              ) : (
+                <Flex gap={8}>
+                  <Text strong>Due date</Text>
+                  <Typography.Text>
+                    {formValues.dueDate
+                      ? formatDueDate(formValues.dueDate)
+                      : "No due date"}
+                  </Typography.Text>
+                </Flex>
+              )}
 
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <Space
-                  orientation="vertical"
-                  size={8}
-                  style={{ width: "100%" }}
-                >
-                  <Text strong>Status</Text>
-                  {isEditing ? (
+              {isEditing ? (
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <Space
+                    orientation="vertical"
+                    size={8}
+                    style={{ width: "100%" }}
+                  >
+                    <Text strong>Status</Text>
                     <Select
                       value={formValues.status}
                       onChange={(value) =>
@@ -463,13 +473,16 @@ export function CreateBoard({
                       }
                       style={{ width: "100%" }}
                     />
-                  ) : (
-                    <Typography.Text>
-                      {formatStatus(formValues.status)}
-                    </Typography.Text>
-                  )}
-                </Space>
-              </div>
+                  </Space>
+                </div>
+              ) : (
+                <Flex gap={8}>
+                  <Text strong>Status</Text>
+                  <Typography.Text>
+                    {formatStatus(formValues.status)}
+                  </Typography.Text>
+                </Flex>
+              )}
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -480,7 +493,6 @@ export function CreateBoard({
                   style={{ width: "100%" }}
                 >
                   <Text strong>Priority</Text>
-
                   {isEditing ? (
                     <Segmented
                       options={PRIORITY_LABELS}
@@ -494,7 +506,7 @@ export function CreateBoard({
                       block
                     />
                   ) : (
-                    <Tag>{formValues.priorityLabel}</Tag>
+                    <Tag>{convertPriorityLabelToTag(formValues.priorityLabel)}</Tag>
                   )}
                 </Space>
 
@@ -540,10 +552,18 @@ export function CreateBoard({
                     style={{ width: "100%" }}
                   />
                 ) : (
-                  <Typography.Text>
-                    {members.find((m) => m.id === formValues.assigneeId)
-                      ?.name || "Unassigned"}
-                  </Typography.Text>
+                  (() => {
+                    const assignee = members.find((m) => m.id === formValues.assigneeId);
+                    return (
+                      <Avatar
+                        size="small"
+                        src={getAvatarUrl(assignee?.avatar, assignee?.name)}
+                        alt={assignee?.name || "Unknown"}
+                      >
+                        {assignee?.name?.charAt(0).toUpperCase() || "?"}
+                      </Avatar>
+                    );
+                  })()
                 )}
               </Space>
             </div>
@@ -793,6 +813,17 @@ function priorityTagColor(value?: number | null) {
   if (label === "Urgent") return "volcano";
   if (label === "Important") return "gold";
   return "default";
+}
+
+function convertPriorityLabelToTag(label: PriorityLabel) {
+  let color: string;
+
+  if (label === "Urgent & Important") color = "red";
+  else if (label === "Urgent") color = "volcano";
+  else if (label === "Important") color = "gold";
+  else color = "default";
+
+  return <Tag color={color}>{label}</Tag>;
 }
 
 function statusTagColor(status: TaskStatus) {
