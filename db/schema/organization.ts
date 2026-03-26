@@ -1,4 +1,4 @@
-import { eq, relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   pgTable,
   primaryKey,
@@ -33,7 +33,7 @@ export const organizationMembers = pgTable(
     primaryKey({ columns: [t.organizationId, t.userId] }),
     uniqueIndex("organization_owner_idx")
       .on(t.organizationId)
-      .where(eq(t.role, "OWNER")),
+      .where(sql`${t.role} = 'OWNER'`),
   ],
 );
 
