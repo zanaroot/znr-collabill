@@ -26,6 +26,7 @@
     "@aws-sdk/client-s3": "^3.1016.0",
     "@dotenvx/dotenvx": "^1.57.2",
     "@getbrevo/brevo": "^5.0.1",
+    "@hono/swagger-ui": "^0.6.1",
     "@hono/zod-openapi": "^1.2.3",
     "@hono/zod-validator": "^0.7.6",
     "@hookform/resolvers": "^5.2.2",

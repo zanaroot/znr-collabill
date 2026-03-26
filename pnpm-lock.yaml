@@ -23,6 +23,9 @@ importers:
       '@getbrevo/brevo':
         specifier: ^5.0.1
         version: 5.0.1
+      '@hono/swagger-ui':
+        specifier: ^0.6.1
+        version: 0.6.1(hono@4.11.9)
       '@hono/zod-openapi':
         specifier: ^1.2.3
         version: 1.2.3(hono@4.11.9)(zod@4.3.6)
@@ -872,6 +875,11 @@ packages:
   '@getbrevo/brevo@5.0.1':
     resolution: {integrity: sha512-GRi70hv8obJsTnNkDlw0NfFezmx/jnuOL26ljKo/6J1AAw4D+7Jg9TX4+pau0uL5Fo9fEJy13ZsJtmARGt4E1A==}
     engines: {node: '>=18.0.0'}
+
+  '@hono/swagger-ui@0.6.1':
+    resolution: {integrity: sha512-sJTvldu1GPeEPfyeLG7gRj+W4vEuD+JDi+JjJ3TJs/DvMUtBLs0KJO5yokGegWWdy5qrbdnQGekbhgNRmPmYKQ==}
+    peerDependencies:
+      hono: '>=4.0.0'
 
   '@hono/zod-openapi@1.2.3':
     resolution: {integrity: sha512-zAviC3ApRAYGUiGWZiW/mrK/UBqkTi9BKQxn1IvwYyp2kS+k1tlnwut59DfEInpcsq1347zAYOqYI+obMy4vzQ==}
@@ -3365,6 +3373,10 @@ snapshots:
     optional: true
 
   '@getbrevo/brevo@5.0.1': {}
+
+  '@hono/swagger-ui@0.6.1(hono@4.11.9)':
+    dependencies:
+      hono: 4.11.9
 
   '@hono/zod-openapi@1.2.3(hono@4.11.9)(zod@4.3.6)':
     dependencies:
