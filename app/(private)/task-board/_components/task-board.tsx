@@ -170,6 +170,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
             users?.map((user) => ({
               id: user.id,
               name: user.name || user.email,
+              avatar: user.avatar,
             })) ?? []
           }
         />

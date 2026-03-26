@@ -2,6 +2,7 @@
 
 import { PlusOutlined } from "@ant-design/icons";
 import {
+  Avatar,
   Button,
   Card,
   Drawer,
@@ -26,6 +27,7 @@ import {
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
 } from "@/lib/task-workflow";
+import { getAvatarUrl } from "@/lib/get-avatar-url";
 import {
   useCreateTask,
   useDeleteTask,
@@ -35,6 +37,7 @@ import {
 type User = {
   id: string;
   name: string;
+  avatar: string | null;
 };
 
 const { Paragraph, Text } = Typography;
@@ -125,9 +128,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-        from: activeTask.status,
-        isProjectOwner,
-      })
+      from: activeTask.status,
+      isProjectOwner,
+    })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -722,12 +725,18 @@ function Column({
                         Due {formatDueDate(task.dueDate)}
                       </Tag>
                     ) : null}
-                    {task.assignedTo && (
-                      <Tag variant="filled" color="blue">
-                        {members.find((m) => m.id === task.assignedTo)?.name ||
-                          "Unknown"}
-                      </Tag>
-                    )}
+                    {task.assignedTo && (() => {
+                      const assignee = members.find((m) => m.id === task.assignedTo);
+                      return (
+                        <Avatar
+                          size="small"
+                          src={getAvatarUrl(assignee?.avatar, assignee?.name)}
+                          alt={assignee?.name || "Unknown"}
+                        >
+                          {assignee?.name?.charAt(0).toUpperCase() || "?"}
+                        </Avatar>
+                      );
+                    })()}
                   </div>
                 </div>
               </Card>

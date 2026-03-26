@@ -65,8 +65,10 @@ export const ProfileDrawer = ({
       }
       return await res.json();
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["current-user"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      queryClient.invalidateQueries({ queryKey: ["team", "users"] });
+    },
     onError: (error: Error) => message.error(error.message),
   });
 
