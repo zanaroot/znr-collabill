@@ -68,13 +68,20 @@ export const createInvoiceWithLines = async (
   });
 };
 
-export const markInvoiceAsPaid = async (id: string) => {
+export const findInvoicesByOrganizationId = async (organizationId: string) => {
+  return await db
+    .select()
+    .from(invoices)
+    .where(eq(invoices.organizationId, organizationId));
+};
+
+export const updateInvoice = async (
+  id: string,
+  input: Partial<typeof invoices.$inferInsert>,
+) => {
   const [invoice] = await db
     .update(invoices)
-    .set({
-      status: "PAID",
-      paidAt: new Date(),
-    })
+    .set(input)
     .where(eq(invoices.id, id))
     .returning();
   return invoice;

@@ -5,7 +5,10 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useEffect, useMemo, useState } from "react";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
-import { useUsers, useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
+import {
+  useCurrentUser,
+  useUsers,
+} from "@/app/(private)/team-management/_hooks/use-team";
 import {
   getCurrentPeriod,
   getMonthlyPeriods,
@@ -166,7 +169,10 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           projectId={projectId}
           projectName={selectedProject?.name}
           isProjectOwner={selectedProject?.createdBy === currentUserId}
-          isAdmin={currentUser?.organizationRole === "ADMIN" || currentUser?.organizationRole === "OWNER"}
+          isAdmin={
+            currentUser?.organizationRole === "ADMIN" ||
+            currentUser?.organizationRole === "OWNER"
+          }
           members={
             users?.map((user) => ({
               id: user.id,

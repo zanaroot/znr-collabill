@@ -9,7 +9,7 @@ export default defineConfig({
   out: "./db/migration",
   dbCredentials: {
     host: databaseUrl.hostname,
-    port: parseInt(databaseUrl.port || "5432"),
+    port: parseInt(databaseUrl.port || "5432", 10),
     user: databaseUrl.username,
     password: databaseUrl.password,
     database: databaseUrl.pathname.replace("/", ""),

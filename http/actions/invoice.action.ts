@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { RawTaskSummary } from "@/app/(private)/invoices/_components/task-summary-table";
 import {
   createInvoiceWithLines,
-  markInvoiceAsPaid,
+  updateInvoice,
 } from "@/http/repositories/invoice.repository";
 import { getCurrentUser } from "./get-current-user.action";
 
@@ -105,7 +105,10 @@ export const markInvoiceAsPaidAction = async (invoiceId: string) => {
   }
 
   try {
-    await markInvoiceAsPaid(invoiceId);
+    await updateInvoice(invoiceId, {
+      status: "PAID",
+      paidAt: new Date(),
+    });
     revalidatePath("/invoices");
     return { success: true };
   } catch (error) {

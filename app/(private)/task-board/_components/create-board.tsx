@@ -23,12 +23,12 @@ import {
   type TaskSize,
   type TaskStatus,
 } from "@/http/models/task.model";
+import { getAvatarUrl } from "@/lib/get-avatar-url";
 import {
   canDeleteTaskByStatus,
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
 } from "@/lib/task-workflow";
-import { getAvatarUrl } from "@/lib/get-avatar-url";
 import {
   useCreateTask,
   useDeleteTask,
@@ -129,9 +129,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-      from: activeTask.status,
-      isProjectOwner,
-    })
+        from: activeTask.status,
+        isProjectOwner,
+      })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -363,7 +363,11 @@ export function CreateBoard({
           <Space orientation="vertical" size={12} style={{ width: "100%" }}>
             {isEditing ? (
               <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <Space orientation="vertical" size={8} style={{ width: "100%" }}>
+                <Space
+                  orientation="vertical"
+                  size={8}
+                  style={{ width: "100%" }}
+                >
                   <Text strong>Task title</Text>
                   <Input
                     value={formValues.title}
@@ -387,7 +391,11 @@ export function CreateBoard({
 
             {isEditing ? (
               <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <Space orientation="vertical" size={8} style={{ width: "100%" }}>
+                <Space
+                  orientation="vertical"
+                  size={8}
+                  style={{ width: "100%" }}
+                >
                   <Text strong>Description</Text>
                   <TextArea
                     value={formValues.description}
@@ -506,7 +514,9 @@ export function CreateBoard({
                       block
                     />
                   ) : (
-                    <Tag>{convertPriorityLabelToTag(formValues.priorityLabel)}</Tag>
+                    <Tag>
+                      {convertPriorityLabelToTag(formValues.priorityLabel)}
+                    </Tag>
                   )}
                 </Space>
 
@@ -553,7 +563,9 @@ export function CreateBoard({
                   />
                 ) : (
                   (() => {
-                    const assignee = members.find((m) => m.id === formValues.assigneeId);
+                    const assignee = members.find(
+                      (m) => m.id === formValues.assigneeId,
+                    );
                     return (
                       <Avatar
                         size="small"
@@ -745,18 +757,21 @@ function Column({
                         Due {formatDueDate(task.dueDate)}
                       </Tag>
                     ) : null}
-                    {task.assignedTo && (() => {
-                      const assignee = members.find((m) => m.id === task.assignedTo);
-                      return (
-                        <Avatar
-                          size="small"
-                          src={getAvatarUrl(assignee?.avatar, assignee?.name)}
-                          alt={assignee?.name || "Unknown"}
-                        >
-                          {assignee?.name?.charAt(0).toUpperCase() || "?"}
-                        </Avatar>
-                      );
-                    })()}
+                    {task.assignedTo &&
+                      (() => {
+                        const assignee = members.find(
+                          (m) => m.id === task.assignedTo,
+                        );
+                        return (
+                          <Avatar
+                            size="small"
+                            src={getAvatarUrl(assignee?.avatar, assignee?.name)}
+                            alt={assignee?.name || "Unknown"}
+                          >
+                            {assignee?.name?.charAt(0).toUpperCase() || "?"}
+                          </Avatar>
+                        );
+                      })()}
                   </div>
                 </div>
               </Card>
