@@ -5,9 +5,10 @@ import {
   getInvoices,
   updateInvoiceStatus,
 } from "@/http/controllers/invoice.controller";
+import { ownerMiddleware } from "@/http/middleware/auth.middleware";
 
 export const invoiceRoutes = new Hono()
   .get("/", ...getInvoices)
   .get("/:id", ...getInvoiceById)
-  .post("/", ...createInvoice)
-  .patch("/:id/status", ...updateInvoiceStatus);
+  .post("/", ownerMiddleware, ...createInvoice)
+  .patch("/:id/status", ownerMiddleware, ...updateInvoiceStatus);

@@ -1,8 +1,10 @@
 import { z } from "zod";
 
+export const invoiceStatusSchema = z.enum(["DRAFT", "VALIDATED", "PAID"]);
+
 export const invoiceLineSchema = z.object({
   type: z.string(),
-  referenceId: z.string().uuid().optional().nullable(),
+  referenceId: z.uuid().optional().nullable(),
   label: z.string(),
   quantity: z.number(),
   unitPrice: z.string().optional().nullable(),
@@ -10,21 +12,22 @@ export const invoiceLineSchema = z.object({
 });
 
 export const createInvoiceSchema = z.object({
-  userId: z.string().uuid(),
-  organizationId: z.string().uuid(),
+  userId: z.uuid(),
+  organizationId: z.uuid(),
   periodStart: z.string(),
   periodEnd: z.string(),
-  status: z.enum(["DRAFT", "VALIDATED", "PAID"]).optional(),
+  status: invoiceStatusSchema.optional(),
   totalAmount: z.string().optional().nullable(),
   note: z.string().optional().nullable(),
   lines: z.array(invoiceLineSchema),
 });
 
 export const updateInvoiceStatusSchema = z.object({
-  status: z.enum(["DRAFT", "VALIDATED", "PAID"]),
+  status: invoiceStatusSchema,
 });
 
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export type UpdateInvoiceStatusInput = z.infer<
   typeof updateInvoiceStatusSchema
 >;
+export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;

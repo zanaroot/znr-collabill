@@ -1,10 +1,18 @@
 "use client";
 
-import { PrinterOutlined } from "@ant-design/icons";
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  PrinterOutlined,
+} from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Divider, message, Space, Tag, Typography } from "antd";
 import { useMemo } from "react";
-import type { CreateInvoiceInput } from "@/http/models/invoice.model";
+import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
+import type {
+  CreateInvoiceInput,
+  InvoiceStatus,
+} from "@/http/models/invoice.model";
 import { client } from "@/packages/hono";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary } from "./task-summary-table";
@@ -31,7 +39,7 @@ type InvoicePrintableProps = {
   periodStart?: string;
   periodEnd?: string;
   periodName?: string;
-  existingInvoice?: { id: string; status: string | null } | null;
+  existingInvoice?: { id: string; status: InvoiceStatus | null } | null;
   isOwner?: boolean;
 };
 
@@ -82,8 +90,6 @@ export const InvoicePrintable = ({
       },
       onSuccess: () => {
         message.success("Invoice validated successfully!");
-        // For simplicity, we just reload since this component depends on many props
-        // In a real app we might invalidate query if this was a list
         window.location.reload();
       },
       onError: (error: Error) => {
@@ -113,6 +119,29 @@ export const InvoicePrintable = ({
       message.error(error.message);
     },
   });
+
+  const { mutateAsync: unvalidateInvoice, isPending: isUnvalidating } =
+    useMutation({
+      mutationFn: async (id: string) => {
+        const res = await client.api.invoices[":id"].status.$patch({
+          param: { id },
+          json: { status: "DRAFT" },
+        });
+        const result = await res.json();
+        if (!res.ok) {
+          const errorData = result as { error?: string };
+          throw new Error(errorData.error || "Failed to unvalidate invoice");
+        }
+        return result;
+      },
+      onSuccess: () => {
+        message.success("Invoice unvalidated successfully!");
+        window.location.reload();
+      },
+      onError: (error: Error) => {
+        message.error(error.message);
+      },
+    });
 
   const presenceTotal = useMemo(() => {
     return presenceData.reduce((acc, item) => {
@@ -197,27 +226,44 @@ export const InvoicePrintable = ({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end gap-3 no-print">
-        {!existingInvoice && targetUserId && periodStart && periodEnd && (
-          <Button
-            type="default"
-            loading={isValidating}
-            onClick={handleValidate}
-            className="shadow-md font-medium text-green-600 border-green-200 bg-green-50 hover:bg-green-100 hover:border-green-300"
-          >
-            Validate Invoice
-          </Button>
-        )}
+        {isOwner &&
+          !existingInvoice &&
+          targetUserId &&
+          periodStart &&
+          periodEnd && (
+            <Button
+              variant="solid"
+              loading={isValidating}
+              icon={<CheckCircleOutlined />}
+              onClick={handleValidate}
+              color="green"
+            >
+              Validate Invoice
+            </Button>
+          )}
         {existingInvoice?.status === "VALIDATED" && isOwner && (
-          <Button
-            type="primary"
-            loading={isMarkingPaid}
-            className="bg-purple-600 hover:bg-purple-500 shadow-md border-purple-600"
-            onClick={() => markAsPaid(existingInvoice.id)}
-          >
-            Mark as Paid
-          </Button>
+          <>
+            <Button
+              variant="solid"
+              loading={isUnvalidating}
+              icon={<CloseCircleOutlined />}
+              onClick={() => unvalidateInvoice(existingInvoice.id)}
+              color="orange"
+            >
+              Unvalidate
+            </Button>
+            <Button
+              variant="solid"
+              loading={isMarkingPaid}
+              icon={<CheckCircleOutlined />}
+              onClick={() => markAsPaid(existingInvoice.id)}
+              color="purple"
+            >
+              Mark as Paid
+            </Button>
+          </>
         )}
-        {existingInvoice?.status !== "PAID" && isOwner && (
+        {existingInvoice?.status !== "PAID" && (
           <Button
             icon={<PrinterOutlined />}
             onClick={handlePrint}
@@ -275,18 +321,7 @@ export const InvoicePrintable = ({
                 </Text>
                 <Text strong>{invoiceDate}</Text>
               </div>
-              <Tag
-                color={
-                  existingInvoice
-                    ? existingInvoice.status === "PAID"
-                      ? "purple"
-                      : "green"
-                    : "blue"
-                }
-                className="mt-2 border-none px-3 py-1 font-semibold no-print text-center"
-              >
-                {existingInvoice ? existingInvoice.status : "DRAFT"}
-              </Tag>
+              <StatusTagInvoice status={existingInvoice?.status || "DRAFT"} />
             </div>
           </div>
         </div>

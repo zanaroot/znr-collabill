@@ -6,14 +6,11 @@ import {
   getTasksByProject,
   updateTask,
 } from "@/http/controllers/task.controller";
-import {
-  adminMiddleware,
-  ownerMiddleware,
-} from "@/http/middleware/auth.middleware";
+import { adminMiddleware } from "@/http/middleware/auth.middleware";
 
 export const taskRoutes = new Hono()
   .get("/project/:projectId", ...getTasksByProject)
   .get("/project/:projectId/period", ...getTasksByPeriod)
-  .post("/", ownerMiddleware, adminMiddleware, ...createTask)
-  .put("/:id", ownerMiddleware, adminMiddleware, ...updateTask)
-  .delete("/:id", ownerMiddleware, adminMiddleware, ...deleteTask);
+  .post("/", adminMiddleware, ...createTask)
+  .put("/:id", adminMiddleware, ...updateTask)
+  .delete("/:id", adminMiddleware, ...deleteTask);

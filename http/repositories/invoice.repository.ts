@@ -86,3 +86,11 @@ export const updateInvoice = async (
     .returning();
   return invoice;
 };
+
+export const deleteInvoiceLines = async (invoiceId: string) => {
+  await db.delete(invoiceLines).where(eq(invoiceLines.invoiceId, invoiceId));
+};
+
+export const deleteInvoice = async (id: string) => {
+  await db.delete(invoices).where(eq(invoices.id, id));
+};

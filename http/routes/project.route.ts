@@ -17,7 +17,7 @@ export const projectRoutes = new Hono()
   .get("/", ...getProjects)
   .get("/:id", ...getProject)
   .post("/", ownerMiddleware, ...createProject)
-  .put("/:id", ownerMiddleware, adminMiddleware, ...updateProject)
-  .delete("/:id", ownerMiddleware, adminMiddleware, ...deleteProject)
+  .put("/:id", adminMiddleware, ...updateProject)
+  .delete("/:id", adminMiddleware, ...deleteProject)
   .get("/:id/members", ...getProjectMembers)
-  .post("/:id/members", ownerMiddleware, adminMiddleware, ...addProjectMember);
+  .post("/:id/members", adminMiddleware, ...addProjectMember);

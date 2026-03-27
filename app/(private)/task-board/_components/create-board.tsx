@@ -567,13 +567,16 @@ export function CreateBoard({
                       (m) => m.id === formValues.assigneeId,
                     );
                     return (
-                      <Avatar
-                        size="small"
-                        src={getAvatarUrl(assignee?.avatar, assignee?.name)}
-                        alt={assignee?.name || "Unknown"}
-                      >
-                        {assignee?.name?.charAt(0).toUpperCase() || "?"}
-                      </Avatar>
+                      <Space>
+                        <Avatar
+                          size="small"
+                          src={getAvatarUrl(assignee?.avatar, assignee?.name)}
+                          alt={assignee?.name || "Unknown"}
+                        >
+                          {assignee?.name?.charAt(0).toUpperCase() || "?"}
+                        </Avatar>
+                        <Text>{assignee?.name}</Text>
+                      </Space>
                     );
                   })()
                 )}

@@ -33,7 +33,6 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
   let totalAmount = 0;
   const linesInput: Parameters<typeof createInvoiceWithLines>[1] = [];
 
-  // Map presence
   for (const p of presenceData) {
     const rate = Number(p.dailyRate || 0);
     const amount = p.presenceCount * rate;
@@ -50,7 +49,6 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
     }
   }
 
-  // Map tasks
   for (const t of taskData) {
     const size = t.size.toLowerCase();
     const rateKey =

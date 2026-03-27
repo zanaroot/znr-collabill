@@ -90,6 +90,10 @@ export const updateInvoiceStatus = factory.createHandlers(
       updateParams.paidAt = new Date();
     } else if (status === "VALIDATED") {
       updateParams.validatedAt = new Date();
+    } else if (status === "DRAFT") {
+      await invoiceRepository.deleteInvoiceLines(id);
+      await invoiceRepository.deleteInvoice(id);
+      return c.json({ message: "Invoice deleted" });
     }
 
     const updated = await invoiceRepository.updateInvoice(id, updateParams);

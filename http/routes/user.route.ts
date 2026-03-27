@@ -24,30 +24,10 @@ export const userRoutes = new Hono()
   .post("/me/avatar", ...uploadAvatar)
   .get("/all", ...getUsers)
   .get("/invitations", ...getInvitations)
-  .post("/invitations", ownerMiddleware, adminMiddleware, ...createInvitation)
-  .post(
-    "/invitations/:id/resend",
-    ownerMiddleware,
-    adminMiddleware,
-    ...resendInvitation,
-  )
-  .delete(
-    "/invitations/:id",
-    ownerMiddleware,
-    adminMiddleware,
-    ...revokeInvitation,
-  )
-  .delete("/:id", ownerMiddleware, adminMiddleware, ...removeUser)
-  .patch(
-    "/:id/role",
-    ownerMiddleware,
-    adminMiddleware,
-    ...updateUserRoleHandler,
-  )
+  .post("/invitations", adminMiddleware, ...createInvitation)
+  .post("/invitations/:id/resend", adminMiddleware, ...resendInvitation)
+  .delete("/invitations/:id", ownerMiddleware, ...revokeInvitation)
+  .delete("/:id", ownerMiddleware, ...removeUser)
+  .patch("/:id/role", ownerMiddleware, ...updateUserRoleHandler)
   .get("/:id/rates", ...getCollaboratorRateHandler)
-  .patch(
-    "/:id/rates",
-    ownerMiddleware,
-    adminMiddleware,
-    ...updateCollaboratorRateHandler,
-  );
+  .patch("/:id/rates", ownerMiddleware, ...updateCollaboratorRateHandler);
