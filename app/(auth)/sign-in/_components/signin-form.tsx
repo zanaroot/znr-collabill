@@ -13,8 +13,7 @@ import {
 } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import { signInAction } from "@/http/actions/auth.action";
+import { client } from "@/packages/hono";
 
 type DataType = {
   email: string;
@@ -24,8 +23,21 @@ type DataType = {
 export const SignInForm = () => {
   const router = useRouter();
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: signInAction,
+  const { mutateAsync: signIn, isPending } = useMutation({
+    mutationFn: async (values: DataType) => {
+      const res = await client.api.auth.login.$post({
+        json: values,
+      });
+      const result = (await res.json()) as {
+        success?: boolean;
+        error?: string;
+        orgCount?: number;
+      };
+      if (!res.ok) {
+        throw new Error(result.error || "Something went wrong.");
+      }
+      return result;
+    },
     onSuccess: (data) => {
       if (data.success) {
         message.success("Sign in successful!");
@@ -40,13 +52,13 @@ export const SignInForm = () => {
         message.error(data.error || "Something went wrong.");
       }
     },
-    onError: () => {
-      message.error("Something went wrong. Please try again.");
+    onError: (error: Error) => {
+      message.error(error.message || "Something went wrong. Please try again.");
     },
   });
 
   const onFinish = async (values: DataType) => {
-    await mutateAsync(values);
+    await signIn(values);
   };
 
   return (

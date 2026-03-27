@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { Button, Card, Form, Input, message, Typography } from "antd";
 import { useRouter } from "next/navigation";
-import { createOrganizationAction } from "@/http/actions/organization.action";
+import { client } from "@/packages/hono";
 
 const { Title } = Typography;
 
@@ -15,8 +15,20 @@ export const CreateOrganization = () => {
   const router = useRouter();
 
   const { mutateAsync: createOrg, isPending: loading } = useMutation({
-    mutationFn: (values: OrganizationForm) =>
-      createOrganizationAction(values.name),
+    mutationFn: async (values: OrganizationForm) => {
+      const res = await client.api.organizations.$post({
+        json: values,
+      });
+      const result = (await res.json()) as {
+        success?: boolean;
+        error?: string;
+        message?: string;
+      };
+      if (!res.ok) {
+        throw new Error(result.error || "Error creating the organization.");
+      }
+      return result;
+    },
     onSuccess: (data) => {
       if (data.success) {
         message.success("Organization created successfully!");
@@ -25,9 +37,9 @@ export const CreateOrganization = () => {
         message.error(data.error || "Error creating the organization.");
       }
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error(error);
-      message.error("Error creating the organization.");
+      message.error(error.message || "Error creating the organization.");
     },
   });
 

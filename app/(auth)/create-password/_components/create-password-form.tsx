@@ -6,12 +6,8 @@ import { Button, Card, Form, Input, message, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import {
-  acceptInvitationAction,
-  createPasswordAction,
-  declineInvitationAction,
-  getInvitationByToken,
-} from "@/http/actions/invitation.action";
+import type { CreatePasswordInput } from "@/http/models/invitation.model";
+import { client } from "@/packages/hono";
 
 const schema = z
   .object({
@@ -26,6 +22,15 @@ const schema = z
 
 type DataType = z.infer<typeof schema>;
 
+type InvitationResponse = {
+  id: string;
+  email: string;
+  organizationId: string | null;
+  role: string;
+  expiresAt: string;
+  exists: boolean;
+};
+
 export const CreatePasswordForm = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -39,55 +44,88 @@ export const CreatePasswordForm = () => {
     resolver: zodResolver(schema),
   });
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: createPasswordAction,
-    onSuccess: (data) => {
-      if (data.success) {
-        message.success("Account created successfully!");
-        router.push("/sign-in");
-      } else {
-        message.error(data.error || "Something went wrong.");
+  const { data: invitation, isLoading } = useQuery<InvitationResponse | null>({
+    queryKey: ["invitation", token],
+    queryFn: async () => {
+      if (!token) return null;
+      const res = await client.api.invitations.public[":token"].$get({
+        param: { token },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch invitation");
       }
+      return await res.json();
     },
-    onError: () => {
-      message.error("Something went wrong. Please try again.");
+    enabled: !!token,
+  });
+
+  const { mutateAsync: createAccount, isPending: isCreating } = useMutation({
+    mutationFn: async (data: CreatePasswordInput) => {
+      const res = await client.api.invitations.public["create-password"].$post({
+        json: data,
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        const errorData = result as { error?: string };
+        throw new Error(errorData.error || "Failed to create account");
+      }
+      return result;
+    },
+    onSuccess: () => {
+      message.success("Account created successfully!");
+      router.push("/sign-in");
+    },
+    onError: (error: Error) => {
+      message.error(error.message || "Something went wrong.");
     },
   });
 
   const { mutateAsync: acceptInvitation, isPending: isAccepting } = useMutation(
     {
-      mutationFn: acceptInvitationAction,
-      onSuccess: (data) => {
-        if (data.success) {
-          message.success("Successfully joined the organization!");
-          router.push("/sign-in");
-        } else {
-          message.error(data.error || "Something went wrong.");
+      mutationFn: async (token: string) => {
+        const res = await client.api.invitations.public[":token"].accept.$post({
+          param: { token },
+        });
+        const result = await res.json();
+        if (!res.ok) {
+          const errorData = result as { error?: string };
+          throw new Error(errorData.error || "Failed to join organization");
         }
+        return result;
+      },
+      onSuccess: () => {
+        message.success("Successfully joined the organization!");
+        router.push("/sign-in");
+      },
+      onError: (error: Error) => {
+        message.error(error.message || "Something went wrong.");
       },
     },
   );
 
   const { mutateAsync: declineInvitation, isPending: isDeclining } =
     useMutation({
-      mutationFn: declineInvitationAction,
-      onSuccess: (data) => {
-        if (data.success) {
-          message.success("Invitation declined.");
-          router.push("/");
-        } else {
-          message.error(data.error || "Something went wrong.");
+      mutationFn: async (token: string) => {
+        const res = await client.api.invitations.public[":token"].decline.$post(
+          {
+            param: { token },
+          },
+        );
+        const result = await res.json();
+        if (!res.ok) {
+          const errorData = result as { error?: string };
+          throw new Error(errorData.error || "Failed to decline invitation");
         }
+        return result;
+      },
+      onSuccess: () => {
+        message.success("Invitation declined.");
+        router.push("/");
+      },
+      onError: (error: Error) => {
+        message.error(error.message || "Something went wrong.");
       },
     });
-
-  const { data: invitation, isLoading } = useQuery({
-    queryKey: ["invitation", token],
-    queryFn: async () => {
-      if (!token) return null;
-      return getInvitationByToken(token);
-    },
-  });
 
   if (isLoading) {
     return (
@@ -97,7 +135,7 @@ export const CreatePasswordForm = () => {
     );
   }
 
-  if (!invitation?.token) {
+  if (!invitation || !token) {
     return (
       <Card title="Error">
         <Typography.Text type="danger">
@@ -109,18 +147,17 @@ export const CreatePasswordForm = () => {
 
   const onSubmit = async (data: DataType) => {
     try {
-      await mutateAsync({
-        token: invitation.token,
+      await createAccount({
+        token: token,
         name: data.name,
         password: data.password,
       });
     } catch (error) {
       console.error(error);
-      message.error("An unexpected error occurred.");
     }
   };
 
-  if (invitation.exists) {
+  if (invitation?.exists) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <Card title="Join Organization" className="w-[400px]">
@@ -131,7 +168,7 @@ export const CreatePasswordForm = () => {
           <div className="flex flex-col gap-4 mt-8">
             <Button
               type="primary"
-              onClick={() => acceptInvitation(invitation.token)}
+              onClick={() => acceptInvitation(token)}
               loading={isAccepting}
               block
             >
@@ -139,7 +176,7 @@ export const CreatePasswordForm = () => {
             </Button>
             <Button
               danger
-              onClick={() => declineInvitation(invitation.token)}
+              onClick={() => declineInvitation(token)}
               loading={isDeclining}
               block
             >
@@ -155,7 +192,7 @@ export const CreatePasswordForm = () => {
     <div className="flex justify-center items-center min-h-[400px]">
       <Card title="Create Your Account" className="w-[400px]">
         <Typography.Text className="mb-8 block" type="secondary">
-          Welcome {invitation.email}! Please enter your name and choose a
+          Welcome {invitation?.email}! Please enter your name and choose a
           password to complete your registration.
         </Typography.Text>
         <form
@@ -204,7 +241,7 @@ export const CreatePasswordForm = () => {
               </Form.Item>
             )}
           />
-          <Button type="primary" htmlType="submit" loading={isPending} block>
+          <Button type="primary" htmlType="submit" loading={isCreating} block>
             Create Account
           </Button>
         </form>

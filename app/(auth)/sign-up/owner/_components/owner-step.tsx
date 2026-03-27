@@ -4,8 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { Button, Card, Form, Input, message, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { registerAction } from "@/http/actions/auth.action";
 import type { RegisterInput } from "@/http/models/auth.model";
+import { client } from "@/packages/hono";
 
 const { Title } = Typography;
 
@@ -14,8 +14,20 @@ const OwnerStepContent = () => {
   const searchParams = useSearchParams();
   const orgName = searchParams.get("orgName");
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: registerAction,
+  const { mutateAsync: register, isPending } = useMutation({
+    mutationFn: async (values: RegisterInput) => {
+      const res = await client.api.auth.register.$post({
+        json: values,
+      });
+      const result = (await res.json()) as {
+        success?: boolean;
+        error?: string;
+      };
+      if (!res.ok) {
+        throw new Error(result.error || "Error creating the account.");
+      }
+      return result;
+    },
     onSuccess: (data) => {
       if (data.success) {
         message.success("Account and Organization created successfully!");
@@ -24,8 +36,8 @@ const OwnerStepContent = () => {
         message.error(data.error || "Error creating the account.");
       }
     },
-    onError: () => {
-      message.error("Something went wrong. Please try again.");
+    onError: (error: Error) => {
+      message.error(error.message || "Something went wrong. Please try again.");
     },
   });
 
@@ -35,7 +47,7 @@ const OwnerStepContent = () => {
   }
 
   const onFinish = async (values: Omit<RegisterInput, "organizationName">) => {
-    await mutateAsync({
+    await register({
       ...values,
       organizationName: orgName,
     });

@@ -6,7 +6,8 @@ import { Button, Card, Form, Input, message, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import { resetPasswordWithTokenAction } from "@/http/actions/password.action";
+import type { ResetPasswordInput } from "@/http/models/password.model";
+import { client } from "@/packages/hono";
 
 const schema = z
   .object({
@@ -33,14 +34,24 @@ export const ResetPasswordForm = () => {
     resolver: zodResolver(schema),
   });
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: resetPasswordWithTokenAction,
+  const { mutateAsync: resetPassword, isPending } = useMutation({
+    mutationFn: async (data: ResetPasswordInput) => {
+      const res = await client.api.password.reset.$post({
+        json: data,
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        const errorData = result as { error?: string };
+        throw new Error(errorData.error || "Something went wrong.");
+      }
+      return result;
+    },
     onSuccess: () => {
       message.success("Password updated successfully!");
       router.push("/sign-in");
     },
-    onError: () => {
-      message.error("Something went wrong. Please try again.");
+    onError: (error: Error) => {
+      message.error(error.message || "Something went wrong. Please try again.");
     },
   });
 
@@ -56,10 +67,9 @@ export const ResetPasswordForm = () => {
 
   const onSubmit = async (data: DataType) => {
     try {
-      await mutateAsync({ token, password: data.password });
+      await resetPassword({ token, password: data.password });
     } catch (error) {
       console.error(error);
-      message.error("An unexpected error occurred.");
     }
   };
 

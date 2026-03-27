@@ -1,4 +1,6 @@
+import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
+import { z } from "zod";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   deleteOrganizationById,
@@ -53,6 +55,34 @@ export const selectOrganization = factory.createHandlers(async (c) => {
 
   return c.json({ message: "Organization selected", success: true });
 });
+
+export const createOrganization = factory.createHandlers(
+  zValidator("json", z.object({ name: z.string().min(1) })),
+  async (c) => {
+    const { getCookie } = await import("hono/cookie");
+    const { createOrganization: createOrg } = await import(
+      "@/http/repositories/organization.repository"
+    );
+    const { updateSessionOrganization } = await import(
+      "@/http/repositories/session.repository"
+    );
+
+    const currentUser = c.get("user");
+    const { name } = c.req.valid("json");
+
+    const organization = await createOrg(name, currentUser.id);
+
+    const token = getCookie(c, "session_token");
+    if (token) {
+      await updateSessionOrganization(token, organization.id);
+    }
+
+    return c.json(
+      { message: "Organization created successfully", success: true },
+      201,
+    );
+  },
+);
 
 export const getMyOrganizations = factory.createHandlers(async (c) => {
   const { getUserOrganizations } = await import(

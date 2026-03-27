@@ -7,11 +7,11 @@ import { Button, Card, Flex, Form, Input, message, Typography } from "antd";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import { forgotPasswordAction } from "@/http/actions/password.action";
+import { client } from "@/packages/hono";
 import { PendingConfirmationForm } from "./pending-confirmation-form";
 
 const schema = z.object({
-  email: z.email("Please enter a valid email"),
+  email: z.string().email("Please enter a valid email"),
 });
 
 type DataType = z.infer<typeof schema>;
@@ -25,26 +25,39 @@ export const SendEmailForm = () => {
     resolver: zodResolver(schema),
   });
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: forgotPasswordAction,
+  const {
+    mutateAsync: sendEmail,
+    isPending,
+    isSuccess,
+  } = useMutation({
+    mutationFn: async (data: DataType) => {
+      const res = await client.api.password.forgot.$post({
+        json: data,
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        const errorData = result as { error?: string };
+        throw new Error(errorData.error || "Something went wrong.");
+      }
+      return result;
+    },
     onSuccess: () => {
       message.success("If an account exists, an email has been sent.");
     },
-    onError: () => {
-      message.error("Something went wrong. Please try again.");
+    onError: (error: Error) => {
+      message.error(error.message || "Something went wrong. Please try again.");
     },
   });
 
   const onSubmit = async (data: DataType) => {
     try {
-      await mutateAsync(data);
+      await sendEmail(data);
     } catch (error) {
       console.error(error);
-      message.error("An unexpected error occurred.");
     }
   };
 
-  if (isPending) {
+  if (isPending || isSuccess) {
     return <PendingConfirmationForm />;
   }
 

@@ -1,18 +1,24 @@
 "use client";
 
 import { PrinterOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Divider, message, Space, Tag, Typography } from "antd";
-import { useMemo, useState } from "react";
-import {
-  markInvoiceAsPaidAction,
-  validateInvoiceAction,
-} from "@/http/actions/invoice.action";
+import { useMemo } from "react";
+import type { CreateInvoiceInput } from "@/http/models/invoice.model";
 import { client } from "@/packages/hono";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary } from "./task-summary-table";
 
 const { Title, Text, Paragraph } = Typography;
+
+type InvoiceLineInput = {
+  type: string;
+  referenceId: string | null;
+  label: string;
+  quantity: number;
+  unitPrice: string;
+  total: string;
+};
 
 type InvoicePrintableProps = {
   presenceData: PresenceSummary[];
@@ -42,8 +48,6 @@ export const InvoicePrintable = ({
   existingInvoice,
   isOwner,
 }: InvoicePrintableProps) => {
-  const [isValidating, setIsValidating] = useState(false);
-  const [isMarkingPaid, setIsMarkingPaid] = useState(false);
   const handlePrint = () => {
     window.print();
   };
@@ -58,6 +62,55 @@ export const InvoicePrintable = ({
         throw new Error("Failed to fetch organization owner");
       }
       return res.json();
+    },
+  });
+
+  const { mutateAsync: validateInvoice, isPending: isValidating } = useMutation(
+    {
+      mutationFn: async (args: CreateInvoiceInput) => {
+        const res = await client.api.invoices.$post({
+          json: args,
+        });
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(
+            (errorData as { error?: string }).error ||
+              "Failed to validate invoice",
+          );
+        }
+        return res.json();
+      },
+      onSuccess: () => {
+        message.success("Invoice validated successfully!");
+        // For simplicity, we just reload since this component depends on many props
+        // In a real app we might invalidate query if this was a list
+        window.location.reload();
+      },
+      onError: (error: Error) => {
+        message.error(error.message);
+      },
+    },
+  );
+
+  const { mutateAsync: markAsPaid, isPending: isMarkingPaid } = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await client.api.invoices[":id"].status.$patch({
+        param: { id },
+        json: { status: "PAID" },
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        const errorData = result as { error?: string };
+        throw new Error(errorData.error || "Failed to mark as paid");
+      }
+      return result;
+    },
+    onSuccess: () => {
+      message.success("Invoice marked as paid!");
+      window.location.reload();
+    },
+    onError: (error: Error) => {
+      message.error(error.message);
     },
   });
 
@@ -85,6 +138,62 @@ export const InvoicePrintable = ({
   });
   const invoiceNumber = `INV-${Date.now().toString().slice(-6)}-${organizationId.slice(0, 4).toUpperCase()}`;
 
+  const handleValidate = async () => {
+    if (!targetUserId || !periodStart || !periodEnd) return;
+
+    let totalAmount = 0;
+    const linesInput: InvoiceLineInput[] = [];
+
+    // Map presence
+    for (const p of presenceData) {
+      const rate = Number(p.dailyRate || 0);
+      const amount = p.presenceCount * rate;
+      if (amount > 0) {
+        totalAmount += amount;
+        linesInput.push({
+          type: "PRESENCE",
+          referenceId: p.userId,
+          label: `Presence for ${p.userName}`,
+          quantity: p.presenceCount,
+          unitPrice: rate.toString(),
+          total: amount.toString(),
+        });
+      }
+    }
+
+    // Map tasks
+    for (const t of taskData) {
+      const size = t.size.toLowerCase();
+      const rateKey =
+        `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
+      const rate = Number((t[rateKey] as unknown) || 0);
+      const amount = t.taskCount * rate;
+
+      if (amount > 0) {
+        totalAmount += amount;
+        linesInput.push({
+          type: "TASK",
+          referenceId: t.userId,
+          label: `Tasks ${t.size} for ${t.userName}`,
+          quantity: t.taskCount,
+          unitPrice: rate.toString(),
+          total: amount.toString(),
+        });
+      }
+    }
+
+    await validateInvoice({
+      userId: targetUserId,
+      organizationId: organizationId,
+      periodStart,
+      periodEnd,
+      status: "VALIDATED",
+      totalAmount: totalAmount.toString(),
+      note: "Auto-validated",
+      lines: linesInput,
+    });
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end gap-3 no-print">
@@ -92,20 +201,7 @@ export const InvoicePrintable = ({
           <Button
             type="default"
             loading={isValidating}
-            onClick={async () => {
-              setIsValidating(true);
-              const res = await validateInvoiceAction({
-                organizationId,
-                targetUserId,
-                periodStart,
-                periodEnd,
-                presenceData,
-                taskData,
-              });
-              setIsValidating(false);
-              if (res.error) message.error(res.error);
-              else message.success("Invoice validated successfully!");
-            }}
+            onClick={handleValidate}
             className="shadow-md font-medium text-green-600 border-green-200 bg-green-50 hover:bg-green-100 hover:border-green-300"
           >
             Validate Invoice
@@ -116,13 +212,7 @@ export const InvoicePrintable = ({
             type="primary"
             loading={isMarkingPaid}
             className="bg-purple-600 hover:bg-purple-500 shadow-md border-purple-600"
-            onClick={async () => {
-              setIsMarkingPaid(true);
-              const res = await markInvoiceAsPaidAction(existingInvoice.id);
-              setIsMarkingPaid(false);
-              if (res.error) message.error(res.error);
-              else message.success("Invoice marked as paid!");
-            }}
+            onClick={() => markAsPaid(existingInvoice.id)}
           >
             Mark as Paid
           </Button>
@@ -356,7 +446,7 @@ export const InvoicePrintable = ({
                   const size = item.size.toLowerCase();
                   const rateKey =
                     `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
-                  const rate = Number(item[rateKey] || 0);
+                  const rate = Number((item[rateKey] as unknown) || 0);
                   const amount = item.taskCount * rate;
                   if (amount === 0) return null;
                   return (

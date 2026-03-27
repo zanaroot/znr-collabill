@@ -1,12 +1,13 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { Button, Modal, message, Radio, Space, Typography } from "antd";
-import { useEffect, useState, useTransition } from "react";
-import { markPresenceAction } from "@/http/actions/presence.action";
+import { useEffect, useState } from "react";
 import {
   PRESENCE_STATUSES,
   type PresenceStatus,
 } from "@/http/models/presence.model";
+import { client } from "@/packages/hono";
 
 const { Text, Title } = Typography;
 
@@ -16,12 +17,7 @@ interface PresenceModalProps {
   onSuccess: () => void;
 }
 
-export const PresenceModal = ({
-  open,
-  organizationId,
-  onSuccess,
-}: PresenceModalProps) => {
-  const [isPending, startTransition] = useTransition();
+export const PresenceModal = ({ open, onSuccess }: PresenceModalProps) => {
   const [status, setStatus] = useState<PresenceStatus>("OFFICE");
   const [isVisible, setIsVisible] = useState(false);
 
@@ -31,21 +27,30 @@ export const PresenceModal = ({
     }
   }, [open]);
 
-  const handleCheckIn = () => {
-    if (!organizationId) {
-      message.error("Organization ID is required");
-      return;
-    }
-    startTransition(async () => {
-      const result = await markPresenceAction({ status, organizationId });
-      if (result.success) {
-        message.success("Presence marked successfully!");
-        setIsVisible(false);
-        onSuccess();
-      } else {
-        message.error(result.error || "Failed to mark presence");
+  const { mutateAsync: markPresence, isPending } = useMutation({
+    mutationFn: async (payload: { status: PresenceStatus }) => {
+      const res = await client.api.presence.$post({
+        json: payload,
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        const errorData = result as { error?: string };
+        throw new Error(errorData.error || "Failed to mark presence");
       }
-    });
+      return result;
+    },
+    onSuccess: () => {
+      message.success("Presence marked successfully!");
+      setIsVisible(false);
+      onSuccess();
+    },
+    onError: (error: Error) => {
+      message.error(error.message || "Failed to mark presence");
+    },
+  });
+
+  const handleCheckIn = async () => {
+    await markPresence({ status });
   };
 
   return (
