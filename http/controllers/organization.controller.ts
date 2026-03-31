@@ -6,9 +6,37 @@ import {
   deleteOrganizationById,
   getOrganizationOwner,
   getUserOrganizationsWithMembers,
+  removeOrganizationMember,
 } from "@/http/repositories/organization.repository";
 
 const factory = createFactory<AuthEnv>();
+
+export const leaveOrganization = factory.createHandlers(async (c) => {
+  const { getCookie } = await import("hono/cookie");
+  const { updateSessionOrganization } = await import(
+    "@/http/repositories/session.repository"
+  );
+
+  const currentUser = c.get("user");
+  const organizationId = c.req.param("id");
+
+  if (!organizationId) {
+    return c.json({ error: "Organization ID is required" }, 400);
+  }
+
+  try {
+    await removeOrganizationMember(organizationId, currentUser.id);
+
+    const token = getCookie(c, "session_token");
+    if (token && currentUser.organizationId === organizationId) {
+      await updateSessionOrganization(token, null);
+    }
+
+    return c.json({ message: "Left organization successfully", success: true });
+  } catch (error) {
+    return c.json({ error: (error as Error).message }, 400);
+  }
+});
 
 export const getOwnedOrganizations = factory.createHandlers(async (c) => {
   const currentUser = c.get("user");

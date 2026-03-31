@@ -9,6 +9,7 @@ import type { AuthEnv } from "@/http/models/auth.model";
 import {
   allowedAvatarTypes,
   collaboratorRateSchema,
+  createInvitationSchema,
 } from "@/http/models/user.model";
 import {
   deleteInvitationById,
@@ -155,13 +156,7 @@ export const getInvitations = factory.createHandlers(async (c) => {
 });
 
 export const createInvitation = factory.createHandlers(
-  zValidator(
-    "json",
-    z.object({
-      email: z.string().email("Invalid email"),
-      role: z.enum(["ADMIN", "COLLABORATOR"]).default("COLLABORATOR"),
-    }),
-  ),
+  zValidator("json", createInvitationSchema),
   async (c) => {
     const currentUser = c.get("user");
     const isOwner = currentUser.organizationRole === "OWNER";

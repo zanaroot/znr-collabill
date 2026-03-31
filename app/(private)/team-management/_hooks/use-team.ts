@@ -108,6 +108,27 @@ export function useDeleteUser() {
   });
 }
 
+export function useLeaveOrganization() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (organizationId: string) => {
+      const res = await client.api.organizations[":id"].leave.$post({
+        param: { id: organizationId },
+      });
+      if (!res.ok) {
+        const error = (await res.json()) as { error?: string };
+        throw new Error(error.error || "Failed to leave organization");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.currentUser() });
+      queryClient.invalidateQueries({ queryKey: teamKeys.users() });
+    },
+  });
+}
+
 export function useUpdateUserRole() {
   const queryClient = useQueryClient();
 
@@ -117,7 +138,7 @@ export function useUpdateUserRole() {
       role,
     }: {
       id: string;
-      role: "ADMIN" | "COLLABORATOR";
+      role: "OWNER" | "ADMIN" | "COLLABORATOR";
     }) => {
       const res = await client.api.users[":id"].role.$patch({
         param: { id },
@@ -131,6 +152,7 @@ export function useUpdateUserRole() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: teamKeys.users() });
+      queryClient.invalidateQueries({ queryKey: teamKeys.currentUser() });
     },
   });
 }

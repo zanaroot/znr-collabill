@@ -4,6 +4,7 @@ import {
   deleteOrganization,
   getMyOrganizations,
   getOwnedOrganizations,
+  leaveOrganization,
   organizationOwner,
   selectOrganization,
 } from "@/http/controllers/organization.controller";
@@ -14,5 +15,6 @@ export const organizationRoutes = new Hono()
   .get("/me", ...getMyOrganizations)
   .post("/", ...createOrganization)
   .post("/:id/select", ...selectOrganization)
+  .post("/:id/leave", ...leaveOrganization)
   .get("/:id/owner", ...organizationOwner)
   .delete("/:id", ownerMiddleware, ...deleteOrganization);

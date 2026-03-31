@@ -3,6 +3,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
+  collaboratorRates,
   organizationMembers,
   organizations,
   projectMembers,
@@ -276,6 +277,37 @@ export const removeOrganizationMember = async (
       );
     }
 
+    // 1. Get all projects for this organization
+    const orgProjects = await tx
+      .select({ id: projects.id })
+      .from(projects)
+      .where(eq(projects.organizationId, organizationId));
+
+    const projectIds = orgProjects.map((p) => p.id);
+
+    // 2. Remove user from those projects
+    if (projectIds.length > 0) {
+      await tx
+        .delete(projectMembers)
+        .where(
+          and(
+            inArray(projectMembers.projectId, projectIds),
+            eq(projectMembers.userId, userId),
+          ),
+        );
+    }
+
+    // 3. Remove collaborator rates for this user in this organization
+    await tx
+      .delete(collaboratorRates)
+      .where(
+        and(
+          eq(collaboratorRates.organizationId, organizationId),
+          eq(collaboratorRates.userId, userId),
+        ),
+      );
+
+    // 4. Remove organization membership
     await tx
       .delete(organizationMembers)
       .where(
@@ -285,6 +317,7 @@ export const removeOrganizationMember = async (
         ),
       );
 
+    // 5. Remove user roles for this organization
     await tx
       .delete(userRoles)
       .where(

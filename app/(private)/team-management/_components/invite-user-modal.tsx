@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, Modal, message, Select } from "antd";
 import { useState } from "react";
+import type { CreateInvitationInput } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 import { teamKeys, useCurrentUser } from "../_hooks/use-team";
 
@@ -13,10 +14,7 @@ export const InviteUserModal = () => {
   const { data: currentUser } = useCurrentUser();
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: async (data: {
-      email: string;
-      role: "ADMIN" | "COLLABORATOR";
-    }) => {
+    mutationFn: async (data: CreateInvitationInput) => {
       const res = await client.api.users.invitations.$post({ json: data });
       if (!res.ok) {
         const error = (await res.json()) as { error?: string };
@@ -35,10 +33,7 @@ export const InviteUserModal = () => {
     },
   });
 
-  const handleFinish = async (values: {
-    email: string;
-    role: "ADMIN" | "COLLABORATOR";
-  }) => {
+  const handleFinish = async (values: CreateInvitationInput) => {
     await mutateAsync(values);
   };
 

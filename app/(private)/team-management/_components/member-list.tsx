@@ -23,15 +23,18 @@ import {
   useCollaboratorRates,
   useCurrentUser,
   useDeleteUser,
+  useLeaveOrganization,
   useUpdateCollaboratorRates,
   useUpdateUserRole,
   useUsers,
 } from "../_hooks/use-team";
+import { useRouter } from "next/navigation";
 
 const { Title } = Typography;
 const { confirm } = Modal;
 
 export function MemberList() {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
   const [rates, setRates] = useState<CollaboratorRate>(() => ({
@@ -46,6 +49,7 @@ export function MemberList() {
   const [baseRateM, setBaseRateM] = useState<string>("0");
   const { data: users, isLoading } = useUsers();
   const deleteMutation = useDeleteUser();
+  const leaveMutation = useLeaveOrganization();
   const updateRoleMutation = useUpdateUserRole();
   const updateRatesMutation = useUpdateCollaboratorRates();
   const { data: currentUser } = useCurrentUser();
@@ -71,15 +75,54 @@ export function MemberList() {
     });
   };
 
+  const handleLeave = () => {
+    if (!currentUser?.organizationId) return;
+
+    confirm({
+      title: "Are you sure you want to leave this organization?",
+      icon: <ExclamationCircleOutlined />,
+      content: "You will no longer have access to this organization's data.",
+      okText: "Yes, Leave",
+      okType: "danger",
+      cancelText: "No",
+      onOk: async () => {
+        try {
+          await leaveMutation.mutateAsync(currentUser.organizationId!);
+          message.success("You have left the organization");
+          router.push("/select-organization");
+        } catch (error) {
+          message.error((error as Error).message || "Failed to leave organization");
+        }
+      },
+    });
+  };
+
   const handleRoleChange = async (
     id: string,
-    role: "ADMIN" | "COLLABORATOR",
+    role: "OWNER" | "ADMIN" | "COLLABORATOR",
   ) => {
-    try {
-      await updateRoleMutation.mutateAsync({ id, role });
-      message.success("Role updated successfully");
-    } catch (error) {
-      message.error((error as Error).message || "Failed to update role");
+    const performUpdate = async () => {
+      try {
+        await updateRoleMutation.mutateAsync({ id, role });
+        message.success("Role updated successfully");
+      } catch (error) {
+        message.error((error as Error).message || "Failed to update role");
+      }
+    };
+
+    if (role === "OWNER") {
+      confirm({
+        title: "Transfer Ownership?",
+        icon: <ExclamationCircleOutlined />,
+        content:
+          "This will transfer organization ownership to this member. You will be demoted to ADMIN and will no longer have full owner permissions.",
+        okText: "Transfer",
+        okType: "danger",
+        cancelText: "Cancel",
+        onOk: performUpdate,
+      });
+    } else {
+      performUpdate();
     }
   };
 
@@ -182,7 +225,7 @@ export function MemberList() {
       title: "Role",
       dataIndex: "role",
       key: "role",
-      render: (role: "ADMIN" | "COLLABORATOR", record) => (
+      render: (role: "OWNER" | "ADMIN" | "COLLABORATOR", record) => (
         <Select
           value={role}
           disabled={
@@ -193,6 +236,7 @@ export function MemberList() {
           onChange={(value) => handleRoleChange(record.id, value)}
           style={{ width: 130 }}
           options={[
+            { value: "OWNER", label: "Owner" },
             { value: "ADMIN", label: "Admin" },
             { value: "COLLABORATOR", label: "Collaborator" },
           ]}
@@ -219,16 +263,30 @@ export function MemberList() {
               onClick={() => openSizeModal(record)}
             />
           )}
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            size="small"
-            disabled={record.id === currentUser?.id}
-            onClick={() => handleDelete(record.id)}
-            loading={
-              deleteMutation.isPending && deleteMutation.variables === record.id
-            }
-          />
+          {record.id === currentUser?.id ? (
+            !isOwner && (
+              <Button
+                danger
+                onClick={handleLeave}
+                size="small"
+                loading={leaveMutation.isPending}
+              >
+                Leave
+              </Button>
+            )
+          ) : (
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+              disabled={!isOwner}
+              onClick={() => handleDelete(record.id)}
+              loading={
+                deleteMutation.isPending &&
+                deleteMutation.variables === record.id
+              }
+            />
+          )}
         </Flex>
       ),
     },

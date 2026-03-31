@@ -56,3 +56,10 @@ export const allowedAvatarTypes = [
   "image/webp",
   "image/gif",
 ];
+
+export const createInvitationSchema = z.object({
+  email: z.email("Invalid email"),
+  role: z.enum(["ADMIN", "COLLABORATOR"]).default("COLLABORATOR"),
+});
+
+export type CreateInvitationInput = z.infer<typeof createInvitationSchema>;
