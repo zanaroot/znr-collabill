@@ -6,6 +6,7 @@ import type { UpdateTaskSystemInput } from "@/http/models/task.model";
 import { createTaskSchema, updateTaskSchema } from "@/http/models/task.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
+import { logAudit } from "@/lib/audit";
 import {
   canDeleteTaskByStatus,
   canTransitionTaskStatus,
@@ -117,6 +118,18 @@ export const createTask = factory.createHandlers(
     }
 
     const task = await taskRepository.createTask(payload);
+
+    if (user.organizationId) {
+      await logAudit({
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "CREATE",
+        entity: "TASK",
+        entityId: task.id,
+        metadata: { title: task.title, projectId: task.projectId },
+      });
+    }
+
     return c.json(task, 201);
   },
 );
@@ -192,6 +205,17 @@ export const updateTask = factory.createHandlers(
       return c.json({ error: "Failed to update task" }, 500);
     }
 
+    if (user.organizationId) {
+      await logAudit({
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "UPDATE",
+        entity: "TASK",
+        entityId: id,
+        metadata: { changes: payload },
+      });
+    }
+
     return c.json(updated);
   },
 );
@@ -232,5 +256,16 @@ export const deleteTask = factory.createHandlers(async (c) => {
   }
 
   await taskRepository.deleteTask(id);
+
+  if (user.organizationId) {
+    await logAudit({
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "DELETE",
+      entity: "TASK",
+      entityId: id,
+    });
+  }
+
   return c.json({ message: "Task deleted" });
 });

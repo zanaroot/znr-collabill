@@ -25,6 +25,7 @@ import {
   updateUser,
   upsertCollaboratorRate,
 } from "@/http/repositories/user.repository";
+import { logAudit } from "@/lib/audit";
 import { serverEnv } from "@/packages/env/server";
 import { deleteFile, uploadFile } from "@/packages/minio";
 
@@ -230,6 +231,15 @@ export const removeUser = factory.createHandlers(async (c) => {
   }
 
   await removeOrganizationMember(currentUser.organizationId, id);
+
+  await logAudit({
+    organizationId: currentUser.organizationId,
+    actorId: currentUser.id,
+    action: "DELETE",
+    entity: "USER",
+    entityId: id,
+  });
+
   return c.json({ message: "User removed from organization" });
 });
 
@@ -259,6 +269,16 @@ export const updateUserRoleHandler = factory.createHandlers(
     }
 
     await updateOrganizationMemberRole(currentUser.organizationId, id, role);
+
+    await logAudit({
+      organizationId: currentUser.organizationId,
+      actorId: currentUser.id,
+      action: "UPDATE",
+      entity: "USER",
+      entityId: id,
+      metadata: { previousRole: "unknown", newRole: role },
+    });
+
     return c.json({ message: "Role updated" });
   },
 );
@@ -304,6 +324,16 @@ export const updateCollaboratorRateHandler = factory.createHandlers(
       currentUser.organizationId,
       rates,
     );
+
+    await logAudit({
+      organizationId: currentUser.organizationId,
+      actorId: currentUser.id,
+      action: "UPDATE",
+      entity: "USER",
+      entityId: id,
+      metadata: { type: "collaborator_rate", rates },
+    });
+
     return c.json(updatedRate);
   },
 );

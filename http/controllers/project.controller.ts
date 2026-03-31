@@ -8,6 +8,7 @@ import {
 } from "@/http/models/project.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
+import { logAudit } from "@/lib/audit";
 
 const factory = createFactory<AuthEnv>();
 
@@ -76,6 +77,15 @@ export const createProject = factory.createHandlers(
       organizationId: user.organizationId,
     });
 
+    await logAudit({
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "CREATE",
+      entity: "PROJECT",
+      entityId: project.id,
+      metadata: { name: project.name },
+    });
+
     return c.json(project, 201);
   },
 );
@@ -104,6 +114,15 @@ export const updateProject = factory.createHandlers(
     if (!updated) {
       return c.json({ error: "Project not found" }, 404);
     }
+
+    await logAudit({
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "UPDATE",
+      entity: "PROJECT",
+      entityId: id,
+      metadata: { changes: data },
+    });
 
     return c.json(updated);
   },
@@ -135,6 +154,17 @@ export const deleteProject = factory.createHandlers(async (c) => {
   }
 
   await projectRepository.deleteProject(id);
+
+  if (user.organizationId) {
+    await logAudit({
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "DELETE",
+      entity: "PROJECT",
+      entityId: id,
+    });
+  }
+
   return c.json({ message: "Project deleted successfully" });
 });
 

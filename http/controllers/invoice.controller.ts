@@ -7,6 +7,7 @@ import {
   updateInvoiceStatusSchema,
 } from "@/http/models/invoice.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
+import { logAudit } from "@/lib/audit";
 
 const factory = createFactory<AuthEnv>();
 
@@ -60,6 +61,18 @@ export const createInvoice = factory.createHandlers(
       lines,
     );
 
+    await logAudit({
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "CREATE",
+      entity: "INVOICE",
+      entityId: invoice.id,
+      metadata: {
+        periodStart: invoice.periodStart,
+        periodEnd: invoice.periodEnd,
+      },
+    });
+
     return c.json(invoice, 201);
   },
 );
@@ -93,10 +106,29 @@ export const updateInvoiceStatus = factory.createHandlers(
     } else if (status === "DRAFT") {
       await invoiceRepository.deleteInvoiceLines(id);
       await invoiceRepository.deleteInvoice(id);
+
+      await logAudit({
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "DELETE",
+        entity: "INVOICE",
+        entityId: id,
+      });
+
       return c.json({ message: "Invoice deleted" });
     }
 
     const updated = await invoiceRepository.updateInvoice(id, updateParams);
+
+    await logAudit({
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "UPDATE",
+      entity: "INVOICE",
+      entityId: id,
+      metadata: { previousStatus: invoice.status, newStatus: status },
+    });
+
     return c.json(updated);
   },
 );

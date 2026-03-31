@@ -17,8 +17,10 @@ import {
 import {
   createSession,
   deleteSessionByToken,
+  findValidSessionByToken,
 } from "@/http/repositories/session.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
+import { logAudit } from "@/lib/audit";
 import { getFutureDate } from "@/lib/date";
 import { generateSessionToken } from "@/lib/session-token";
 import { serverEnv } from "@/packages/env/server";
@@ -74,6 +76,15 @@ export const registerAction = async (
       organizationId: organization.id,
       token: sessionToken,
       expiresAt,
+    });
+
+    await logAudit({
+      organizationId: organization.id,
+      actorId: user.id,
+      action: "CREATE",
+      entity: "ORGANIZATION",
+      entityId: organization.id,
+      metadata: { name: organization.name },
     });
 
     const cookieStore = await cookies();
@@ -135,6 +146,16 @@ export const signInAction = async (
       expiresAt,
     });
 
+    if (primaryOrgId) {
+      await logAudit({
+        organizationId: primaryOrgId,
+        actorId: user.id,
+        action: "LOGIN",
+        entity: "SESSION",
+        metadata: { email: user.email },
+      });
+    }
+
     const cookieStore = await cookies();
     cookieStore.set("session_token", sessionToken, {
       httpOnly: true,
@@ -171,6 +192,15 @@ export const logoutAction = async () => {
   const token = cookieStore.get("session_token")?.value;
 
   if (token) {
+    const result = await findValidSessionByToken(token);
+    if (result?.session?.organizationId) {
+      await logAudit({
+        organizationId: result.session.organizationId,
+        actorId: result.session.userId,
+        action: "LOGOUT",
+        entity: "SESSION",
+      });
+    }
     await deleteSessionByToken(token);
   }
 

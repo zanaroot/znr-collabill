@@ -27,6 +27,7 @@ import {
   isUserInOrganization,
 } from "@/http/repositories/organization.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
+import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/packages/email";
 import { publicEnv } from "@/packages/env";
 
@@ -102,6 +103,14 @@ export const inviteUserAction = async (
         <p>Click <a href="${inviteLink}">here</a> to create your account and set your password.</p>
         <p>This link will expire in 7 days.</p>
       `,
+    });
+
+    await logAudit({
+      organizationId,
+      actorId: currentUser.id,
+      action: "CREATE",
+      entity: "INVITATION",
+      metadata: { email, role },
     });
 
     return { message: "Invitation sent successfully", success: true };
@@ -200,6 +209,15 @@ export const acceptInvitationAction = async (
       invitationId: invitation.id,
     });
 
+    await logAudit({
+      organizationId: invitation.organizationId,
+      actorId: existingUser.id,
+      action: "CREATE",
+      entity: "USER",
+      entityId: existingUser.id,
+      metadata: { email: invitation.email, role: invitation.role },
+    });
+
     return { message: "Invitation accepted successfully", success: true };
   } catch (error) {
     console.error("Accept invitation error:", error);
@@ -217,7 +235,19 @@ export const declineInvitationAction = async (
       return { error: "Invalid or expired invitation token", success: false };
     }
 
+    const existingUser = await findUserByEmail(invitation.email);
+
     await deleteInvitationById(invitation.id);
+
+    if (existingUser && invitation.organizationId) {
+      await logAudit({
+        organizationId: invitation.organizationId,
+        actorId: existingUser.id,
+        action: "DELETE",
+        entity: "INVITATION",
+        metadata: { email: invitation.email },
+      });
+    }
 
     return { message: "Invitation declined successfully", success: true };
   } catch (error) {

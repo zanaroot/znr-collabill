@@ -307,7 +307,11 @@ async function seedInvoicesAndLines(input: {
   }
 }
 
-async function seedAuditLogs(ownerId: string, projectId: string) {
+async function seedAuditLogs(
+  ownerId: string,
+  projectId: string,
+  organizationId: string,
+) {
   const existing = await db.query.auditLogs.findFirst({
     where: and(
       eq(auditLogs.actorId, ownerId),
@@ -322,6 +326,7 @@ async function seedAuditLogs(ownerId: string, projectId: string) {
   }
 
   await db.insert(auditLogs).values({
+    organizationId,
     actorId: ownerId,
     action: "PROJECT_SEEDED",
     entity: "project",
@@ -343,7 +348,7 @@ export const seedDev = async () => {
     projectId: core.project.id,
     organizationId: core.organization.id,
   });
-  await seedAuditLogs(core.owner.id, core.project.id);
+  await seedAuditLogs(core.owner.id, core.project.id, core.organization.id);
 
   return core;
 };

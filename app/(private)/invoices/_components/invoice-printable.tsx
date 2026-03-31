@@ -7,7 +7,7 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Divider, message, Space, Tag, Typography } from "antd";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
 import type {
   CreateInvoiceInput,
@@ -56,6 +56,18 @@ export const InvoicePrintable = ({
   existingInvoice,
   isOwner,
 }: InvoicePrintableProps) => {
+  const [clientInvoiceDate] = useState(() =>
+    new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+  );
+  const [clientInvoiceNumber] = useState(
+    () =>
+      `INV-${Date.now().toString().slice(-6)}-${organizationId.slice(0, 4).toUpperCase()}`,
+  );
+
   const handlePrint = () => {
     window.print();
   };
@@ -162,12 +174,8 @@ export const InvoicePrintable = ({
   }, [taskData]);
 
   const grandTotal = presenceTotal + taskTotal;
-  const invoiceDate = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  const invoiceNumber = `INV-${Date.now().toString().slice(-6)}-${organizationId.slice(0, 4).toUpperCase()}`;
+  const invoiceDate = clientInvoiceDate;
+  const invoiceNumber = clientInvoiceNumber;
 
   const handleValidate = async () => {
     if (!targetUserId || !periodStart || !periodEnd) return;

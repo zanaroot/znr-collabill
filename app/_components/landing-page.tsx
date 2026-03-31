@@ -38,7 +38,7 @@ const LandingPage = () => {
                 Get Started
               </Button>
               <Button size="large" href="/sign-in">
-                View Demo
+                Sign In
               </Button>
             </Space>
           </Col>
