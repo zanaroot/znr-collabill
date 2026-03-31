@@ -83,7 +83,7 @@ export const InvoicePrintable = ({
           const errorData = await res.json();
           throw new Error(
             (errorData as { error?: string }).error ||
-              "Failed to validate invoice",
+            "Failed to validate invoice",
           );
         }
         return res.json();
@@ -173,7 +173,6 @@ export const InvoicePrintable = ({
     let totalAmount = 0;
     const linesInput: InvoiceLineInput[] = [];
 
-    // Map presence
     for (const p of presenceData) {
       const rate = Number(p.dailyRate || 0);
       const amount = p.presenceCount * rate;
@@ -190,7 +189,6 @@ export const InvoicePrintable = ({
       }
     }
 
-    // Map tasks
     for (const t of taskData) {
       const size = t.size.toLowerCase();
       const rateKey =
