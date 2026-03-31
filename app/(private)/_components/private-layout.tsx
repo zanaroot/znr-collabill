@@ -113,7 +113,7 @@ export const PrivateLayout = ({
               icon: <UsergroupAddOutlined />,
               label: (
                 <Link href="/team-management" prefetch={true}>
-                  Team Management
+                  {isOwner ? "Team Management" : "Team members"}
                 </Link>
               ),
             },
@@ -137,16 +137,16 @@ export const PrivateLayout = ({
             },
             ...(isOwner
               ? [
-                  {
-                    key: "type-organization",
-                    icon: <ApartmentOutlined />,
-                    label: (
-                      <Link href="/type-organization" prefetch={true}>
-                        Type organization
-                      </Link>
-                    ),
-                  },
-                ]
+                {
+                  key: "type-organization",
+                  icon: <ApartmentOutlined />,
+                  label: (
+                    <Link href="/type-organization" prefetch={true}>
+                      Type organization
+                    </Link>
+                  ),
+                },
+              ]
               : []),
           ]}
         />

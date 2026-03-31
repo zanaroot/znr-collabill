@@ -2,6 +2,7 @@
 
 import {
   DeleteOutlined,
+  DollarOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
@@ -14,6 +15,7 @@ import {
   message,
   Select,
   Table,
+  Tag,
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
@@ -225,23 +227,37 @@ export function MemberList() {
       title: "Role",
       dataIndex: "role",
       key: "role",
-      render: (role: "OWNER" | "ADMIN" | "COLLABORATOR", record) => (
-        <Select
-          value={role}
-          disabled={
-            !isOwner ||
-            record.id === currentUser?.id ||
-            updateRoleMutation.isPending
-          }
-          onChange={(value) => handleRoleChange(record.id, value)}
-          style={{ width: 130 }}
-          options={[
-            { value: "OWNER", label: "Owner" },
-            { value: "ADMIN", label: "Admin" },
-            { value: "COLLABORATOR", label: "Collaborator" },
-          ]}
-        />
-      ),
+      render: (role: "OWNER" | "ADMIN" | "COLLABORATOR", record) => {
+        if (isOwner) {
+          return (
+            <Select
+              value={role}
+              disabled={
+                record.id === currentUser?.id ||
+                updateRoleMutation.isPending
+              }
+              onChange={(value) => handleRoleChange(record.id, value)}
+              style={{ width: 130 }}
+              options={[
+                { value: "OWNER", label: "Owner" },
+                { value: "ADMIN", label: "Admin" },
+                { value: "COLLABORATOR", label: "Collaborator" },
+              ]}
+            />
+          );
+        } else {
+          const roleColors = {
+            OWNER: "gold",
+            ADMIN: "blue",
+            COLLABORATOR: "green",
+          };
+          return (
+            <Tag color={roleColors[role]}>
+              {role === "OWNER" ? "Owner" : role === "ADMIN" ? "Admin" : "Collaborator"}
+            </Tag>
+          );
+        }
+      },
     },
     {
       title: "Joined At",
@@ -258,7 +274,7 @@ export function MemberList() {
         <Flex gap={10}>
           {(isOwner || record.id === currentUser?.id) && (
             <Button
-              icon={<EditOutlined />}
+              icon={<DollarOutlined />}
               size="small"
               onClick={() => openSizeModal(record)}
             />
@@ -275,17 +291,18 @@ export function MemberList() {
               </Button>
             )
           ) : (
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-              disabled={!isOwner}
-              onClick={() => handleDelete(record.id)}
-              loading={
-                deleteMutation.isPending &&
-                deleteMutation.variables === record.id
-              }
-            />
+            isOwner && (
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+                onClick={() => handleDelete(record.id)}
+                loading={
+                  deleteMutation.isPending &&
+                  deleteMutation.variables === record.id
+                }
+              />
+            )
           )}
         </Flex>
       ),
