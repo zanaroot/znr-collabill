@@ -18,18 +18,36 @@ export const registerOrganizationAndOwner = async (data: {
   organizationName: string;
   name: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string;
 }) => {
   return db.transaction(async (tx) => {
-    // 1. Create User
-    const [user] = await tx
-      .insert(users)
-      .values({
-        email: data.email,
-        name: data.name,
-        passwordHash: data.passwordHash,
-      })
-      .returning();
+    // 1. Check if user already exists
+    const [existingUser] = await tx
+      .select()
+      .from(users)
+      .where(eq(users.email, data.email))
+      .limit(1);
+
+    let user: typeof existingUser;
+
+    if (existingUser) {
+      // User exists - retrieve them
+      user = existingUser;
+    } else {
+      // User does not exist - create new user
+      if (!data.passwordHash) {
+        throw new Error("Password is required for new users");
+      }
+      const [newUser] = await tx
+        .insert(users)
+        .values({
+          email: data.email,
+          name: data.name,
+          passwordHash: data.passwordHash,
+        })
+        .returning();
+      user = newUser;
+    }
 
     // 2. Create Organization
     let slug = generateSlug(data.organizationName);
@@ -48,14 +66,30 @@ export const registerOrganizationAndOwner = async (data: {
       .values({ name: data.organizationName, slug })
       .returning();
 
-    // 3. Link User to Organization as OWNER
+    // 3. Check if user is already a member of this organization
+    const [existingMember] = await tx
+      .select()
+      .from(organizationMembers)
+      .where(
+        and(
+          eq(organizationMembers.organizationId, org.id),
+          eq(organizationMembers.userId, user.id),
+        ),
+      )
+      .limit(1);
+
+    if (existingMember) {
+      throw new Error("User is already a member of this organization");
+    }
+
+    // 4. Link User to Organization as OWNER
     await tx.insert(organizationMembers).values({
       organizationId: org.id,
       userId: user.id,
       role: "OWNER",
     });
 
-    // 4. Add User Role
+    // 5. Add User Role
     await tx.insert(userRoles).values({
       userId: user.id,
       role: "OWNER",

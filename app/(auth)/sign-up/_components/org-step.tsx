@@ -54,7 +54,7 @@ export const OrgStep = () => {
 
             <Link href="/sign-in" prefetch>
               <Button type="link" icon={<ArrowLeftOutlined />}>
-                Back
+                I already have an account
               </Button>
             </Link>
           </div>

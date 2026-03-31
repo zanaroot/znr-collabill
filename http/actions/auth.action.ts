@@ -53,11 +53,11 @@ export const registerAction = async (
     const { email, password, name, organizationName } = parsed.data;
 
     const existingUser = await findUserByEmail(email);
-    if (existingUser) {
-      return { error: "User already exists", success: false };
-    }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    let passwordHash: string | undefined;
+    if (!existingUser) {
+      passwordHash = await bcrypt.hash(password, 10);
+    }
 
     const { user, organization } = await registerOrganizationAndOwner({
       email,

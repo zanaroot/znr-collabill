@@ -37,11 +37,11 @@ export const register = factory.createHandlers(
       const { email, password, name, organizationName } = c.req.valid("json");
 
       const existingUser = await findUserByEmail(email);
-      if (existingUser) {
-        return c.json({ error: "User already exists", success: false }, 400);
-      }
 
-      const passwordHash = await bcrypt.hash(password, 10);
+      let passwordHash: string | undefined;
+      if (!existingUser) {
+        passwordHash = await bcrypt.hash(password, 10);
+      }
 
       const { user, organization } = await registerOrganizationAndOwner({
         email,
