@@ -1,7 +1,7 @@
 "server only";
 
-import { and, asc, count, desc, eq, gte, lte, ne, or, sql } from "drizzle-orm";
 import { endOfDay } from "date-fns";
+import { and, asc, count, desc, eq, gte, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   collaboratorRates,
@@ -155,6 +155,9 @@ export const getValidatedTaskSummaryByOrganization = async (
     .select({
       userId: users.id,
       userName: users.name,
+      projectId: projects.id,
+      projectName: projects.name,
+      projectBaseRate: projects.baseRate,
       size: tasks.size,
       taskCount: count(tasks.id),
       rateXs: collaboratorRates.rateXs,
@@ -177,6 +180,9 @@ export const getValidatedTaskSummaryByOrganization = async (
     .where(and(...whereClauses))
     .groupBy(
       users.id,
+      projects.id,
+      projects.name,
+      projects.baseRate,
       tasks.size,
       collaboratorRates.rateXs,
       collaboratorRates.rateS,

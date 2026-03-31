@@ -28,6 +28,7 @@ export type CoreSeedResult = {
   admin: typeof users.$inferSelect;
   password: string;
   project: typeof projects.$inferSelect;
+  secondProject: typeof projects.$inferSelect;
   organization: typeof organizations.$inferSelect;
 };
 
@@ -145,6 +146,11 @@ async function seedRolesAndRates(core: {
         role: core.collaboratorRole,
         organizationId: core.organizationId,
       },
+      {
+        userId: core.admin.id,
+        role: core.adminRole,
+        organizationId: core.organizationId,
+      },
     ])
     .onConflictDoNothing();
 
@@ -205,6 +211,89 @@ async function getOrCreateSeedProject(ownerId: string, organizationId: string) {
   return created;
 }
 
+async function getOrCreateSecondProject(
+  ownerId: string,
+  collaboratorId: string,
+  adminId: string,
+  organizationId: string,
+) {
+  const existing = await db.query.projects.findFirst({
+    where: and(
+      eq(projects.name, "Seed Project v2"),
+      eq(projects.createdBy, ownerId),
+    ),
+  });
+
+  if (existing) {
+    return existing;
+  }
+
+  const [created] = await db
+    .insert(projects)
+    .values({
+      name: "Seed Project v2",
+      description: "Second project for testing multiple projects",
+      gitRepo: "https://github.com/example/collabill-seed-v2",
+      baseRate: "500",
+      createdAt: new Date(),
+      createdBy: ownerId,
+      organizationId,
+    })
+    .returning();
+
+  if (!created) {
+    throw new Error("Failed to create second seed project.");
+  }
+
+  await db.insert(projectMembers).values([
+    { projectId: created.id, userId: ownerId },
+    { projectId: created.id, userId: collaboratorId },
+    { projectId: created.id, userId: adminId },
+  ]);
+
+  await db.insert(tasks).values([
+    {
+      projectId: created.id,
+      title: "Project kickoff meeting",
+      description: "Schedule and run kickoff meeting with stakeholders.",
+      size: "XS",
+      priority: 1,
+      status: "VALIDATED",
+      assignedTo: ownerId,
+      gitRepo: "https://github.com/example/collabill-seed-v2",
+      createdAt: new Date("2026-01-15"),
+      validatedAt: new Date("2026-01-20"),
+      validatedBy: adminId,
+    },
+    {
+      projectId: created.id,
+      title: "Design system setup",
+      description: "Configure design tokens and component library.",
+      size: "M",
+      priority: 2,
+      status: "IN_PROGRESS",
+      assignedTo: collaboratorId,
+      gitRepo: "https://github.com/example/collabill-seed-v2",
+      createdAt: new Date("2026-01-20"),
+      gitBranch: "feature/design-system",
+    },
+    {
+      projectId: created.id,
+      title: "API integration",
+      description: "Integrate with external API services.",
+      size: "L",
+      priority: 3,
+      status: "TODO",
+      assignedTo: collaboratorId,
+      gitRepo: "https://github.com/example/collabill-seed-v2",
+      createdAt: new Date("2026-02-01"),
+      gitBranch: "develop",
+    },
+  ]);
+
+  return created;
+}
+
 async function seedProjectMembershipAndTasks(input: {
   collaboratorId: string;
   ownerId: string;
@@ -260,10 +349,12 @@ async function seedProjectMembershipAndTasks(input: {
       description: "Review and validate the completed feature work.",
       size: "M",
       priority: 3,
-      status: "IN_REVIEW",
+      status: "VALIDATED",
       assignedTo: input.adminId,
       gitRepo: "https://github.com/example/collabill-seed",
       createdAt: new Date(),
+      validatedAt: new Date(),
+      validatedBy: input.adminId,
       gitBranch: "main",
     },
   ]);
@@ -320,6 +411,13 @@ export const seedCore = async (): Promise<CoreSeedResult> => {
 
   const project = await getOrCreateSeedProject(owner.id, organization.id);
 
+  const secondProject = await getOrCreateSecondProject(
+    owner.id,
+    collaborator.id,
+    admin.id,
+    organization.id,
+  );
+
   await seedProjectMembershipAndTasks({
     collaboratorId: collaborator.id,
     ownerId: owner.id,
@@ -333,6 +431,7 @@ export const seedCore = async (): Promise<CoreSeedResult> => {
     admin,
     password: seedPassword,
     project,
+    secondProject,
     organization,
   };
 };

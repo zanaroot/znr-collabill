@@ -19,6 +19,7 @@ import {
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import type { CollaboratorRate, UserWithRoles } from "@/http/models/user.model";
 import {
@@ -30,7 +31,6 @@ import {
   useUpdateUserRole,
   useUsers,
 } from "../_hooks/use-team";
-import { useRouter } from "next/navigation";
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -93,7 +93,9 @@ export function MemberList() {
           message.success("You have left the organization");
           router.push("/select-organization");
         } catch (error) {
-          message.error((error as Error).message || "Failed to leave organization");
+          message.error(
+            (error as Error).message || "Failed to leave organization",
+          );
         }
       },
     });
@@ -233,8 +235,7 @@ export function MemberList() {
             <Select
               value={role}
               disabled={
-                record.id === currentUser?.id ||
-                updateRoleMutation.isPending
+                record.id === currentUser?.id || updateRoleMutation.isPending
               }
               onChange={(value) => handleRoleChange(record.id, value)}
               style={{ width: 130 }}
@@ -253,7 +254,11 @@ export function MemberList() {
           };
           return (
             <Tag color={roleColors[role]}>
-              {role === "OWNER" ? "Owner" : role === "ADMIN" ? "Admin" : "Collaborator"}
+              {role === "OWNER"
+                ? "Owner"
+                : role === "ADMIN"
+                  ? "Admin"
+                  : "Collaborator"}
             </Tag>
           );
         }
@@ -279,31 +284,29 @@ export function MemberList() {
               onClick={() => openSizeModal(record)}
             />
           )}
-          {record.id === currentUser?.id ? (
-            !isOwner && (
-              <Button
-                danger
-                onClick={handleLeave}
-                size="small"
-                loading={leaveMutation.isPending}
-              >
-                Leave
-              </Button>
-            )
-          ) : (
-            isOwner && (
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                size="small"
-                onClick={() => handleDelete(record.id)}
-                loading={
-                  deleteMutation.isPending &&
-                  deleteMutation.variables === record.id
-                }
-              />
-            )
-          )}
+          {record.id === currentUser?.id
+            ? !isOwner && (
+                <Button
+                  danger
+                  onClick={handleLeave}
+                  size="small"
+                  loading={leaveMutation.isPending}
+                >
+                  Leave
+                </Button>
+              )
+            : isOwner && (
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  size="small"
+                  onClick={() => handleDelete(record.id)}
+                  loading={
+                    deleteMutation.isPending &&
+                    deleteMutation.variables === record.id
+                  }
+                />
+              )}
         </Flex>
       ),
     },

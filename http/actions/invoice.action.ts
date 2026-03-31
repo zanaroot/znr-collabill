@@ -53,17 +53,19 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
     const size = t.size.toLowerCase();
     const rateKey =
       `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
-    const rate = Number(t[rateKey] || 0);
-    const amount = t.taskCount * rate;
+    const baseRate = Number(t[rateKey] || 0);
+    const projectRate = Number(t.projectBaseRate || 1);
+    const totalRate = baseRate * projectRate;
+    const amount = t.taskCount * totalRate;
 
     if (amount > 0) {
       totalAmount += amount;
       linesInput.push({
         type: "TASK",
         referenceId: t.userId,
-        label: `Tasks ${t.size} for ${t.userName}`,
+        label: `Tasks ${t.size} for ${t.userName} (${t.projectName})`,
         quantity: t.taskCount,
-        unitPrice: rate.toString(),
+        unitPrice: totalRate.toString(),
         total: amount.toString(),
       });
     }

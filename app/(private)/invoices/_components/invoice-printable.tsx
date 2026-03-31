@@ -154,8 +154,10 @@ export const InvoicePrintable = ({
       const size = item.size.toLowerCase();
       const rateKey =
         `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
-      const rate = Number(item[rateKey] || 0);
-      return acc + item.taskCount * rate;
+      const baseRate = Number(item[rateKey] || 0);
+      const projectRate = Number(item.projectBaseRate || 1);
+      const totalRate = baseRate * projectRate;
+      return acc + item.taskCount * totalRate;
     }, 0);
   }, [taskData]);
 
@@ -193,17 +195,19 @@ export const InvoicePrintable = ({
       const size = t.size.toLowerCase();
       const rateKey =
         `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
-      const rate = Number((t[rateKey] as unknown) || 0);
-      const amount = t.taskCount * rate;
+      const baseRate = Number((t[rateKey] as unknown) || 0);
+      const projectRate = Number(t.projectBaseRate || 1);
+      const totalRate = baseRate * projectRate;
+      const amount = t.taskCount * totalRate;
 
       if (amount > 0) {
         totalAmount += amount;
         linesInput.push({
           type: "TASK",
           referenceId: t.userId,
-          label: `Tasks ${t.size} for ${t.userName}`,
+          label: `Tasks ${t.size} for ${t.userName} (${t.projectName})`,
           quantity: t.taskCount,
-          unitPrice: rate.toString(),
+          unitPrice: totalRate.toString(),
           total: amount.toString(),
         });
       }
@@ -465,13 +469,16 @@ export const InvoicePrintable = ({
               <thead>
                 <tr className="bg-gray-50/50 dark:bg-gray-800/50">
                   <th className="text-left p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Project
+                  </th>
+                  <th className="text-left p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Task Size
                   </th>
                   <th className="text-center p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Count
                   </th>
                   <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Rate
+                    Rate (×{0})
                   </th>
                   <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Amount
@@ -483,14 +490,21 @@ export const InvoicePrintable = ({
                   const size = item.size.toLowerCase();
                   const rateKey =
                     `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
-                  const rate = Number((item[rateKey] as unknown) || 0);
-                  const amount = item.taskCount * rate;
+                  const baseRate = Number((item[rateKey] as unknown) || 0);
+                  const projectRate = Number(item.projectBaseRate || 1);
+                  const totalRate = baseRate * projectRate;
+                  const amount = item.taskCount * totalRate;
                   if (amount === 0) return null;
                   return (
                     <tr
-                      key={`${item.userId}-${item.size}-${index}`}
+                      key={`${item.userId}-${item.projectId}-${item.size}-${index}`}
                       className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors"
                     >
+                      <td className="p-4">
+                        <Text strong className="dark:text-gray-200">
+                          {item.projectName}
+                        </Text>
+                      </td>
                       <td className="p-4">
                         <Tag className="font-semibold px-2 py-0.5 rounded border-gray-200 dark:border-gray-600 dark:text-gray-200">
                           {item.size}
@@ -500,7 +514,7 @@ export const InvoicePrintable = ({
                         <Text>{item.taskCount} tasks</Text>
                       </td>
                       <td className="text-right p-4 font-mono dark:text-gray-300">
-                        {rate.toLocaleString()} €
+                        {totalRate.toLocaleString()} €
                       </td>
                       <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
                         {amount.toLocaleString()} €
@@ -511,7 +525,7 @@ export const InvoicePrintable = ({
                 {taskTotal === 0 && (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="p-8 text-center text-gray-400 italic bg-gray-50/20 dark:bg-gray-800/20"
                     >
                       No validated tasks found for this period

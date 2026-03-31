@@ -3,12 +3,12 @@ import { db } from "../index";
 import {
   auditLogs,
   invitations,
+  invoiceComments,
   invoiceLines,
   invoices,
   passwordResetTokens,
   presences,
   sessions,
-  tasks,
 } from "../schema";
 import { seedCore } from "./core.seed";
 
@@ -75,22 +75,92 @@ async function seedSessions(ownerId: string) {
 }
 
 async function seedPresences(collaboratorId: string, organizationId: string) {
-  const dates = ["2026-02-10", "2026-02-11", "2026-02-12"];
+  const presenceData = [
+    {
+      date: "2026-02-10",
+      status: "OFFICE" as const,
+      checkIn: "08:55",
+      checkOut: "17:30",
+    },
+    {
+      date: "2026-02-11",
+      status: "REMOTE" as const,
+      checkIn: "09:00",
+      checkOut: "17:15",
+    },
+    {
+      date: "2026-02-12",
+      status: "ON_SITE" as const,
+      checkIn: "08:30",
+      checkOut: "18:00",
+    },
+    {
+      date: "2026-03-03",
+      status: "OFFICE" as const,
+      checkIn: "09:00",
+      checkOut: "17:00",
+    },
+    {
+      date: "2026-03-04",
+      status: "OFFICE" as const,
+      checkIn: "08:50",
+      checkOut: "17:20",
+    },
+    {
+      date: "2026-03-05",
+      status: "REMOTE" as const,
+      checkIn: "09:10",
+      checkOut: "17:00",
+    },
+    {
+      date: "2026-03-06",
+      status: "OFFICE" as const,
+      checkIn: "09:00",
+      checkOut: "17:45",
+    },
+    {
+      date: "2026-03-07",
+      status: "REMOTE" as const,
+      checkIn: "08:45",
+      checkOut: "17:30",
+    },
+  ];
 
-  await db
-    .insert(presences)
-    .values(
-      dates.map((date) => ({ date, userId: collaboratorId, organizationId })),
-    )
-    .onConflictDoNothing();
+  for (const p of presenceData) {
+    const existing = await db.query.presences.findFirst({
+      where: and(
+        eq(presences.userId, collaboratorId),
+        eq(presences.date, p.date),
+        eq(presences.organizationId, organizationId),
+      ),
+    });
+
+    if (!existing) {
+      const checkInDate = new Date(`${p.date}T${p.checkIn}:00`);
+      const checkOutDate = new Date(`${p.date}T${p.checkOut}:00`);
+
+      await db.insert(presences).values({
+        userId: collaboratorId,
+        organizationId,
+        date: p.date,
+        status: p.status,
+        checkInAt: checkInDate,
+        checkOutAt: checkOutDate,
+      });
+    }
+  }
 }
 
 async function seedInvoicesAndLines(input: {
   collaboratorId: string;
+  ownerId: string;
+  adminId: string;
   projectId: string;
   organizationId: string;
 }) {
-  let invoice = await db.query.invoices.findFirst({
+  const collaboratorRate = "400";
+
+  const febInvoice = await db.query.invoices.findFirst({
     where: and(
       eq(invoices.userId, input.collaboratorId),
       eq(invoices.periodStart, "2026-02-01"),
@@ -98,7 +168,12 @@ async function seedInvoicesAndLines(input: {
     ),
   });
 
-  if (!invoice) {
+  let febTotal = 0;
+  if (!febInvoice) {
+    const presenceTotal = 3 * parseInt(collaboratorRate, 10);
+    const taskTotal = 1 * parseInt(collaboratorRate, 10);
+    febTotal = presenceTotal + taskTotal;
+
     const [created] = await db
       .insert(invoices)
       .values({
@@ -106,9 +181,11 @@ async function seedInvoicesAndLines(input: {
         userId: input.collaboratorId,
         periodStart: "2026-02-01",
         periodEnd: "2026-02-28",
-        status: "DRAFT",
-        totalAmount: "1200",
-        note: "Seed invoice for local development",
+        status: "PAID",
+        totalAmount: febTotal.toString(),
+        validatedAt: new Date("2026-03-05"),
+        paidAt: new Date("2026-03-10"),
+        note: "February 2026 invoice - 3 presence days + 1 validated task",
       })
       .returning();
 
@@ -116,58 +193,118 @@ async function seedInvoicesAndLines(input: {
       throw new Error("Failed to create seed invoice.");
     }
 
-    invoice = created;
+    await db.insert(invoiceLines).values([
+      {
+        invoiceId: created.id,
+        type: "PRESENCE",
+        label: "Presence days (Feb 10-12)",
+        quantity: 3,
+        unitPrice: collaboratorRate,
+        total: presenceTotal.toString(),
+      },
+      {
+        invoiceId: created.id,
+        type: "TASK",
+        label: "Validated task: Implement first feature",
+        quantity: 1,
+        unitPrice: collaboratorRate,
+        total: taskTotal.toString(),
+      },
+    ]);
+
+    await db.insert(invoiceComments).values([
+      {
+        invoiceId: created.id,
+        userId: input.ownerId,
+        content: "Invoice received. Reviewing line items.",
+        createdAt: new Date("2026-03-01"),
+      },
+      {
+        invoiceId: created.id,
+        userId: input.adminId,
+        content: "All presence days and task validated. Approved for payment.",
+        createdAt: new Date("2026-03-05"),
+      },
+    ]);
   }
 
-  const projectTask = await db.query.tasks.findFirst({
+  const janInvoice = await db.query.invoices.findFirst({
     where: and(
-      eq(tasks.projectId, input.projectId),
-      eq(tasks.assignedTo, input.collaboratorId),
+      eq(invoices.userId, input.collaboratorId),
+      eq(invoices.periodStart, "2026-01-01"),
+      eq(invoices.periodEnd, "2026-01-31"),
     ),
   });
 
-  const existingPresenceLine = await db.query.invoiceLines.findFirst({
+  if (!janInvoice) {
+    const janTotal = 2 * parseInt(collaboratorRate, 10);
+
+    const [created] = await db
+      .insert(invoices)
+      .values({
+        organizationId: input.organizationId,
+        userId: input.collaboratorId,
+        periodStart: "2026-01-01",
+        periodEnd: "2026-01-31",
+        status: "VALIDATED",
+        totalAmount: janTotal.toString(),
+        validatedAt: new Date("2026-02-05"),
+        note: "January 2026 invoice - 2 presence days",
+      })
+      .returning();
+
+    if (created) {
+      await db.insert(invoiceLines).values({
+        invoiceId: created.id,
+        type: "PRESENCE",
+        label: "Presence days (Jan 15-16)",
+        quantity: 2,
+        unitPrice: collaboratorRate,
+        total: janTotal.toString(),
+      });
+
+      await db.insert(invoiceComments).values({
+        invoiceId: created.id,
+        userId: input.ownerId,
+        content: "Invoice validated. Payment scheduled for next week.",
+        createdAt: new Date("2026-02-05"),
+      });
+    }
+  }
+
+  const marInvoice = await db.query.invoices.findFirst({
     where: and(
-      eq(invoiceLines.invoiceId, invoice.id),
-      eq(invoiceLines.label, "Presence days"),
+      eq(invoices.userId, input.collaboratorId),
+      eq(invoices.periodStart, "2026-03-01"),
+      eq(invoices.periodEnd, "2026-03-31"),
     ),
   });
 
-  if (!existingPresenceLine) {
-    await db.insert(invoiceLines).values({
-      invoiceId: invoice.id,
-      type: "PRESENCE",
-      label: "Presence days",
-      quantity: 3,
-      unitPrice: "400",
-      total: "1200",
-    });
+  if (!marInvoice) {
+    const [created] = await db
+      .insert(invoices)
+      .values({
+        organizationId: input.organizationId,
+        userId: input.collaboratorId,
+        periodStart: "2026-03-01",
+        periodEnd: "2026-03-31",
+        status: "DRAFT",
+        totalAmount: "0",
+        note: "March 2026 invoice - work in progress",
+      })
+      .returning();
+
+    if (created) {
+      await db.insert(invoiceLines).values({
+        invoiceId: created.id,
+        type: "PRESENCE",
+        label: "Presence days (Mar 3-7)",
+        quantity: 5,
+        unitPrice: collaboratorRate,
+        total: "2000",
+      });
+    }
   }
-
-  if (!projectTask) {
-    return;
-  }
-
-  const existingTaskLine = await db.query.invoiceLines.findFirst({
-    where: and(
-      eq(invoiceLines.invoiceId, invoice.id),
-      eq(invoiceLines.label, "Validated task"),
-    ),
-  });
-
-  if (existingTaskLine) {
-    return;
-  }
-
-  await db.insert(invoiceLines).values({
-    invoiceId: invoice.id,
-    type: "TASK",
-    referenceId: projectTask.id,
-    label: "Validated task",
-    quantity: 1,
-    unitPrice: "400",
-    total: "400",
-  });
 }
 
 async function seedAuditLogs(ownerId: string, projectId: string) {
@@ -201,6 +338,8 @@ export const seedDev = async () => {
   await seedPresences(core.collaborator.id, core.organization.id);
   await seedInvoicesAndLines({
     collaboratorId: core.collaborator.id,
+    ownerId: core.owner.id,
+    adminId: core.admin.id,
     projectId: core.project.id,
     organizationId: core.organization.id,
   });
