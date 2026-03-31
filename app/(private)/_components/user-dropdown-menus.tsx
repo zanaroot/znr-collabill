@@ -12,9 +12,11 @@ import { getAvatarUrl } from "@/lib/get-avatar-url";
 import { getInitials } from "@/lib/get-initials-text";
 import { client } from "@/packages/hono";
 import { ProfileDrawer } from "./profile-drawer";
+import { SettingsModal } from "./settings-modal";
 
 export const UserDropdownMenus = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
@@ -51,6 +53,7 @@ export const UserDropdownMenus = () => {
               icon: <SettingOutlined />,
               key: "settings",
               label: "Settings",
+              onClick: () => setSettingsOpen(true),
             },
             {
               icon: <LogoutOutlined />,
@@ -71,6 +74,11 @@ export const UserDropdownMenus = () => {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         currentUser={currentUser}
+      />
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
       />
     </>
   );

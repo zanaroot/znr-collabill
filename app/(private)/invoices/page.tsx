@@ -74,7 +74,9 @@ export default async function InvoicesPage({
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between no-print">
-        <h1 className="text-2xl font-semibold">Invoices & Summary</h1>
+        <h1 className="text-2xl font-semibold dark:text-white">
+          Invoices & Summary
+        </h1>
       </div>
       <div className="no-print flex flex-col gap-4">
         <InvoiceFilters
@@ -85,19 +87,25 @@ export default async function InvoicesPage({
       </div>
       <Flex justify="space-between" gap={24}>
         <Space orientation="vertical" style={{ width: "50%", flex: 1 }}>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 no-print">
-            <h2 className="text-lg font-medium mb-4">Daily Presence Summary</h2>
+          <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 no-print">
+            <h2 className="text-lg font-medium mb-4 dark:text-white">
+              Daily Presence Summary
+            </h2>
             <PresenceSummaryTable
               data={presenceSummary as unknown as PresenceSummary[]}
             />
           </div>
           {taskSummary.length > 0 && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 no-print">
-              <h2 className="text-lg font-medium mb-4">Validated Tasks Summary</h2>
-              <TaskSummaryTable data={taskSummary as unknown as RawTaskSummary[]} />
+            <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 no-print">
+              <h2 className="text-lg font-medium mb-4 dark:text-white">
+                Validated Tasks Summary
+              </h2>
+              <TaskSummaryTable
+                data={taskSummary as unknown as RawTaskSummary[]}
+              />
             </div>
           )}
-        </Space >
+        </Space>
         <Space orientation="vertical">
           <InvoicePrintable
             presenceData={presenceSummary as unknown as PresenceSummary[]}

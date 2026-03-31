@@ -83,7 +83,7 @@ export const InvoicePrintable = ({
           const errorData = await res.json();
           throw new Error(
             (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+              "Failed to validate invoice",
           );
         }
         return res.json();
@@ -273,13 +273,13 @@ export const InvoicePrintable = ({
         )}
       </div>
 
-      <div className="bg-white p-8 md:p-12 rounded-xl shadow-lg border border-gray-100 invoice-container print:shadow-none print:border-none print:p-0 print:m-0 w-full max-w-4xl mx-auto">
+      <div className="bg-white dark:bg-card p-8 md:p-12 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 invoice-container print:shadow-none print:border-none print:p-0 print:m-0 w-full max-w-4xl mx-auto">
         <div className="flex justify-between items-start mb-12">
           <div className="flex flex-col gap-2">
             <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl mb-2 print:bg-blue-600">
               {organizationName.charAt(0).toUpperCase()}
             </div>
-            <Title level={2} className="m-0! text-gray-800">
+            <Title level={2} className="m-0! text-gray-800 dark:text-gray-100">
               {organizationName}
             </Title>
             <div className="flex flex-col">
@@ -324,13 +324,13 @@ export const InvoicePrintable = ({
           </div>
         </div>
 
-        <Divider className="my-8 border-gray-100" />
+        <Divider className="my-8 border-gray-100 dark:border-gray-800" />
 
         <div className="grid grid-cols-2 gap-12 mb-12">
           <div>
             <Text
               strong
-              className="text-gray-400 uppercase text-xs tracking-wider mb-3 block"
+              className="text-gray-400 uppercase text-xs tracking-wider mb-3 block dark:text-gray-500"
             >
               Bill From:
             </Text>
@@ -349,7 +349,7 @@ export const InvoicePrintable = ({
           <div className="text-right">
             <Text
               strong
-              className="text-gray-400 uppercase text-xs tracking-wider mb-3 block"
+              className="text-gray-400 uppercase text-xs tracking-wider mb-3 block dark:text-gray-500"
             >
               Bill To:
             </Text>
@@ -372,10 +372,12 @@ export const InvoicePrintable = ({
         </div>
 
         {targetUserName && (
-          <div className="mb-8 p-4 bg-blue-50/50 rounded-lg border border-blue-100 print:bg-transparent">
+          <div className="mb-8 p-4 bg-blue-50/50 rounded-lg border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800 print:bg-transparent">
             <Space>
-              <Text strong>Billing for Member:</Text>
-              <Text className="text-blue-700 font-semibold underline decoration-2 underline-offset-4 decoration-blue-200">
+              <Text strong className="dark:text-gray-200">
+                Billing for Member:
+              </Text>
+              <Text className="text-blue-700 dark:text-blue-300 font-semibold underline decoration-2 underline-offset-4 decoration-blue-200 dark:decoration-blue-700">
                 {targetUserName}
               </Text>
             </Space>
@@ -385,30 +387,30 @@ export const InvoicePrintable = ({
         <div className="mb-12">
           <Title
             level={4}
-            className="flex items-center gap-2 mb-6 text-gray-700"
+            className="flex items-center gap-2 mb-6 text-gray-700 dark:text-gray-200"
           >
             <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
             Presence Details
           </Title>
-          <div className="overflow-hidden rounded-lg border border-gray-100 shadow-sm">
+          <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gray-50/50">
-                  <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <tr className="bg-gray-50/50 dark:bg-gray-800/50">
+                  <th className="text-left p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Member
                   </th>
-                  <th className="text-center p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="text-center p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Days Worked
                   </th>
-                  <th className="text-right p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Daily Rate
                   </th>
-                  <th className="text-right p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Amount
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {presenceData.map((item) => {
                   const amount =
                     item.presenceCount * Number(item.dailyRate || 0);
@@ -416,18 +418,20 @@ export const InvoicePrintable = ({
                   return (
                     <tr
                       key={item.userId}
-                      className="hover:bg-gray-50/30 transition-colors"
+                      className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors"
                     >
                       <td className="p-4">
-                        <Text strong>{item.userName}</Text>
+                        <Text strong className="dark:text-gray-200">
+                          {item.userName}
+                        </Text>
                       </td>
-                      <td className="text-center p-4">
+                      <td className="text-center p-4 dark:text-gray-300">
                         <Text>{item.presenceCount} days</Text>
                       </td>
-                      <td className="text-right p-4 font-mono">
+                      <td className="text-right p-4 font-mono dark:text-gray-300">
                         {Number(item.dailyRate).toLocaleString()} €
                       </td>
-                      <td className="text-right p-4 font-bold text-gray-800 font-mono">
+                      <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
                         {amount.toLocaleString()} €
                       </td>
                     </tr>
@@ -437,7 +441,7 @@ export const InvoicePrintable = ({
                   <tr>
                     <td
                       colSpan={4}
-                      className="p-8 text-center text-gray-400 italic bg-gray-50/20"
+                      className="p-8 text-center text-gray-400 italic bg-gray-50/20 dark:bg-gray-800/20"
                     >
                       No presence data recorded for this period
                     </td>
@@ -451,30 +455,30 @@ export const InvoicePrintable = ({
         <div className="mb-12">
           <Title
             level={4}
-            className="flex items-center gap-2 mb-6 text-gray-700"
+            className="flex items-center gap-2 mb-6 text-gray-700 dark:text-gray-200"
           >
             <span className="w-1 h-6 bg-green-500 rounded-full"></span>
             Task Details
           </Title>
-          <div className="overflow-hidden rounded-lg border border-gray-100 shadow-sm">
+          <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gray-50/50">
-                  <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <tr className="bg-gray-50/50 dark:bg-gray-800/50">
+                  <th className="text-left p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Task Size
                   </th>
-                  <th className="text-center p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="text-center p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Count
                   </th>
-                  <th className="text-right p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Rate
                   </th>
-                  <th className="text-right p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Amount
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {taskData.map((item, index) => {
                   const size = item.size.toLowerCase();
                   const rateKey =
@@ -485,20 +489,20 @@ export const InvoicePrintable = ({
                   return (
                     <tr
                       key={`${item.userId}-${item.size}-${index}`}
-                      className="hover:bg-gray-50/30 transition-colors"
+                      className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors"
                     >
                       <td className="p-4">
-                        <Tag className="font-semibold px-2 py-0.5 rounded border-gray-200">
+                        <Tag className="font-semibold px-2 py-0.5 rounded border-gray-200 dark:border-gray-600 dark:text-gray-200">
                           {item.size}
                         </Tag>
                       </td>
-                      <td className="text-center p-4">
+                      <td className="text-center p-4 dark:text-gray-300">
                         <Text>{item.taskCount} tasks</Text>
                       </td>
-                      <td className="text-right p-4 font-mono">
+                      <td className="text-right p-4 font-mono dark:text-gray-300">
                         {rate.toLocaleString()} €
                       </td>
-                      <td className="text-right p-4 font-bold text-gray-800 font-mono">
+                      <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
                         {amount.toLocaleString()} €
                       </td>
                     </tr>
@@ -508,7 +512,7 @@ export const InvoicePrintable = ({
                   <tr>
                     <td
                       colSpan={4}
-                      className="p-8 text-center text-gray-400 italic bg-gray-50/20"
+                      className="p-8 text-center text-gray-400 italic bg-gray-50/20 dark:bg-gray-800/20"
                     >
                       No validated tasks found for this period
                     </td>
@@ -522,20 +526,20 @@ export const InvoicePrintable = ({
         <div className="flex justify-end mt-16 mb-12">
           <div className="w-full md:w-80">
             <div className="space-y-3">
-              <div className="flex justify-between items-center text-gray-600">
-                <Text>Presence Subtotal</Text>
-                <Text className="font-mono">
+              <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
+                <Text className="dark:text-gray-300">Presence Subtotal</Text>
+                <Text className="font-mono dark:text-gray-200">
                   {presenceTotal.toLocaleString()} €
                 </Text>
               </div>
-              <div className="flex justify-between items-center text-gray-600">
-                <Text>Tasks Subtotal</Text>
-                <Text className="font-mono">
+              <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
+                <Text className="dark:text-gray-300">Tasks Subtotal</Text>
+                <Text className="font-mono dark:text-gray-200">
                   {taskTotal.toLocaleString()} €
                 </Text>
               </div>
-              <Divider className="my-2 border-gray-200" />
-              <div className="flex justify-between items-center bg-gray-100 text-white p-4 rounded-lg shadow-inner print:bg-gray-100 print:text-black">
+              <Divider className="my-2 border-gray-200 dark:border-gray-700" />
+              <div className="flex justify-between items-center bg-gray-100 dark:bg-gray-800 text-white dark:text-white p-4 rounded-lg shadow-inner print:bg-gray-100 print:text-black">
                 <Title level={3} className="m-0! text-white print:text-black">
                   Total
                 </Title>
@@ -551,34 +555,40 @@ export const InvoicePrintable = ({
         </div>
 
         {/* Footer */}
-        <div className="mt-20 border-t border-gray-100 pt-10">
+        <div className="mt-20 border-t border-gray-100 dark:border-gray-800 pt-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <div>
-              <Text strong className="block mb-2 text-gray-800">
+              <Text
+                strong
+                className="block mb-2 text-gray-800 dark:text-gray-200"
+              >
                 Payment Notes:
               </Text>
-              <Paragraph className="text-gray-500 text-sm leading-relaxed">
+              <Paragraph className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                 Please make sure all tasks are validated before the end of the
                 billing period. Payment details should be confirmed with the
                 organization owner.
               </Paragraph>
             </div>
             <div className="md:text-right">
-              <Text strong className="block mb-2 text-gray-800">
+              <Text
+                strong
+                className="block mb-2 text-gray-800 dark:text-gray-200"
+              >
                 Authorized By:
               </Text>
-              <div className="h-16 w-48 ml-auto border-b border-gray-200 italic text-gray-300 flex items-end justify-center pb-1 font-serif text-xl">
+              <div className="h-16 w-48 ml-auto border-b border-gray-200 dark:border-gray-700 italic text-gray-300 dark:text-gray-600 flex items-end justify-center pb-1 font-serif text-xl">
                 {organizationName}
               </div>
             </div>
           </div>
 
           <div className="text-center">
-            <Text type="secondary" className="text-xs">
+            <Text type="secondary" className="text-xs dark:text-gray-500">
               This is a computer-generated summary for {organizationName}.
               Generated on {new Date().toLocaleString()}.
             </Text>
-            <div className="mt-2 text-gray-400 text-xs">
+            <div className="mt-2 text-gray-400 dark:text-gray-500 text-xs">
               © {new Date().getFullYear()} Collabill • {organizationName}
             </div>
           </div>

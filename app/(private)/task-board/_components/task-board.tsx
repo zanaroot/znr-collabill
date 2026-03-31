@@ -97,13 +97,13 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-linear-to-r from-slate-50 to-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 dark:border-gray-800 bg-linear-to-r from-slate-50 to-white dark:from-gray-900 dark:to-gray-800 p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <Title level={3} style={{ margin: 0 }}>
+            <Title level={3} style={{ margin: 0 }} className="dark:text-white">
               Task Board
             </Title>
-            <Text type="secondary">
+            <Text type="secondary" className="dark:text-gray-400">
               Track work by status and move cards across columns.
             </Text>
           </div>
@@ -147,15 +147,15 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700">
+          <span className="rounded-full border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1 text-xs font-medium text-slate-700 dark:text-gray-300">
             {selectedProject?.name ?? "No project selected"}
           </span>
           {selectedPeriod && (
-            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+            <span className="rounded-full border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
               Period: {selectedPeriod.name}
             </span>
           )}
-          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700">
+          <span className="rounded-full border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1 text-xs font-medium text-slate-700 dark:text-gray-300">
             {taskCount} tasks
           </span>
         </div>

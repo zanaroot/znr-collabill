@@ -62,9 +62,9 @@ export const InvoiceFilters = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+    <div className="flex flex-col md:flex-row md:items-center gap-4 bg-white dark:bg-card p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800">
       <div className="flex items-center gap-2">
-        <Text strong className="whitespace-nowrap">
+        <Text strong className="whitespace-nowrap dark:text-white">
           Filter by Period:
         </Text>
         <Select
@@ -81,7 +81,7 @@ export const InvoiceFilters = ({
       </div>
       {showMemberFilter && (
         <div className="flex items-center gap-2">
-          <Text strong className="whitespace-nowrap">
+          <Text strong className="whitespace-nowrap dark:text-white">
             Filter by Member:
           </Text>
           <Select

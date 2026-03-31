@@ -129,9 +129,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-      from: activeTask.status,
-      isProjectOwner,
-    })
+        from: activeTask.status,
+        isProjectOwner,
+      })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -267,15 +267,19 @@ export function CreateBoard({
     viewComponent: React.ReactNode,
   ) => (isEditing ? editComponent : viewComponent);
 
-  const InfoRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  const InfoRow = ({
+    label,
+    children,
+  }: {
+    label: string;
+    children: React.ReactNode;
+  }) => (
     <div className="flex gap-4 mb-5">
       <Text strong style={{ minWidth: 110 }}>
         {label}
       </Text>
 
-      <div className="flex-1">
-        {children}
-      </div>
+      <div className="flex-1">{children}</div>
     </div>
   );
 
@@ -330,8 +334,6 @@ export function CreateBoard({
         </div>
       </div>
 
-
-
       <Drawer
         title={activeTask ? "Edit task" : "Create task"}
         placement="right"
@@ -365,27 +367,31 @@ export function CreateBoard({
         }
       >
         <div className="flex flex-col gap-5">
-
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <Text type="secondary" style={{ fontSize: 12 }}>
+          <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 px-4 py-3">
+            <Text
+              type="secondary"
+              style={{ fontSize: 12 }}
+              className="dark:text-gray-400"
+            >
               Project context
             </Text>
             <div className="mt-1 flex items-center justify-between gap-3">
-              <Text strong style={{ fontSize: 16 }}>
+              <Text strong style={{ fontSize: 16 }} className="dark:text-white">
                 {projectName ?? "Select a project"}
               </Text>
-              <Text type="secondary">
+              <Text type="secondary" className="dark:text-gray-400">
                 {activeTask ? "Editing task" : "New task"}
               </Text>
             </div>
           </div>
 
           <Space vertical size={12} style={{ width: "100%" }}>
-
             {renderField(
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                 <Space vertical size={8} style={{ width: "100%" }}>
-                  <Text strong>Task title</Text>
+                  <Text strong className="dark:text-white">
+                    Task title
+                  </Text>
                   <Input
                     value={formValues.title}
                     onChange={(e) =>
@@ -402,11 +408,11 @@ export function CreateBoard({
 
               <InfoRow label="Task title">
                 <Text strong>{formValues.title || "Untitled task"}</Text>
-              </InfoRow>
+              </InfoRow>,
             )}
 
             {renderField(
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                 <Space vertical size={8} style={{ width: "100%" }}>
                   <Text strong>Description</Text>
                   <Input.TextArea
@@ -427,13 +433,12 @@ export function CreateBoard({
                 <Typography.Text>
                   {formValues.description || "No description"}
                 </Typography.Text>
-              </InfoRow>
+              </InfoRow>,
             )}
 
             {renderField(
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-
-                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                   <Space vertical size={8} style={{ width: "100%" }}>
                     <Text strong>Due date</Text>
                     <Input
@@ -449,7 +454,7 @@ export function CreateBoard({
                   </Space>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                   <Space vertical size={8} style={{ width: "100%" }}>
                     <Text strong>Status</Text>
                     <Select
@@ -468,7 +473,6 @@ export function CreateBoard({
                     />
                   </Space>
                 </div>
-
               </div>,
 
               <>
@@ -481,18 +485,14 @@ export function CreateBoard({
                 </InfoRow>
 
                 <InfoRow label="Status">
-                  <Tag color="blue">
-                    {formatStatus(formValues.status)}
-                  </Tag>
+                  <Tag color="blue">{formatStatus(formValues.status)}</Tag>
                 </InfoRow>
-              </>
+              </>,
             )}
 
             {renderField(
-
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                 <Space vertical size={12} style={{ width: "100%" }}>
-
                   <Space vertical size={8} style={{ width: "100%" }}>
                     <Text strong>Priority</Text>
                     <Segmented
@@ -522,7 +522,6 @@ export function CreateBoard({
                       block
                     />
                   </Space>
-
                 </Space>
               </div>,
 
@@ -536,10 +535,10 @@ export function CreateBoard({
                 <InfoRow label="Size">
                   <Tag>{formValues.size}</Tag>
                 </InfoRow>
-              </>
+              </>,
             )}
             {renderField(
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                 <Space vertical size={8} style={{ width: "100%" }}>
                   <Text strong>Assignee</Text>
                   <Select
@@ -563,7 +562,7 @@ export function CreateBoard({
               <InfoRow label="Assignee">
                 {(() => {
                   const assignee = members.find(
-                    (m) => m.id === formValues.assigneeId
+                    (m) => m.id === formValues.assigneeId,
                   );
 
                   return assignee ? (
@@ -580,7 +579,7 @@ export function CreateBoard({
                     <Text type="secondary">Unassigned</Text>
                   );
                 })()}
-              </InfoRow>
+              </InfoRow>,
             )}
           </Space>
         </div>
