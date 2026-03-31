@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { Button, Modal, message, Radio, Space, Typography } from "antd";
+import { Button, Flex, Modal, message, Radio, Space, Typography } from "antd";
 import { useEffect, useState } from "react";
 import {
   PRESENCE_STATUSES,
@@ -63,7 +63,7 @@ export const PresenceModal = ({ open, onSuccess }: PresenceModalProps) => {
       centered
       width={400}
     >
-      <div className="flex flex-col items-center py-6 text-center">
+      <Flex vertical align="center" className="py-6 text-center">
         <Title level={4}>👋 Welcome back!</Title>
         <Text type="secondary" className="mb-6 block">
           Please mark your presence for today to continue.
@@ -95,11 +95,11 @@ export const PresenceModal = ({ open, onSuccess }: PresenceModalProps) => {
           block
           loading={isPending}
           onClick={handleCheckIn}
-          style={{ height: 48, borderRadius: 8 }}
+          style={{ height: 48, borderRadius: 8, marginTop: 24 }}
         >
           Check-in for today
         </Button>
-      </div>
+      </Flex>
     </Modal>
   );
 };

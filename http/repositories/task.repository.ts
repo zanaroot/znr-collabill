@@ -1,6 +1,7 @@
 "server only";
 
 import { and, asc, count, desc, eq, gte, lte, ne, or, sql } from "drizzle-orm";
+import { endOfDay } from "date-fns";
 import { db } from "@/db";
 import {
   collaboratorRates,
@@ -43,8 +44,9 @@ export const findTasksByProjectId = async (projectId: string) => {
 export const findTasksByProjectIdAndPeriod = async (
   projectId: string,
   startDate: Date,
-  endDate: Date,
+  _endDate: Date,
 ) => {
+  const endDate = endOfDay(_endDate);
   const isCurrentPeriod = endDate >= new Date();
 
   const whereClauses = [eq(tasks.projectId, projectId)];
@@ -145,7 +147,7 @@ export const getValidatedTaskSummaryByOrganization = async (
   if (startDate && endDate) {
     whereClauses.push(
       gte(tasks.validatedAt, startDate),
-      lte(tasks.validatedAt, endDate),
+      lte(tasks.validatedAt, endOfDay(endDate)),
     );
   }
 
