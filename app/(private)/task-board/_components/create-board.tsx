@@ -129,9 +129,9 @@ export function CreateBoard({
     : false;
   const activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
-        from: activeTask.status,
-        isProjectOwner,
-      })
+      from: activeTask.status,
+      isProjectOwner,
+    })
     : [];
 
   const tasksByStatus = useMemo(() => {
@@ -262,6 +262,23 @@ export function CreateBoard({
     );
   };
 
+  const renderField = (
+    editComponent: React.ReactNode,
+    viewComponent: React.ReactNode,
+  ) => (isEditing ? editComponent : viewComponent);
+
+  const InfoRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div className="flex gap-4 mb-5">
+      <Text strong style={{ minWidth: 110 }}>
+        {label}
+      </Text>
+
+      <div className="flex-1">
+        {children}
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div className="mb-3 flex items-center justify-end">
@@ -313,6 +330,8 @@ export function CreateBoard({
         </div>
       </div>
 
+
+
       <Drawer
         title={activeTask ? "Edit task" : "Create task"}
         placement="right"
@@ -346,6 +365,7 @@ export function CreateBoard({
         }
       >
         <div className="flex flex-col gap-5">
+
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <Text type="secondary" style={{ fontSize: 12 }}>
               Project context
@@ -360,102 +380,77 @@ export function CreateBoard({
             </div>
           </div>
 
-          <Space orientation="vertical" size={12} style={{ width: "100%" }}>
-            {isEditing ? (
+          <Space vertical size={12} style={{ width: "100%" }}>
+
+            {renderField(
               <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <Space
-                  orientation="vertical"
-                  size={8}
-                  style={{ width: "100%" }}
-                >
+                <Space vertical size={8} style={{ width: "100%" }}>
                   <Text strong>Task title</Text>
                   <Input
                     value={formValues.title}
-                    onChange={(event) =>
+                    onChange={(e) =>
                       setFormValues((prev) => ({
                         ...prev,
-                        title: event.target.value,
+                        title: e.target.value,
                       }))
                     }
                     placeholder="What needs to be done?"
                     size="large"
                   />
                 </Space>
-              </div>
-            ) : (
-              <Flex gap={8}>
-                <Text strong>Task title</Text>
-                <Typography.Text>{formValues.title}</Typography.Text>
-              </Flex>
+              </div>,
+
+              <InfoRow label="Task title">
+                <Text strong>{formValues.title || "Untitled task"}</Text>
+              </InfoRow>
             )}
 
-            {isEditing ? (
+            {renderField(
               <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <Space
-                  orientation="vertical"
-                  size={8}
-                  style={{ width: "100%" }}
-                >
+                <Space vertical size={8} style={{ width: "100%" }}>
                   <Text strong>Description</Text>
-                  <TextArea
+                  <Input.TextArea
                     value={formValues.description}
-                    onChange={(event) =>
+                    onChange={(e) =>
                       setFormValues((prev) => ({
                         ...prev,
-                        description: event.target.value,
+                        description: e.target.value,
                       }))
                     }
                     rows={5}
-                    placeholder="Add implementation details, notes, or links"
+                    placeholder="Add details..."
                   />
                 </Space>
-              </div>
-            ) : (
-              <Flex gap={8}>
-                <Text strong>Description</Text>
-                <Typography.Text>{formValues.description}</Typography.Text>
-              </Flex>
+              </div>,
+
+              <InfoRow label="Description">
+                <Typography.Text>
+                  {formValues.description || "No description"}
+                </Typography.Text>
+              </InfoRow>
             )}
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {isEditing ? (
+            {renderField(
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+
                 <div className="rounded-xl border border-slate-200 bg-white p-4">
-                  <Space
-                    orientation="vertical"
-                    size={8}
-                    style={{ width: "100%" }}
-                  >
+                  <Space vertical size={8} style={{ width: "100%" }}>
                     <Text strong>Due date</Text>
                     <Input
                       type="date"
                       value={formValues.dueDate ?? ""}
-                      onChange={(event) =>
+                      onChange={(e) =>
                         setFormValues((prev) => ({
                           ...prev,
-                          dueDate: event.target.value || "",
+                          dueDate: e.target.value || "",
                         }))
                       }
                     />
                   </Space>
                 </div>
-              ) : (
-                <Flex gap={8}>
-                  <Text strong>Due date</Text>
-                  <Typography.Text>
-                    {formValues.dueDate
-                      ? formatDueDate(formValues.dueDate)
-                      : "No due date"}
-                  </Typography.Text>
-                </Flex>
-              )}
 
-              {isEditing ? (
                 <div className="rounded-xl border border-slate-200 bg-white p-4">
-                  <Space
-                    orientation="vertical"
-                    size={8}
-                    style={{ width: "100%" }}
-                  >
+                  <Space vertical size={8} style={{ width: "100%" }}>
                     <Text strong>Status</Text>
                     <Select
                       value={formValues.status}
@@ -465,123 +460,128 @@ export function CreateBoard({
                           status: value,
                         }))
                       }
-                      options={TASK_STATUSES.filter((status) => {
-                        if (!activeTask) return true;
-                        return (
-                          status === activeTask.status ||
-                          activeTaskTransitions.includes(status)
-                        );
-                      }).map((status) => ({
+                      options={TASK_STATUSES.map((status) => ({
                         label: formatStatus(status),
                         value: status,
                       }))}
-                      disabled={
-                        Boolean(activeTask) &&
-                        activeTaskTransitions.length === 0
-                      }
                       style={{ width: "100%" }}
                     />
                   </Space>
                 </div>
-              ) : (
-                <Flex gap={8}>
-                  <Text strong>Status</Text>
-                  <Typography.Text>
-                    {formatStatus(formValues.status)}
-                  </Typography.Text>
-                </Flex>
-              )}
-            </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <Space orientation="vertical" size={12} style={{ width: "100%" }}>
-                <Space
-                  orientation="vertical"
-                  size={8}
-                  style={{ width: "100%" }}
-                >
-                  <Text strong>Priority</Text>
-                  {isEditing ? (
+              </div>,
+
+              <>
+                <InfoRow label="Due date">
+                  <Typography.Text>
+                    {formValues.dueDate
+                      ? formatDueDate(formValues.dueDate)
+                      : "No due date"}
+                  </Typography.Text>
+                </InfoRow>
+
+                <InfoRow label="Status">
+                  <Tag color="blue">
+                    {formatStatus(formValues.status)}
+                  </Tag>
+                </InfoRow>
+              </>
+            )}
+
+            {renderField(
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <Space vertical size={12} style={{ width: "100%" }}>
+
+                  <Space vertical size={8} style={{ width: "100%" }}>
+                    <Text strong>Priority</Text>
                     <Segmented
                       options={PRIORITY_LABELS}
                       value={formValues.priorityLabel}
                       onChange={(value) =>
                         setFormValues((prev) => ({
                           ...prev,
-                          priorityLabel: value as PriorityLabel,
+                          priorityLabel: value,
                         }))
                       }
                       block
                     />
-                  ) : (
-                    <Tag>
-                      {convertPriorityLabelToTag(formValues.priorityLabel)}
-                    </Tag>
-                  )}
-                </Space>
+                  </Space>
 
-                <Space
-                  orientation="vertical"
-                  size={8}
-                  style={{ width: "100%" }}
-                >
-                  <Text strong>Size</Text>
-
-                  {isEditing ? (
+                  <Space vertical size={8} style={{ width: "100%" }}>
+                    <Text strong>Size</Text>
                     <Segmented
                       options={TASK_SIZE_OPTIONS}
                       value={formValues.size}
                       onChange={(value) =>
                         setFormValues((prev) => ({
                           ...prev,
-                          size: value as TaskSize,
+                          size: value,
                         }))
                       }
                       block
                     />
-                  ) : (
-                    <Tag>{formValues.size}</Tag>
-                  )}
+                  </Space>
+
                 </Space>
-              </Space>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <Space orientation="vertical" size={8} style={{ width: "100%" }}>
-                <Text strong>Assignee</Text>
-                {isEditing ? (
+              </div>,
+
+              <>
+                <InfoRow label="Priority">
+                  <Tag color="volcano">
+                    {convertPriorityLabelToTag(formValues.priorityLabel)}
+                  </Tag>
+                </InfoRow>
+
+                <InfoRow label="Size">
+                  <Tag>{formValues.size}</Tag>
+                </InfoRow>
+              </>
+            )}
+            {renderField(
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <Space vertical size={8} style={{ width: "100%" }}>
+                  <Text strong>Assignee</Text>
                   <Select
                     value={formValues.assigneeId}
                     onChange={(value) =>
-                      setFormValues((prev) => ({ ...prev, assigneeId: value }))
+                      setFormValues((prev) => ({
+                        ...prev,
+                        assigneeId: value,
+                      }))
                     }
                     placeholder="Select a member"
-                    options={members.map((member) => ({
-                      label: member.name,
-                      value: member.id,
+                    options={members.map((m) => ({
+                      label: m.name,
+                      value: m.id,
                     }))}
                     style={{ width: "100%" }}
                   />
-                ) : (
-                  (() => {
-                    const assignee = members.find(
-                      (m) => m.id === formValues.assigneeId,
-                    );
-                    return (
-                      <Space>
-                        <Avatar
-                          size="small"
-                          src={getAvatarUrl(assignee?.avatar, assignee?.name)}
-                          alt={assignee?.name || "Unknown"}
-                        >
-                          {assignee?.name?.charAt(0).toUpperCase() || "?"}
-                        </Avatar>
-                        <Text>{assignee?.name}</Text>
-                      </Space>
-                    );
-                  })()
-                )}
-              </Space>
-            </div>
+                </Space>
+              </div>,
+
+              <InfoRow label="Assignee">
+                {(() => {
+                  const assignee = members.find(
+                    (m) => m.id === formValues.assigneeId
+                  );
+
+                  return assignee ? (
+                    <div className="flex items-center gap-2">
+                      <Text>{assignee.name}</Text>
+                      <Avatar
+                        size="small"
+                        src={getAvatarUrl(assignee?.avatar, assignee?.name)}
+                      >
+                        {assignee.name?.charAt(0).toUpperCase()}
+                      </Avatar>
+                    </div>
+                  ) : (
+                    <Text type="secondary">Unassigned</Text>
+                  );
+                })()}
+              </InfoRow>
+            )}
           </Space>
         </div>
       </Drawer>
@@ -694,7 +694,16 @@ function Column({
         onDrop={handleDrop}
       >
         {tasks.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              maxHeight: 500,
+              overflowY: "auto",
+              paddingRight: 4,
+            }}
+          >
             {tasks.map((task) => (
               <Card
                 key={task.id}
