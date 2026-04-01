@@ -1,0 +1,13 @@
+services:
+  next:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+    restart: always
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env.prod

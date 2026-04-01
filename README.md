@@ -64,6 +64,29 @@ pnpm create:user
 
 `pnpm create:user` runs `http/scripts/create-user.ts` and expects email, name, password, and role (`OWNER` or `COLLABORATOR`).
 
+## Production Deployment
+
+```bash
+# Create production env file
+cp .env.example .env.prod
+
+# Start all services (Next.js + postgres + minio)
+./start-prod.sh
+```
+
+Or run only Next.js (if infrastructure already exists):
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Requires:
+- `.env.prod` with production environment variables
+- Built Docker image (handled automatically by the compose command)
+
+### Check logs:
+- `docker compose logs -f next`
+
 ## Project Structure
 
 - `app/`: routes/layouts, auth pages, private pages, API bridge route.
