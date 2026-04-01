@@ -83,6 +83,14 @@ export default async function InvoicesPage({
           members={members}
           currentUserId={user.id}
           showMemberFilter={isOwner}
+          organizationId={user.organizationId}
+          targetUserId={targetUserId}
+          periodStart={selectedPeriod.startDate}
+          periodEnd={selectedPeriod.endDate}
+          existingInvoice={existingInvoice}
+          isOwner={isOwner}
+          presenceData={presenceSummary as unknown as any[]}
+          taskData={taskSummary as unknown as any[]}
         />
       </div>
       <Flex justify="space-between" gap={24}>

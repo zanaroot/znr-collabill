@@ -95,7 +95,7 @@ export const InvoicePrintable = ({
           const errorData = await res.json();
           throw new Error(
             (errorData as { error?: string }).error ||
-              "Failed to validate invoice",
+            "Failed to validate invoice",
           );
         }
         return res.json();
@@ -235,55 +235,6 @@ export const InvoicePrintable = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end gap-3 no-print">
-        {isOwner &&
-          !existingInvoice &&
-          targetUserId &&
-          periodStart &&
-          periodEnd && (
-            <Button
-              variant="solid"
-              loading={isValidating}
-              icon={<CheckCircleOutlined />}
-              onClick={handleValidate}
-              color="green"
-            >
-              Validate Invoice
-            </Button>
-          )}
-        {existingInvoice?.status === "VALIDATED" && isOwner && (
-          <>
-            <Button
-              variant="solid"
-              loading={isUnvalidating}
-              icon={<CloseCircleOutlined />}
-              onClick={() => unvalidateInvoice(existingInvoice.id)}
-              color="orange"
-            >
-              Unvalidate
-            </Button>
-            <Button
-              variant="solid"
-              loading={isMarkingPaid}
-              icon={<CheckCircleOutlined />}
-              onClick={() => markAsPaid(existingInvoice.id)}
-              color="purple"
-            >
-              Mark as Paid
-            </Button>
-          </>
-        )}
-        {existingInvoice?.status !== "PAID" && (
-          <Button
-            icon={<PrinterOutlined />}
-            onClick={handlePrint}
-            type="primary"
-            className="shadow-md"
-          >
-            Print Invoice
-          </Button>
-        )}
-      </div>
 
       <div className="bg-white dark:bg-card p-8 md:p-12 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 invoice-container print:shadow-none print:border-none print:p-0 print:m-0 w-full max-w-4xl mx-auto">
         <div className="flex justify-between items-start mb-12">
