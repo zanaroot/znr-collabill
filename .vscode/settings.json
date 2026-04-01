@@ -17,5 +17,8 @@
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "[typescriptreact]": {
     "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "chat.tools.terminal.autoApprove": {
+    "true": true
   }
 }

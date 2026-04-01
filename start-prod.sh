@@ -1,4 +1,8 @@
 #!/bin/bash
 set -e
 
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+docker compose \
+-p collabill-prod \
+-f docker-compose.yml \
+-f docker-compose.prod.yml \
+up -d --build

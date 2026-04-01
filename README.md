@@ -122,3 +122,14 @@ No `test` script is currently defined. Use:
 pnpm lint
 pnpm build
 ```
+
+## port
+
+1. Dev
+    Postgres → localhost:5432
+    MinIO → localhost:9000
+    Next → pnpm dev
+2. Prod
+    Postgres → localhost:5434
+    MinIO → localhost:9100
+    Next → localhost:3022

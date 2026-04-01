@@ -1,60 +1,22 @@
 services:
-  next:
-    image: collabill-next:latest
-    container_name: collabill-next-1
-    restart: always
-    ports:
-      - "3022:3000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://user:password@collabill_postgres_prod:5432/collabill_db
-      - S3_ENDPOINT=http://collabill_minio_prod:9000
-      - NEXT_PUBLIC_APP_URL=http://192.168.88.206:3022
-    networks:
-      - collabill_prod_network
-    depends_on:
-      - postgres
-
   postgres:
-    image: postgres:17
-    container_name: collabill_postgres_prod
-    restart: always
-    environment:
-      POSTGRES_DB: collabill_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
     ports:
-      - "5523:5432"
-    volumes:
-      - collabill_pgdata_prod:/var/lib/postgresql/data
-    networks:
-      - collabill_prod_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d collabill_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - "5434:5432"
 
   minio:
-    image: minio/minio
-    container_name: collabill_minio_prod
-    restart: always
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password
     ports:
-      - "9012:9000"
-      - "9005:9001"
-    volumes:
-      - collabill_miniodata_prod:/data
-    networks:
-      - collabill_prod_network
+      - "9100:9000"
+      - "9101:9001"
 
-networks:
-  collabill_prod_network:
-    driver: bridge
-
-volumes:
-  collabill_pgdata_prod:
-  collabill_miniodata_prod:
+  next:
+    build: .
+    restart: always
+    depends_on:
+      - postgres
+      - minio
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres:5432/collabill_db
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+    ports:
+      - "3022:3000"
