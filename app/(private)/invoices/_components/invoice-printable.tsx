@@ -72,6 +72,10 @@ export const InvoicePrintable = ({
       `INV-${Date.now().toString().slice(-6)}-${organizationId.slice(0, 4).toUpperCase()}`,
   );
 
+  const _handlePrint = () => {
+    window.print();
+  };
+
   const { data: organizationOwner, isLoading: isLoadingOwner } = useQuery({
     queryKey: ["organization-owner", organizationId],
     queryFn: async () => {

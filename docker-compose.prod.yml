@@ -20,6 +20,7 @@ services:
   postgres:
     image: postgres:17
 
+
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -29,6 +30,7 @@ services:
       - postgres_data_prod:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin_prod} -d ${POSTGRES_DB:-collabill_db_prod}"]
+    restart: always
     container_name: collabill_postgres_prod
     restart: always
     environment:
@@ -127,7 +129,6 @@ volumes:
 
   certbot_www:
   letsencrypt:
-
     container_name: collabill_minio_prod
     restart: always
     command: server /data --console-address ":9001"
