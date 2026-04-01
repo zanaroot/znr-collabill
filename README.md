@@ -85,7 +85,7 @@ Requires:
 - Built Docker image (handled automatically by the compose command)
 
 ### Check logs:
-- `docker compose logs -f next`
+- `docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f next`
 
 ## Project Structure
 

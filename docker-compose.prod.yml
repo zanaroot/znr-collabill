@@ -6,8 +6,22 @@ services:
       network: host
     restart: always
     ports:
-      - "3002:3000"
+      - "3022:3000"
     environment:
       - NODE_ENV=production
     env_file:
       - .env.prod
+
+  postgres:
+    container_name: collabill_postgres_prod
+    ports:
+      - "5523:5432"
+
+  minio:
+    container_name: collabill_minio_prod
+    ports:
+      - "9012:9000"
+      - "9005:9001"
+  
+  minio-init:
+    container_name: collabill_minio_init_prod
