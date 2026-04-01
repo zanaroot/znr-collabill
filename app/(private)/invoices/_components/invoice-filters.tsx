@@ -6,14 +6,21 @@ import {
   PrinterOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Select, Typography, message } from "antd";
+import { Button, message, Select, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+import type { z } from "zod";
+import type {
+  CreateInvoiceInput,
+  invoiceLineSchema,
+} from "@/http/models/invoice.model";
 import { client } from "@/packages/hono";
 
 const { Text } = Typography;
 
 import { getCurrentPeriod, getMonthlyPeriods } from "@/lib/periods";
+import type { PresenceSummary } from "./presence-summary-table";
+import type { RawTaskSummary } from "./task-summary-table";
 
 type Member = {
   id: string;
@@ -32,8 +39,8 @@ type InvoiceFiltersProps = {
   periodEnd?: string;
   existingInvoice?: { id: string; status: string | null } | null;
   isOwner?: boolean;
-  presenceData: any[];
-  taskData: any[];
+  presenceData: PresenceSummary[];
+  taskData: RawTaskSummary[];
 };
 
 export const InvoiceFilters = ({
@@ -89,7 +96,7 @@ export const InvoiceFilters = ({
     window.print();
   };
 
-  const { data: organizationOwner, isLoading: isLoadingOwner } = useQuery({
+  const { data: _organizationOwner, isLoading: _isLoadingOwner } = useQuery({
     queryKey: ["organization-owner", organizationId],
     queryFn: async () => {
       const res = await client.api.organizations[":id"].owner.$get({
@@ -104,7 +111,7 @@ export const InvoiceFilters = ({
 
   const { mutateAsync: validateInvoice, isPending: isValidating } = useMutation(
     {
-      mutationFn: async (args: any) => {
+      mutationFn: async (args: CreateInvoiceInput) => {
         const res = await client.api.invoices.$post({
           json: args,
         });
@@ -112,7 +119,7 @@ export const InvoiceFilters = ({
           const errorData = await res.json();
           throw new Error(
             (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+              "Failed to validate invoice",
           );
         }
         return res.json();
@@ -176,7 +183,7 @@ export const InvoiceFilters = ({
     if (!targetUserId || !periodStart || !periodEnd) return;
 
     let totalAmount = 0;
-    const linesInput: any[] = [];
+    const linesInput: z.infer<typeof invoiceLineSchema>[] = [];
 
     for (const p of presenceData) {
       const rate = Number(p.dailyRate || 0);
@@ -197,8 +204,8 @@ export const InvoiceFilters = ({
     for (const t of taskData) {
       const size = t.size.toLowerCase();
       const rateKey =
-        `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof any;
-      const baseRate = Number((t[rateKey] as unknown) || 0);
+        `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
+      const baseRate = Number((t[rateKey] as string | null) || 0);
       const projectRate = Number(t.projectBaseRate || 1);
       const totalRate = baseRate * projectRate;
       const amount = t.taskCount * totalRate;
@@ -318,4 +325,3 @@ export const InvoiceFilters = ({
     </div>
   );
 };
-

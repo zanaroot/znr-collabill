@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  PrinterOutlined,
-} from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Divider, message, Space, Tag, Typography } from "antd";
+import { Divider, message, Space, Tag, Typography } from "antd";
 import { useMemo, useState } from "react";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
 import type {
@@ -54,7 +49,6 @@ export const InvoicePrintable = ({
   periodEnd,
   periodName,
   existingInvoice,
-  isOwner,
 }: InvoicePrintableProps) => {
   const [clientInvoiceDate] = useState(() =>
     new Date().toLocaleDateString("en-US", {
@@ -68,7 +62,7 @@ export const InvoicePrintable = ({
       `INV-${Date.now().toString().slice(-6)}-${organizationId.slice(0, 4).toUpperCase()}`,
   );
 
-  const handlePrint = () => {
+  const _handlePrint = () => {
     window.print();
   };
 
@@ -85,75 +79,28 @@ export const InvoicePrintable = ({
     },
   });
 
-  const { mutateAsync: validateInvoice, isPending: isValidating } = useMutation(
-    {
-      mutationFn: async (args: CreateInvoiceInput) => {
-        const res = await client.api.invoices.$post({
-          json: args,
-        });
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(
-            (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
-          );
-        }
-        return res.json();
-      },
-      onSuccess: () => {
-        message.success("Invoice validated successfully!");
-        window.location.reload();
-      },
-      onError: (error: Error) => {
-        message.error(error.message);
-      },
-    },
-  );
-
-  const { mutateAsync: markAsPaid, isPending: isMarkingPaid } = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await client.api.invoices[":id"].status.$patch({
-        param: { id },
-        json: { status: "PAID" },
+  const { mutateAsync: validateInvoice } = useMutation({
+    mutationFn: async (args: CreateInvoiceInput) => {
+      const res = await client.api.invoices.$post({
+        json: args,
       });
-      const result = await res.json();
       if (!res.ok) {
-        const errorData = result as { error?: string };
-        throw new Error(errorData.error || "Failed to mark as paid");
+        const errorData = await res.json();
+        throw new Error(
+          (errorData as { error?: string }).error ||
+            "Failed to validate invoice",
+        );
       }
-      return result;
+      return res.json();
     },
     onSuccess: () => {
-      message.success("Invoice marked as paid!");
+      message.success("Invoice validated successfully!");
       window.location.reload();
     },
     onError: (error: Error) => {
       message.error(error.message);
     },
   });
-
-  const { mutateAsync: unvalidateInvoice, isPending: isUnvalidating } =
-    useMutation({
-      mutationFn: async (id: string) => {
-        const res = await client.api.invoices[":id"].status.$patch({
-          param: { id },
-          json: { status: "DRAFT" },
-        });
-        const result = await res.json();
-        if (!res.ok) {
-          const errorData = result as { error?: string };
-          throw new Error(errorData.error || "Failed to unvalidate invoice");
-        }
-        return result;
-      },
-      onSuccess: () => {
-        message.success("Invoice unvalidated successfully!");
-        window.location.reload();
-      },
-      onError: (error: Error) => {
-        message.error(error.message);
-      },
-    });
 
   const presenceTotal = useMemo(() => {
     return presenceData.reduce((acc, item) => {
@@ -177,7 +124,7 @@ export const InvoicePrintable = ({
   const invoiceDate = clientInvoiceDate;
   const invoiceNumber = clientInvoiceNumber;
 
-  const handleValidate = async () => {
+  const _handleValidate = async () => {
     if (!targetUserId || !periodStart || !periodEnd) return;
 
     let totalAmount = 0;
@@ -235,7 +182,6 @@ export const InvoicePrintable = ({
 
   return (
     <div className="flex flex-col gap-4">
-
       <div className="bg-white dark:bg-card p-8 md:p-12 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 invoice-container print:shadow-none print:border-none print:p-0 print:m-0 w-full max-w-4xl mx-auto">
         <div className="flex justify-between items-start mb-12">
           <div className="flex flex-col gap-2">

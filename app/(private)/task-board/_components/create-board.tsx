@@ -7,7 +7,6 @@ import {
   Card,
   Drawer,
   Empty,
-  Flex,
   Input,
   Segmented,
   Select,
@@ -42,7 +41,6 @@ type User = {
 };
 
 const { Paragraph, Text } = Typography;
-const { TextArea } = Input;
 
 type PriorityLabel =
   | "Urgent & Important"
@@ -101,6 +99,22 @@ type CreateBoardProps = {
   isAdmin: boolean;
 };
 
+const InfoRow = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex gap-4 mb-5">
+    <Text strong style={{ minWidth: 110 }}>
+      {label}
+    </Text>
+
+    <div className="flex-1">{children}</div>
+  </div>
+);
+
 export function CreateBoard({
   tasks,
   projectId,
@@ -127,7 +141,7 @@ export function CreateBoard({
   const canDeleteActiveTask = activeTask
     ? canDeleteTaskByStatus(activeTask.status)
     : false;
-  const activeTaskTransitions = activeTask
+  const _activeTaskTransitions = activeTask
     ? getAllowedTaskTransitions({
         from: activeTask.status,
         isProjectOwner,
@@ -266,22 +280,6 @@ export function CreateBoard({
     editComponent: React.ReactNode,
     viewComponent: React.ReactNode,
   ) => (isEditing ? editComponent : viewComponent);
-
-  const InfoRow = ({
-    label,
-    children,
-  }: {
-    label: string;
-    children: React.ReactNode;
-  }) => (
-    <div className="flex gap-4 mb-5">
-      <Text strong style={{ minWidth: 110 }}>
-        {label}
-      </Text>
-
-      <div className="flex-1">{children}</div>
-    </div>
-  );
 
   return (
     <>

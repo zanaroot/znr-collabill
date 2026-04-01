@@ -89,8 +89,8 @@ export default async function InvoicesPage({
           periodEnd={selectedPeriod.endDate}
           existingInvoice={existingInvoice}
           isOwner={isOwner}
-          presenceData={presenceSummary as unknown as any[]}
-          taskData={taskSummary as unknown as any[]}
+          presenceData={presenceSummary}
+          taskData={taskSummary}
         />
       </div>
       <Flex justify="space-between" gap={24}>

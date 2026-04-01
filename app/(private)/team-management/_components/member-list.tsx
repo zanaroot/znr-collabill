@@ -3,7 +3,6 @@
 import {
   DeleteOutlined,
   DollarOutlined,
-  EditOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import {
@@ -78,7 +77,8 @@ export function MemberList() {
   };
 
   const handleLeave = () => {
-    if (!currentUser?.organizationId) return;
+    const orgId = currentUser?.organizationId;
+    if (!orgId) return;
 
     confirm({
       title: "Are you sure you want to leave this organization?",
@@ -89,7 +89,7 @@ export function MemberList() {
       cancelText: "No",
       onOk: async () => {
         try {
-          await leaveMutation.mutateAsync(currentUser.organizationId!);
+          await leaveMutation.mutateAsync(orgId);
           message.success("You have left the organization");
           router.push("/select-organization");
         } catch (error) {
