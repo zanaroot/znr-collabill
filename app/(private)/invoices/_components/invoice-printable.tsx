@@ -12,9 +12,13 @@ import {
   Typography,
 } from "antd";
 import { useMemo, useState } from "react";
+import type { z } from "zod";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
-import type { InvoiceStatus } from "@/http/models/invoice.model";
+import type { CreateInvoiceInput, InvoiceStatus, invoiceLineSchema } from "@/http/models/invoice.model";
+
+type InvoiceLineInput = z.infer<typeof invoiceLineSchema>;
+
 import { client } from "@/packages/hono";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary } from "./task-summary-table";
@@ -46,6 +50,10 @@ export const InvoicePrintable = ({
   organizationName,
   organizationId,
   targetUserName,
+  targetUserId,
+  periodId,
+  periodStart,
+  periodEnd,
   periodName,
   existingInvoice,
   isOwner,
@@ -64,6 +72,10 @@ export const InvoicePrintable = ({
     () =>
       `INV-${Date.now().toString().slice(-6)}-${organizationId.slice(0, 4).toUpperCase()}`,
   );
+
+  const _handlePrint = () => {
+    window.print();
+  };
 
   const { data: organizationOwner, isLoading: isLoadingOwner } = useQuery({
     queryKey: ["organization-owner", organizationId],
