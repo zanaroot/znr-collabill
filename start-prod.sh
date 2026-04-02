@@ -2,7 +2,8 @@
 set -e
 
 docker compose \
--p collabill-prod \
--f docker-compose.yml \
--f docker-compose.prod.yml \
-up -d --build
+  -p collabill-prod \
+  --env-file .env.prod \
+  -f docker-compose.yml \
+  -f docker-compose.prod.yml \
+  up -d --build

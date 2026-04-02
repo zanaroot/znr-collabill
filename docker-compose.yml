@@ -3,39 +3,54 @@ services:
     image: postgres:17
     restart: always
     environment:
-      POSTGRES_DB: collabill_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB:-collabill_db}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - collabill_pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-collabill_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   minio:
     image: minio/minio
     restart: always
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
-      - collabill_miniodata:/data
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   minio-init:
     image: minio/mc
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+      S3_BUCKET: ${S3_BUCKET:-my-buckets}
     entrypoint: >
       /bin/sh -c "
-      mc alias set myminio http://minio:9000 admin password;
-      mc mb myminio/my-buckets || true;
-      mc anonymous set download myminio/my-buckets;
+      mc alias set myminio http://minio:9000 \"$MINIO_ROOT_USER\" \"$MINIO_ROOT_PASSWORD\";
+      mc mb myminio/\"$S3_BUCKET\" || true;
+      mc anonymous set download myminio/\"$S3_BUCKET\";
       exit 0;
       "
 
 volumes:
-  collabill_pgdata:
-  collabill_miniodata:
+  postgres_data:
+  minio_data:
