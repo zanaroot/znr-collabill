@@ -25,6 +25,7 @@ export const tasks = pgTable("tasks", {
   status: taskStatusEnum("status").default("TODO"),
   validatedAt: timestamp("validated_at"),
   validatedBy: uuid("validated_by").references(() => users.id),
+  archivedAt: timestamp("archived_at"),
   gitRepo: text("git_repo"),
   gitBranch: text("git_branch"),
   gitPullRequest: text("git_pull_request"),

@@ -15,6 +15,7 @@ const COMMON_TRANSITIONS: Record<
   VALIDATED: [],
   BLOCKED: ["TODO", "TRASH"],
   TRASH: [],
+  ARCHIVED: [],
 };
 
 export const canTransitionTaskStatus = ({

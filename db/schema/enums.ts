@@ -9,6 +9,7 @@ export const taskStatusEnum = pgEnum("task_status", [
   "VALIDATED",
   "BLOCKED",
   "TRASH",
+  "ARCHIVED",
 ]);
 
 export const taskSizeEnum = pgEnum("task_size", ["XS", "S", "M", "L", "XL"]);

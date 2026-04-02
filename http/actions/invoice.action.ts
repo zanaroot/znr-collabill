@@ -6,6 +6,10 @@ import {
   createInvoiceWithLines,
   updateInvoice,
 } from "@/http/repositories/invoice.repository";
+import {
+  archiveTasksByIds,
+  getValidatedTaskIdsByPeriodAndUser,
+} from "@/http/repositories/task.repository";
 import { getCurrentUser } from "./get-current-user.action";
 
 type ValidateInvoiceArgs = {
@@ -89,6 +93,15 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
       },
       linesInput,
     );
+
+    const validatedTaskIds = await getValidatedTaskIdsByPeriodAndUser(
+      targetUserId,
+      new Date(periodStart),
+      new Date(periodEnd),
+    );
+    if (validatedTaskIds.length > 0) {
+      await archiveTasksByIds(validatedTaskIds);
+    }
 
     revalidatePath("/invoices");
     return { success: true };

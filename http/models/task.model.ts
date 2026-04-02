@@ -10,6 +10,7 @@ export const TASK_STATUSES = [
   "VALIDATED",
   "BLOCKED",
   "TRASH",
+  "ARCHIVED",
 ] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
@@ -72,4 +73,5 @@ export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type UpdateTaskSystemInput = UpdateTaskInput & {
   validatedAt?: Date | null;
   validatedBy?: string | null;
+  archivedAt?: Date | null;
 };

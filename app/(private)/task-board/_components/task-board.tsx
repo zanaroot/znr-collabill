@@ -9,11 +9,6 @@ import {
   useCurrentUser,
   useUsers,
 } from "@/app/(private)/team-management/_hooks/use-team";
-import {
-  getCurrentPeriod,
-  getMonthlyPeriods,
-  getPeriodById,
-} from "@/lib/periods";
 import { useTasks } from "../_hooks/use-tasks";
 import { CreateBoard } from "./create-board";
 
@@ -29,30 +24,14 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const projectIdParam = searchParams.get("projectId");
-  const periodIdParam = searchParams.get("periodId");
-
-  const periods = useMemo(() => getMonthlyPeriods(), []);
-  const currentPeriod = useMemo(() => getCurrentPeriod(), []);
 
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
 
   const [projectId, setProjectId] = useState<string | undefined>(
     projectIdParam || undefined,
   );
-  const [periodId, setPeriodId] = useState<string | undefined>(
-    periodIdParam || currentPeriod.id,
-  );
 
-  const selectedPeriod = useMemo(
-    () => getPeriodById(periodId || currentPeriod.id),
-    [periodId, currentPeriod.id],
-  );
-
-  const { data: tasks, isLoading: isLoadingTasks } = useTasks(
-    projectId,
-    selectedPeriod?.startDate,
-    selectedPeriod?.endDate,
-  );
+  const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
 
   const { data: users } = useUsers();
   const taskCount = tasks?.length ?? 0;
@@ -71,23 +50,10 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
       changed = true;
     }
 
-    if (periodId && periodIdParam !== periodId) {
-      params.set("periodId", periodId);
-      changed = true;
-    }
-
     if (changed) {
       router.replace(`${pathname}?${params.toString()}`);
     }
-  }, [
-    projectId,
-    periodId,
-    searchParams,
-    pathname,
-    router,
-    projectIdParam,
-    periodIdParam,
-  ]);
+  }, [projectId, searchParams, pathname, router, projectIdParam]);
 
   useEffect(() => {
     if (!projectId && projects?.length && !projectIdParam) {
@@ -127,22 +93,6 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
                 />
               </div>
             ) : null}
-
-            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-              <Text type="secondary" className="min-w-[70px]">
-                Period
-              </Text>
-              <Select
-                value={periodId}
-                onChange={(value) => setPeriodId(value)}
-                placeholder="Select Period"
-                options={periods.map((p) => ({
-                  label: p.name,
-                  value: p.id,
-                }))}
-                style={{ minWidth: 260 }}
-              />
-            </div>
           </div>
         </div>
 
@@ -150,11 +100,6 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           <span className="rounded-full border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1 text-xs font-medium text-slate-700 dark:text-gray-300">
             {selectedProject?.name ?? "No project selected"}
           </span>
-          {selectedPeriod && (
-            <span className="rounded-full border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
-              Period: {selectedPeriod.name}
-            </span>
-          )}
           <span className="rounded-full border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1 text-xs font-medium text-slate-700 dark:text-gray-300">
             {taskCount} tasks
           </span>

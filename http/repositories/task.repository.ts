@@ -1,7 +1,19 @@
 "server only";
 
 import { endOfDay } from "date-fns";
-import { and, asc, count, desc, eq, gte, lte, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lte,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import { db } from "@/db";
 import {
   collaboratorRates,
@@ -27,6 +39,7 @@ const taskSelectFields = {
   status: sql`${tasks.status}::text`.as("status"),
   validatedAt: tasks.validatedAt,
   validatedBy: tasks.validatedBy,
+  archivedAt: tasks.archivedAt,
   gitRepo: tasks.gitRepo,
   gitBranch: tasks.gitBranch,
   gitPullRequest: tasks.gitPullRequest,
@@ -37,7 +50,7 @@ export const findTasksByProjectId = async (projectId: string) => {
   return await db
     .select(taskSelectFields)
     .from(tasks)
-    .where(eq(tasks.projectId, projectId))
+    .where(and(eq(tasks.projectId, projectId), ne(tasks.status, "ARCHIVED")))
     .orderBy(asc(tasks.priority), desc(tasks.createdAt));
 };
 
@@ -49,7 +62,10 @@ export const findTasksByProjectIdAndPeriod = async (
   const endDate = endOfDay(_endDate);
   const isCurrentPeriod = endDate >= new Date();
 
-  const whereClauses = [eq(tasks.projectId, projectId)];
+  const whereClauses = [
+    eq(tasks.projectId, projectId),
+    ne(tasks.status, "ARCHIVED"),
+  ];
 
   if (isCurrentPeriod) {
     // Current period: show all non-validated tasks OR tasks validated in this period
@@ -142,6 +158,7 @@ export const getValidatedTaskSummaryByOrganization = async (
     eq(organizationMembers.organizationId, organizationId),
     eq(projects.organizationId, organizationId),
     eq(tasks.status, "VALIDATED"),
+    ne(tasks.status, "ARCHIVED"),
   ];
 
   if (startDate && endDate) {
@@ -190,4 +207,32 @@ export const getValidatedTaskSummaryByOrganization = async (
       collaboratorRates.rateL,
       collaboratorRates.rateXl,
     );
+};
+
+export const archiveTasksByIds = async (taskIds: string[]) => {
+  if (taskIds.length === 0) return [];
+  return await db
+    .update(tasks)
+    .set({ status: "ARCHIVED", archivedAt: new Date() })
+    .where(inArray(tasks.id, taskIds))
+    .returning();
+};
+
+export const getValidatedTaskIdsByPeriodAndUser = async (
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) => {
+  const result = await db
+    .select({ id: tasks.id })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.assignedTo, userId),
+        eq(tasks.status, "VALIDATED"),
+        gte(tasks.validatedAt, startDate),
+        lte(tasks.validatedAt, endOfDay(endDate)),
+      ),
+    );
+  return result.map((r) => r.id);
 };
