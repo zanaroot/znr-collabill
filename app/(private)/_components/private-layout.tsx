@@ -137,16 +137,16 @@ export const PrivateLayout = ({
             },
             ...(isOwner
               ? [
-                {
-                  key: "type-organization",
-                  icon: <ApartmentOutlined />,
-                  label: (
-                    <Link href="/type-organization" prefetch>
-                      Organizations
-                    </Link>
-                  ),
-                },
-              ]
+                  {
+                    key: "type-organization",
+                    icon: <ApartmentOutlined />,
+                    label: (
+                      <Link href="/type-organization" prefetch>
+                        Organizations
+                      </Link>
+                    ),
+                  },
+                ]
               : []),
           ]}
         />
