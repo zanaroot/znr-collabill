@@ -48,3 +48,4 @@ next-env.d.ts
 CLAUDE.md
 GEMINI.md
 .env
+.env.prod
