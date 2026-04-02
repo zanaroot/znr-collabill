@@ -234,7 +234,7 @@ async function getOrCreateSecondProject(
       name: "Seed Project v2",
       description: "Second project for testing multiple projects",
       gitRepo: "https://github.com/example/collabill-seed-v2",
-      baseRate: "500",
+      baseRate: "0.5",
       createdAt: new Date(),
       createdBy: ownerId,
       organizationId,

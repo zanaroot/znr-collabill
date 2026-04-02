@@ -74,6 +74,7 @@ const defaultFormValues = (status: TaskStatus) => ({
   dueDate: "",
   status,
   assigneeId: undefined as string | undefined,
+  gitBranch: "",
 });
 
 const TASK_SIZE_OPTIONS = TASK_SIZES.map((size) => ({
@@ -174,6 +175,7 @@ export function CreateBoard({
       dueDate: task.dueDate ?? "",
       status: task.status,
       assigneeId: task.assignedTo ?? undefined,
+      gitBranch: task.gitBranch ?? "",
     });
     setDrawerOpen(true);
     setIsEditing(false);
@@ -208,6 +210,7 @@ export function CreateBoard({
       dueDate: formValues.dueDate || undefined,
       status: formValues.status,
       assignedTo: formValues.assigneeId,
+      gitBranch: formValues.gitBranch || undefined,
     };
 
     if (activeTask) {
@@ -577,6 +580,28 @@ export function CreateBoard({
                     <Text type="secondary">Unassigned</Text>
                   );
                 })()}
+              </InfoRow>,
+            )}
+
+            {renderField(
+              <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+                <Space vertical size={8} style={{ width: "100%" }}>
+                  <Text strong>Git Branch</Text>
+                  <Input
+                    value={formValues.gitBranch}
+                    onChange={(e) =>
+                      setFormValues((prev) => ({
+                        ...prev,
+                        gitBranch: e.target.value,
+                      }))
+                    }
+                    placeholder="feature/my-branch"
+                  />
+                </Space>
+              </div>,
+
+              <InfoRow label="Git Branch">
+                <Text code>{formValues.gitBranch || "—"}</Text>
               </InfoRow>,
             )}
           </Space>
