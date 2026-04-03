@@ -41,25 +41,39 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
     [projects, projectId],
   );
 
+  const LAST_PROJECT_KEY = "collabill_last_project_id";
+
+  // 1. Initial sync: If no projectId or invalid projectId, try to restore from localStorage or first project
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    let changed = false;
-
-    if (projectId && projectIdParam !== projectId) {
-      params.set("projectId", projectId);
-      changed = true;
+    if (projects?.length) {
+      const projectExists = projects.some((p) => p.id === projectIdParam);
+      
+      if (!projectIdParam || !projectExists) {
+        const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
+        const lastProjectExists = projects.some((p) => p.id === lastProjectId);
+        const targetId = (lastProjectId && lastProjectExists) ? lastProjectId : projects[0].id;
+        
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("projectId", targetId);
+        router.replace(`${pathname}?${params.toString()}`);
+      }
     }
+  }, [projects, projectIdParam, pathname, router, searchParams]);
 
-    if (changed) {
-      router.replace(`${pathname}?${params.toString()}`);
-    }
-  }, [projectId, searchParams, pathname, router, projectIdParam]);
-
+  // 2. State sync: Keep local state in sync with URL and update localStorage
   useEffect(() => {
-    if (!projectId && projects?.length && !projectIdParam) {
-      setProjectId(projects[0].id);
+    if (projectIdParam) {
+      setProjectId(projectIdParam);
+      localStorage.setItem(LAST_PROJECT_KEY, projectIdParam);
     }
-  }, [projects, projectId, projectIdParam]);
+  }, [projectIdParam]);
+
+  // 3. Handle dropdown change: Update URL directly (which triggers sync effect #2)
+  const handleProjectChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("projectId", value);
+    router.replace(`${pathname}?${params.toString()}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -84,7 +98,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
                 </Text>
                 <Select
                   value={projectId}
-                  onChange={(value) => setProjectId(value)}
+                  onChange={handleProjectChange}
                   options={projects.map((project) => ({
                     label: project.name,
                     value: project.id,

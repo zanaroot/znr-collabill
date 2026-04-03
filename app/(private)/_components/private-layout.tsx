@@ -14,7 +14,7 @@ import {
 import { Badge, Breadcrumb, Button, Layout, Menu, Space, theme } from "antd";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { type ReactNode, Suspense, useState } from "react";
+import { type ReactNode, Suspense, useEffect, useState } from "react";
 import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
@@ -68,9 +68,17 @@ export const PrivateLayout = ({
   const [collapsed, setCollapsed] = useState(false);
   const [showPresenceModal, setShowPresenceModal] = useState(isMissingPresence);
   const { data: currentUser } = useCurrentUser();
+  const [lastProjectId, setLastProjectId] = useState<string | null>(null);
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setLastProjectId(localStorage.getItem("collabill_last_project_id"));
+    }
+  }, []);
 
   const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
   const isOwner = currentUser?.organizationRole === "OWNER";
@@ -106,7 +114,17 @@ export const PrivateLayout = ({
             {
               key: "task-board",
               icon: <ContactsOutlined />,
-              label: <Link href="/task-board">Task Board</Link>,
+              label: (
+                <Link
+                  href={
+                    lastProjectId
+                      ? `/task-board?projectId=${lastProjectId}`
+                      : "/task-board"
+                  }
+                >
+                  Task Board
+                </Link>
+              ),
             },
             {
               key: "projects",
@@ -137,16 +155,16 @@ export const PrivateLayout = ({
             },
             ...(isOwner
               ? [
-                  {
-                    key: "type-organization",
-                    icon: <ApartmentOutlined />,
-                    label: (
-                      <Link href="/type-organization" prefetch>
-                        Organizations
-                      </Link>
-                    ),
-                  },
-                ]
+                {
+                  key: "type-organization",
+                  icon: <ApartmentOutlined />,
+                  label: (
+                    <Link href="/type-organization" prefetch>
+                      Organizations
+                    </Link>
+                  ),
+                },
+              ]
               : []),
           ]}
         />

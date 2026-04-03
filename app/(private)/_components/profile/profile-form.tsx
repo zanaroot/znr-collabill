@@ -29,17 +29,6 @@ export const ProfileForm = ({
       >
         <Input placeholder="Enter your name" />
       </Form.Item>
-      <Form.Item
-        name="email"
-        label="Email Address"
-        rules={[
-          { required: true, message: "Please enter your email" },
-          { type: "email", message: "Please enter a valid email" },
-        ]}
-      >
-        <Input placeholder="Enter your email" />
-      </Form.Item>
-
       <div className="flex gap-2 mt-2 w-full">
         <Button block onClick={onCancel}>
           Cancel

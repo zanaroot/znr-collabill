@@ -1,4 +1,5 @@
-import { Button, Divider, Tag } from "antd";
+import { ApartmentOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Divider, Space, Tag } from "antd";
 import type { AuthUser } from "@/http/models/auth.model";
 
 type ProfileInfoProps = {
@@ -31,11 +32,17 @@ export const ProfileInfo = ({
     <Divider />
     <div className="w-full text-sm pt-2">
       <div className="flex justify-between py-1">
-        <span className="text-gray-500">Role</span>
+        <Space className="text-gray-500">
+          <UserOutlined />
+          <span>Role</span>
+        </Space>
         <Tag color="blue">{currentUser?.organizationRole}</Tag>
       </div>
       <div className="flex justify-between py-1">
-        <span className="text-gray-500">Organization</span>
+        <Space className="text-gray-500">
+          <ApartmentOutlined />
+          <span>Organization</span>
+        </Space>
         <span>{currentUser?.organizationName || "N/A"}</span>
       </div>
     </div>
