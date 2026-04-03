@@ -1,4 +1,6 @@
-import { Flex, Space } from "antd";
+import { ArrowLeftOutlined } from "@ant-design/icons";
+import { Button, Flex, Space } from "antd";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import {
@@ -84,9 +86,18 @@ export default async function InvoicesPage({
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between no-print">
-        <h1 className="text-2xl font-semibold dark:text-white">
-          Invoices & Summary
-        </h1>
+        <div className="flex items-center gap-4">
+          {!showHistory && history.length > 0 && (
+            <Link href="/invoices">
+              <Button icon={<ArrowLeftOutlined />} type="text">
+                Back to History
+              </Button>
+            </Link>
+          )}
+          <h1 className="text-2xl font-semibold dark:text-white">
+            Invoices & Summary
+          </h1>
+        </div>
       </div>
       <div className="no-print flex flex-col gap-4">
         <InvoiceFilters
@@ -101,6 +112,7 @@ export default async function InvoicesPage({
           isOwner={isOwner}
           presenceData={presenceSummary as unknown as PresenceSummary[]}
           taskData={taskSummary as unknown as RawTaskSummary[]}
+          isDetailsPage={!showHistory}
         />
       </div>
 

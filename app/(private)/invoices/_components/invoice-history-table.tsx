@@ -1,8 +1,8 @@
 "use client";
 
-import { Table, Typography } from "antd";
+import { Button, Table, Typography } from "antd";
 import { format, parseISO } from "date-fns";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { StatusTagInvoice } from "./status-tag-invoice";
 
 const { Title } = Typography;
@@ -26,20 +26,28 @@ export const InvoiceHistoryTable = ({
   data,
   isOwner,
 }: InvoiceHistoryTableProps) => {
+  const router = useRouter();
+
+  const getDetailsUrl = (record: InvoiceHistoryItem) => {
+    return `/invoices?periodId=${format(parseISO(record.periodStart), "yyyy-MM")}${
+      isOwner ? `&memberId=${record.userId}` : ""
+    }`;
+  };
+
   const columns = [
     {
       title: "Invoice",
       dataIndex: "id",
       key: "invoice",
       render: (id: string, record: InvoiceHistoryItem) => (
-        <Link
-          href={`/invoices?periodId=${format(parseISO(record.periodStart), "yyyy-MM")}${isOwner ? `&memberId=${record.userId}` : ""}`}
-        >
-          Invoice #{id.slice(0, 8)}
+        <div className="flex flex-col">
+          <span className="font-medium text-blue-600 dark:text-blue-400">
+            Invoice #{id.slice(0, 8)}
+          </span>
           {isOwner && record.userName && (
-            <span className="ml-2 text-gray-400">({record.userName})</span>
+            <span className="text-gray-400 text-xs">({record.userName})</span>
           )}
-        </Link>
+        </div>
       ),
     },
     {
@@ -59,7 +67,24 @@ export const InvoiceHistoryTable = ({
       dataIndex: "totalAmount",
       key: "amount",
       render: (amount: string | null) =>
-        amount ? `$${Number(amount).toFixed(2)}` : "-",
+        amount ? `${Number(amount).toFixed(2)} €` : "-",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      align: "right" as const,
+      render: (_: unknown, record: InvoiceHistoryItem) => (
+        <Button
+          type="primary"
+          ghost
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(getDetailsUrl(record));
+          }}
+        >
+          View Details
+        </Button>
+      ),
     },
   ];
 
@@ -73,6 +98,12 @@ export const InvoiceHistoryTable = ({
         columns={columns}
         rowKey="id"
         pagination={{ pageSize: 10 }}
+        onRow={(record) => ({
+          onClick: () => {
+            router.push(getDetailsUrl(record));
+          },
+          className: "cursor-pointer",
+        })}
       />
     </div>
   );

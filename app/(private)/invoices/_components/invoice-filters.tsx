@@ -39,6 +39,7 @@ type InvoiceFiltersProps = {
   isOwner?: boolean;
   presenceData: PresenceSummary[];
   taskData: RawTaskSummary[];
+  isDetailsPage?: boolean;
 };
 
 export const InvoiceFilters = ({
@@ -51,6 +52,7 @@ export const InvoiceFilters = ({
   periodEnd,
   existingInvoice,
   isOwner,
+  isDetailsPage,
   presenceData,
   taskData,
 }: InvoiceFiltersProps) => {
@@ -108,7 +110,7 @@ export const InvoiceFilters = ({
           const errorData = await res.json();
           throw new Error(
             (errorData as { error?: string }).error ||
-              "Failed to validate invoice",
+            "Failed to validate invoice",
           );
         }
         return res.json();
@@ -261,55 +263,57 @@ export const InvoiceFilters = ({
             </div>
           )}
         </div>
-        <div className="flex gap-3 no-print">
-          {isOwner &&
-            !existingInvoice &&
-            targetUserId &&
-            periodStart &&
-            periodEnd && (
+        {isDetailsPage && (
+          <div className="flex gap-3 no-print">
+            {isOwner &&
+              !existingInvoice &&
+              targetUserId &&
+              periodStart &&
+              periodEnd && (
+                <Button
+                  variant="solid"
+                  loading={isValidating}
+                  icon={<CheckCircleOutlined />}
+                  onClick={handleValidate}
+                  color="green"
+                >
+                  Validate Invoice
+                </Button>
+              )}
+            {existingInvoice?.status === "VALIDATED" && isOwner && (
+              <>
+                <Button
+                  variant="solid"
+                  loading={isUnvalidating}
+                  icon={<CloseCircleOutlined />}
+                  onClick={() => unvalidateInvoice(existingInvoice.id)}
+                  color="orange"
+                >
+                  Unvalidate
+                </Button>
+                <Button
+                  variant="solid"
+                  loading={isMarkingPaid}
+                  icon={<CheckCircleOutlined />}
+                  onClick={() => markAsPaid(existingInvoice.id)}
+                  color="purple"
+                >
+                  Mark as Paid
+                </Button>
+              </>
+            )}
+            {existingInvoice?.status !== "PAID" && (
               <Button
-                variant="solid"
-                loading={isValidating}
-                icon={<CheckCircleOutlined />}
-                onClick={handleValidate}
-                color="green"
+                icon={<PrinterOutlined />}
+                onClick={handlePrint}
+                type="primary"
+                className="shadow-md"
               >
-                Validate Invoice
+                Print Invoice
               </Button>
             )}
-          {existingInvoice?.status === "VALIDATED" && isOwner && (
-            <>
-              <Button
-                variant="solid"
-                loading={isUnvalidating}
-                icon={<CloseCircleOutlined />}
-                onClick={() => unvalidateInvoice(existingInvoice.id)}
-                color="orange"
-              >
-                Unvalidate
-              </Button>
-              <Button
-                variant="solid"
-                loading={isMarkingPaid}
-                icon={<CheckCircleOutlined />}
-                onClick={() => markAsPaid(existingInvoice.id)}
-                color="purple"
-              >
-                Mark as Paid
-              </Button>
-            </>
-          )}
-          {existingInvoice?.status !== "PAID" && (
-            <Button
-              icon={<PrinterOutlined />}
-              onClick={handlePrint}
-              type="primary"
-              className="shadow-md"
-            >
-              Print Invoice
-            </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
