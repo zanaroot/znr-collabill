@@ -75,6 +75,31 @@ export const findInvoicesByOrganizationId = async (organizationId: string) => {
     .where(eq(invoices.organizationId, organizationId));
 };
 
+export const findInvoicesWithUsersByOrganizationId = async (
+  organizationId: string,
+  userId?: string,
+) => {
+  const { users } = await import("@/db/schema/user");
+  const conditions = [eq(invoices.organizationId, organizationId)];
+  if (userId) {
+    conditions.push(eq(invoices.userId, userId));
+  }
+
+  return await db
+    .select({
+      id: invoices.id,
+      userId: invoices.userId,
+      userName: users.name,
+      periodStart: invoices.periodStart,
+      periodEnd: invoices.periodEnd,
+      status: invoices.status,
+      totalAmount: invoices.totalAmount,
+    })
+    .from(invoices)
+    .innerJoin(users, eq(invoices.userId, users.id))
+    .where(and(...conditions));
+};
+
 export const updateInvoice = async (
   id: string,
   input: Partial<typeof invoices.$inferInsert>,

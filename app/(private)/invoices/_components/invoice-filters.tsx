@@ -8,7 +8,6 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, message, Select, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 import type { z } from "zod";
 import type {
   CreateInvoiceInput,
@@ -18,7 +17,7 @@ import { client } from "@/packages/hono";
 
 const { Text } = Typography;
 
-import { getCurrentPeriod, getMonthlyPeriods } from "@/lib/periods";
+import { getMonthlyPeriods } from "@/lib/periods";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary } from "./task-summary-table";
 
@@ -32,7 +31,6 @@ type InvoiceFiltersProps = {
   members: Member[];
   currentUserId: string;
   showMemberFilter?: boolean;
-  // Invoice action props
   organizationId: string;
   targetUserId: string;
   periodStart?: string;
@@ -61,16 +59,7 @@ export const InvoiceFilters = ({
   const periodId = searchParams.get("periodId");
   const selectedMemberId = searchParams.get("memberId") || currentUserId;
 
-  const periods = getMonthlyPeriods();
-  const currentPeriod = getCurrentPeriod();
-
-  useEffect(() => {
-    if (!periodId) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("periodId", currentPeriod.id);
-      router.replace(`/invoices?${params.toString()}`);
-    }
-  }, [periodId, currentPeriod.id, router, searchParams]);
+  const periods = getMonthlyPeriods(24);
 
   const handlePeriodChange = (value: string | undefined) => {
     const params = new URLSearchParams(searchParams.toString());

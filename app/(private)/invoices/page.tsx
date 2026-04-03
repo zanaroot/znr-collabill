@@ -1,13 +1,17 @@
 import { Flex, Space } from "antd";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
-import { findInvoiceByPeriodAndUser } from "@/http/repositories/invoice.repository";
+import {
+  findInvoiceByPeriodAndUser,
+  findInvoicesWithUsersByOrganizationId,
+} from "@/http/repositories/invoice.repository";
 import { getOrganizationMembers } from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
 import { InvoiceComments } from "./_components/invoice-comments";
 import { InvoiceFilters } from "./_components/invoice-filters";
+import { InvoiceHistoryTable } from "./_components/invoice-history-table";
 import { InvoicePrintable } from "./_components/invoice-printable";
 import {
   type PresenceSummary,
@@ -37,7 +41,7 @@ export default async function InvoicesPage({
   const selectedPeriod =
     getPeriodById(periodId || currentPeriod.id) || currentPeriod;
 
-  const [presenceSummary, taskSummary, members, existingInvoice] =
+  const [presenceSummary, taskSummary, members, existingInvoice, history] =
     await Promise.all([
       getPresenceSummaryByOrganization(
         user.id,
@@ -64,12 +68,18 @@ export default async function InvoicesPage({
         targetUserId,
         user.organizationId,
       ),
+      findInvoicesWithUsersByOrganizationId(
+        user.organizationId,
+        isOwner ? undefined : user.id,
+      ),
     ]);
 
   const targetUserName =
     targetUserId === user.id
       ? user.name
       : members.find((m) => m.id === targetUserId)?.name;
+
+  const showHistory = !periodId && !memberId && history.length > 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -89,49 +99,54 @@ export default async function InvoicesPage({
           periodEnd={selectedPeriod.endDate}
           existingInvoice={existingInvoice}
           isOwner={isOwner}
-          presenceData={presenceSummary}
-          taskData={taskSummary}
+          presenceData={presenceSummary as unknown as PresenceSummary[]}
+          taskData={taskSummary as unknown as RawTaskSummary[]}
         />
       </div>
-      <Flex justify="space-between" gap={24}>
-        <Space orientation="vertical" style={{ width: "50%", flex: 1 }}>
-          <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 no-print">
-            <h2 className="text-lg font-medium mb-4 dark:text-white">
-              Daily Presence Summary
-            </h2>
-            <PresenceSummaryTable
-              data={presenceSummary as unknown as PresenceSummary[]}
-            />
-          </div>
-          {taskSummary.length > 0 && (
+
+      {showHistory ? (
+        <InvoiceHistoryTable data={history} isOwner={isOwner} />
+      ) : (
+        <Flex justify="space-between" gap={24}>
+          <Space orientation="vertical" style={{ width: "50%", flex: 1 }}>
             <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 no-print">
               <h2 className="text-lg font-medium mb-4 dark:text-white">
-                Validated Tasks Summary
+                Daily Presence Summary
               </h2>
-              <TaskSummaryTable
-                data={taskSummary as unknown as RawTaskSummary[]}
+              <PresenceSummaryTable
+                data={presenceSummary as unknown as PresenceSummary[]}
               />
             </div>
-          )}
-        </Space>
-        <Space orientation="vertical">
-          <InvoicePrintable
-            presenceData={presenceSummary as unknown as PresenceSummary[]}
-            taskData={taskSummary as unknown as RawTaskSummary[]}
-            organizationName={user.organizationName || "Organization"}
-            organizationId={user.organizationId}
-            targetUserName={targetUserName}
-            targetUserId={targetUserId}
-            periodId={selectedPeriod.id}
-            periodStart={selectedPeriod.startDate}
-            periodEnd={selectedPeriod.endDate}
-            periodName={selectedPeriod.name}
-            existingInvoice={existingInvoice}
-            isOwner={isOwner}
-          />
-          <InvoiceComments invoiceId={existingInvoice?.id ?? null} />
-        </Space>
-      </Flex>
+            {taskSummary.length > 0 && (
+              <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 no-print">
+                <h2 className="text-lg font-medium mb-4 dark:text-white">
+                  Validated Tasks Summary
+                </h2>
+                <TaskSummaryTable
+                  data={taskSummary as unknown as RawTaskSummary[]}
+                />
+              </div>
+            )}
+          </Space>
+          <Space orientation="vertical">
+            <InvoicePrintable
+              presenceData={presenceSummary as unknown as PresenceSummary[]}
+              taskData={taskSummary as unknown as RawTaskSummary[]}
+              organizationName={user.organizationName || "Organization"}
+              organizationId={user.organizationId}
+              targetUserName={targetUserName}
+              targetUserId={targetUserId}
+              periodId={selectedPeriod.id}
+              periodStart={selectedPeriod.startDate}
+              periodEnd={selectedPeriod.endDate}
+              periodName={selectedPeriod.name}
+              existingInvoice={existingInvoice}
+              isOwner={isOwner}
+            />
+            <InvoiceComments invoiceId={existingInvoice?.id ?? null} />
+          </Space>
+        </Flex>
+      )}
     </div>
   );
 }

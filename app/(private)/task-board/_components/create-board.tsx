@@ -73,7 +73,7 @@ const defaultFormValues = (status: TaskStatus) => ({
   priorityLabel: "Low priority" as PriorityLabel,
   dueDate: "",
   status,
-  assigneeId: undefined as string | undefined,
+  assigneeId: null as string | null,
   gitBranch: "",
 });
 
@@ -142,12 +142,6 @@ export function CreateBoard({
   const canDeleteActiveTask = activeTask
     ? canDeleteTaskByStatus(activeTask.status)
     : false;
-  const _activeTaskTransitions = activeTask
-    ? getAllowedTaskTransitions({
-        from: activeTask.status,
-        isProjectOwner,
-      })
-    : [];
 
   const tasksByStatus = useMemo(() => {
     return BOARD_VIEW_STATUSES[boardView].map((status) => {
@@ -174,7 +168,7 @@ export function CreateBoard({
       priorityLabel: PRIORITY_LABEL_FROM_VALUE(task.priority),
       dueDate: task.dueDate ?? "",
       status: task.status,
-      assigneeId: task.assignedTo ?? undefined,
+      assigneeId: task.assignedTo ?? null,
       gitBranch: task.gitBranch ?? "",
     });
     setDrawerOpen(true);
@@ -547,7 +541,7 @@ export function CreateBoard({
                     onChange={(value) =>
                       setFormValues((prev) => ({
                         ...prev,
-                        assigneeId: value,
+                        assigneeId: value ?? null,
                       }))
                     }
                     placeholder="Select a member"
@@ -556,6 +550,13 @@ export function CreateBoard({
                       value: m.id,
                     }))}
                     style={{ width: "100%" }}
+                    allowClear
+                    onClear={() => {
+                      setFormValues((prev) => ({
+                        ...prev,
+                        assigneeId: null,
+                      }));
+                    }}
                   />
                 </Space>
               </div>,
