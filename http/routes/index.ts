@@ -11,6 +11,7 @@ import { publicPasswordRoutes } from "./password.route";
 import { presenceRoutes } from "./presence.route";
 import { projectRoutes } from "./project.route";
 import { taskRoutes } from "./task.route";
+import { taskCommentRoutes } from "./task-comment.route";
 import { userRoutes } from "./user.route";
 
 export const app = new Hono()
@@ -20,6 +21,7 @@ export const app = new Hono()
   .route("/auth", authRoutes)
   .use("*", authMiddleware)
   .route("/invoice-comments", invoiceCommentRoutes)
+  .route("/task-comments", taskCommentRoutes)
   .route("/invoices", invoiceRoutes)
   .route("/users", userRoutes)
   .route("/organizations", organizationRoutes)

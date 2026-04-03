@@ -33,6 +33,7 @@ import {
   useDeleteTask,
   useUpdateTask,
 } from "../_hooks/use-tasks";
+import { TaskComments } from "./task-comments";
 
 type User = {
   id: string;
@@ -606,6 +607,8 @@ export function CreateBoard({
               </InfoRow>,
             )}
           </Space>
+
+          {activeTask && <TaskComments taskId={activeTask.id} />}
         </div>
       </Drawer>
     </>

@@ -18,6 +18,8 @@ type TaskBoardProps = {
   currentUserId?: string;
 };
 
+const LAST_PROJECT_KEY = "collabill_last_project_id";
+
 export function TaskBoard({ currentUserId }: TaskBoardProps) {
   const { data: currentUser } = useCurrentUser();
   const searchParams = useSearchParams();
@@ -41,18 +43,16 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
     [projects, projectId],
   );
 
-  const LAST_PROJECT_KEY = "collabill_last_project_id";
-
-  // 1. Initial sync: If no projectId or invalid projectId, try to restore from localStorage or first project
   useEffect(() => {
     if (projects?.length) {
       const projectExists = projects.some((p) => p.id === projectIdParam);
-      
+
       if (!projectIdParam || !projectExists) {
         const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
         const lastProjectExists = projects.some((p) => p.id === lastProjectId);
-        const targetId = (lastProjectId && lastProjectExists) ? lastProjectId : projects[0].id;
-        
+        const targetId =
+          lastProjectId && lastProjectExists ? lastProjectId : projects[0].id;
+
         const params = new URLSearchParams(searchParams.toString());
         params.set("projectId", targetId);
         router.replace(`${pathname}?${params.toString()}`);
@@ -60,7 +60,6 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
     }
   }, [projects, projectIdParam, pathname, router, searchParams]);
 
-  // 2. State sync: Keep local state in sync with URL and update localStorage
   useEffect(() => {
     if (projectIdParam) {
       setProjectId(projectIdParam);

@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { taskSizeEnum, taskStatusEnum } from "./enums";
 import { projects } from "./project";
+import { taskComments } from "./task-comment";
 import { users } from "./user";
 
 export const tasks = pgTable("tasks", {
@@ -32,7 +33,7 @@ export const tasks = pgTable("tasks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const tasksRelations = relations(tasks, ({ one }) => ({
+export const tasksRelations = relations(tasks, ({ many, one }) => ({
   project: one(projects, {
     fields: [tasks.projectId],
     references: [projects.id],
@@ -47,4 +48,5 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
     references: [users.id],
     relationName: "validatedTasks",
   }),
+  comments: many(taskComments),
 }));

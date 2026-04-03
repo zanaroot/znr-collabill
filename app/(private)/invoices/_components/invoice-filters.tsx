@@ -110,7 +110,7 @@ export const InvoiceFilters = ({
           const errorData = await res.json();
           throw new Error(
             (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+              "Failed to validate invoice",
           );
         }
         return res.json();
