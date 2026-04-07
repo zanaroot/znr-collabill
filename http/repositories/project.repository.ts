@@ -212,3 +212,28 @@ export const addProjectMember = async (projectId: string, userId: string) => {
     .returning();
   return member ?? null;
 };
+
+export const removeProjectMember = async (
+  projectId: string,
+  userId: string,
+) => {
+  const [removed] = await db
+    .delete(projectMembers)
+    .where(
+      and(
+        eq(projectMembers.projectId, projectId),
+        eq(projectMembers.userId, userId),
+      ),
+    )
+    .returning();
+  return removed ?? null;
+};
+
+export const findProjectCreator = async (projectId: string) => {
+  const [project] = await db
+    .select({ createdBy: projects.createdBy })
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
+  return project?.createdBy ?? null;
+};

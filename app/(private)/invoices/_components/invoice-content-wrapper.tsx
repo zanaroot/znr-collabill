@@ -70,8 +70,6 @@ export const InvoiceContentWrapper = ({
           </div>
         )}
       </Space>
-
-      {/* SECTOR 2: Invoice Details & Comments */}
       <div style={{ width: isVertical ? "100%" : "450px" }}>
         <Space orientation="vertical" style={{ width: "100%" }} size="large">
           <InvoicePrintable
@@ -93,4 +91,4 @@ export const InvoiceContentWrapper = ({
       </div>
     </Flex>
   );
-}
+};

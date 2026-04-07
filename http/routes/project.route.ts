@@ -6,6 +6,7 @@ import {
   getProject,
   getProjectMembers,
   getProjects,
+  removeProjectMember,
   updateProject,
 } from "@/http/controllers/project.controller";
 import {
@@ -20,4 +21,5 @@ export const projectRoutes = new Hono()
   .put("/:id", adminMiddleware, ...updateProject)
   .delete("/:id", adminMiddleware, ...deleteProject)
   .get("/:id/members", ...getProjectMembers)
-  .post("/:id/members", adminMiddleware, ...addProjectMember);
+  .post("/:id/members", adminMiddleware, ...addProjectMember)
+  .delete("/:id/members/:userId", adminMiddleware, ...removeProjectMember);

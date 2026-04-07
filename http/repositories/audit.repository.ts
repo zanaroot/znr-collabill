@@ -10,7 +10,8 @@ export type AuditAction =
   | "DELETE"
   | "VIEW"
   | "LOGIN"
-  | "LOGOUT";
+  | "LOGOUT"
+  | "REMOVE_ACCESS";
 
 export type AuditEntity =
   | "USER"

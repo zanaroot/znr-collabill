@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusOutlined, UserOutlined } from "@ant-design/icons";
+import { DeleteOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons";
 import {
   Avatar,
   Button,
@@ -10,6 +10,7 @@ import {
   Empty,
   Flex,
   List,
+  Modal,
   message,
   Select,
   Space,
@@ -17,10 +18,17 @@ import {
   Typography,
 } from "antd";
 import { useState } from "react";
-import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
+import {
+  useCurrentUser,
+  useUsers,
+} from "@/app/(private)/team-management/_hooks/use-team";
 import type { Project } from "@/http/models/project.model";
 import { getAvatarUrl } from "@/lib/get-avatar-url";
-import { useAddProjectMember, useProjectMembers } from "../_hooks/use-projects";
+import {
+  useAddProjectMember,
+  useProjectMembers,
+  useRemoveProjectMember,
+} from "../_hooks/use-projects";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -38,11 +46,30 @@ export function ProjectDetailsDrawer({
   const [isGrantingAccess, setIsGrantingAccess] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | undefined>();
 
+  const { data: currentUser } = useCurrentUser();
   const { data: members, isLoading: isLoadingMembers } = useProjectMembers(
     project?.id ?? "",
   );
   const { data: allUsers, isLoading: isLoadingUsers } = useUsers();
   const addMemberMutation = useAddProjectMember();
+  const removeMemberMutation = useRemoveProjectMember();
+
+  const isAdminOrOwner =
+    currentUser?.organizationRole === "OWNER" ||
+    currentUser?.organizationRole === "ADMIN";
+
+  const canRemoveUser = (userId: string) => {
+    if (!isAdminOrOwner) return false;
+    if (
+      currentUser?.organizationRole === "OWNER" &&
+      userId === currentUser.id
+    ) {
+      return false;
+    }
+    return true;
+  };
+
+  const { confirm } = Modal;
 
   const handleGrantAccess = async () => {
     if (!project || !selectedUserId) return;
@@ -60,6 +87,28 @@ export function ProjectDetailsDrawer({
     }
   };
 
+  const handleRemoveAccess = async (userId: string, userName: string) => {
+    if (!project) return;
+
+    confirm({
+      title: "Remove Access",
+      content: `Are you sure you want to remove ${userName} from this project?`,
+      okText: "Remove",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await removeMemberMutation.mutateAsync({
+            projectId: project.id,
+            userId,
+          });
+          message.success("Access removed successfully");
+        } catch (error) {
+          message.error((error as Error).message || "Failed to remove access");
+        }
+      },
+    });
+  };
+
   const memberIds = new Set(members?.map((m) => m.id) ?? []);
   const availableUsers = allUsers?.filter((u) => !memberIds.has(u.id)) ?? [];
 
@@ -74,10 +123,10 @@ export function ProjectDetailsDrawer({
         onClose();
       }}
       open={open}
-      destroyOnClose
+      destroyOnHidden
     >
       {project ? (
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <Space orientation="vertical" size="large" style={{ width: "100%" }}>
           <section>
             <Title level={4}>{project.name}</Title>
             <Paragraph type="secondary">
@@ -104,7 +153,7 @@ export function ProjectDetailsDrawer({
               <Title level={5} style={{ margin: 0 }}>
                 Team Members
               </Title>
-              {!isGrantingAccess && (
+              {!isGrantingAccess && isAdminOrOwner && (
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}
@@ -121,22 +170,22 @@ export function ProjectDetailsDrawer({
                 size="small"
                 style={{ marginBottom: 16, backgroundColor: "#fafafa" }}
               >
-                <Space direction="vertical" style={{ width: "100%" }}>
+                <Space orientation="vertical" style={{ width: "100%" }}>
                   <Select
-                    showSearch
+                    showSearch={{
+                      filterOption: (input, option) =>
+                        (
+                          (option as { label: string; value: string })?.label ??
+                          ""
+                        )
+                          .toLowerCase()
+                          .includes(input.toLowerCase()),
+                    }}
                     placeholder="Select a user to grant access"
                     style={{ width: "100%" }}
                     loading={isLoadingUsers}
                     onChange={setSelectedUserId}
                     value={selectedUserId}
-                    filterOption={(input, option) =>
-                      (
-                        (option as { label: string; value: string })?.label ??
-                        ""
-                      )
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
                     options={availableUsers.map((u) => ({
                       label: `${u.name} (${u.email})`,
                       value: u.id,
@@ -172,7 +221,23 @@ export function ProjectDetailsDrawer({
                 itemLayout="horizontal"
                 dataSource={members}
                 renderItem={(item) => (
-                  <List.Item>
+                  <List.Item
+                    actions={
+                      isAdminOrOwner && canRemoveUser(item.id)
+                        ? [
+                          <Button
+                            key="remove"
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() =>
+                              handleRemoveAccess(item.id, item.name)
+                            }
+                          />,
+                        ]
+                        : undefined
+                    }
+                  >
                     <List.Item.Meta
                       avatar={
                         <Avatar

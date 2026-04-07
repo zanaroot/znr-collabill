@@ -12,6 +12,80 @@ import { logAudit } from "@/lib/audit";
 
 const factory = createFactory<AuthEnv>();
 
+export const removeProjectMember = factory.createHandlers(async (c) => {
+  const id = c.req.param("id");
+  const userIdToRemove = c.req.param("userId");
+  const user = c.get("user");
+
+  if (!id) {
+    return c.json({ error: "Project ID is required" }, 400);
+  }
+
+  if (!userIdToRemove) {
+    return c.json({ error: "User ID is required" }, 400);
+  }
+
+  const project = await projectRepository.findProjectById(id);
+  if (!project) {
+    return c.json({ error: "Project not found" }, 404);
+  }
+
+  if (project.organizationId !== user.organizationId) {
+    return c.json({ error: "Unauthorized" }, 403);
+  }
+
+  if (!user.organizationRole) {
+    return c.json({ error: "No organization role found" }, 403);
+  }
+
+  if (user.organizationRole !== "OWNER" && user.organizationRole !== "ADMIN") {
+    return c.json(
+      { error: "Forbidden: Only admin and owner can remove project members" },
+      403,
+    );
+  }
+
+  const projectCreator = await projectRepository.findProjectCreator(id);
+
+  if (user.organizationRole === "ADMIN") {
+    if (projectCreator === userIdToRemove) {
+      return c.json(
+        { error: "Cannot remove the project owner. Transfer ownership first." },
+        403,
+      );
+    }
+  }
+
+  if (user.organizationRole === "OWNER") {
+    if (userIdToRemove === user.id) {
+      return c.json(
+        { error: "You cannot remove yourself from the project" },
+        400,
+      );
+    }
+  }
+
+  const isMember = await projectRepository.isProjectMember(id, userIdToRemove);
+  if (!isMember) {
+    return c.json({ error: "User is not a member of this project" }, 404);
+  }
+
+  await projectRepository.removeProjectMember(id, userIdToRemove);
+
+  if (user.organizationId) {
+    await logAudit({
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "REMOVE_ACCESS",
+      entity: "PROJECT",
+      entityId: id,
+      metadata: { removedUserId: userIdToRemove },
+    });
+  }
+
+  return c.json({ message: "Member removed successfully" });
+});
+
 export const getProjects = factory.createHandlers(async (c) => {
   const user = c.get("user");
 

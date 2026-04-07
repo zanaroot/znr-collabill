@@ -74,6 +74,42 @@ export function useAddProjectMember() {
       queryClient.invalidateQueries({
         queryKey: projectKeys.members(variables.projectId),
       });
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.lists(),
+      });
+    },
+  });
+}
+
+export function useRemoveProjectMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      userId,
+    }: {
+      projectId: string;
+      userId: string;
+    }) => {
+      const res = await client.api.projects[":id"].members[":userId"].$delete({
+        param: { id: projectId, userId },
+      });
+      if (!res.ok) {
+        const error = (await res.json()) as ErrorResponse;
+        throw new Error(
+          error.error || error.message || "Failed to remove project member",
+        );
+      }
+      return (await res.json()) as { message: string };
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.members(variables.projectId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.lists(),
+      });
     },
   });
 }
