@@ -7,12 +7,14 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import { Button, Card, Col, Row, Space, Typography } from "antd";
+import { LandingPageSEO } from "./landing-page-seo";
 
-const { Title, Paragraph } = Typography;
+const { Paragraph } = Typography;
 
 const LandingPage = () => {
   return (
     <div style={{ background: "#fafafa" }}>
+      <LandingPageSEO />
       <section
         style={{
           padding: "120px 24px",
@@ -22,11 +24,11 @@ const LandingPage = () => {
       >
         <Row justify="center">
           <Col xs={24} md={18} lg={14} style={{ textAlign: "center" }}>
-            <Title style={{ color: "#fff", fontSize: 48 }}>
+            <h1 style={{ color: "#fff", fontSize: 48, margin: 0 }}>
               Manage Projects. Pay Collaborators.
               <br />
               Without the Headache.
-            </Title>
+            </h1>
 
             <Paragraph style={{ color: "#e6f4ff", fontSize: 18 }}>
               CollaBill helps you manage tasks, track presence, and
@@ -46,11 +48,12 @@ const LandingPage = () => {
       </section>
 
       <section style={{ padding: "80px 24px" }}>
+        <h2 style={{ textAlign: "center", marginBottom: 48 }}>Key Features</h2>
         <Row justify="center" gutter={[24, 24]}>
           <Col xs={24} md={8}>
             <Card variant="borderless">
               <ProjectOutlined style={{ fontSize: 32, color: "#1677ff" }} />
-              <Title level={4}>Kanban Project Management</Title>
+              <h3>Kanban Project Management</h3>
               <Paragraph>
                 Organize tasks with a simple and powerful Kanban board: To do,
                 In progress, Review, Validated.
@@ -61,7 +64,7 @@ const LandingPage = () => {
           <Col xs={24} md={8}>
             <Card variant="borderless">
               <TeamOutlined style={{ fontSize: 32, color: "#1677ff" }} />
-              <Title level={4}>Collaborator Control</Title>
+              <h3>Collaborator Control</h3>
               <Paragraph>
                 Invite collaborators, assign tasks, and control access without
                 exposing sensitive financial data.
@@ -72,7 +75,7 @@ const LandingPage = () => {
           <Col xs={24} md={8}>
             <Card variant="borderless">
               <DollarOutlined style={{ fontSize: 32, color: "#1677ff" }} />
-              <Title level={4}>Automatic Billing</Title>
+              <h3>Automatic Billing</h3>
               <Paragraph>
                 Daily presence + validated tasks automatically generate clean,
                 transparent monthly invoices.
@@ -85,9 +88,7 @@ const LandingPage = () => {
       <section style={{ padding: "80px 24px", background: "#fff" }}>
         <Row justify="center">
           <Col xs={24} md={18}>
-            <Title level={2} style={{ textAlign: "center" }}>
-              How CollaBill Works
-            </Title>
+            <h2 style={{ textAlign: "center" }}>How CollaBill Works</h2>
 
             <Row gutter={[24, 24]} style={{ marginTop: 48 }}>
               {[
@@ -115,7 +116,7 @@ const LandingPage = () => {
           background: "#f0f5ff",
         }}
       >
-        <Title level={2}>Ready to simplify your workflow?</Title>
+        <h2>Ready to simplify your workflow?</h2>
         <Paragraph>
           Start managing projects and paying collaborators the smart way.
         </Paragraph>

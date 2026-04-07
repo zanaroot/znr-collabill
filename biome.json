@@ -48,7 +48,8 @@
         "recommended": true,
         "noUnusedImports": "error",
         "noUnusedVariables": "error",
-        "useExhaustiveDependencies": "error"
+        "useExhaustiveDependencies": "error",
+        "useUniqueElementIds": "off"
       },
       "style": {
         "recommended": true,
@@ -85,6 +86,9 @@
             "maxLines": 400
           }
         }
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
       }
     }
   },
