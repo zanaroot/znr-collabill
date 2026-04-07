@@ -177,9 +177,9 @@ export function MemberList() {
   };
 
   const handleBaseRateMChange = (value: string) => {
-    const m = Number(value); // 🔥 mieux que parseFloat
+    const m = Number(value);
 
-    if (Number.isNaN(m)) return; // sécurité
+    if (Number.isNaN(m)) return;
 
     setBaseRateM(value);
 
@@ -218,17 +218,20 @@ export function MemberList() {
       title: "Name",
       dataIndex: "name",
       key: "name",
+      responsive: ["xs", "sm", "md", "lg", "xl"],
       render: (text) => <Typography.Text strong>{text}</Typography.Text>,
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
+      responsive: ["sm", "md", "lg", "xl"],
     },
     {
       title: "Role",
       dataIndex: "role",
       key: "role",
+      responsive: ["xs", "sm", "md", "lg", "xl"],
       render: (role: "OWNER" | "ADMIN" | "COLLABORATOR", record) => {
         if (isOwner) {
           return (
@@ -238,7 +241,7 @@ export function MemberList() {
                 record.id === currentUser?.id || updateRoleMutation.isPending
               }
               onChange={(value) => handleRoleChange(record.id, value)}
-              style={{ width: 130 }}
+              style={{ width: "100%", minWidth: 100 }}
               options={[
                 { value: "OWNER", label: "Owner" },
                 { value: "ADMIN", label: "Admin" },
@@ -265,9 +268,10 @@ export function MemberList() {
       },
     },
     {
-      title: "Joined At",
+      title: "Joined",
       dataIndex: "joinedAt",
       key: "joinedAt",
+      responsive: ["md", "lg", "xl"],
       render: (date: string | Date) =>
         date ? new Date(date).toLocaleDateString() : "-",
     },
@@ -275,10 +279,12 @@ export function MemberList() {
       title: "Actions",
       key: "actions",
       width: 100,
+      responsive: ["xs", "sm", "md", "lg", "xl"],
       render: (_, record) => (
-        <Flex gap={10}>
+        <Flex gap={4} wrap="wrap">
           {(isOwner || record.id === currentUser?.id) && (
             <Button
+              type="text"
               icon={<DollarOutlined />}
               size="small"
               onClick={() => openSizeModal(record)}
@@ -298,6 +304,7 @@ export function MemberList() {
             : isOwner && (
                 <Button
                   danger
+                  type="text"
                   icon={<DeleteOutlined />}
                   size="small"
                   onClick={() => handleDelete(record.id)}
@@ -316,18 +323,25 @@ export function MemberList() {
     <>
       <Card
         title={
-          <Title level={4} style={{ margin: 0 }}>
-            Team Members
-          </Title>
+          <Flex justify="space-between" align="center" wrap="wrap" gap={8}>
+            <Title level={4} style={{ margin: 0 }}>
+              Team Members
+            </Title>
+          </Flex>
         }
+        styles={{ body: { padding: "12px" } }}
       >
-        <Table
-          columns={columns}
-          dataSource={users}
-          rowKey="id"
-          loading={isLoading}
-          pagination={false}
-        />
+        <div className="table-responsive">
+          <Table
+            columns={columns}
+            dataSource={users}
+            rowKey="id"
+            loading={isLoading}
+            pagination={false}
+            scroll={{ x: "max-content" }}
+            size="middle"
+          />
+        </div>
       </Card>
 
       <Modal
@@ -338,13 +352,20 @@ export function MemberList() {
         okButtonProps={{ disabled: !isOwner }}
         cancelButtonProps={{ children: isOwner ? "Cancel" : "Close" }}
         confirmLoading={updateRatesMutation.isPending}
+        width={400}
+        styles={{ body: { padding: "16px" } }}
       >
-        <Flex vertical gap={10}>
-          <Flex gap={1} vertical>
+        <Flex vertical gap={12}>
+          <div>
+            <Typography.Text
+              strong
+              style={{ display: "block", marginBottom: 8 }}
+            >
+              M (Base)
+            </Typography.Text>
             <Input
-              prefix="M (Base) :"
+              prefix="€"
               placeholder="0"
-              suffix="€"
               value={baseRateM}
               onChange={
                 isOwner
@@ -353,48 +374,53 @@ export function MemberList() {
               }
               readOnly={!isOwner}
             />
-          </Flex>
-          <Flex gap={1} vertical>
+          </div>
+          <div>
+            <Typography.Text
+              strong
+              style={{ display: "block", marginBottom: 8 }}
+            >
+              XS
+            </Typography.Text>
+            <Input prefix="€" placeholder="0" value={rates.rateXs} readOnly />
+          </div>
+          <div>
+            <Typography.Text
+              strong
+              style={{ display: "block", marginBottom: 8 }}
+            >
+              S
+            </Typography.Text>
+            <Input prefix="€" placeholder="0" value={rates.rateS} readOnly />
+          </div>
+          <div>
+            <Typography.Text
+              strong
+              style={{ display: "block", marginBottom: 8 }}
+            >
+              L
+            </Typography.Text>
+            <Input prefix="€" placeholder="0" value={rates.rateL} readOnly />
+          </div>
+          <div>
+            <Typography.Text
+              strong
+              style={{ display: "block", marginBottom: 8 }}
+            >
+              XL
+            </Typography.Text>
+            <Input prefix="€" placeholder="0" value={rates.rateXl} readOnly />
+          </div>
+          <div>
+            <Typography.Text
+              strong
+              style={{ display: "block", marginBottom: 8 }}
+            >
+              Daily
+            </Typography.Text>
             <Input
-              prefix="XS  :"
+              prefix="€"
               placeholder="0"
-              suffix="€"
-              value={rates.rateXs}
-              readOnly
-            />
-          </Flex>
-          <Flex gap={1} vertical>
-            <Input
-              prefix="S  :"
-              placeholder="0"
-              suffix="€"
-              value={rates.rateS}
-              readOnly
-            />
-          </Flex>
-          <Flex gap={1} vertical>
-            <Input
-              prefix="L  :"
-              placeholder="0"
-              suffix="€"
-              value={rates.rateL}
-              readOnly
-            />
-          </Flex>
-          <Flex gap={1} vertical>
-            <Input
-              prefix="XL  :"
-              placeholder="0"
-              suffix="€"
-              value={rates.rateXl}
-              readOnly
-            />
-          </Flex>
-          <Flex gap={1} vertical>
-            <Input
-              prefix="Daily :"
-              placeholder="0"
-              suffix="€"
               value={rates.dailyRate}
               onChange={
                 isOwner
@@ -403,7 +429,7 @@ export function MemberList() {
               }
               readOnly={!isOwner}
             />
-          </Flex>
+          </div>
         </Flex>
       </Modal>
     </>

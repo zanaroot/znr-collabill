@@ -6,12 +6,23 @@ import {
   ContactsOutlined,
   FileTextOutlined,
   LeftOutlined,
+  MenuOutlined,
   ProjectOutlined,
   QuestionCircleOutlined,
   RightOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons";
-import { Badge, Breadcrumb, Button, Layout, Menu, Space, theme } from "antd";
+import {
+  Badge,
+  Breadcrumb,
+  Button,
+  Col,
+  Drawer,
+  Layout,
+  Row,
+  Space,
+  theme,
+} from "antd";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { type ReactNode, Suspense, useEffect, useState } from "react";
@@ -66,6 +77,7 @@ export const PrivateLayout = ({
 }) => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showPresenceModal, setShowPresenceModal] = useState(isMissingPresence);
   const { data: currentUser } = useCurrentUser();
   const [lastProjectId, setLastProjectId] = useState<string | null>(null);
@@ -83,91 +95,129 @@ export const PrivateLayout = ({
   const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
   const isOwner = currentUser?.organizationRole === "OWNER";
 
+  const menuItems = [
+    {
+      key: "task-board",
+      icon: <ContactsOutlined />,
+      label: (
+        <Link
+          href={
+            lastProjectId
+              ? `/task-board?projectId=${lastProjectId}`
+              : "/task-board"
+          }
+        >
+          Task Board
+        </Link>
+      ),
+    },
+    {
+      key: "projects",
+      icon: <ProjectOutlined />,
+      label: (
+        <Link href="/projects" prefetch>
+          Projects
+        </Link>
+      ),
+    },
+    {
+      key: "invoices",
+      icon: <FileTextOutlined />,
+      label: (
+        <Link href="/invoices" prefetch>
+          Invoices
+        </Link>
+      ),
+    },
+    {
+      key: "team-management",
+      icon: <UsergroupAddOutlined />,
+      label: (
+        <Link href="/team-management" prefetch>
+          {isOwner ? "Team Management" : "Team members"}
+        </Link>
+      ),
+    },
+    ...(isOwner
+      ? [
+          {
+            key: "type-organization",
+            icon: <ApartmentOutlined />,
+            label: (
+              <Link href="/type-organization" prefetch>
+                Organizations
+              </Link>
+            ),
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <Layout>
+    <Layout className="responsive-layout">
       <PresenceModal
         open={showPresenceModal}
         organizationId={organization?.id}
         onSuccess={() => setShowPresenceModal(false)}
       />
+
+      {/* Desktop Sider - sticky */}
       <Sider
+        className="desktop-sider"
         collapsible
         collapsed={collapsed}
         trigger={null}
         theme="light"
+        width={250}
+        collapsedWidth={80}
         style={{
           position: "sticky",
           top: 0,
           left: 0,
           height: "100vh",
+          overflow: "auto",
+          zIndex: 100,
         }}
       >
         <OrganizationSwitcher
           currentOrganization={organization}
           collapsed={collapsed}
         />
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          items={[
-            {
-              key: "task-board",
-              icon: <ContactsOutlined />,
-              label: (
-                <Link
-                  href={
-                    lastProjectId
-                      ? `/task-board?projectId=${lastProjectId}`
-                      : "/task-board"
-                  }
-                >
-                  Task Board
-                </Link>
-              ),
-            },
-            {
-              key: "projects",
-              icon: <ProjectOutlined />,
-              label: (
-                <Link href="/projects" prefetch>
-                  Projects
-                </Link>
-              ),
-            },
-            {
-              key: "invoices",
-              icon: <FileTextOutlined />,
-              label: (
-                <Link href="/invoices" prefetch>
-                  Invoices
-                </Link>
-              ),
-            },
-            {
-              key: "team-management",
-              icon: <UsergroupAddOutlined />,
-              label: (
-                <Link href="/team-management" prefetch>
-                  {isOwner ? "Team Management" : "Team members"}
-                </Link>
-              ),
-            },
-            ...(isOwner
-              ? [
-                  {
-                    key: "type-organization",
-                    icon: <ApartmentOutlined />,
-                    label: (
-                      <Link href="/type-organization" prefetch>
-                        Organizations
-                      </Link>
-                    ),
-                  },
-                ]
-              : []),
-          ]}
-        />
+        <div
+          style={{
+            padding: collapsed ? "8px 8px" : "8px 16px",
+          }}
+        >
+          {menuItems.map((item) => (
+            <Link
+              key={item.key}
+              href={
+                item.key === "task-board"
+                  ? lastProjectId
+                    ? `/task-board?projectId=${lastProjectId}`
+                    : "/task-board"
+                  : `/${item.key}`
+              }
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "12px 16px",
+                borderRadius: 8,
+                marginBottom: 4,
+                background:
+                  selectedKey === item.key ? "#e6f4ff" : "transparent",
+                color: selectedKey === item.key ? "#1677ff" : "inherit",
+                fontWeight: selectedKey === item.key ? 500 : 400,
+                textDecoration: "none",
+                transition: "all 0.2s",
+              }}
+            >
+              <span style={{ fontSize: 16, display: "flex" }}>{item.icon}</span>
+              {!collapsed && <span>{item.label.props.children}</span>}
+            </Link>
+          ))}
+        </div>
         <Button
           onClick={() => setCollapsed(!collapsed)}
           icon={
@@ -190,27 +240,52 @@ export const PrivateLayout = ({
           }}
         />
       </Sider>
+
       <Layout>
         <Header
-          style={{ padding: 0, background: colorBgContainer }}
-          className="flex items-center px-4! justify-between sticky top-0 z-10"
-        >
-          <Suspense fallback={<Breadcrumb items={[{ title: "Dashboard" }]} />}>
-            <DynamicBreadcrumb selectedKey={selectedKey} />
-          </Suspense>
-          <Space size={16}>
-            <QuestionCircleOutlined />
-            <Badge dot>
-              <BellOutlined />
-            </Badge>
-            <UserDropdownMenus />
-          </Space>
-        </Header>
-        <Content
           style={{
-            margin: "24px 16px",
+            padding: "0 16px",
+            background: colorBgContainer,
+          }}
+          className="responsive-header"
+        >
+          <Row
+            align="middle"
+            justify="space-between"
+            gutter={[16, 16]}
+            className="header-row"
+          >
+            <Col className="header-left">
+              <Button
+                type="text"
+                icon={<MenuOutlined />}
+                onClick={() => setMobileMenuOpen(true)}
+                className="mobile-menu-btn"
+              />
+              <Suspense
+                fallback={<Breadcrumb items={[{ title: "Dashboard" }]} />}
+              >
+                <DynamicBreadcrumb selectedKey={selectedKey} />
+              </Suspense>
+            </Col>
+            <Col className="header-right">
+              <Space size={16}>
+                <QuestionCircleOutlined className="header-icon" />
+                <Badge dot>
+                  <BellOutlined className="header-icon" />
+                </Badge>
+                <UserDropdownMenus />
+              </Space>
+            </Col>
+          </Row>
+        </Header>
+
+        <Content
+          className="responsive-content"
+          style={{
+            margin: "16px",
             padding: 18,
-            minHeight: "calc(100vh - 112px)",
+            minHeight: "calc(100vh - 64px)",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
@@ -218,6 +293,61 @@ export const PrivateLayout = ({
           {children}
         </Content>
       </Layout>
+
+      {/* Mobile Drawer Menu */}
+      <Drawer
+        title={
+          <div className="org-drawer-title">
+            <span style={{ fontWeight: 600 }}>Menu</span>
+          </div>
+        }
+        placement="left"
+        onClose={() => setMobileMenuOpen(false)}
+        open={mobileMenuOpen}
+        width={280}
+        className="mobile-drawer-menu"
+      >
+        <div className="mobile-menu-content">
+          <OrganizationSwitcher
+            currentOrganization={organization}
+            collapsed={false}
+          />
+          <div style={{ marginTop: 16 }}>
+            {menuItems.map((item) => (
+              <Link
+                key={item.key}
+                href={
+                  item.key === "task-board"
+                    ? lastProjectId
+                      ? `/task-board?projectId=${lastProjectId}`
+                      : "/task-board"
+                    : `/${item.key}`
+                }
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "14px 16px",
+                  borderRadius: 8,
+                  marginBottom: 4,
+                  background:
+                    selectedKey === item.key ? "#e6f4ff" : "transparent",
+                  color: selectedKey === item.key ? "#1677ff" : "inherit",
+                  fontWeight: selectedKey === item.key ? 500 : 400,
+                  textDecoration: "none",
+                  transition: "all 0.2s",
+                }}
+              >
+                <span style={{ fontSize: 18, display: "flex" }}>
+                  {item.icon}
+                </span>
+                <span>{item.label.props.children}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </Drawer>
     </Layout>
   );
 };

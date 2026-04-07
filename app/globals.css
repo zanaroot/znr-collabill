@@ -47,3 +47,625 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.page-container {
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .page-container {
+    padding: 24px;
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+  margin: -12px;
+  padding: 12px;
+}
+
+@media (min-width: 576px) {
+  .hidden-xs {
+    display: inline;
+  }
+}
+
+@media (max-width: 575px) {
+  .hidden-xs {
+    display: none;
+  }
+}
+
+/* Responsive Layout Styles */
+.responsive-layout {
+  min-height: 100vh;
+}
+
+.responsive-header {
+  padding: 0 12px !important;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.responsive-content {
+  margin: 12px !important;
+  padding: 16px !important;
+}
+
+@media (min-width: 768px) {
+  .responsive-header {
+    padding: 0 24px !important;
+  }
+  
+  .responsive-content {
+    margin: 16px 24px !important;
+    padding: 24px !important;
+  }
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: flex !important;
+  margin-right: 8px;
+}
+
+@media (min-width: 992px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+.header-icon {
+  font-size: 18px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.header-icon:hover {
+  color: #1677ff;
+}
+
+/* Header responsive */
+.header-row {
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 576px) {
+  .header-right .ant-space {
+    gap: 8px !important;
+  }
+  
+  .header-icon {
+    font-size: 16px;
+  }
+}
+
+/* Desktop Sider */
+@media (max-width: 991px) {
+  .desktop-sider {
+    display: none !important;
+  }
+}
+
+/* Mobile Drawer Menu */
+.mobile-drawer-menu .ant-drawer-body {
+  padding: 16px;
+}
+
+.mobile-menu-content .ant-avatar {
+  margin-bottom: 8px;
+}
+
+/* Form responsive */
+@media (max-width: 576px) {
+  .ant-form-item-label > label {
+    font-size: 14px;
+  }
+  
+  .ant-input,
+  .ant-select-selector,
+  .ant-input-number {
+    height: 40px;
+  }
+  
+  .ant-btn {
+    height: 40px;
+    min-height: 40px;
+    padding: 0 16px;
+  }
+}
+
+/* Table responsive fixes */
+.ant-table-wrapper .ant-table-thead > tr > th,
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  padding: 12px 8px !important;
+}
+
+@media (min-width: 768px) {
+  .ant-table-wrapper .ant-table-thead > tr > th,
+  .ant-table-wrapper .ant-table-tbody > tr > td {
+    padding: 16px !important;
+  }
+}
+
+/* Card responsive */
+.ant-card .ant-card-body {
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .ant-card .ant-card-body {
+    padding: 24px;
+  }
+}
+
+/* Touch-friendly spacing */
+@media (max-width: 767px) {
+  .ant-btn {
+    min-height: 44px;
+  }
+  
+  .ant-checkbox-wrapper,
+  .ant-radio-wrapper {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .ant-list-item {
+    padding: 12px 16px;
+  }
+}
+
+/* Modal responsive */
+.ant-modal-content {
+  padding: 16px;
+}
+
+@media (min-width: 576px) {
+  .ant-modal-content {
+    padding: 24px;
+  }
+}
+
+/* Drawer responsive */
+.ant-drawer-content {
+  padding: 16px;
+}
+
+/* Badge responsive */
+.ant-badge {
+  font-size: 14px;
+}
+
+/* Breadcrumb responsive */
+.ant-breadcrumb {
+  font-size: 14px;
+}
+
+@media (max-width: 576px) {
+  .ant-breadcrumb {
+    font-size: 12px;
+  }
+  
+  .ant-breadcrumb li.ant-breadcrumb-separator {
+    padding: 0 4px;
+  }
+}
+
+/* Typography responsive */
+h1 {
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+h2 {
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+h4 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 32px;
+  }
+  
+  h2 {
+    font-size: 24px;
+  }
+  
+  h3 {
+    font-size: 20px;
+  }
+  
+  h4 {
+    font-size: 18px;
+  }
+}
+
+/* Task Board Responsive */
+.responsive-task-board {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.task-board-header {
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(to right, #f8fafc, #fff);
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.dark .task-board-header {
+  border-color: #374151;
+  background: linear-gradient(to right, #111827, #1f2937);
+}
+
+.task-board-title-section {
+  margin-bottom: 16px;
+}
+
+.task-board-project-selector {
+  margin-bottom: 16px;
+}
+
+.project-selector-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-label {
+  min-width: unset;
+}
+
+.project-select {
+  width: 100% !important;
+  max-width: 300px;
+}
+
+.task-board-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.task-tag {
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.dark .task-tag {
+  border-color: #374151;
+  background: #1f2937;
+  color: #d1d5db;
+}
+
+@media (min-width: 768px) {
+  .task-board-header {
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  
+  .task-board-title-section {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .task-board-project-selector {
+    margin-bottom: 0;
+  }
+  
+  .project-selector-row {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .project-label {
+    min-width: 70px;
+  }
+  
+  .project-select {
+    width: auto !important;
+    min-width: 260px;
+  }
+}
+
+/* Kanban Board Columns */
+.kanban-board {
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.kanban-columns {
+  display: flex;
+  gap: 16px;
+  min-width: max-content;
+}
+
+.kanban-column {
+  width: 280px;
+  min-width: 280px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .kanban-column {
+    width: 260px;
+    min-width: 260px;
+  }
+}
+
+/* Task Form Grid */
+.task-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 576px) {
+  .task-form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Kanban View Toggle */
+.kanban-view-toggle {
+  margin-bottom: 12px;
+}
+
+.view-toggle {
+  width: 100%;
+  max-width: 300px;
+}
+
+@media (min-width: 576px) {
+  .kanban-view-toggle {
+    justify-content: flex-end;
+  }
+  
+  .view-toggle {
+    width: auto;
+  }
+}
+
+/* Task Drawer */
+.task-drawer .ant-drawer-body {
+  padding: 16px;
+}
+
+.task-drawer-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+@media (min-width: 576px) {
+  .task-drawer .ant-drawer-body {
+    padding: 24px;
+  }
+  
+  .task-drawer {
+    max-width: 600px;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Sign In Form */
+.signin-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  border-radius: 20px;
+  padding: 16px;
+}
+
+.signin-card {
+  width: 100% !important;
+  max-width: 450px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 16px !important;
+}
+
+.signin-card .ant-card-head {
+  padding: 16px 0;
+  border-bottom: none;
+}
+
+.signin-card .ant-card-head-title {
+  padding: 0;
+}
+
+.signin-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.signin-title {
+  margin-bottom: 8px !important;
+}
+
+.signin-input {
+  border-radius: 8px;
+}
+
+.signin-input:focus,
+.signin-input:hover {
+  border-color: #1677ff;
+}
+
+.signin-actions {
+  margin-bottom: 16px;
+}
+
+.signin-submit-btn {
+  min-width: 100px;
+  border-radius: 8px;
+  background: #1677ff;
+}
+
+.signin-submit-btn:hover {
+  background: #4096ff;
+}
+
+.signin-forgot {
+  color: #1677ff;
+  font-size: 14px;
+}
+
+.signin-forgot:hover {
+  text-decoration: underline;
+}
+
+.signin-divider {
+  margin: 16px 0 !important;
+}
+
+.signin-footer {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.signin-signup {
+  color: #1677ff;
+  font-weight: 500;
+}
+
+.signin-signup:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 640px) {
+  .signin-container {
+    padding: 24px;
+  }
+  
+  .signin-card {
+    padding: 32px !important;
+  }
+}
+
+/* Invoice Page Responsive */
+.invoice-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.invoice-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.invoice-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dark .invoice-filters {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+@media (min-width: 768px) {
+  .invoice-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .invoice-filters {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+  }
+}
+
+.invoice-summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.invoice-summary-item {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dark .invoice-summary-item {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+@media (min-width: 1024px) {
+  .invoice-summary-section {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .invoice-summary-item {
+    flex: 1;
+  }
+}
+
+/* No Print Responsive */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

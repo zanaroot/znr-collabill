@@ -2,7 +2,7 @@ import { ProjectList } from "@/app/(private)/projects/_components/project-list";
 
 const ProjectsPage = () => {
   return (
-    <div className="p-6">
+    <div className="page-container">
       <ProjectList />
     </div>
   );

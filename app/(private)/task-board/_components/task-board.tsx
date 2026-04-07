@@ -67,7 +67,6 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
     }
   }, [projectIdParam]);
 
-  // 3. Handle dropdown change: Update URL directly (which triggers sync effect #2)
   const handleProjectChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("projectId", value);
@@ -75,47 +74,44 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 dark:border-gray-800 bg-linear-to-r from-slate-50 to-white dark:from-gray-900 dark:to-gray-800 p-5 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <Title level={3} style={{ margin: 0 }} className="dark:text-white">
-              Task Board
-            </Title>
-            <Text type="secondary" className="dark:text-gray-400">
-              Track work by status and move cards across columns.
-            </Text>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {isLoadingProjects ? (
-              <Spin />
-            ) : projects?.length ? (
-              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-                <Text type="secondary" className="min-w-[70px]">
-                  Project
-                </Text>
-                <Select
-                  value={projectId}
-                  onChange={handleProjectChange}
-                  options={projects.map((project) => ({
-                    label: project.name,
-                    value: project.id,
-                  }))}
-                  style={{ minWidth: 260 }}
-                />
-              </div>
-            ) : null}
-          </div>
+    <div className="responsive-task-board">
+      <div className="task-board-header">
+        <div className="task-board-title-section">
+          <Title level={3} style={{ margin: 0 }} className="dark:text-white">
+            Task Board
+          </Title>
+          <Text type="secondary" className="dark:text-gray-400">
+            Track work by status and move cards across columns.
+          </Text>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1 text-xs font-medium text-slate-700 dark:text-gray-300">
+        <div className="task-board-project-selector">
+          {isLoadingProjects ? (
+            <Spin />
+          ) : projects?.length ? (
+            <div className="project-selector-row">
+              <Text type="secondary" className="project-label">
+                Project
+              </Text>
+              <Select
+                value={projectId}
+                onChange={handleProjectChange}
+                options={projects.map((project) => ({
+                  label: project.name,
+                  value: project.id,
+                }))}
+                className="project-select"
+                popupMatchSelectWidth={false}
+              />
+            </div>
+          ) : null}
+        </div>
+
+        <div className="task-board-tags">
+          <span className="task-tag">
             {selectedProject?.name ?? "No project selected"}
           </span>
-          <span className="rounded-full border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1 text-xs font-medium text-slate-700 dark:text-gray-300">
-            {taskCount} tasks
-          </span>
+          <span className="task-tag">{taskCount} tasks</span>
         </div>
       </div>
 

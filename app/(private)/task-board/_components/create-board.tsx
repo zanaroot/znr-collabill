@@ -281,7 +281,7 @@ export function CreateBoard({
 
   return (
     <>
-      <div className="mb-3 flex items-center justify-end">
+      <div className="mb-3 flex items-center justify-end kanban-view-toggle">
         <Segmented
           options={[
             { label: "All", value: "ALL" },
@@ -290,13 +290,14 @@ export function CreateBoard({
           ]}
           value={boardView}
           onChange={(value) => setBoardView(value as BoardView)}
+          className="view-toggle"
         />
       </div>
 
-      <div className="overflow-x-auto pb-2">
-        <div className="flex min-w-max gap-4">
+      <div className="overflow-x-auto pb-2 kanban-board">
+        <div className="flex min-w-max gap-4 kanban-columns">
           {tasksByStatus.map(({ status, tasks: columnTasks }) => (
-            <div key={status} className="w-[320px] shrink-0">
+            <div key={status} className="w-[320px] shrink-0 kanban-column">
               <Column
                 status={status}
                 tasks={columnTasks}
@@ -335,9 +336,14 @@ export function CreateBoard({
         placement="right"
         open={drawerOpen}
         onClose={handleClose}
-        size="large"
-        extra={
-          <Space>
+        width="100%"
+        className="task-drawer"
+        styles={{
+          body: { padding: 16 },
+          header: { padding: "12px 16px" },
+        }}
+        footer={
+          <div className="task-drawer-footer">
             {!isEditing && activeTask && (isProjectOwner || isAdmin) && (
               <Button type="primary" onClick={() => setIsEditing(true)}>
                 Edit
@@ -345,7 +351,14 @@ export function CreateBoard({
             )}
 
             {isEditing && (
-              <>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  justifyContent: "flex-end",
+                }}
+              >
                 {activeTask && canDeleteActiveTask && (
                   <Button danger onClick={handleDelete} loading={isDeleting}>
                     Delete
@@ -357,9 +370,9 @@ export function CreateBoard({
                 <Button type="primary" onClick={handleSave} loading={isSaving}>
                   {activeTask ? "Save" : "Create"}
                 </Button>
-              </>
+              </div>
             )}
-          </Space>
+          </div>
         }
       >
         <div className="flex flex-col gap-5">
@@ -385,9 +398,9 @@ export function CreateBoard({
             {renderField(
               <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                 <Space vertical size={8} style={{ width: "100%" }}>
-                  <Text strong className="dark:text-white">
+                  <Typography.Text strong className="dark:text-white">
                     Task title
-                  </Text>
+                  </Typography.Text>
                   <Input
                     value={formValues.title}
                     onChange={(e) =>
@@ -403,14 +416,16 @@ export function CreateBoard({
               </div>,
 
               <InfoRow label="Task title">
-                <Text strong>{formValues.title || "Untitled task"}</Text>
+                <Typography.Text strong>
+                  {formValues.title || "Untitled task"}
+                </Typography.Text>
               </InfoRow>,
             )}
 
             {renderField(
               <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                 <Space vertical size={8} style={{ width: "100%" }}>
-                  <Text strong>Description</Text>
+                  <Typography.Text strong>Description</Typography.Text>
                   <Input.TextArea
                     value={formValues.description}
                     onChange={(e) =>
@@ -419,7 +434,7 @@ export function CreateBoard({
                         description: e.target.value,
                       }))
                     }
-                    rows={5}
+                    rows={3}
                     placeholder="Add details..."
                   />
                 </Space>
@@ -433,10 +448,10 @@ export function CreateBoard({
             )}
 
             {renderField(
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="task-form-grid">
                 <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                   <Space vertical size={8} style={{ width: "100%" }}>
-                    <Text strong>Due date</Text>
+                    <Typography.Text strong>Due date</Typography.Text>
                     <Input
                       type="date"
                       value={formValues.dueDate ?? ""}
@@ -452,7 +467,7 @@ export function CreateBoard({
 
                 <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                   <Space vertical size={8} style={{ width: "100%" }}>
-                    <Text strong>Status</Text>
+                    <Typography.Text strong>Status</Typography.Text>
                     <Select
                       value={formValues.status}
                       onChange={(value) =>

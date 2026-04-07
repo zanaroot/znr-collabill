@@ -151,12 +151,14 @@ export function ProjectList() {
       title: "Name",
       dataIndex: "name",
       key: "name",
+      responsive: ["xs", "sm", "md", "lg", "xl"],
       render: (text) => <Typography.Text strong>{text}</Typography.Text>,
     },
     {
       title: "Description",
       dataIndex: "description",
       key: "description",
+      responsive: ["md", "lg", "xl"],
       render: (text) =>
         text || (
           <Typography.Text type="secondary">No description</Typography.Text>
@@ -166,9 +168,10 @@ export function ProjectList() {
       title: "Git Repository",
       dataIndex: "gitRepo",
       key: "gitRepo",
+      responsive: ["lg", "xl"],
       render: (text) =>
         text ? (
-          <Typography.Link href={text} target="_blank">
+          <Typography.Link href={text} target="_blank" ellipsis>
             {text}
           </Typography.Link>
         ) : (
@@ -179,21 +182,28 @@ export function ProjectList() {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
+      responsive: ["sm", "md", "lg", "xl"],
       render: (date: string | Date) =>
         date ? new Date(date).toLocaleDateString() : "-",
     },
     {
       title: "Actions",
       key: "actions",
-      width: 150,
+      width: 100,
+      responsive: ["xs", "sm", "md", "lg", "xl"],
       render: (_, record) => (
-        <Flex gap={8}>
+        <Flex gap={4}>
           <Button
+            type="text"
             icon={<EditOutlined />}
             size="small"
-            onClick={() => onEdit(record)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(record);
+            }}
           />
           <Button
+            type="text"
             danger
             icon={<DeleteOutlined />}
             size="small"
@@ -201,7 +211,10 @@ export function ProjectList() {
               deleteProjectMutation.isPending &&
               deleteProjectMutation.variables === record.id
             }
-            onClick={() => handleDelete(record.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(record.id);
+            }}
           />
         </Flex>
       ),
@@ -212,41 +225,59 @@ export function ProjectList() {
     <>
       <Card
         title={
-          <Flex justify="space-between" align="center">
+          <Flex justify="space-between" align="center" wrap="wrap">
             <Title level={4} style={{ margin: 0 }}>
               Projects
             </Title>
             {currentUser?.organizationRole === "OWNER" && (
-              <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={onAdd}
+                size="middle"
+                className="hidden-xs"
+              >
                 New Project
               </Button>
             )}
           </Flex>
         }
+        styles={{
+          body: { padding: "12px" },
+        }}
       >
-        <Table
-          columns={columns}
-          dataSource={projects}
-          rowKey="id"
-          loading={isFetching}
-          pagination={{ pageSize: 10 }}
-          onRow={(record) => ({
-            onClick: (event) => {
-              // Don't open details if clicking on buttons or links
-              const target = event.target as HTMLElement;
-              if (
-                target.tagName === "BUTTON" ||
-                target.tagName === "A" ||
-                target.closest("button") ||
-                target.closest("a")
-              ) {
-                return;
-              }
-              setSelectedProjectForDetails(record);
-            },
-            style: { cursor: "pointer" },
-          })}
-        />
+        <div className="table-responsive">
+          <Table
+            columns={columns}
+            dataSource={projects}
+            rowKey="id"
+            loading={isFetching}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} projects`,
+              pageSizeOptions: ["5", "10", "20"],
+            }}
+            scroll={{ x: "max-content" }}
+            size="middle"
+            onRow={(record) => ({
+              onClick: (event) => {
+                const target = event.target as HTMLElement;
+                if (
+                  target.tagName === "BUTTON" ||
+                  target.tagName === "A" ||
+                  target.closest("button") ||
+                  target.closest("a")
+                ) {
+                  return;
+                }
+                setSelectedProjectForDetails(record);
+              },
+              style: { cursor: "pointer" },
+            })}
+          />
+        </div>
       </Card>
 
       <ProjectDetailsDrawer
@@ -257,91 +288,107 @@ export function ProjectList() {
 
       <Drawer
         title={editingProject ? "Edit project" : "Create a new project"}
-        size={400}
+        width={500}
         onClose={() => {
           setIsDrawerOpen(false);
           setEditingProject(null);
           reset();
         }}
         open={isDrawerOpen}
-        extra={
-          <Button
-            type="primary"
-            onClick={handleSubmit(onFormSubmit)}
-            loading={
-              createProjectMutation.isPending || updateProjectMutation.isPending
-            }
-          >
-            {editingProject ? "Update" : "Submit"}
-          </Button>
+        styles={{
+          body: { paddingBottom: 80 },
+        }}
+        footer={
+          <Flex justify="flex-end" gap={8}>
+            <Button
+              onClick={() => {
+                setIsDrawerOpen(false);
+                setEditingProject(null);
+                reset();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleSubmit(onFormSubmit)}
+              loading={
+                createProjectMutation.isPending ||
+                updateProjectMutation.isPending
+              }
+            >
+              {editingProject ? "Update" : "Submit"}
+            </Button>
+          </Flex>
         }
       >
         <Form layout="vertical">
-          <Controller
-            name="name"
-            control={control}
-            render={({ field }) => (
-              <Form.Item
-                label="Project Name"
-                required
-                validateStatus={errors.name ? "error" : ""}
-                help={errors.name?.message}
-              >
+          <Form.Item
+            label="Project Name"
+            required
+            validateStatus={errors.name ? "error" : ""}
+            help={errors.name?.message}
+          >
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => (
                 <Input {...field} placeholder="Enter project name" />
-              </Form.Item>
-            )}
-          />
+              )}
+            />
+          </Form.Item>
 
-          <Controller
-            name="gitRepo"
-            control={control}
-            render={({ field }) => (
-              <Form.Item
-                label="Git Repository URL"
-                validateStatus={errors.gitRepo ? "error" : ""}
-                help={errors.gitRepo?.message}
-              >
+          <Form.Item
+            label="Git Repository URL"
+            validateStatus={errors.gitRepo ? "error" : ""}
+            help={errors.gitRepo?.message}
+          >
+            <Controller
+              name="gitRepo"
+              control={control}
+              render={({ field }) => (
                 <Input {...field} placeholder="https://github.com/user/repo" />
-              </Form.Item>
-            )}
-          />
+              )}
+            />
+          </Form.Item>
 
-          <Controller
-            name="description"
-            control={control}
-            render={({ field }) => (
-              <Form.Item
-                label="Description"
-                validateStatus={errors.description ? "error" : ""}
-                help={errors.description?.message}
-              >
+          <Form.Item
+            label="Description"
+            validateStatus={errors.description ? "error" : ""}
+            help={errors.description?.message}
+          >
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
                 <TextArea
                   {...field}
-                  rows={4}
+                  rows={3}
                   placeholder="Enter project description"
                 />
-              </Form.Item>
-            )}
-          />
+              )}
+            />
+          </Form.Item>
 
-          <Controller
-            name="baseRate"
-            control={control}
-            render={({ field }) => (
-              <Form.Item
-                label="Base Rate"
-                validateStatus={errors.baseRate ? "error" : ""}
-                help={errors.baseRate?.message}
-              >
+          <Form.Item
+            label="Base Rate"
+            validateStatus={errors.baseRate ? "error" : ""}
+            help={errors.baseRate?.message}
+          >
+            <Controller
+              name="baseRate"
+              control={control}
+              render={({ field }) => (
                 <InputNumber
                   {...field}
                   min={0}
                   step={0.01}
                   placeholder="Enter base rate"
+                  style={{ width: "100%" }}
                 />
-              </Form.Item>
-            )}
-          />
+              )}
+            />
+          </Form.Item>
         </Form>
       </Drawer>
     </>

@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Button, Flex, Space } from "antd";
+import { Button } from "antd";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
@@ -11,24 +11,17 @@ import { getOrganizationMembers } from "@/http/repositories/organization.reposit
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
-import { InvoiceComments } from "./_components/invoice-comments";
+import { InvoiceContentWrapper } from "./_components/invoice-content-wrapper";
 import { InvoiceFilters } from "./_components/invoice-filters";
 import { InvoiceHistoryTable } from "./_components/invoice-history-table";
-import { InvoicePrintable } from "./_components/invoice-printable";
-import {
-  type PresenceSummary,
-  PresenceSummaryTable,
-} from "./_components/presence-summary-table";
-import {
-  type RawTaskSummary,
-  TaskSummaryTable,
-} from "./_components/task-summary-table";
+import type { PresenceSummary } from "./_components/presence-summary-table";
+import type { RawTaskSummary } from "./_components/task-summary-table";
 
-export default async function InvoicesPage({
+const InvoicesPage = async ({
   searchParams,
 }: {
   searchParams: Promise<{ memberId?: string; periodId?: string }>;
-}) {
+}) => {
   const user = await getCurrentUser();
   const { memberId, periodId } = await searchParams;
 
@@ -84,13 +77,13 @@ export default async function InvoicesPage({
   const showHistory = !periodId && !memberId && history.length > 0;
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex items-center justify-between no-print">
+    <div className="invoice-page">
+      <div className="invoice-header no-print">
         <div className="flex items-center gap-4">
           {!showHistory && history.length > 0 && (
             <Link href="/invoices">
               <Button icon={<ArrowLeftOutlined />} type="text">
-                Back to History
+                Back
               </Button>
             </Link>
           )}
@@ -99,7 +92,8 @@ export default async function InvoicesPage({
           </h1>
         </div>
       </div>
-      <div className="no-print flex flex-col gap-4">
+
+      <div className="no-print">
         <InvoiceFilters
           members={members}
           currentUserId={user.id}
@@ -119,46 +113,19 @@ export default async function InvoicesPage({
       {showHistory ? (
         <InvoiceHistoryTable data={history} isOwner={isOwner} />
       ) : (
-        <Flex justify="space-between" gap={24}>
-          <Space orientation="vertical" style={{ width: "50%", flex: 1 }}>
-            <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 no-print">
-              <h2 className="text-lg font-medium mb-4 dark:text-white">
-                Daily Presence Summary
-              </h2>
-              <PresenceSummaryTable
-                data={presenceSummary as unknown as PresenceSummary[]}
-              />
-            </div>
-            {taskSummary.length > 0 && (
-              <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 no-print">
-                <h2 className="text-lg font-medium mb-4 dark:text-white">
-                  Validated Tasks Summary
-                </h2>
-                <TaskSummaryTable
-                  data={taskSummary as unknown as RawTaskSummary[]}
-                />
-              </div>
-            )}
-          </Space>
-          <Space orientation="vertical">
-            <InvoicePrintable
-              presenceData={presenceSummary as unknown as PresenceSummary[]}
-              taskData={taskSummary as unknown as RawTaskSummary[]}
-              organizationName={user.organizationName || "Organization"}
-              organizationId={user.organizationId}
-              targetUserName={targetUserName}
-              targetUserId={targetUserId}
-              periodId={selectedPeriod.id}
-              periodStart={selectedPeriod.startDate}
-              periodEnd={selectedPeriod.endDate}
-              periodName={selectedPeriod.name}
-              existingInvoice={existingInvoice}
-              isOwner={isOwner}
-            />
-            <InvoiceComments invoiceId={existingInvoice?.id ?? null} />
-          </Space>
-        </Flex>
+        <InvoiceContentWrapper
+          presenceSummary={presenceSummary as unknown as PresenceSummary[]}
+          taskSummary={taskSummary as unknown as RawTaskSummary[]}
+          user={user}
+          targetUserName={targetUserName}
+          targetUserId={targetUserId}
+          selectedPeriod={selectedPeriod}
+          existingInvoice={existingInvoice}
+          isOwner={isOwner}
+        />
       )}
     </div>
   );
-}
+};
+
+export default InvoicesPage;

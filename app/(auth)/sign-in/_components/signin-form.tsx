@@ -4,11 +4,12 @@ import { useMutation } from "@tanstack/react-query";
 import {
   Button,
   Card,
+  Col,
   Divider,
-  Flex,
   Form,
   Input,
   message,
+  Row,
   Typography,
 } from "antd";
 import Link from "next/link";
@@ -62,18 +63,16 @@ export const SignInForm = () => {
   };
 
   return (
-    <div className="w-[100%] flex items-center justify-center bg-gray-50 rounded-[20px]">
-      <Card
-        title={
-          <div className="text-center mt-5">
-            <Typography.Title level={3}>Sign In</Typography.Title>
-            <Typography.Text type="secondary">
-              Sign in to your account
-            </Typography.Text>
-          </div>
-        }
-        className="w-[450px] shadow-lg p-8"
-      >
+    <div className="signin-container">
+      <Card className="signin-card">
+        <div className="signin-header">
+          <Typography.Title level={3} className="signin-title">
+            Sign In
+          </Typography.Title>
+          <Typography.Text type="secondary">
+            Sign in to your account
+          </Typography.Text>
+        </div>
         <Form layout="vertical" onFinish={onFinish}>
           <Form.Item
             name="email"
@@ -82,7 +81,8 @@ export const SignInForm = () => {
           >
             <Input
               placeholder="Enter your email"
-              className="rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
+              className="signin-input"
+              size="large"
             />
           </Form.Item>
 
@@ -92,42 +92,46 @@ export const SignInForm = () => {
             rules={[{ required: true, message: "Please input your password!" }]}
           >
             <Input.Password
-              placeholder="••••••••"
-              className="rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
+              placeholder="Enter your password"
+              className="signin-input"
+              size="large"
             />
           </Form.Item>
 
-          <Flex justify="space-between" className="mb-6">
-            <Form.Item className="mb-0">
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={isPending}
-                className="bg-blue-600 hover:bg-blue-700 transition-colors rounded-md w-32"
-              >
-                Sign In
-              </Button>
-            </Form.Item>
-            <Form.Item className="mb-0">
-              <Link
-                href="/forgot-password"
-                className="text-blue-600 hover:underline transition-colors"
-              >
+          <Row
+            justify="space-between"
+            align="middle"
+            className="signin-actions"
+          >
+            <Col>
+              <Form.Item className="mb-0">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={isPending}
+                  className="signin-submit-btn"
+                  size="large"
+                >
+                  Sign In
+                </Button>
+              </Form.Item>
+            </Col>
+            <Col>
+              <Link href="/forgot-password" className="signin-forgot">
                 Forgot Password?
               </Link>
-            </Form.Item>
-          </Flex>
+            </Col>
+          </Row>
 
-          <Divider plain>Or</Divider>
+          <Divider plain className="signin-divider">
+            Or
+          </Divider>
 
-          <div className="text-center mt-4">
+          <div className="signin-footer">
             <Typography.Text type="secondary">
               Don't have an account?{" "}
             </Typography.Text>
-            <Link
-              href="/sign-up"
-              className="text-blue-600 font-medium hover:underline"
-            >
+            <Link href="/sign-up" className="signin-signup">
               Sign up
             </Link>
           </div>
