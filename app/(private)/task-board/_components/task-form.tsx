@@ -1,6 +1,21 @@
 "use client";
 
-import { Input, Segmented, Select, Space, Tag, Typography } from "antd";
+import {
+  Button,
+  Input,
+  Modal,
+  message,
+  Segmented,
+  Select,
+  Space,
+  Tag,
+  Typography,
+} from "antd";
+import { useState } from "react";
+import {
+  useCreateProjectBranch,
+  useProjectBranches,
+} from "@/app/(private)/projects/_hooks/use-projects";
 import type { TaskSize } from "@/http/models/task.model";
 import { TASK_SIZES, TASK_STATUSES } from "@/http/models/task.model";
 import { formatDueDate } from "@/lib/date";
@@ -26,6 +41,7 @@ type TaskFormProps = {
   onFormValuesChange: (values: TaskFormValues) => void;
   isEditing: boolean;
   members: TaskMembers;
+  projectId?: string;
 };
 
 export function TaskForm({
@@ -33,12 +49,45 @@ export function TaskForm({
   onFormValuesChange,
   isEditing,
   members,
+  projectId,
 }: TaskFormProps) {
+  const { data: branches, isLoading: isLoadingBranches } =
+    useProjectBranches(projectId);
+  const { mutate: createBranch, isPending: isCreatingBranch } =
+    useCreateProjectBranch();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newBranchName, setNewBranchName] = useState("");
+  const [sourceBranch, setSourceBranch] = useState("main");
+
   const updateField = <K extends keyof TaskFormValues>(
     field: K,
     value: TaskFormValues[K],
   ) => {
     onFormValuesChange({ ...formValues, [field]: value });
+  };
+
+  const handleCreateBranch = () => {
+    if (!projectId || !newBranchName || !sourceBranch) return;
+
+    createBranch(
+      {
+        projectId,
+        newBranchName,
+        sourceBranchName: sourceBranch,
+      },
+      {
+        onSuccess: () => {
+          message.success(`Branch ${newBranchName} created successfully`);
+          updateField("gitBranch", newBranchName);
+          setIsModalOpen(false);
+          setNewBranchName("");
+        },
+        onError: (error) => {
+          message.error(error.message || "Failed to create branch");
+        },
+      },
+    );
   };
 
   const renderField = (
@@ -211,11 +260,29 @@ export function TaskForm({
       {renderField(
         <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <Space vertical size={8} style={{ width: "100%" }}>
-            <Text strong>Git Branch</Text>
-            <Input
+            <div className="flex items-center justify-between">
+              <Text strong>Git Branch</Text>
+              <Button
+                type="link"
+                size="small"
+                onClick={() => setIsModalOpen(true)}
+                disabled={!projectId}
+              >
+                Create new branch
+              </Button>
+            </div>
+            <Select
+              showSearch
+              loading={isLoadingBranches}
               value={formValues.gitBranch}
-              onChange={(e) => updateField("gitBranch", e.target.value)}
-              placeholder="feature/my-branch"
+              onChange={(value) => updateField("gitBranch", value)}
+              placeholder="Select a branch"
+              options={branches?.map((branch) => ({
+                label: branch,
+                value: branch,
+              }))}
+              style={{ width: "100%" }}
+              allowClear
             />
           </Space>
         </div>,
@@ -224,6 +291,40 @@ export function TaskForm({
           <Typography.Text code>{formValues.gitBranch || "—"}</Typography.Text>
         </InfoRow>,
       )}
+
+      <Modal
+        title="Create New Git Branch"
+        open={isModalOpen}
+        onOk={handleCreateBranch}
+        onCancel={() => setIsModalOpen(false)}
+        confirmLoading={isCreatingBranch}
+        okButtonProps={{ disabled: !newBranchName || !sourceBranch }}
+      >
+        <Space vertical size={16} style={{ width: "100%", marginTop: 16 }}>
+          <Space vertical size={8} style={{ width: "100%" }}>
+            <Text strong>Source Branch</Text>
+            <Select
+              showSearch
+              value={sourceBranch}
+              onChange={setSourceBranch}
+              placeholder="Select source branch"
+              options={branches?.map((branch) => ({
+                label: branch,
+                value: branch,
+              }))}
+              style={{ width: "100%" }}
+            />
+          </Space>
+          <Space vertical size={8} style={{ width: "100%" }}>
+            <Text strong>New Branch Name</Text>
+            <Input
+              value={newBranchName}
+              onChange={(e) => setNewBranchName(e.target.value)}
+              placeholder="feature/my-new-task"
+            />
+          </Space>
+        </Space>
+      </Modal>
     </Space>
   );
 }

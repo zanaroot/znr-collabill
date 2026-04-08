@@ -2,8 +2,10 @@ import { Hono } from "hono";
 import {
   addProjectMember,
   createProject,
+  createProjectBranch,
   deleteProject,
   getProject,
+  getProjectBranches,
   getProjectMembers,
   getProjects,
   removeProjectMember,
@@ -17,6 +19,8 @@ import {
 export const projectRoutes = new Hono()
   .get("/", ...getProjects)
   .get("/:id", ...getProject)
+  .get("/:id/branches", ...getProjectBranches)
+  .post("/:id/branches", ...createProjectBranch)
   .post("/", ownerMiddleware, ...createProject)
   .put("/:id", adminMiddleware, ...updateProject)
   .delete("/:id", adminMiddleware, ...deleteProject)

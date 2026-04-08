@@ -9,8 +9,87 @@ import {
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import { logAudit } from "@/lib/audit";
+import { createBranch, fetchBranches } from "@/lib/github";
 
 const factory = createFactory<AuthEnv>();
+
+export const getProjectBranches = factory.createHandlers(async (c) => {
+  const id = c.req.param("id");
+  const user = c.get("user");
+
+  if (!id) {
+    return c.json({ error: "Project ID is required" }, 400);
+  }
+
+  const project = await projectRepository.findProjectById(id);
+  if (!project) {
+    return c.json({ error: "Project not found" }, 404);
+  }
+
+  if (project.organizationId !== user.organizationId) {
+    return c.json({ error: "Unauthorized" }, 403);
+  }
+
+  if (!project.gitRepo) {
+    return c.json([]);
+  }
+
+  const branches = await fetchBranches(project.gitRepo);
+  return c.json(branches);
+});
+
+export const createProjectBranch = factory.createHandlers(
+  zValidator(
+    "json",
+    z.object({
+      newBranchName: z.string().min(1),
+      sourceBranchName: z.string().min(1),
+    }),
+  ),
+  async (c) => {
+    const id = c.req.param("id");
+    const user = c.get("user");
+    const { newBranchName, sourceBranchName } = c.req.valid("json");
+
+    if (!id) {
+      return c.json({ error: "Project ID is required" }, 400);
+    }
+
+    const project = await projectRepository.findProjectById(id);
+    if (!project) {
+      return c.json({ error: "Project not found" }, 404);
+    }
+
+    if (project.organizationId !== user.organizationId) {
+      return c.json({ error: "Unauthorized" }, 403);
+    }
+
+    if (!project.gitRepo) {
+      return c.json({ error: "Project does not have a Git repository" }, 400);
+    }
+
+    const success = await createBranch(
+      project.gitRepo,
+      newBranchName,
+      sourceBranchName,
+    );
+
+    if (!success) {
+      return c.json({ error: "Failed to create branch" }, 500);
+    }
+
+    await logAudit({
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "UPDATE",
+      entity: "PROJECT",
+      entityId: id,
+      metadata: { newBranch: newBranchName, sourceBranch: sourceBranchName },
+    });
+
+    return c.json({ message: "Branch created successfully" }, 201);
+  },
+);
 
 export const removeProjectMember = factory.createHandlers(async (c) => {
   const id = c.req.param("id");

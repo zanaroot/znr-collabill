@@ -9,6 +9,7 @@ import { client } from "@/packages/hono";
 export const projectKeys = {
   all: ["projects"] as const,
   lists: () => [...projectKeys.all, "list"] as const,
+  branches: (id: string) => [...projectKeys.all, id, "branches"] as const,
   members: (id: string) => [...projectKeys.all, id, "members"] as const,
 };
 
@@ -24,6 +25,54 @@ export function useProjects() {
       const res = await client.api.projects.$get();
       if (!res.ok) throw new Error("Failed to fetch projects");
       return (await res.json()) as Project[];
+    },
+  });
+}
+
+export function useProjectBranches(projectId?: string) {
+  return useQuery({
+    queryKey: projectKeys.branches(projectId || ""),
+    queryFn: async () => {
+      if (!projectId) return [];
+      const res = await client.api.projects[":id"].branches.$get({
+        param: { id: projectId },
+      });
+      if (!res.ok) throw new Error("Failed to fetch project branches");
+      return (await res.json()) as string[];
+    },
+    enabled: !!projectId,
+  });
+}
+
+export function useCreateProjectBranch() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      newBranchName,
+      sourceBranchName,
+    }: {
+      projectId: string;
+      newBranchName: string;
+      sourceBranchName: string;
+    }) => {
+      const res = await client.api.projects[":id"].branches.$post({
+        param: { id: projectId },
+        json: { newBranchName, sourceBranchName },
+      });
+      if (!res.ok) {
+        const error = (await res.json()) as ErrorResponse;
+        throw new Error(
+          error.error || error.message || "Failed to create project branch",
+        );
+      }
+      return (await res.json()) as { message: string };
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.branches(variables.projectId),
+      });
     },
   });
 }

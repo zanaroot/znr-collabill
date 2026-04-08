@@ -106,6 +106,7 @@ export function CreateBoard({
         hasPermission={hasPermission}
         members={members}
         projectName={projectName}
+        projectId={projectId}
         activeTask={board.activeTask}
       />
     </>

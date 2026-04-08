@@ -9,6 +9,7 @@ export const serverEnv = parseEnv(
     BREVO_API_KEY: process.env.BREVO_API_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
     MAIL_FROM: process.env.MAIL_FROM,
+    GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NODE_ENV: process.env.NODE_ENV,
     SEED_COLLABORATOR_EMAIL: process.env.SEED_COLLABORATOR_EMAIL,

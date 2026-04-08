@@ -24,6 +24,7 @@ type TaskDrawerProps = {
   hasPermission: boolean;
   members: TaskMembers;
   projectName?: string;
+  projectId?: string;
   activeTask: TaskModel | null;
 };
 
@@ -42,6 +43,7 @@ export function TaskDrawer({
   hasPermission,
   members,
   projectName,
+  projectId,
   activeTask,
 }: TaskDrawerProps) {
   const handleClose = () => {
@@ -125,6 +127,7 @@ export function TaskDrawer({
           onFormValuesChange={onFormValuesChange}
           isEditing={isEditing}
           members={members}
+          projectId={activeTask?.projectId || projectId}
         />
 
         {activeTask && <TaskComments taskId={activeTask.id} />}
