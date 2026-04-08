@@ -6,9 +6,13 @@ const octokit = new Octokit({
 });
 
 if (!serverEnv.GITHUB_TOKEN) {
-  console.warn("[GitHub] GITHUB_TOKEN is not set in environment variables. Write operations will fail on private repos and some API calls may be rate limited.");
+  console.warn(
+    "[GitHub] GITHUB_TOKEN is not set in environment variables. Write operations will fail on private repos and some API calls may be rate limited.",
+  );
 } else {
-  console.log("[GitHub] GITHUB_TOKEN is present (length: " + serverEnv.GITHUB_TOKEN.length + ")");
+  console.log(
+    `[GitHub] GITHUB_TOKEN is present (length: ${serverEnv.GITHUB_TOKEN.length})`,
+  );
 }
 
 /**
@@ -75,8 +79,11 @@ export const getBranchSha = async (
       ref: `heads/${branchName}`,
     });
     return data.object.sha;
-  } catch (error: any) {
-    console.error(`[GitHub] Error fetching SHA for branch ${branchName}:`, error.message);
+  } catch (error) {
+    console.error(
+      `[GitHub] Error fetching SHA for branch ${branchName}:`,
+      error,
+    );
     return null;
   }
 };
@@ -95,11 +102,16 @@ export const createBranch = async (
   }
 
   try {
-    console.log(`[GitHub] Creating branch "${newBranchName}" from "${sourceBranchName}" in ${details.owner}/${details.repo}`);
-    
+    console.log(
+      `[GitHub] Creating branch "${newBranchName}" from "${sourceBranchName}" in ${details.owner}/${details.repo}`,
+    );
+
     const sha = await getBranchSha(repoUrl, sourceBranchName);
     if (!sha) {
-      return { success: false, error: `Could not find SHA for source branch "${sourceBranchName}"` };
+      return {
+        success: false,
+        error: `Could not find SHA for source branch "${sourceBranchName}"`,
+      };
     }
 
     await octokit.rest.git.createRef({
@@ -108,10 +120,13 @@ export const createBranch = async (
       ref: `refs/heads/${newBranchName}`,
       sha,
     });
-    
+
     return { success: true };
-  } catch (error: any) {
-    console.error(`[GitHub] Error creating branch ${newBranchName}:`, error.message);
-    return { success: false, error: error.message || "Unknown GitHub error" };
+  } catch (error: unknown) {
+    console.error(`[GitHub] Error creating branch ${newBranchName}:`, error);
+    return {
+      success: false,
+      error: (error as Error).message || "Unknown GitHub error",
+    };
   }
 };

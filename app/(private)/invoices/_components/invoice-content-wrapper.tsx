@@ -70,7 +70,7 @@ export const InvoiceContentWrapper = ({
           </div>
         )}
       </Space>
-      <div style={{ width: isVertical ? "100%" : "450px" }}>
+      <div style={{ width: isVertical ? "100%" : "50%" }}>
         <Space orientation="vertical" style={{ width: "100%" }} size="large">
           <InvoicePrintable
             presenceData={presenceSummary}
