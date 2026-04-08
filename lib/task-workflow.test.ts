@@ -11,7 +11,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "TODO",
         to: "TODO",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toBe(true);
     });
@@ -20,7 +20,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "TODO",
         to: "IN_PROGRESS",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toBe(true);
     });
@@ -29,7 +29,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "TODO",
         to: "BLOCKED",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toBe(true);
     });
@@ -38,7 +38,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "TODO",
         to: "TRASH",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toBe(true);
     });
@@ -47,7 +47,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "IN_PROGRESS",
         to: "IN_REVIEW",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toBe(true);
     });
@@ -56,7 +56,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "IN_PROGRESS",
         to: "TODO",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toBe(true);
     });
@@ -65,7 +65,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "BLOCKED",
         to: "TODO",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toBe(true);
     });
@@ -74,43 +74,88 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "BLOCKED",
         to: "TRASH",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toBe(true);
     });
 
-    it("IN_REVIEW cannot transition without project owner", () => {
+    it("IN_REVIEW cannot transition without owner/admin", () => {
       const result = canTransitionTaskStatus({
         from: "IN_REVIEW",
         to: "VALIDATED",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toBe(false);
     });
 
-    it("IN_REVIEW can transition to TRASH as project owner", () => {
+    it("IN_REVIEW can transition to TRASH as owner", () => {
       const result = canTransitionTaskStatus({
         from: "IN_REVIEW",
         to: "TRASH",
-        isProjectOwner: true,
+        userRole: "OWNER",
       });
       expect(result).toBe(true);
     });
 
-    it("IN_REVIEW can transition to IN_PROGRESS as project owner", () => {
+    it("IN_REVIEW can transition to TRASH as admin", () => {
+      const result = canTransitionTaskStatus({
+        from: "IN_REVIEW",
+        to: "TRASH",
+        userRole: "ADMIN",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("IN_REVIEW can transition to IN_PROGRESS as owner", () => {
       const result = canTransitionTaskStatus({
         from: "IN_REVIEW",
         to: "IN_PROGRESS",
-        isProjectOwner: true,
+        userRole: "OWNER",
       });
       expect(result).toBe(true);
     });
 
-    it("IN_REVIEW can transition to VALIDATED as project owner", () => {
+    it("IN_REVIEW can transition to VALIDATED as owner", () => {
       const result = canTransitionTaskStatus({
         from: "IN_REVIEW",
         to: "VALIDATED",
-        isProjectOwner: true,
+        userRole: "OWNER",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("BACKLOG cannot be moved without owner/admin", () => {
+      const result = canTransitionTaskStatus({
+        from: "BACKLOG",
+        to: "TODO",
+        userRole: "COLLABORATOR",
+      });
+      expect(result).toBe(false);
+    });
+
+    it("BACKLOG can be moved to TODO as owner", () => {
+      const result = canTransitionTaskStatus({
+        from: "BACKLOG",
+        to: "TODO",
+        userRole: "OWNER",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("BACKLOG can be moved to TODO as admin", () => {
+      const result = canTransitionTaskStatus({
+        from: "BACKLOG",
+        to: "TODO",
+        userRole: "ADMIN",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("BACKLOG can be moved to TRASH as owner", () => {
+      const result = canTransitionTaskStatus({
+        from: "BACKLOG",
+        to: "TRASH",
+        userRole: "OWNER",
       });
       expect(result).toBe(true);
     });
@@ -119,7 +164,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "VALIDATED",
         to: "TODO",
-        isProjectOwner: true,
+        userRole: "OWNER",
       });
       expect(result).toBe(false);
     });
@@ -128,7 +173,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "TRASH",
         to: "TODO",
-        isProjectOwner: true,
+        userRole: "OWNER",
       });
       expect(result).toBe(false);
     });
@@ -137,7 +182,7 @@ describe("task-workflow", () => {
       const result = canTransitionTaskStatus({
         from: "ARCHIVED",
         to: "TODO",
-        isProjectOwner: true,
+        userRole: "OWNER",
       });
       expect(result).toBe(false);
     });
@@ -147,7 +192,7 @@ describe("task-workflow", () => {
     it("returns all transitions from TODO", () => {
       const result = getAllowedTaskTransitions({
         from: "TODO",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toContain("IN_PROGRESS");
       expect(result).toContain("BLOCKED");
@@ -157,7 +202,7 @@ describe("task-workflow", () => {
     it("returns all transitions from IN_PROGRESS", () => {
       const result = getAllowedTaskTransitions({
         from: "IN_PROGRESS",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toContain("BLOCKED");
       expect(result).toContain("TRASH");
@@ -168,25 +213,61 @@ describe("task-workflow", () => {
     it("returns empty array from VALIDATED", () => {
       const result = getAllowedTaskTransitions({
         from: "VALIDATED",
-        isProjectOwner: false,
+        userRole: "COLLABORATOR",
       });
       expect(result).toHaveLength(0);
     });
 
-    it("returns IN_REVIEW transitions for project owner", () => {
+    it("returns IN_REVIEW transitions for owner", () => {
       const result = getAllowedTaskTransitions({
         from: "IN_REVIEW",
-        isProjectOwner: true,
+        userRole: "OWNER",
       });
       expect(result).toContain("TRASH");
       expect(result).toContain("IN_PROGRESS");
       expect(result).toContain("VALIDATED");
     });
 
-    it("returns empty array from IN_REVIEW for non-owner", () => {
+    it("returns IN_REVIEW transitions for admin", () => {
       const result = getAllowedTaskTransitions({
         from: "IN_REVIEW",
-        isProjectOwner: false,
+        userRole: "ADMIN",
+      });
+      expect(result).toContain("TRASH");
+      expect(result).toContain("IN_PROGRESS");
+      expect(result).toContain("VALIDATED");
+    });
+
+    it("returns empty array from IN_REVIEW for collaborator", () => {
+      const result = getAllowedTaskTransitions({
+        from: "IN_REVIEW",
+        userRole: "COLLABORATOR",
+      });
+      expect(result).toHaveLength(0);
+    });
+
+    it("returns BACKLOG transitions for owner", () => {
+      const result = getAllowedTaskTransitions({
+        from: "BACKLOG",
+        userRole: "OWNER",
+      });
+      expect(result).toContain("TODO");
+      expect(result).toContain("TRASH");
+    });
+
+    it("returns BACKLOG transitions for admin", () => {
+      const result = getAllowedTaskTransitions({
+        from: "BACKLOG",
+        userRole: "ADMIN",
+      });
+      expect(result).toContain("TODO");
+      expect(result).toContain("TRASH");
+    });
+
+    it("returns empty array from BACKLOG for collaborator", () => {
+      const result = getAllowedTaskTransitions({
+        from: "BACKLOG",
+        userRole: "COLLABORATOR",
       });
       expect(result).toHaveLength(0);
     });
@@ -194,7 +275,7 @@ describe("task-workflow", () => {
     it("returns empty array from TRASH", () => {
       const result = getAllowedTaskTransitions({
         from: "TRASH",
-        isProjectOwner: true,
+        userRole: "OWNER",
       });
       expect(result).toHaveLength(0);
     });
@@ -202,7 +283,7 @@ describe("task-workflow", () => {
     it("returns empty array from ARCHIVED", () => {
       const result = getAllowedTaskTransitions({
         from: "ARCHIVED",
-        isProjectOwner: true,
+        userRole: "OWNER",
       });
       expect(result).toHaveLength(0);
     });
@@ -223,6 +304,10 @@ describe("task-workflow", () => {
 
     it("returns true for TRASH", () => {
       expect(canDeleteTaskByStatus("TRASH")).toBe(true);
+    });
+
+    it("returns false for BACKLOG", () => {
+      expect(canDeleteTaskByStatus("BACKLOG")).toBe(false);
     });
 
     it("returns false for IN_REVIEW", () => {

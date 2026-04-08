@@ -14,7 +14,6 @@ import {
   Input,
   List,
   message,
-  Space,
   Spin,
   Typography,
 } from "antd";
@@ -65,7 +64,7 @@ const CommentItem = ({
     try {
       await onUpdate(comment.id, editContent.trim());
       setIsEditing(false);
-    } catch (error) {
+    } catch {
       message.error("Failed to update comment");
     } finally {
       setIsSaving(false);

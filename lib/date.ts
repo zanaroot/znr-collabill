@@ -11,3 +11,12 @@ export const getFutureDate = (days: number = 7): Date => {
   date.setDate(date.getDate() + days);
   return date;
 };
+
+export const formatDueDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString();
+};

@@ -3,11 +3,11 @@ import type { TaskStatus } from "@/http/models/task.model";
 type TaskWorkflowContext = {
   from: TaskStatus;
   to: TaskStatus;
-  isProjectOwner: boolean;
+  userRole?: "OWNER" | "ADMIN" | "COLLABORATOR";
 };
 
 const COMMON_TRANSITIONS: Record<
-  Exclude<TaskStatus, "IN_REVIEW">,
+  Exclude<TaskStatus, "IN_REVIEW" | "BACKLOG">,
   readonly TaskStatus[]
 > = {
   TODO: ["IN_PROGRESS", "BLOCKED", "TRASH"],
@@ -21,12 +21,18 @@ const COMMON_TRANSITIONS: Record<
 export const canTransitionTaskStatus = ({
   from,
   to,
-  isProjectOwner,
+  userRole,
 }: TaskWorkflowContext) => {
   if (from === to) return true;
 
+  if (from === "BACKLOG") {
+    const canMoveFromBacklog = userRole === "OWNER" || userRole === "ADMIN";
+    if (!canMoveFromBacklog) return false;
+    return to === "TODO" || to === "TRASH";
+  }
+
   if (from === "IN_REVIEW") {
-    if (!isProjectOwner) return false;
+    if (!userRole || userRole === "COLLABORATOR") return false;
     return to === "TRASH" || to === "IN_PROGRESS" || to === "VALIDATED";
   }
 
@@ -35,10 +41,18 @@ export const canTransitionTaskStatus = ({
 
 export const getAllowedTaskTransitions = ({
   from,
-  isProjectOwner,
+  userRole,
 }: Omit<TaskWorkflowContext, "to">): TaskStatus[] => {
+  if (from === "BACKLOG") {
+    return userRole === "OWNER" || userRole === "ADMIN"
+      ? ["TODO", "TRASH"]
+      : [];
+  }
+
   if (from === "IN_REVIEW") {
-    return isProjectOwner ? ["TRASH", "IN_PROGRESS", "VALIDATED"] : [];
+    return userRole && userRole !== "COLLABORATOR"
+      ? ["TRASH", "IN_PROGRESS", "VALIDATED"]
+      : [];
   }
 
   return [...COMMON_TRANSITIONS[from]];

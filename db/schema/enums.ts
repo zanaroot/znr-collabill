@@ -3,6 +3,7 @@ import { pgEnum } from "drizzle-orm/pg-core";
 export const roleEnum = pgEnum("role", ["OWNER", "ADMIN", "COLLABORATOR"]);
 
 export const taskStatusEnum = pgEnum("task_status", [
+  "BACKLOG",
   "TODO",
   "IN_PROGRESS",
   "IN_REVIEW",

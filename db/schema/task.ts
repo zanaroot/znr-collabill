@@ -23,7 +23,7 @@ export const tasks = pgTable("tasks", {
   priority: integer("priority"),
   dueDate: date("due_date"),
   assignedTo: uuid("assigned_to").references(() => users.id),
-  status: taskStatusEnum("status").default("TODO"),
+  status: taskStatusEnum("status").default("BACKLOG"),
   validatedAt: timestamp("validated_at"),
   validatedBy: uuid("validated_by").references(() => users.id),
   archivedAt: timestamp("archived_at"),

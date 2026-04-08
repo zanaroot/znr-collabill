@@ -168,15 +168,13 @@ export const updateTask = factory.createHandlers(
       return c.json({ error: "Project not found" }, 404);
     }
 
-    const isProjectOwner = project.createdBy === user.id;
-
     const updates: UpdateTaskSystemInput = { ...payload };
 
     if (payload.status && payload.status !== task.status) {
       const canTransition = canTransitionTaskStatus({
         from: task.status,
         to: payload.status,
-        isProjectOwner,
+        userRole: user.organizationRole ?? undefined,
       });
 
       if (!canTransition) {

@@ -10,17 +10,18 @@ import {
   useUsers,
 } from "@/app/(private)/team-management/_hooks/use-team";
 import { useTasks } from "../_hooks/use-tasks";
-import { CreateBoard } from "./create-board";
+import { CreateBoard } from "./board";
 
 const { Title, Text } = Typography;
 
 type TaskBoardProps = {
   currentUserId?: string;
+  currentUserRole?: "OWNER" | "ADMIN" | "COLLABORATOR";
 };
 
 const LAST_PROJECT_KEY = "collabill_last_project_id";
 
-export function TaskBoard({ currentUserId }: TaskBoardProps) {
+export function TaskBoard({ currentUserId: _currentUserId }: TaskBoardProps) {
   const { data: currentUser } = useCurrentUser();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -42,6 +43,8 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
     () => projects?.find((project) => project.id === projectId),
     [projects, projectId],
   );
+
+  const userRole = currentUser?.organizationRole ?? undefined;
 
   useEffect(() => {
     if (projects?.length) {
@@ -122,7 +125,7 @@ export function TaskBoard({ currentUserId }: TaskBoardProps) {
           tasks={tasks ?? []}
           projectId={projectId}
           projectName={selectedProject?.name}
-          isProjectOwner={selectedProject?.createdBy === currentUserId}
+          userRole={userRole}
           isAdmin={
             currentUser?.organizationRole === "ADMIN" ||
             currentUser?.organizationRole === "OWNER"
