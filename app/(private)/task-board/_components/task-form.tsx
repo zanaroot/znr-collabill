@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Avatar,
   Button,
   Input,
   Modal,
@@ -70,12 +71,11 @@ export function TaskForm({
   const handleCreateBranch = () => {
     if (!projectId || !newBranchName || !sourceBranch) return;
 
-    // Slugify the branch name: lowercase, replace spaces/special chars with hyphens
     const slugifiedName = newBranchName
       .trim()
       .toLowerCase()
-      .replace(/[^a-z0-9._/-]+/g, "-") // Allow only safe characters
-      .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+      .replace(/[^a-z0-9._/-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
     if (!slugifiedName) {
       message.error("Please enter a valid branch name");
@@ -248,12 +248,45 @@ export function TaskForm({
               onChange={(value) => updateField("assigneeId", value ?? null)}
               placeholder="Select a member"
               options={members.map((m) => ({
-                label: m.name,
+                label: (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      width: "100%",
+                    }}
+                  >
+                    <Avatar size="small" src={m.avatar ?? undefined} />
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      <Text style={{ fontSize: 14 }}>{m.name}</Text>
+                      {m.role && (
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          {m.role}
+                        </Text>
+                      )}
+                    </div>
+                  </div>
+                ),
                 value: m.id,
+                searchValue: m.name,
               }))}
+              optionLabelProp="label"
               style={{ width: "100%" }}
               allowClear
               onClear={() => updateField("assigneeId", null)}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.searchValue as string)
+                  ?.toLowerCase()
+                  .includes(input.toLowerCase())
+              }
             />
           </Space>
         </div>,
@@ -261,6 +294,7 @@ export function TaskForm({
         <InfoRow label="Assignee">
           {assignee ? (
             <div className="flex items-center gap-2">
+              <Avatar size="small" src={assignee.avatar ?? undefined} />
               <Text>{assignee.name}</Text>
             </div>
           ) : (

@@ -4,11 +4,11 @@ import { Select, Spin, Typography } from "antd";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useEffect, useMemo, useState } from "react";
-import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 import {
-  useCurrentUser,
-  useUsers,
-} from "@/app/(private)/team-management/_hooks/use-team";
+  useProjectMembers,
+  useProjects,
+} from "@/app/(private)/projects/_hooks/use-projects";
+import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
 import { useTasks } from "../_hooks/use-tasks";
 import { CreateBoard } from "./board";
 
@@ -36,7 +36,8 @@ export function TaskBoard({ currentUserId: _currentUserId }: TaskBoardProps) {
 
   const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
 
-  const { data: users } = useUsers();
+  const { data: projectMembers, isLoading: isLoadingMembers } =
+    useProjectMembers(projectId || "");
   const taskCount = tasks?.length ?? 0;
 
   const selectedProject = useMemo(
@@ -118,7 +119,7 @@ export function TaskBoard({ currentUserId: _currentUserId }: TaskBoardProps) {
         </div>
       </div>
 
-      {isLoadingTasks ? (
+      {isLoadingTasks || isLoadingMembers ? (
         <Spin />
       ) : (
         <CreateBoard
@@ -131,10 +132,11 @@ export function TaskBoard({ currentUserId: _currentUserId }: TaskBoardProps) {
             currentUser?.organizationRole === "OWNER"
           }
           members={
-            users?.map((user) => ({
+            projectMembers?.map((user) => ({
               id: user.id,
               name: user.name || user.email,
               avatar: user.avatar,
+              role: user.role,
             })) ?? []
           }
         />

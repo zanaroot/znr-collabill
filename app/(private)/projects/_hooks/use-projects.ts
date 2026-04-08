@@ -90,6 +90,7 @@ export function useProjectMembers(projectId: string) {
         name: string;
         email: string;
         avatar: string | null;
+        role: "OWNER" | "ADMIN" | "COLLABORATOR";
       }[];
     },
     enabled: !!projectId,

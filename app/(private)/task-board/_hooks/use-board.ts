@@ -21,7 +21,12 @@ import {
   useUpdateTask,
 } from "../_hooks/use-tasks";
 
-export type TaskMembers = { id: string; name: string; avatar: string | null }[];
+export type TaskMembers = {
+  id: string;
+  name: string;
+  avatar: string | null;
+  role?: string;
+}[];
 
 export type UseBoardOptions = {
   tasks: TaskModel[];

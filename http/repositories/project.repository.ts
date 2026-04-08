@@ -192,15 +192,31 @@ export const getOrganizationRole = async (
 };
 
 export const findProjectMembers = async (projectId: string) => {
+  const [project] = await db
+    .select({ organizationId: projects.organizationId })
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
+
+  if (!project) return [];
+
   return await db
     .select({
       id: users.id,
       name: users.name,
       email: users.email,
       avatar: users.avatar,
+      role: organizationMembers.role,
     })
     .from(users)
     .innerJoin(projectMembers, eq(users.id, projectMembers.userId))
+    .innerJoin(
+      organizationMembers,
+      and(
+        eq(users.id, organizationMembers.userId),
+        eq(organizationMembers.organizationId, project.organizationId),
+      ),
+    )
     .where(eq(projectMembers.projectId, projectId));
 };
 

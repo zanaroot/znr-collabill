@@ -10,7 +10,12 @@ const { Text, Paragraph } = Typography;
 
 export type TaskCardProps = {
   task: TaskModel;
-  members: { id: string; name: string; avatar: string | null }[];
+  members: {
+    id: string;
+    name: string;
+    avatar: string | null;
+    role?: string;
+  }[];
   canDrag: boolean;
   isDragging: boolean;
   onClick: () => void;
