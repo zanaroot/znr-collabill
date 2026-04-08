@@ -5,6 +5,12 @@ const octokit = new Octokit({
   auth: serverEnv.GITHUB_TOKEN || undefined,
 });
 
+if (!serverEnv.GITHUB_TOKEN) {
+  console.warn("[GitHub] GITHUB_TOKEN is not set in environment variables. Write operations will fail on private repos and some API calls may be rate limited.");
+} else {
+  console.log("[GitHub] GITHUB_TOKEN is present (length: " + serverEnv.GITHUB_TOKEN.length + ")");
+}
+
 /**
  * Extracts owner and repo from a GitHub URL.
  * Supports:
@@ -69,8 +75,8 @@ export const getBranchSha = async (
       ref: `heads/${branchName}`,
     });
     return data.object.sha;
-  } catch (error) {
-    console.error(`Error fetching SHA for branch ${branchName}:`, error);
+  } catch (error: any) {
+    console.error(`[GitHub] Error fetching SHA for branch ${branchName}:`, error.message);
     return null;
   }
 };
@@ -82,13 +88,19 @@ export const createBranch = async (
   repoUrl: string,
   newBranchName: string,
   sourceBranchName: string,
-): Promise<boolean> => {
+): Promise<{ success: boolean; error?: string }> => {
   const details = getRepoDetails(repoUrl);
-  if (!details) return false;
+  if (!details) {
+    return { success: false, error: "Invalid GitHub repository URL" };
+  }
 
   try {
+    console.log(`[GitHub] Creating branch "${newBranchName}" from "${sourceBranchName}" in ${details.owner}/${details.repo}`);
+    
     const sha = await getBranchSha(repoUrl, sourceBranchName);
-    if (!sha) return false;
+    if (!sha) {
+      return { success: false, error: `Could not find SHA for source branch "${sourceBranchName}"` };
+    }
 
     await octokit.rest.git.createRef({
       owner: details.owner,
@@ -96,9 +108,10 @@ export const createBranch = async (
       ref: `refs/heads/${newBranchName}`,
       sha,
     });
-    return true;
-  } catch (error) {
-    console.error(`Error creating branch ${newBranchName}:`, error);
-    return false;
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error(`[GitHub] Error creating branch ${newBranchName}:`, error.message);
+    return { success: false, error: error.message || "Unknown GitHub error" };
   }
 };

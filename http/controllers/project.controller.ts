@@ -68,14 +68,14 @@ export const createProjectBranch = factory.createHandlers(
       return c.json({ error: "Project does not have a Git repository" }, 400);
     }
 
-    const success = await createBranch(
+    const result = await createBranch(
       project.gitRepo,
       newBranchName,
       sourceBranchName,
     );
 
-    if (!success) {
-      return c.json({ error: "Failed to create branch" }, 500);
+    if (!result.success) {
+      return c.json({ error: result.error || "Failed to create branch" }, 500);
     }
 
     await logAudit({

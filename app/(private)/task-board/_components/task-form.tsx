@@ -70,16 +70,28 @@ export function TaskForm({
   const handleCreateBranch = () => {
     if (!projectId || !newBranchName || !sourceBranch) return;
 
+    // Slugify the branch name: lowercase, replace spaces/special chars with hyphens
+    const slugifiedName = newBranchName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9._/-]+/g, "-") // Allow only safe characters
+      .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+
+    if (!slugifiedName) {
+      message.error("Please enter a valid branch name");
+      return;
+    }
+
     createBranch(
       {
         projectId,
-        newBranchName,
+        newBranchName: slugifiedName,
         sourceBranchName: sourceBranch,
       },
       {
         onSuccess: () => {
-          message.success(`Branch ${newBranchName} created successfully`);
-          updateField("gitBranch", newBranchName);
+          message.success(`Branch ${slugifiedName} created successfully`);
+          updateField("gitBranch", slugifiedName);
           setIsModalOpen(false);
           setNewBranchName("");
         },
