@@ -2,6 +2,7 @@
 
 import { Segmented } from "antd";
 import type { Task as TaskModel } from "@/http/models/task.model";
+import type { Role } from "@/http/models/user.model";
 import {
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
@@ -14,7 +15,7 @@ type CreateBoardProps = {
   tasks: TaskModel[];
   projectId?: string;
   projectName?: string;
-  userRole?: "OWNER" | "ADMIN" | "COLLABORATOR";
+  userRole?: Role;
   members: TaskMembers;
   isAdmin: boolean;
 };
@@ -108,6 +109,7 @@ export function CreateBoard({
         projectName={projectName}
         projectId={projectId}
         activeTask={board.activeTask}
+        userRole={userRole}
       />
     </>
   );

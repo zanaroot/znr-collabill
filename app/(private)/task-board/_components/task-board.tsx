@@ -9,6 +9,7 @@ import {
   useProjects,
 } from "@/app/(private)/projects/_hooks/use-projects";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
+import type { Role } from "@/http/models/user.model";
 import { useTasks } from "../_hooks/use-tasks";
 import { CreateBoard } from "./board";
 
@@ -16,7 +17,7 @@ const { Title, Text } = Typography;
 
 type TaskBoardProps = {
   currentUserId?: string;
-  currentUserRole?: "OWNER" | "ADMIN" | "COLLABORATOR";
+  currentUserRole?: Role;
 };
 
 const LAST_PROJECT_KEY = "collabill_last_project_id";

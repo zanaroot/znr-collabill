@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { db } from "@/db";
 import { organizationMembers } from "@/db/schema";
 import type { AuthUser } from "@/http/models/auth.model";
+import type { Role } from "@/http/models/user.model";
 import { findValidSessionByToken } from "@/http/repositories/session.repository";
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {
@@ -16,7 +17,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   const result = await findValidSessionByToken(token);
   if (!result) return null;
 
-  let organizationRole: "OWNER" | "ADMIN" | "COLLABORATOR" | null = null;
+  let organizationRole: Role | null = null;
   if (result.session.organizationId) {
     const members = await db
       .select({ role: organizationMembers.role })

@@ -19,8 +19,9 @@ import {
   useCreateProjectBranch,
   useProjectBranches,
 } from "@/app/(private)/projects/_hooks/use-projects";
-import type { TaskSize } from "@/http/models/task.model";
-import { TASK_SIZES, TASK_STATUSES } from "@/http/models/task.model";
+import type { TaskSize, TaskStatus } from "@/http/models/task.model";
+import { TASK_SIZES } from "@/http/models/task.model";
+import type { Role } from "@/http/models/user.model";
 import { formatDueDate } from "@/lib/date";
 import {
   getPriorityTagColor,
@@ -29,6 +30,7 @@ import {
   type TaskFormValues,
 } from "@/lib/priority";
 import { formatStatus } from "@/lib/status-task";
+import { getAllowedTaskTransitions } from "@/lib/task-workflow";
 import type { TaskMembers } from "./column";
 import { InfoRow } from "./info-row";
 
@@ -45,6 +47,7 @@ type TaskFormProps = {
   isEditing: boolean;
   members: TaskMembers;
   projectId?: string;
+  userRole?: Role;
 };
 
 export function TaskForm({
@@ -53,6 +56,7 @@ export function TaskForm({
   isEditing,
   members,
   projectId,
+  userRole,
 }: TaskFormProps) {
   const { data: branches, isLoading: isLoadingBranches } =
     useProjectBranches(projectId);
@@ -180,13 +184,16 @@ export function TaskForm({
           <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
             <Space vertical size={8} style={{ width: "100%" }}>
               <Typography.Text strong>Status</Typography.Text>
-              <Select
+              <Select<TaskStatus>
                 value={formValues.status}
+                optionLabelProp="label"
+                placeholder="Select status"
                 onChange={(value) => updateField("status", value)}
-                options={TASK_STATUSES.filter(
-                  (status) => status !== "ARCHIVED",
-                ).map((status) => ({
-                  label: formatStatus(status),
+                options={getAllowedTaskTransitions({
+                  from: formValues.status,
+                  userRole,
+                }).map((status) => ({
+                  label: <span>{formatStatus(status)}</span>,
                   value: status,
                 }))}
                 style={{ width: "100%" }}
@@ -292,12 +299,12 @@ export function TaskForm({
               style={{ width: "100%" }}
               allowClear
               onClear={() => updateField("assigneeId", null)}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.searchValue as string)
-                  ?.toLowerCase()
-                  .includes(input.toLowerCase())
-              }
+              showSearch={{
+                filterOption: (input, option) =>
+                  (option?.searchValue as string)
+                    ?.toLowerCase()
+                    .includes(input.toLowerCase()),
+              }}
             />
           </Space>
         </div>,

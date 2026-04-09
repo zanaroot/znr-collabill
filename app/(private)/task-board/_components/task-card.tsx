@@ -40,10 +40,10 @@ export function TaskCard({
 
   const descriptionImages = task.description
     ? Array.from(
-      new DOMParser()
-        .parseFromString(task.description, "text/html")
-        .querySelectorAll("img"),
-    ).map((img) => img.src)
+        new DOMParser()
+          .parseFromString(task.description, "text/html")
+          .querySelectorAll("img"),
+      ).map((img) => img.src)
     : [];
 
   return (

@@ -20,7 +20,11 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import type { CollaboratorRate, UserWithRoles } from "@/http/models/user.model";
+import type {
+  CollaboratorRate,
+  Role,
+  UserWithRoles,
+} from "@/http/models/user.model";
 import {
   useCollaboratorRates,
   useCurrentUser,
@@ -101,10 +105,7 @@ export function MemberList() {
     });
   };
 
-  const handleRoleChange = async (
-    id: string,
-    role: "OWNER" | "ADMIN" | "COLLABORATOR",
-  ) => {
+  const handleRoleChange = async (id: string, role: Role) => {
     const performUpdate = async () => {
       try {
         await updateRoleMutation.mutateAsync({ id, role });
@@ -232,7 +233,7 @@ export function MemberList() {
       dataIndex: "role",
       key: "role",
       responsive: ["xs", "sm", "md", "lg", "xl"],
-      render: (role: "OWNER" | "ADMIN" | "COLLABORATOR", record) => {
+      render: (role: Role, record) => {
         if (isOwner) {
           return (
             <Select

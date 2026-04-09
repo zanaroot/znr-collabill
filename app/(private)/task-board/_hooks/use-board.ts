@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
+import type { Role } from "@/http/models/user.model";
 import {
   BOARD_VIEW_STATUSES,
   type BoardView,
@@ -31,7 +32,7 @@ export type TaskMembers = {
 export type UseBoardOptions = {
   tasks: TaskModel[];
   projectId?: string;
-  userRole?: "OWNER" | "ADMIN" | "COLLABORATOR";
+  userRole?: Role;
 };
 
 export type UseBoardReturn = {
@@ -252,16 +253,12 @@ export function useBoard({
   };
 }
 
-export function useCanMoveToStatus(
-  userRole?: "OWNER" | "ADMIN" | "COLLABORATOR",
-) {
+export function useCanMoveToStatus(userRole?: Role) {
   return (from: TaskStatus, to: TaskStatus) =>
     canTransitionTaskStatus({ from, to, userRole });
 }
 
-export function useCanDragFromStatus(
-  userRole?: "OWNER" | "ADMIN" | "COLLABORATOR",
-) {
+export function useCanDragFromStatus(userRole?: Role) {
   return (status: TaskStatus) =>
     getAllowedTaskTransitions({ from: status, userRole }).length > 0;
 }

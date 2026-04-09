@@ -4,6 +4,7 @@ import type {
   Project,
   UpdateProjectInput,
 } from "@/http/models/project.model";
+import type { Role } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 
 export const projectKeys = {
@@ -90,7 +91,7 @@ export function useProjectMembers(projectId: string) {
         name: string;
         email: string;
         avatar: string | null;
-        role: "OWNER" | "ADMIN" | "COLLABORATOR";
+        role: Role;
       }[];
     },
     enabled: !!projectId,

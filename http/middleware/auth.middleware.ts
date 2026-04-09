@@ -4,6 +4,7 @@ import { createMiddleware } from "hono/factory";
 import { db } from "@/db";
 import { organizationMembers } from "@/db/schema";
 import type { AuthEnv } from "@/http/models/auth.model";
+import type { Role } from "@/http/models/user.model";
 import { findValidSessionByToken } from "@/http/repositories/session.repository";
 
 export const authMiddleware = createMiddleware<AuthEnv>(
@@ -22,7 +23,7 @@ export const authMiddleware = createMiddleware<AuthEnv>(
       return c.redirect("/", 302);
     }
 
-    let organizationRole: "OWNER" | "ADMIN" | "COLLABORATOR" | null = null;
+    let organizationRole: Role | null = null;
     if (result.session.organizationId) {
       const members = await db
         .select({ role: organizationMembers.role })

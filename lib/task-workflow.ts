@@ -1,9 +1,10 @@
 import type { TaskStatus } from "@/http/models/task.model";
+import type { Role } from "@/http/models/user.model";
 
 type TaskWorkflowContext = {
   from: TaskStatus;
   to: TaskStatus;
-  userRole?: "OWNER" | "ADMIN" | "COLLABORATOR";
+  userRole?: Role;
 };
 
 const COMMON_TRANSITIONS: Record<

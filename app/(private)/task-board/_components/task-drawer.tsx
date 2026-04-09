@@ -2,6 +2,7 @@
 
 import { Button, Drawer, Flex, Typography } from "antd";
 import type { Task as TaskModel } from "@/http/models/task.model";
+import type { Role } from "@/http/models/user.model";
 import type { TaskFormValues } from "@/lib/priority";
 import type { TaskMembers } from "./column";
 import { TaskComments } from "./task-comments";
@@ -26,6 +27,7 @@ type TaskDrawerProps = {
   projectName?: string;
   projectId?: string;
   activeTask: TaskModel | null;
+  userRole?: Role;
 };
 
 export function TaskDrawer({
@@ -45,6 +47,7 @@ export function TaskDrawer({
   projectName,
   projectId,
   activeTask,
+  userRole,
 }: TaskDrawerProps) {
   const handleClose = () => {
     onClose();
@@ -73,7 +76,7 @@ export function TaskDrawer({
       closable={{ placement: "end" }}
       open={open}
       onClose={handleClose}
-      size={!isEditing ? "70%" : "30%"}
+      size={!isEditing ? "70%" : "32%"}
       extra={
         <div className="task-drawer-footer">
           {!isEditing && canShowEditButton && (
@@ -124,6 +127,7 @@ export function TaskDrawer({
           isEditing={isEditing}
           members={members}
           projectId={activeTask?.projectId || projectId}
+          userRole={userRole}
         />
 
         {activeTask && <TaskComments taskId={activeTask.id} />}

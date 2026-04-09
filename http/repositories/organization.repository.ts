@@ -12,6 +12,7 @@ import {
   userRoles,
   users,
 } from "@/db/schema";
+import type { Role } from "@/http/models/user.model";
 import { generateSlug } from "@/lib/organization-utils";
 
 export const registerOrganizationAndOwner = async (data: {
@@ -200,7 +201,7 @@ export const isUserInOrganization = async (
 export const updateOrganizationMemberRole = async (
   organizationId: string,
   userId: string,
-  role: "OWNER" | "ADMIN" | "COLLABORATOR",
+  role: Role,
 ) => {
   await db.transaction(async (tx) => {
     if (role === "OWNER") {
@@ -360,7 +361,7 @@ type OrganizationMemberSummary = {
   id: string;
   name: string;
   email: string;
-  role: "OWNER" | "ADMIN" | "COLLABORATOR";
+  role: Role;
 };
 
 export type OwnedOrganization = {

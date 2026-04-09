@@ -5,6 +5,7 @@ import type { AuthUser } from "@/http/models/auth.model";
 import type {
   CollaboratorRate,
   Invitation,
+  Role,
   UserWithRoles,
 } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
@@ -133,13 +134,7 @@ export function useUpdateUserRole() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      role,
-    }: {
-      id: string;
-      role: "OWNER" | "ADMIN" | "COLLABORATOR";
-    }) => {
+    mutationFn: async ({ id, role }: { id: string; role: Role }) => {
       const res = await client.api.users[":id"].role.$patch({
         param: { id },
         json: { role },

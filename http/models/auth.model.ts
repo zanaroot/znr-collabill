@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Role } from "@/http/models/user.model";
 
 export const signInSchema = z.object({
   email: z.email(),
@@ -23,7 +24,7 @@ export type AuthUser = {
   avatar: string | null;
   organizationId: string | null;
   organizationName: string | null;
-  organizationRole: "OWNER" | "ADMIN" | "COLLABORATOR" | null;
+  organizationRole: Role | null;
 };
 
 export type AuthEnv = {

@@ -30,6 +30,7 @@ import { OrganizationSwitcher } from "@/app/(private)/_components/organization-s
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
+import { cn } from "@/lib/class-name";
 import { PresenceModal } from "./presence-modal";
 
 const { Header, Sider, Content } = Layout;
@@ -99,55 +100,29 @@ export const PrivateLayout = ({
     {
       key: "task-board",
       icon: <ContactsOutlined />,
-      label: (
-        <Link
-          href={
-            lastProjectId
-              ? `/task-board?projectId=${lastProjectId}`
-              : "/task-board"
-          }
-        >
-          Task Board
-        </Link>
-      ),
+      label: "Task Board",
     },
     {
       key: "projects",
       icon: <ProjectOutlined />,
-      label: (
-        <Link href="/projects" prefetch>
-          Projects
-        </Link>
-      ),
+      label: "Projects",
     },
     {
       key: "invoices",
       icon: <FileTextOutlined />,
-      label: (
-        <Link href="/invoices" prefetch>
-          Invoices
-        </Link>
-      ),
+      label: "Invoices",
     },
     {
       key: "team-management",
       icon: <UsergroupAddOutlined />,
-      label: (
-        <Link href="/team-management" prefetch>
-          {isOwner ? "Team Management" : "Team members"}
-        </Link>
-      ),
+      label: isOwner ? "Team Management" : "Team members",
     },
     ...(isOwner
       ? [
           {
             key: "type-organization",
             icon: <ApartmentOutlined />,
-            label: (
-              <Link href="/type-organization" prefetch>
-                Organizations
-              </Link>
-            ),
+            label: "Organizations",
           },
         ]
       : []),
@@ -160,13 +135,11 @@ export const PrivateLayout = ({
         organizationId={organization?.id}
         onSuccess={() => setShowPresenceModal(false)}
       />
-
-      {/* Desktop Sider - sticky */}
       <Sider
         className="desktop-sider"
         collapsible
         collapsed={collapsed}
-        trigger={null}
+        onCollapse={(value) => setCollapsed(value)}
         theme="light"
         width={250}
         collapsedWidth={80}
@@ -198,23 +171,15 @@ export const PrivateLayout = ({
                     : "/task-board"
                   : `/${item.key}`
               }
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "12px 16px",
-                borderRadius: 8,
-                marginBottom: 4,
-                background:
-                  selectedKey === item.key ? "#e6f4ff" : "transparent",
-                color: selectedKey === item.key ? "#1677ff" : "inherit",
-                fontWeight: selectedKey === item.key ? 500 : 400,
-                textDecoration: "none",
-                transition: "all 0.2s",
-              }}
+              prefetch
+              className={cn(
+                "flex items-center gap-3 rounded-lg py-3 px-4 mb-1 no-underline transition-all bg-transparent dark:text-inherit! text-black! font-normal",
+                selectedKey === item.key &&
+                  "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
+              )}
             >
               <span style={{ fontSize: 16, display: "flex" }}>{item.icon}</span>
-              {!collapsed && <span>{item.label.props.children}</span>}
+              {!collapsed && <span>{item.label}</span>}
             </Link>
           ))}
         </div>
@@ -304,7 +269,7 @@ export const PrivateLayout = ({
         placement="left"
         onClose={() => setMobileMenuOpen(false)}
         open={mobileMenuOpen}
-        width={280}
+        size={280}
         className="mobile-drawer-menu"
       >
         <div className="mobile-menu-content">
@@ -331,8 +296,7 @@ export const PrivateLayout = ({
                   padding: "14px 16px",
                   borderRadius: 8,
                   marginBottom: 4,
-                  background:
-                    selectedKey === item.key ? "#e6f4ff" : "transparent",
+                  background: selectedKey === item.key ? "red" : "transparent",
                   color: selectedKey === item.key ? "#1677ff" : "inherit",
                   fontWeight: selectedKey === item.key ? 500 : 400,
                   textDecoration: "none",
@@ -342,7 +306,7 @@ export const PrivateLayout = ({
                 <span style={{ fontSize: 18, display: "flex" }}>
                   {item.icon}
                 </span>
-                <span>{item.label.props.children}</span>
+                <span>{item.label}</span>
               </Link>
             ))}
           </div>

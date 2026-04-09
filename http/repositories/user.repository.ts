@@ -9,6 +9,7 @@ import {
   userRoles,
   users,
 } from "@/db/schema";
+import type { Role } from "@/http/models/user.model";
 
 export const findUserByEmail = async (email: string) => {
   const [user] = await db
@@ -29,7 +30,7 @@ export const findUserById = async (id: string) => {
 export const hasUserRole = async (
   userId: string,
   organizationId: string,
-  role: "OWNER" | "ADMIN" | "COLLABORATOR",
+  role: Role,
 ) => {
   const [record] = await db
     .select({ userId: userRoles.userId })
@@ -67,7 +68,7 @@ export const deleteUser = async (id: string) => {
 export const updateUserRole = async (
   userId: string,
   organizationId: string,
-  role: "OWNER" | "ADMIN" | "COLLABORATOR",
+  role: Role,
 ) => {
   await db.transaction(async (tx) => {
     await tx
