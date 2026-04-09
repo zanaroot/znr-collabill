@@ -170,8 +170,6 @@ export const PrivateLayout = ({
         onClose={handlePresenceClose}
         userName={currentUser?.name}
       />
-
-      {/* Desktop Sider - sticky */}
       <Sider
         className="desktop-sider"
         collapsible
