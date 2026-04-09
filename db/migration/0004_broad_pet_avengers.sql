@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ALTER COLUMN "base_rate" SET DEFAULT '1';
