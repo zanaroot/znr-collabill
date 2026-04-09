@@ -15,7 +15,7 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   description: text("description"),
   gitRepo: text("git_repo"),
-  baseRate: numeric("base_rate", { precision: 10, scale: 2 }).default("0"),
+  baseRate: numeric("base_rate", { precision: 10, scale: 2 }).default("1"),
   organizationId: uuid("organization_id")
     .notNull()
     .references(() => organizations.id),
