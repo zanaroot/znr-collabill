@@ -64,25 +64,24 @@ export function ProjectList() {
       name: "",
       description: "",
       gitRepo: "",
-      baseRate: 0,
+      baseRate: 1,
     },
   });
 
-  // Reset form when editingProject changes
   useEffect(() => {
     if (editingProject) {
       reset({
         name: editingProject.name,
         description: editingProject.description || "",
         gitRepo: editingProject.gitRepo || "",
-        baseRate: editingProject.baseRate || 0,
+        baseRate: editingProject.baseRate || 1,
       });
     } else {
       reset({
         name: "",
         description: "",
         gitRepo: "",
-        baseRate: 0,
+        baseRate: 1,
       });
     }
   }, [editingProject, reset]);
