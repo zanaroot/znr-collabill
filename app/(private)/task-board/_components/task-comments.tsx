@@ -11,6 +11,7 @@ import {
   Avatar,
   Button,
   Card,
+  Flex,
   Input,
   List,
   message,
@@ -236,7 +237,7 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
             )}
           />
 
-          <div className="mt-6 flex flex-col gap-3">
+          <Flex vertical gap={28} className="mt-6">
             <TextArea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
@@ -244,9 +245,8 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
               rows={3}
               maxLength={2000}
               showCount
-              className="rounded-lg border-slate-200 dark:border-gray-700"
             />
-            <div className="flex justify-end">
+            <Flex justify="end">
               <Button
                 type="primary"
                 icon={<SendOutlined />}
@@ -257,8 +257,8 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
               >
                 Add Comment
               </Button>
-            </div>
-          </div>
+            </Flex>
+          </Flex>
         </>
       )}
     </Card>

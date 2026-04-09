@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Drawer, Typography } from "antd";
+import { Button, Drawer, Flex, Typography } from "antd";
 import type { Task as TaskModel } from "@/http/models/task.model";
 import type { TaskFormValues } from "@/lib/priority";
 import type { TaskMembers } from "./column";
@@ -51,21 +51,30 @@ export function TaskDrawer({
   };
 
   const canEdit = hasPermission;
-  const canShowEditButton = activeTask && canEdit;
+  const canShowEditButton =
+    activeTask && canEdit && activeTask.status !== "VALIDATED";
 
   return (
     <Drawer
-      title={activeTask ? "Edit task" : "Create task"}
-      placement="right"
+      title={
+        activeTask ? (
+          <Flex vertical>
+            <Typography.Title level={2} className="m-0!">
+              {activeTask.title}
+            </Typography.Title>
+            <Text strong type="secondary">
+              {projectName ?? "Select a project"}
+            </Text>
+          </Flex>
+        ) : (
+          "Create task"
+        )
+      }
+      closable={{ placement: "end" }}
       open={open}
       onClose={handleClose}
-      size={700}
-      className="task-drawer"
-      styles={{
-        body: { padding: 16 },
-        header: { padding: "12px 16px" },
-      }}
-      footer={
+      size={!isEditing ? "70%" : "30%"}
+      extra={
         <div className="task-drawer-footer">
           {!isEditing && canShowEditButton && (
             <Button type="primary" onClick={() => setIsEditing(true)}>
@@ -102,26 +111,13 @@ export function TaskDrawer({
           )}
         </div>
       }
+      className="task-drawer"
+      styles={{
+        body: { padding: 16 },
+        header: { padding: "12px 16px" },
+      }}
     >
-      <div className="flex flex-col gap-5">
-        <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 px-4 py-3">
-          <Text
-            type="secondary"
-            style={{ fontSize: 12 }}
-            className="dark:text-gray-400"
-          >
-            Project context
-          </Text>
-          <div className="mt-1 flex items-center justify-between gap-3">
-            <Text strong style={{ fontSize: 16 }} className="dark:text-white">
-              {projectName ?? "Select a project"}
-            </Text>
-            <Text type="secondary" className="dark:text-gray-400">
-              {activeTask ? "Editing task" : "New task"}
-            </Text>
-          </div>
-        </div>
-
+      <Flex vertical justify="space-between" gap={20} className="min-h-full">
         <TaskForm
           formValues={formValues}
           onFormValuesChange={onFormValuesChange}
@@ -131,7 +127,7 @@ export function TaskDrawer({
         />
 
         {activeTask && <TaskComments taskId={activeTask.id} />}
-      </div>
+      </Flex>
     </Drawer>
   );
 }

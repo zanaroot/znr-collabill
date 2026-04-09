@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -646,9 +647,27 @@ h4 {
   }
 }
 
-/* No Print Responsive */
-@media print {
-  .no-print {
-    display: none !important;
-  }
+/* Tiptap Editor Styles */
+.ProseMirror .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+.dark .ProseMirror .is-editor-empty:first-child::before {
+  color: #4b5563;
+}
+
+.ProseMirror {
+  outline: none !important;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
 }

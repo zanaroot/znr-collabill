@@ -3,6 +3,7 @@
 import {
   Avatar,
   Button,
+  Flex,
   Input,
   Modal,
   message,
@@ -12,7 +13,8 @@ import {
   Tag,
   Typography,
 } from "antd";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
+import { RichTextEditor } from "@/app/_components/editor/rich-text-editor";
 import {
   useCreateProjectBranch,
   useProjectBranches,
@@ -58,6 +60,7 @@ export function TaskForm({
     useCreateProjectBranch();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [imageModalUrl, setImageModalUrl] = useState("");
   const [newBranchName, setNewBranchName] = useState("");
   const [sourceBranch, setSourceBranch] = useState("main");
 
@@ -102,10 +105,8 @@ export function TaskForm({
     );
   };
 
-  const renderField = (
-    editComponent: React.ReactNode,
-    viewComponent: React.ReactNode,
-  ) => (isEditing ? editComponent : viewComponent);
+  const renderField = (editComponent: ReactNode, viewComponent?: ReactNode) =>
+    isEditing ? editComponent : viewComponent;
 
   const assignee = formValues.assigneeId
     ? members.find((m) => m.id === formValues.assigneeId)
@@ -127,31 +128,39 @@ export function TaskForm({
             />
           </Space>
         </div>,
-
-        <InfoRow label="Task title">
-          <Typography.Text strong>
-            {formValues.title || "Untitled task"}
-          </Typography.Text>
-        </InfoRow>,
       )}
 
       {renderField(
-        <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <Space vertical size={8} style={{ width: "100%" }}>
-            <Typography.Text strong>Description</Typography.Text>
-            <Input.TextArea
-              value={formValues.description}
-              onChange={(e) => updateField("description", e.target.value)}
-              rows={3}
-              placeholder="Add details..."
-            />
-          </Space>
-        </div>,
-
-        <InfoRow label="Description">
-          <Typography.Text>
-            {formValues.description || "No description"}
-          </Typography.Text>
+        <RichTextEditor
+          content={formValues.description || ""}
+          onChange={(html) => updateField("description", html)}
+        />,
+        <InfoRow>
+          {formValues.description ? (
+            <div className="max-w-[50%]">
+              <div
+                className="prose prose-sm dark:prose-invert max-w-none text-zinc-900 dark:text-zinc-100 prose-pre:text-zinc-900 dark:prose-pre:text-zinc-100"
+                dangerouslySetInnerHTML={{ __html: formValues.description }}
+              />
+              <Flex className="mt-3" gap={8} wrap>
+                {Array.from(
+                  new DOMParser()
+                    .parseFromString(formValues.description, "text/html")
+                    .querySelectorAll("img"),
+                ).map((img) => (
+                  <Button
+                    key={img.src}
+                    type="link"
+                    onClick={() => setImageModalUrl(img.src)}
+                  >
+                    View Image
+                  </Button>
+                ))}
+              </Flex>
+            </div>
+          ) : (
+            <Typography.Text type="secondary">No description</Typography.Text>
+          )}
         </InfoRow>,
       )}
 
@@ -174,7 +183,9 @@ export function TaskForm({
               <Select
                 value={formValues.status}
                 onChange={(value) => updateField("status", value)}
-                options={TASK_STATUSES.map((status) => ({
+                options={TASK_STATUSES.filter(
+                  (status) => status !== "ARCHIVED",
+                ).map((status) => ({
                   label: formatStatus(status),
                   value: status,
                 }))}
@@ -370,6 +381,24 @@ export function TaskForm({
             />
           </Space>
         </Space>
+      </Modal>
+      <Modal
+        open={!!imageModalUrl}
+        onCancel={() => setImageModalUrl("")}
+        footer={null}
+        width="90vw"
+        centered
+      >
+        <div
+          style={{
+            width: "100%",
+            height: "80vh",
+            backgroundImage: `url(${imageModalUrl})`,
+            backgroundSize: "contain",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
       </Modal>
     </Space>
   );
