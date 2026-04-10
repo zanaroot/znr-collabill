@@ -10,5 +10,9 @@ export const TaskSizeTag = ({ size }: { size: TaskSize }) => {
     XL: "gold",
   };
 
-  return <Tag variant="filled" color={sizeColor[size]}>{size}</Tag>;
+  return (
+    <Tag variant="filled" color={sizeColor[size]}>
+      {size}
+    </Tag>
+  );
 };
