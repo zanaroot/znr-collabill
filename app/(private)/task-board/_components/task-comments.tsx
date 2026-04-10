@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  CommentOutlined,
-  EditOutlined,
-  SendOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { CommentOutlined, EditOutlined, SendOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Avatar,
   Button,
   Card,
   Flex,
@@ -19,6 +13,7 @@ import {
   Typography,
 } from "antd";
 import { useState } from "react";
+import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
 import { client } from "@/packages/hono";
 
@@ -75,10 +70,10 @@ const CommentItem = ({
   return (
     <List.Item>
       <div className="flex gap-3 w-full">
-        <Avatar
-          icon={<UserOutlined />}
+        <AvatarProfile
           src={comment.user.avatar}
-          alt={comment.user.name}
+          userName={comment.user.name}
+          userEmail={comment.user.email}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1">

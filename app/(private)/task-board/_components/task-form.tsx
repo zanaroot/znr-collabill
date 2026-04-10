@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Avatar,
   Button,
   Flex,
   Input,
@@ -14,7 +13,9 @@ import {
   Typography,
 } from "antd";
 import { type ReactNode, useState } from "react";
+import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { RichTextEditor } from "@/app/_components/editor/rich-text-editor";
+import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import {
   useCreateProjectBranch,
   useProjectBranches,
@@ -252,7 +253,7 @@ export function TaskForm({
           </InfoRow>
 
           <InfoRow label="Size">
-            <Tag>{formValues.size}</Tag>
+            <TaskSizeTag size={formValues.size} />
           </InfoRow>
         </>,
       )}
@@ -275,7 +276,12 @@ export function TaskForm({
                       width: "100%",
                     }}
                   >
-                    <Avatar size="small" src={m.avatar ?? undefined} />
+                    <AvatarProfile
+                      size="small"
+                      src={m.avatar}
+                      userName={m.name}
+                      userEmail={m.email}
+                    />
                     <div
                       style={{
                         display: "flex",
@@ -312,7 +318,12 @@ export function TaskForm({
         <InfoRow label="Assignee">
           {assignee ? (
             <div className="flex items-center gap-2">
-              <Avatar size="small" src={assignee.avatar ?? undefined} />
+              <AvatarProfile
+                size="small"
+                src={assignee.avatar}
+                userName={assignee.name}
+                userEmail={assignee.email}
+              />
               <Text>{assignee.name}</Text>
             </div>
           ) : (

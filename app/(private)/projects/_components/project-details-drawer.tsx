@@ -1,8 +1,7 @@
 "use client";
 
-import { DeleteOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons";
+import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import {
-  Avatar,
   Button,
   Card,
   Divider,
@@ -18,12 +17,12 @@ import {
   Typography,
 } from "antd";
 import { useState } from "react";
+import { AvatarProfile } from "@/app/_components/avatar-profile";
 import {
   useCurrentUser,
   useUsers,
 } from "@/app/(private)/team-management/_hooks/use-team";
 import type { Project } from "@/http/models/project.model";
-import { getAvatarUrl } from "@/lib/get-avatar-url";
 import {
   useAddProjectMember,
   useProjectMembers,
@@ -240,9 +239,10 @@ export function ProjectDetailsDrawer({
                   >
                     <List.Item.Meta
                       avatar={
-                        <Avatar
-                          src={getAvatarUrl(item.avatar, item.email)}
-                          icon={<UserOutlined />}
+                        <AvatarProfile
+                          src={item.avatar}
+                          userName={item.name}
+                          userEmail={item.email}
                         />
                       }
                       title={item.name}

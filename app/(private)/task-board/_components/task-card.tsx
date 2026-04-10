@@ -1,10 +1,11 @@
 "use client";
 
-import { Avatar, Card, Modal, Tag, Typography } from "antd";
+import { Card, Modal, Tag, Typography } from "antd";
 import { useState } from "react";
+import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import type { Task as TaskModel } from "@/http/models/task.model";
 import { formatDueDate } from "@/lib/date";
-import { getAvatarUrl } from "@/lib/get-avatar-url";
 import { getPriorityLabel, priorityTagColor } from "@/lib/priority";
 
 const { Text } = Typography;
@@ -15,6 +16,7 @@ export type TaskCardProps = {
     id: string;
     name: string;
     avatar: string | null;
+    email?: string;
     role?: string;
   }[];
   canDrag: boolean;
@@ -40,10 +42,10 @@ export function TaskCard({
 
   const descriptionImages = task.description
     ? Array.from(
-        new DOMParser()
-          .parseFromString(task.description, "text/html")
-          .querySelectorAll("img"),
-      ).map((img) => img.src)
+      new DOMParser()
+        .parseFromString(task.description, "text/html")
+        .querySelectorAll("img"),
+    ).map((img) => img.src)
     : [];
 
   return (
@@ -99,22 +101,19 @@ export function TaskCard({
           </div> */}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Tag variant="filled" color="default">
-              Size {task.size}
-            </Tag>
+            <TaskSizeTag size={task.size} />
             {task.dueDate ? (
               <Tag variant="filled" color="processing">
                 Due {formatDueDate(task.dueDate)}
               </Tag>
             ) : null}
             {assignee && (
-              <Avatar
+              <AvatarProfile
                 size="small"
-                src={getAvatarUrl(assignee.avatar, assignee.name)}
-                alt={assignee.name || "Unknown"}
-              >
-                {assignee.name?.charAt(0).toUpperCase() || "?"}
-              </Avatar>
+                src={assignee.avatar}
+                userName={assignee.name}
+                userEmail={assignee.email}
+              />
             )}
             {descriptionImages.length > 0 && (
               <Tag

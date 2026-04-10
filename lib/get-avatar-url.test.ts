@@ -27,13 +27,13 @@ describe("getAvatarUrl", () => {
   it("returns DiceBear URL when no avatar provided", () => {
     const result = getAvatarUrl(null, "test@example.com");
     expect(result).toContain("api.dicebear.com");
-    expect(result).toContain("test%40example.com");
+    expect(result).toContain("test@example.com");
   });
 
   it("returns DiceBear URL when avatar is undefined", () => {
     const result = getAvatarUrl(undefined, "test@example.com");
     expect(result).toContain("api.dicebear.com");
-    expect(result).toContain("test%40example.com");
+    expect(result).toContain("test@example.com");
   });
 
   it("handles null email with default seed", () => {
@@ -48,7 +48,17 @@ describe("getAvatarUrl", () => {
 
   it("normalizes email with trimming and lowercase", () => {
     const result = getAvatarUrl(null, "  Test@Example.com  ");
-    expect(result).toContain(encodeURIComponent("test@example.com"));
+    expect(result).toContain("test@example.com");
+  });
+
+  it("normalizes email by removing diacritics", () => {
+    const result = getAvatarUrl(null, "Tëst@Example.com");
+    expect(result).toContain("test@example.com");
+  });
+
+  it("normalizes email by removing internal whitespace", () => {
+    const result = getAvatarUrl(null, "test @ example.com");
+    expect(result).toContain("test@example.com");
   });
 });
 
@@ -56,7 +66,7 @@ describe("getAvatarUrlByEmail", () => {
   it("returns DiceBear URL with email seed", () => {
     const result = getAvatarUrlByEmail("test@example.com");
     expect(result).toContain("api.dicebear.com");
-    expect(result).toContain("test%40example.com");
+    expect(result).toContain("test@example.com");
   });
 
   it("returns default seed for null email", () => {
@@ -76,11 +86,22 @@ describe("getAvatarUrlByEmail", () => {
 
   it("normalizes email to lowercase", () => {
     const result = getAvatarUrlByEmail("Test@Example.COM");
-    expect(result).toContain("test%40example.com");
+    expect(result).toContain("test@example.com");
   });
 
   it("trims whitespace from email", () => {
     const result = getAvatarUrlByEmail("  test@example.com  ");
-    expect(result).toContain("test%40example.com");
+    expect(result).toContain("test@example.com");
+  });
+
+  it("is deterministic - same email always produces same URL", () => {
+    const result1 = getAvatarUrlByEmail("test@example.com");
+    const result2 = getAvatarUrlByEmail("test@example.com");
+    expect(result1).toBe(result2);
+  });
+
+  it("handles Unicode characters in email", () => {
+    const result = getAvatarUrlByEmail("üser@example.com");
+    expect(result).toContain("user@example.com");
   });
 });

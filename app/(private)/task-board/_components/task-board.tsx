@@ -137,6 +137,7 @@ export function TaskBoard({ currentUserId: _currentUserId }: TaskBoardProps) {
               id: user.id,
               name: user.name || user.email,
               avatar: user.avatar,
+              email: user.email,
               role: user.role,
             })) ?? []
           }

@@ -4,6 +4,17 @@ const getPublicS3Endpoint = () => {
   return endpoint.replace(/\/$/, "");
 };
 
+const normalizeEmail = (email: string | null | undefined): string => {
+  if (!email) return "default";
+
+  return email
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "");
+};
+
 export const getAvatarUrl = (
   avatar: string | null | undefined,
   email: string | null | undefined,
@@ -19,9 +30,7 @@ export const getAvatarUrl = (
 };
 
 export const getAvatarUrlByEmail = (email: string | null | undefined) => {
-  const normalizedEmail = email?.trim().toLowerCase() || "default";
+  const normalizedEmail = normalizeEmail(email);
 
-  const seed = encodeURIComponent(normalizedEmail);
-
-  return `https://api.dicebear.com/9.x/identicon/svg?seed=${seed}`;
+  return `https://api.dicebear.com/9.x/identicon/svg?seed=${normalizedEmail}`;
 };

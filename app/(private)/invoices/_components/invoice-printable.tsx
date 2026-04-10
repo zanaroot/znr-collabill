@@ -1,8 +1,9 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Divider, message, Space, Tag, Typography } from "antd";
+import { Divider, message, Space, Typography } from "antd";
 import { useMemo, useState } from "react";
+import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
 import type {
   CreateInvoiceInput,
@@ -62,10 +63,6 @@ export const InvoicePrintable = ({
       `INV-${Date.now().toString().slice(-6)}-${organizationId.slice(0, 4).toUpperCase()}`,
   );
 
-  const _handlePrint = () => {
-    window.print();
-  };
-
   const { data: organizationOwner, isLoading: isLoadingOwner } = useQuery({
     queryKey: ["organization-owner", organizationId],
     queryFn: async () => {
@@ -88,7 +85,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+          "Failed to validate invoice",
         );
       }
       return res.json();
@@ -411,9 +408,7 @@ export const InvoicePrintable = ({
                         </Text>
                       </td>
                       <td className="p-4">
-                        <Tag className="font-semibold px-2 py-0.5 rounded border-gray-200 dark:border-gray-600 dark:text-gray-200">
-                          {item.size}
-                        </Tag>
+                        <TaskSizeTag size={item.size} />
                       </td>
                       <td className="text-center p-4 dark:text-gray-300">
                         <Text>{item.taskCount} tasks</Text>

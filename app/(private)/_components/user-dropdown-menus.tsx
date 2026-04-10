@@ -6,10 +6,9 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Avatar, Dropdown } from "antd";
+import { Dropdown } from "antd";
 import { useState } from "react";
-import { getAvatarUrl } from "@/lib/get-avatar-url";
-import { getInitials } from "@/lib/get-initials-text";
+import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { client } from "@/packages/hono";
 import { ProfileDrawer } from "./profile-drawer";
 import { SettingsModal } from "./settings-modal";
@@ -35,12 +34,11 @@ export const UserDropdownMenus = () => {
     },
   });
 
-  const shortName = getInitials(currentUser?.name);
-  const avatarUrl = getAvatarUrl(currentUser?.avatar, currentUser?.email);
-
   return (
     <>
       <Dropdown
+        trigger={["click"]}
+        arrow
         menu={{
           items: [
             {
@@ -63,11 +61,16 @@ export const UserDropdownMenus = () => {
             },
           ],
         }}
-        trigger={["click"]}
       >
-        <Avatar className="cursor-pointer" src={avatarUrl}>
-          {shortName}
-        </Avatar>
+        <div>
+          <AvatarProfile
+            className="cursor-pointer"
+            src={currentUser?.avatar}
+            userName={currentUser?.name}
+            userEmail={currentUser?.email}
+            size={32}
+          />
+        </div>
       </Dropdown>
 
       <ProfileDrawer

@@ -1,18 +1,10 @@
 "use client";
 
-import { CommentOutlined, SendOutlined, UserOutlined } from "@ant-design/icons";
+import { CommentOutlined, SendOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Avatar,
-  Button,
-  Card,
-  Input,
-  List,
-  message,
-  Spin,
-  Typography,
-} from "antd";
+import { Button, Card, Input, List, message, Spin, Typography } from "antd";
 import { useState } from "react";
+import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { client } from "@/packages/hono";
 
 const { TextArea } = Input;
@@ -120,10 +112,10 @@ export const InvoiceComments = ({ invoiceId }: InvoiceCommentsProps) => {
             renderItem={(comment) => (
               <List.Item>
                 <div className="flex gap-3 w-full">
-                  <Avatar
-                    icon={<UserOutlined />}
+                  <AvatarProfile
                     src={comment.user.avatar}
-                    alt={comment.user.name}
+                    userName={comment.user.name}
+                    userEmail={comment.user.email}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

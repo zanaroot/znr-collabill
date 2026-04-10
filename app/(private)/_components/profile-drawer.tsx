@@ -9,9 +9,8 @@ import {
   ProfileForm,
   ProfileInfo,
 } from "@/app/(private)/_components/profile";
+import { teamKeys } from "@/app/(private)/team-management/_hooks/use-team";
 import type { AuthUser } from "@/http/models/auth.model";
-import { getAvatarUrl } from "@/lib/get-avatar-url";
-import { getInitials } from "@/lib/get-initials-text";
 import { client } from "@/packages/hono";
 
 type ProfileDrawerProps = {
@@ -49,8 +48,11 @@ export const ProfileDrawer = ({
       if (!res.ok) throw new Error("Failed to remove avatar");
       return await res.json();
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["current-user"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.users() });
+      queryClient.invalidateQueries({ queryKey: teamKeys.currentUser() });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
     onError: (error: Error) => message.error(error.message),
   });
 
@@ -66,8 +68,9 @@ export const ProfileDrawer = ({
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["current-user"] });
-      queryClient.invalidateQueries({ queryKey: ["team", "users"] });
+      queryClient.invalidateQueries({ queryKey: teamKeys.currentUser() });
+      queryClient.invalidateQueries({ queryKey: teamKeys.users() });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
     onError: (error: Error) => message.error(error.message),
   });
@@ -99,9 +102,7 @@ export const ProfileDrawer = ({
 
   const avatarUrl = avatarFile
     ? URL.createObjectURL(avatarFile)
-    : getAvatarUrl(currentUser?.avatar, currentUser?.email);
-
-  const initials = getInitials(currentUser?.name);
+    : currentUser?.avatar;
 
   return (
     <Drawer
@@ -118,7 +119,6 @@ export const ProfileDrawer = ({
       <div className="flex flex-col items-center w-full">
         <AvatarSection
           avatarUrl={avatarUrl}
-          initials={initials}
           editing={editing}
           currentUser={currentUser}
           handleAvatarChange={handleAvatarChange}

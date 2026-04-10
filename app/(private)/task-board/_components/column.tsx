@@ -14,6 +14,7 @@ export type TaskMembers = {
   id: string;
   name: string;
   avatar: string | null;
+  email?: string;
   role?: string;
 }[];
 
