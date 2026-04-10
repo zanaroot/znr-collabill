@@ -3,7 +3,7 @@
 import { Select, Spin, Typography } from "antd";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   useProjectMembers,
   useProjects,
@@ -27,52 +27,48 @@ export function TaskBoard({ currentUserId: _currentUserId }: TaskBoardProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const projectIdParam = searchParams.get("projectId");
 
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
 
-  const [projectId, setProjectId] = useState<string | undefined>(
-    projectIdParam || undefined,
-  );
+  const projectId = searchParams.get("projectId") ?? undefined;
 
   const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
 
   const { data: projectMembers, isLoading: isLoadingMembers } =
-    useProjectMembers(projectId || "");
+    useProjectMembers(projectId ?? "");
   const taskCount = tasks?.length ?? 0;
 
   const selectedProject = useMemo(
-    () => projects?.find((project) => project.id === projectId),
+    () => projects?.find((p) => p.id === projectId),
     [projects, projectId],
   );
 
   const userRole = currentUser?.organizationRole ?? undefined;
 
-  useEffect(() => {
-    if (projects?.length) {
-      const projectExists = projects.some((p) => p.id === projectIdParam);
+  const validProjectId = useMemo(() => {
+    if (!projects?.length) return undefined;
+    const exists = projects.some((p) => p.id === projectId);
+    if (exists) return projectId;
+    const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
+    const lastProjectExists = projects.some((p) => p.id === lastProjectId);
+    if (lastProjectId && lastProjectExists) return lastProjectId;
+    return projects[0].id;
+  }, [projects, projectId]);
 
-      if (!projectIdParam || !projectExists) {
-        const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
-        const lastProjectExists = projects.some((p) => p.id === lastProjectId);
-        const targetId =
-          lastProjectId && lastProjectExists ? lastProjectId : projects[0].id;
-
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("projectId", targetId);
-        router.replace(`${pathname}?${params.toString()}`);
-      }
-    }
-  }, [projects, projectIdParam, pathname, router, searchParams]);
-
-  useEffect(() => {
-    if (projectIdParam) {
-      setProjectId(projectIdParam);
-      localStorage.setItem(LAST_PROJECT_KEY, projectIdParam);
-    }
-  }, [projectIdParam]);
+  if (
+    !isLoadingProjects &&
+    projects?.length &&
+    validProjectId &&
+    validProjectId !== projectId
+  ) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("projectId", validProjectId);
+    router.replace(`${pathname}?${params.toString()}`);
+    return null;
+  }
 
   const handleProjectChange = (value: string) => {
+    localStorage.setItem(LAST_PROJECT_KEY, value);
     const params = new URLSearchParams(searchParams.toString());
     params.set("projectId", value);
     router.replace(`${pathname}?${params.toString()}`);
