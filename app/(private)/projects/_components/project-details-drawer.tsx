@@ -229,16 +229,16 @@ export function ProjectDetailsDrawer({
                     actions={
                       isAdminOrOwner && canRemoveUser(item.id)
                         ? [
-                            <Button
-                              key="remove"
-                              type="text"
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() =>
-                                handleRemoveAccess(item.id, item.name)
-                              }
-                            />,
-                          ]
+                          <Button
+                            key="remove"
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() =>
+                              handleRemoveAccess(item.id, item.name)
+                            }
+                          />,
+                        ]
                         : undefined
                     }
                   >
