@@ -51,7 +51,6 @@ export const InvoicePrintable = ({
   organizationId,
   targetUserName,
   targetUserId,
-  periodId,
   periodStart,
   periodEnd,
   periodName,
@@ -95,7 +94,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+          "Failed to validate invoice",
         );
       }
       return res.json();

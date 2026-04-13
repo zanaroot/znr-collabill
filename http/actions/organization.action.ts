@@ -185,3 +185,12 @@ export const deleteOrganizationAction = async (
     return { error: "Something went wrong", success: false };
   }
 };
+const actions = {
+  createOrganizationAction,
+  selectOrganizationAction,
+  getUserOrganizationsAction,
+};
+
+export const organizationActions = wrapActionsWithSentry(
+  actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
+);

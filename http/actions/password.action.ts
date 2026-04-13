@@ -26,6 +26,9 @@ import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-wi
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+import { publicEnv } from "@/packages/env";
+import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
+
 export const forgotPasswordAction = async (
   input: ForgotPasswordInput,
 ): Promise<ActionResponse> => {

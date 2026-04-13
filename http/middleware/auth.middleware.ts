@@ -21,7 +21,7 @@ export const authMiddleware = createMiddleware<AuthEnv>(
 
       const result = await findValidSessionByToken(token);
 
-      if (!result || !result.user || !result.session) {
+      if (!result) {
         return c.redirect("/", 302);
       }
 
