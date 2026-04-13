@@ -4,6 +4,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
+  EyeOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -213,6 +214,15 @@ export function ProjectList() {
             onClick={(e) => {
               e.stopPropagation();
               handleDelete(record.id);
+            }}
+          />
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedProjectForDetails(record);
             }}
           />
         </Flex>
