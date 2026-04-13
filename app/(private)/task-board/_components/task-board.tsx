@@ -60,8 +60,6 @@ export const TaskBoard = () => {
   ) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("projectId", validProjectId);
-    router.replace(`${pathname}?${params.toString()}`);
-    return null;
   }
 
   const handleProjectChange = (value: string) => {
@@ -119,32 +117,32 @@ export const TaskBoard = () => {
           </span>
           <span className="task-tag">{taskCount} tasks</span>
         </div>
-      </div>
 
-      {isLoadingTasks || isLoadingMembers ? (
-        <Spin />
-      ) : (
-        <CreateBoard
-          tasks={tasks ?? []}
-          projectId={projectId}
-          projectName={selectedProject?.name}
-          userRole={userRole}
-          isAdmin={
-            currentUser?.organizationRole === "ADMIN" ||
-            currentUser?.organizationRole === "OWNER"
-          }
-          members={
-            projectMembers?.map((user) => ({
-              id: user.id,
-              name: user.name || user.email,
-              avatar: user.avatar,
-              email: user.email,
-              role: user.role,
-            })) ?? []
-          }
-          taskId={taskId}
-        />
-      )}
+        {isLoadingTasks || isLoadingMembers ? (
+          <Spin />
+        ) : (
+          <CreateBoard
+            tasks={tasks ?? []}
+            projectId={projectId}
+            projectName={selectedProject?.name}
+            userRole={userRole}
+            isAdmin={
+              currentUser?.organizationRole === "ADMIN" ||
+              currentUser?.organizationRole === "OWNER"
+            }
+            members={
+              projectMembers?.map((user) => ({
+                id: user.id,
+                name: user.name || user.email,
+                avatar: user.avatar,
+                email: user.email,
+                role: user.role,
+              })) ?? []
+            }
+            taskId={taskId}
+          />
+        )}
+      </div>
     </div>
   );
 };
