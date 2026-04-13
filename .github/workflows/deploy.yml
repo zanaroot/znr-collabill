@@ -9,7 +9,7 @@ env:
   REGISTRY: ghcr.io
   APP_IMAGE_NAME: ${{ github.repository }}
   MIGRATOR_IMAGE_NAME: ${{ github.repository }}-migrator
-  DEPLOY_PATH: /opt/collabill
+  DEPLOY_PATH: /var/docker-infra
 
 jobs:
   deploy:
