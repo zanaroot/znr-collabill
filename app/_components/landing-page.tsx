@@ -6,12 +6,62 @@ import {
   ProjectOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
+import * as Sentry from "@sentry/nextjs";
 import { Button, Card, Col, Row, Space, Typography } from "antd";
+import { useEffect } from "react";
 import { LandingPageSEO } from "./landing-page-seo";
 
 const { Paragraph } = Typography;
 
 const LandingPage = () => {
+  // Track landing page view for analytics (once per mount)
+  useEffect(() => {
+    try {
+      Sentry.addBreadcrumb({
+        category: "ui",
+        message: "landing_page.view",
+        data: { component: "LandingPage" },
+        level: "info",
+      });
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { component: "LandingPage", action: "view" },
+      });
+    }
+  }, []);
+
+  const handleGetStarted = () => {
+    try {
+      Sentry.addBreadcrumb({
+        category: "ui",
+        message: "landing_page.get_started_click",
+        data: { component: "LandingPage", action: "get_started" },
+        level: "info",
+      });
+      // Navigation via Button href
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { component: "LandingPage", action: "get_started" },
+      });
+    }
+  };
+
+  const handleSignIn = () => {
+    try {
+      Sentry.addBreadcrumb({
+        category: "ui",
+        message: "landing_page.sign_in_click",
+        data: { component: "LandingPage", action: "sign_in" },
+        level: "info",
+      });
+      // Navigation via Button href
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { component: "LandingPage", action: "sign_in" },
+      });
+    }
+  };
+
   return (
     <div style={{ background: "#fafafa" }}>
       <LandingPageSEO />
@@ -36,10 +86,15 @@ const LandingPage = () => {
             </Paragraph>
 
             <Space size="large">
-              <Button type="primary" size="large" href="/sign-up">
+              <Button
+                type="primary"
+                size="large"
+                href="/sign-up"
+                onClick={handleGetStarted}
+              >
                 Get Started
               </Button>
-              <Button size="large" href="/sign-in">
+              <Button size="large" href="/sign-in" onClick={handleSignIn}>
                 Sign In
               </Button>
             </Space>
@@ -121,7 +176,12 @@ const LandingPage = () => {
           Start managing projects and paying collaborators the smart way.
         </Paragraph>
 
-        <Button type="primary" size="large" href="/sign-up">
+        <Button
+          type="primary"
+          size="large"
+          href="/sign-up"
+          onClick={handleGetStarted}
+        >
           Create your account
         </Button>
       </section>

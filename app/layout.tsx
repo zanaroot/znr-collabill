@@ -1,4 +1,4 @@
-import { App } from "antd";
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
@@ -6,6 +6,7 @@ import { AntProvider } from "@/packages/antd";
 import { ReactQueryProvider } from "@/packages/react-query";
 import { ThemeProvider } from "./_components/theme-provider";
 import "./globals.css";
+import { SentryErrorBoundary } from "@/app/_components/sentry-error-boundary";
 import { publicEnv } from "@/packages/env";
 
 const geistSans = Geist({
@@ -92,19 +93,19 @@ const RootLayout = ({
   children: ReactNode;
 }>) => {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
-      >
+    <SentryErrorBoundary>
+      <html lang="en">
         <ThemeProvider>
           <AntProvider>
-            <ReactQueryProvider>
-              <App>{children}</App>
-            </ReactQueryProvider>
+            <body
+              className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+            >
+              <ReactQueryProvider>{children}</ReactQueryProvider>
+            </body>
           </AntProvider>
         </ThemeProvider>
-      </body>
-    </html>
+      </html>
+    </SentryErrorBoundary>
   );
 };
 

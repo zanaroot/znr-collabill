@@ -10,6 +10,7 @@ import {
   findValidInvitationByToken,
 } from "@/http/repositories/invitation.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
+import { wrapControllerWithSentry } from "../utils/wrap-with-sentry/wrap-controller-with-sentry";
 
 const factory = createFactory<AuthEnv>();
 
@@ -99,4 +100,15 @@ export const declineInvitationHandler = factory.createHandlers(async (c) => {
   await deleteInvitationById(invitation.id);
 
   return c.json({ message: "Invitation declined successfully" });
+});
+
+const controllers = {
+  getInvitation,
+  createPassword,
+  acceptInvitationHandler,
+  declineInvitationHandler,
+};
+
+export const invitationControllers = wrapControllerWithSentry(controllers, {
+  layerName: "invitation-controller",
 });

@@ -10,6 +10,7 @@ import {
   archiveTasksByIds,
   getValidatedTaskIdsByPeriodAndUser,
 } from "@/http/repositories/task.repository";
+import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 import { getCurrentUser } from "./get-current-user.action";
 
 type ValidateInvoiceArgs = {
@@ -129,3 +130,12 @@ export const markInvoiceAsPaidAction = async (invoiceId: string) => {
     return { error: "Failed to mark invoice as paid" };
   }
 };
+
+const actions = {
+  validateInvoiceAction,
+  markInvoiceAsPaidAction,
+};
+
+export const invoiceActions = wrapActionsWithSentry(
+  actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
+);

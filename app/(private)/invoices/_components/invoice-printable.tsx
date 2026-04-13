@@ -14,31 +14,20 @@ import {
 import { useMemo, useState } from "react";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
-import type {
-  CreateInvoiceInput,
-  InvoiceStatus,
-} from "@/http/models/invoice.model";
+import type { InvoiceStatus } from "@/http/models/invoice.model";
 import { client } from "@/packages/hono";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary } from "./task-summary-table";
 
 const { Title, Text, Paragraph } = Typography;
 
-type InvoiceLineInput = {
-  type: string;
-  referenceId: string | null;
-  label: string;
-  quantity: number;
-  unitPrice: string;
-  total: string;
-};
 type InvoicePrintableProps = {
   presenceData: PresenceSummary[];
   taskData: RawTaskSummary[];
   organizationName: string;
   organizationId: string;
   targetUserName?: string;
-  targetUserId: string;
+  targetUserId?: string;
   periodId?: string;
   periodStart?: string;
   periodEnd?: string;
@@ -57,9 +46,6 @@ export const InvoicePrintable = ({
   organizationName,
   organizationId,
   targetUserName,
-  targetUserId,
-  periodStart,
-  periodEnd,
   periodName,
   existingInvoice,
   isOwner,
@@ -101,7 +87,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+          "Failed to validate invoice",
         );
       }
       return res.json();

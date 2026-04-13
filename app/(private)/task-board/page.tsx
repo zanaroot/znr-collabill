@@ -1,4 +1,6 @@
+// import * as Sentry from "@sentry/nextjs";
 import { Suspense } from "react";
+// import { TaskErrorBoundary } from "@/app/(private)/task-board/_components/TaskErrorBoundary";
 import { TaskBoard } from "@/app/(private)/task-board/_components/task-board";
 
 const TaskBoardPage = async () => {

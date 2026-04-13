@@ -24,6 +24,8 @@ import { sendEmail } from "@/packages/email";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
+
 export const forgotPasswordAction = async (
   input: ForgotPasswordInput,
 ): Promise<ActionResponse> => {
@@ -98,3 +100,12 @@ export const resetPasswordWithTokenAction = async (
     return { error: "Something went wrong", success: false };
   }
 };
+
+const actions = {
+  forgotPasswordAction,
+  resetPasswordWithTokenAction,
+};
+
+export const passwordActions = wrapActionsWithSentry(
+  actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
+);

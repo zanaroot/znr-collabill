@@ -13,6 +13,7 @@ import type {
   Project,
   UpdateProjectInput,
 } from "@/http/models/project.model";
+import { wrapRepositoryWithSentry } from "../utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 const normalizeProject = <
   T extends {
@@ -278,3 +279,22 @@ export const updateProjectSlackSettings = async (
 
   return project ? normalizeProject(project) : null;
 };
+export const projectRepository = {
+  createProject,
+  findProjectById,
+  findProjectsByOrganizationId,
+  findProjectsForCollaborator,
+  findProjectsByUserId,
+  updateProject,
+  deleteProject,
+  isProjectMember,
+  isOrganizationMember,
+  getOrganizationRole,
+  findProjectMembers,
+  addProjectMember,
+};
+
+export const projectRepositoryWithSentry = wrapRepositoryWithSentry(
+  projectRepository as Record<string, (...args: unknown[]) => Promise<unknown>>,
+  "project-repository",
+) as typeof projectRepository;

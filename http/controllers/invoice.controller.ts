@@ -15,6 +15,8 @@ import {
   notifyInvoiceValidatedSlack,
 } from "@/lib/notifications";
 
+import { wrapControllerWithSentry } from "../utils/wrap-with-sentry/wrap-controller-with-sentry";
+
 const factory = createFactory<AuthEnv>();
 
 export const getInvoices = factory.createHandlers(async (c) => {
@@ -152,3 +154,14 @@ export const updateInvoiceStatus = factory.createHandlers(
     return c.json(updated);
   },
 );
+
+const controllers = {
+  getInvoices,
+  getInvoiceById,
+  createInvoice,
+  updateInvoiceStatus,
+};
+
+export const invoiceControllers = wrapControllerWithSentry(controllers, {
+  layerName: "invoice-controller",
+});

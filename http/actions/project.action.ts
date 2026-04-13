@@ -13,6 +13,7 @@ import {
 } from "@/http/models/project.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
+import { wrapActionsWithSentry } from "@/http/utils/wrap-with-sentry/wrap-actions-with-sentry";
 import { getCurrentUser } from "./get-current-user.action";
 
 export const createProjectAction = async (
@@ -146,3 +147,12 @@ export const updateProjectSlackSettingsAction = async (
     return { error: "Something went wrong", success: false };
   }
 };
+const actions = {
+  createProjectAction,
+  updateProjectAction,
+  deleteProjectAction,
+};
+
+export const projectActions = wrapActionsWithSentry(
+  actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
+);

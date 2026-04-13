@@ -14,12 +14,12 @@ import type {
   invoiceLineSchema,
 } from "@/http/models/invoice.model";
 import { client } from "@/packages/hono";
+import type { PresenceSummary } from "./presence-summary-table";
+import type { RawTaskSummary } from "./task-summary-table";
 
 const { Text } = Typography;
 
 import { getMonthlyPeriods } from "@/lib/periods";
-import type { PresenceSummary } from "./presence-summary-table";
-import type { RawTaskSummary } from "./task-summary-table";
 
 type Member = {
   id: string;
@@ -114,7 +114,7 @@ export const InvoiceFilters = ({
           const errorData = await res.json();
           throw new Error(
             (errorData as { error?: string }).error ||
-              "Failed to validate invoice",
+            "Failed to validate invoice",
           );
         }
         return res.json();

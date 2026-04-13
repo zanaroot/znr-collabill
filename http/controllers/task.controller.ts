@@ -16,6 +16,7 @@ import {
   notifyTaskInReviewSlack,
   notifyTaskValidatedSlack,
 } from "@/lib/notifications";
+import { wrapControllerWithSentry } from "../utils/wrap-with-sentry/wrap-controller-with-sentry";
 
 const factory = createFactory<AuthEnv>();
 
@@ -293,4 +294,16 @@ export const deleteTask = factory.createHandlers(async (c) => {
   }
 
   return c.json({ message: "Task deleted" });
+});
+
+const controllers = {
+  getTasksByProject,
+  getTasksByPeriod,
+  createTask,
+  updateTask,
+  deleteTask,
+};
+
+export const taskControllers = wrapControllerWithSentry(controllers, {
+  layerName: "task-controller",
 });

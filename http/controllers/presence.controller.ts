@@ -7,6 +7,7 @@ import {
 } from "@/http/models/presence.model";
 import * as presenceRepository from "@/http/repositories/presence.repository";
 import { getISODate } from "@/lib/date";
+import { wrapControllerWithSentry } from "../utils/wrap-with-sentry/wrap-controller-with-sentry";
 
 const factory = createFactory<AuthEnv>();
 
@@ -42,3 +43,12 @@ export const markPresence = factory.createHandlers(
     return c.json(presence);
   },
 );
+
+const controllers = {
+  getTodayPresence,
+  markPresence,
+};
+
+export const presenceControllers = wrapControllerWithSentry(controllers, {
+  layerName: "presence-controller",
+});

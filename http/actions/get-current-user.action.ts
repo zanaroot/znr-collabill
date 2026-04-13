@@ -7,8 +7,11 @@ import { organizationMembers } from "@/db/schema";
 import type { AuthUser } from "@/http/models/auth.model";
 import type { Role } from "@/http/models/user.model";
 import { findValidSessionByToken } from "@/http/repositories/session.repository";
+import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 
-export const getCurrentUser = async (): Promise<AuthUser | null> => {
+// ------------- ACTIONS ----------------
+
+const getCurrentUserAction = async (): Promise<AuthUser | null> => {
   const cookieStore = await cookies();
   const token = cookieStore.get("session_token")?.value;
 
@@ -29,6 +32,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
         ),
       )
       .limit(1);
+
     organizationRole = members[0]?.role ?? null;
   }
 
@@ -41,4 +45,12 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     organizationName: result.organization?.name ?? null,
     organizationRole,
   };
+};
+
+const actions = { getCurrentUserAction };
+
+export const getCurrentUserActions = wrapActionsWithSentry(actions);
+
+export const getCurrentUser = async (): Promise<AuthUser | null> => {
+  return getCurrentUserActions.getCurrentUserAction();
 };
