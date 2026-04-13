@@ -1,3 +1,19 @@
+name: collabill-prod
+
+x-next-env: &next-env
+  DATABASE_URL: postgresql://${POSTGRES_USER:-admin_prod}:${POSTGRES_PASSWORD:-password_prod}@postgres:5432/${POSTGRES_DB:-collabill_db_prod}
+  S3_ENDPOINT: http://minio:9000
+  NEXT_PUBLIC_S3_ENDPOINT: ${NEXT_PUBLIC_S3_ENDPOINT:-http://localhost:9100}
+  S3_ACCESS_KEY: ${MINIO_ROOT_USER:-admin_prod}
+  S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-password_prod}
+  S3_BUCKET: ${S3_BUCKET:-my-buckets}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  NODE_ENV: ${NODE_ENV:-production}
+  BREVO_API_KEY: ${BREVO_API_KEY}
+  MAIL_FROM: ${MAIL_FROM}
+  NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+  GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+
 services:
   postgres:
     image: postgres:17
@@ -7,7 +23,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-admin_prod}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password_prod}
     ports:
-      - "${POSTGRES_PORT:-5434}:5432"
+      - "${POSTGRES_HOST_BIND:-127.0.0.1}:${POSTGRES_PORT:-5434}:5432"
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
     healthcheck:
@@ -24,8 +40,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin_prod}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password_prod}
     ports:
-      - "${MINIO_PORT:-9100}:9000"
-      - "${MINIO_CONSOLE_PORT:-9101}:9001"
+      - "${MINIO_HOST_BIND:-127.0.0.1}:${MINIO_PORT:-9100}:9000"
+      - "${MINIO_CONSOLE_HOST_BIND:-127.0.0.1}:${MINIO_CONSOLE_PORT:-9101}:9001"
     volumes:
       - minio_data_prod:/data
     healthcheck:
@@ -45,34 +61,33 @@ services:
       S3_BUCKET: ${S3_BUCKET:-my-buckets}
     entrypoint: >
       /bin/sh -c "
-      mc alias set myminio http://minio:9000 \"$MINIO_ROOT_USER\" \"$MINIO_ROOT_PASSWORD\";
-      mc mb myminio/\"$S3_BUCKET\" || true;
-      mc anonymous set download myminio/\"$S3_BUCKET\";
+      mc alias set myminio http://minio:9000 \"$$MINIO_ROOT_USER\" \"$$MINIO_ROOT_PASSWORD\";
+      mc mb myminio/\"$$S3_BUCKET\" || true;
+      mc anonymous set download myminio/\"$$S3_BUCKET\";
       exit 0;
       "
 
   next:
-    build: .
+    image: ${NEXT_IMAGE:?NEXT_IMAGE is required}
+    pull_policy: always
     restart: always
     depends_on:
       postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-admin_prod}:${POSTGRES_PASSWORD:-password_prod}@postgres:5432/${POSTGRES_DB:-collabill_db_prod}
-      S3_ENDPOINT: http://minio:9000
-      NEXT_PUBLIC_S3_ENDPOINT: ${NEXT_PUBLIC_S3_ENDPOINT:-http://localhost:9100}
-      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-admin_prod}
-      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-password_prod}
-      S3_BUCKET: ${S3_BUCKET:-my-buckets}
-      S3_REGION: ${S3_REGION:-us-east-1}
-      NODE_ENV: ${NODE_ENV:-production}
-      BREVO_API_KEY: ${BREVO_API_KEY}
-      MAIL_FROM: ${MAIL_FROM}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    environment: *next-env
     ports:
-      - "${APP_PORT:-3022}:3000"
+      - "${APP_HOST_BIND:-0.0.0.0}:${APP_PORT:-3022}:3000"
+
+  migrator:
+    image: ${MIGRATOR_IMAGE:?MIGRATOR_IMAGE is required}
+    pull_policy: always
+    profiles: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment: *next-env
 
 volumes:
   postgres_data_prod:

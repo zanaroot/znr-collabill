@@ -70,22 +70,53 @@ pnpm create:user
 # Create production env file
 cp .env.example .env.prod
 
+# Set image references for the first boot
+echo "NEXT_IMAGE=ghcr.io/<owner>/collabill:latest" >> .env.prod
+echo "MIGRATOR_IMAGE=ghcr.io/<owner>/collabill-migrator:latest" >> .env.prod
+
 # Start all services (Next.js + postgres + minio)
 ./start-prod.sh
 ```
 
-Or run only Next.js (if infrastructure already exists):
+Apply migrations manually when needed:
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d
+docker compose \
+  -p collabill-prod \
+  -f docker-compose.prod.yml \
+  --env-file .env.prod \
+  --profile migrate \
+  run --rm migrator
 ```
 
 Requires:
 - `.env.prod` with production environment variables
-- Built Docker image (handled automatically by the compose command)
+- `NEXT_IMAGE` and `MIGRATOR_IMAGE` pointing at pushed registry images
+- Docker Compose on the target host
 
 ### Check logs:
-- `docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f next`
+- `docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f next`
+
+## GitHub Actions Deploy
+
+This repository includes `.github/workflows/deploy.yml` to deploy `main` to a Docker host such as a DigitalOcean Droplet.
+
+Expected GitHub secrets:
+
+- `DROPLET_HOST`
+- `DROPLET_USER`
+- `DROPLET_SSH_KEY`
+- `GHCR_USERNAME`
+- `GHCR_READ_TOKEN`
+
+The workflow:
+
+1. Builds and pushes the runtime image to `ghcr.io/<owner>/collabill`.
+2. Builds and pushes the migration image to `ghcr.io/<owner>/collabill-migrator`.
+3. SSHes into the droplet.
+4. Pulls both images.
+5. Runs `pnpm db:migrate` through the migrator service.
+6. Restarts the application stack with the new runtime image.
 
 ## Project Structure
 

@@ -1,0 +1,98 @@
+name: Deploy
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  APP_IMAGE_NAME: ${{ github.repository }}
+  MIGRATOR_IMAGE_NAME: ${{ github.repository }}-migrator
+  DEPLOY_PATH: /opt/collabill
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push app image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          target: runner
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Build and push migrator image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          target: migrator
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to droplet
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          APP_IMAGE: ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.sha }}
+          MIGRATOR_IMAGE: ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:${{ github.sha }}
+          DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          envs: APP_IMAGE,MIGRATOR_IMAGE,DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN
+          script_stop: true
+          script: |
+            set -eu
+
+            cd "$DEPLOY_PATH"
+
+            echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+
+            export NEXT_IMAGE="$APP_IMAGE"
+            export MIGRATOR_IMAGE="$MIGRATOR_IMAGE"
+
+            docker compose \
+              -p collabill-prod \
+              -f docker-compose.prod.yml \
+              --env-file .env.prod \
+              --profile migrate \
+              pull next migrator
+
+            docker compose \
+              -p collabill-prod \
+              -f docker-compose.prod.yml \
+              --env-file .env.prod \
+              --profile migrate \
+              run --rm migrator
+
+            docker compose \
+              -p collabill-prod \
+              -f docker-compose.prod.yml \
+              --env-file .env.prod \
+              up -d
+
+            docker image prune -af --filter "until=168h"
