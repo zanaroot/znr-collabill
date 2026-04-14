@@ -34,7 +34,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -47,6 +47,3 @@ jobs:
 
       - name: Run unit tests
         run: pnpm test:unit
-
-      - name: Build project
-        run: pnpm build

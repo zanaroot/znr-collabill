@@ -73,30 +73,18 @@ pnpm create:user
 
 ```bash
 # Create production env file
-cp .env.example .env.prod
+cp .env.example .env
 
-# Set image references for the first boot
-echo "NEXT_IMAGE=ghcr.io/<owner>/collabill:latest" >> .env.prod
-echo "MIGRATOR_IMAGE=ghcr.io/<owner>/collabill-migrator:latest" >> .env.prod
+# Set image reference for the first boot
+echo "NEXT_IMAGE=ghcr.io/<owner>/collabill:latest" >> .env
 
 # Start all services (Next.js + postgres + minio)
 ./start-prod.sh
 ```
 
-Apply migrations manually when needed:
-
-```bash
-docker compose \
-  -p collabill-prod \
-  -f docker-compose.prod.yml \
-  --env-file .env \
-  --profile migrate \
-  run --rm migrator
-```
-
 Requires:
 - `.env` with production environment variables
-- `NEXT_IMAGE` and `MIGRATOR_IMAGE` pointing at pushed registry images
+- `NEXT_IMAGE` pointing at a pushed registry image
 - Docker Compose on the target host
 
 Important:
@@ -111,7 +99,7 @@ Important:
 
 This repository includes:
 
-- `.github/workflows/build-images.yml` to build and push the app and migrator images to GHCR after the `Validation` workflow succeeds on `main`
+- `.github/workflows/build-images.yml` to build and push the app image to GHCR after the `Validation` workflow succeeds on `main`
 - `.github/workflows/deploy.yml` to deploy a selected image tag manually to a Docker host such as a DigitalOcean Droplet
 
 Expected GitHub secrets:
@@ -126,16 +114,15 @@ The image workflow:
 
 1. Waits for the `Validation` workflow to complete successfully on `main`.
 2. Builds and pushes the runtime image to `ghcr.io/<owner>/collabill`.
-3. Builds and pushes the migration image to `ghcr.io/<owner>/collabill-migrator`.
-4. Tags each image as both `latest` and the validated commit SHA.
+3. Tags the image as both `latest` and the validated commit SHA.
 
 The deploy workflow:
 
 1. Runs manually from GitHub Actions with an `image_tag` input such as `latest` or a specific commit SHA.
 2. SSHes into the droplet.
-3. Pulls the selected app and migrator images.
-4. Runs `pnpm db:migrate` through the migrator service.
-5. Restarts the application stack with the selected runtime image.
+3. Pulls the selected app image.
+4. Restarts the application stack with the selected runtime image.
+5. Lets the app container apply pending migrations before it starts serving traffic.
 
 ## Project Structure
 

@@ -14,6 +14,20 @@ x-next-env: &next-env
   NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
   ENCRYPTION_KEY: ${ENCRYPTION_KEY}
 
+x-next-build-args: &next-build-args
+  DATABASE_URL: ${DATABASE_URL}
+  NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+  NEXT_PUBLIC_S3_ENDPOINT: ${NEXT_PUBLIC_S3_ENDPOINT}
+  NODE_ENV: production
+  S3_ENDPOINT: ${S3_ENDPOINT}
+  MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+  MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  S3_BUCKET: ${S3_BUCKET}
+  S3_REGION: ${S3_REGION}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+
 services:
   postgres:
     image: postgres:17
@@ -75,7 +89,11 @@ services:
 
   next:
     image: ${NEXT_IMAGE:?NEXT_IMAGE is required}
-    pull_policy: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args: *next-build-args
     restart: always
     depends_on:
       postgres:
@@ -85,15 +103,6 @@ services:
     environment: *next-env
     ports:
       - "3000:3000"
-
-  migrator:
-    image: ${MIGRATOR_IMAGE:?MIGRATOR_IMAGE is required}
-    pull_policy: always
-    profiles: ["migrate"]
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment: *next-env
 
 volumes:
   postgres_data_prod:

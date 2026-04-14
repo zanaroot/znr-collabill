@@ -11,7 +11,6 @@ on:
 env:
   REGISTRY: ghcr.io
   APP_IMAGE_NAME: ${{ github.repository }}
-  MIGRATOR_IMAGE_NAME: ${{ github.repository }}-migrator
   DEPLOY_PATH: /var/docker-infra
 
 jobs:
@@ -26,7 +25,6 @@ jobs:
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         env:
           APP_IMAGE: ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ inputs.image_tag }}
-          MIGRATOR_IMAGE: ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:${{ inputs.image_tag }}
           DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
@@ -34,7 +32,7 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          envs: APP_IMAGE,MIGRATOR_IMAGE,DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN
+          envs: APP_IMAGE,DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN
           script_stop: true
           script: |
             set -eu
@@ -44,21 +42,12 @@ jobs:
             echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
             export NEXT_IMAGE="$APP_IMAGE"
-            export MIGRATOR_IMAGE="$MIGRATOR_IMAGE"
 
             docker compose \
               -p collabill-prod \
               -f docker-compose.prod.yml \
               --env-file .env \
-              --profile migrate \
-              pull next migrator
-
-            docker compose \
-              -p collabill-prod \
-              -f docker-compose.prod.yml \
-              --env-file .env \
-              --profile migrate \
-              run --rm migrator
+              pull next
 
             docker compose \
               -p collabill-prod \
