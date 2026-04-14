@@ -18,12 +18,14 @@ import {
   Modal,
   message,
   Result,
-  Switch,
   Tabs,
   Tag,
   Typography,
 } from "antd";
 import { useRouter } from "next/navigation";
+import type { Integration, IntegrationFormValues } from "@/app/(private)/type-organization/_components/integration-card-form";
+import { IntegrationCard } from "@/app/(private)/type-organization/_components/integration-card-form";
+import type { IntegrationType } from "@/http/models/integration.model";
 import type { Role } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 import { useCurrentUser } from "../../team-management/_hooks/use-team";
@@ -41,22 +43,6 @@ type Organization = {
   id: string;
   name: string;
   members: Member[];
-};
-
-type Integration = {
-  id: string;
-  organizationId: string;
-  type: "GITHUB" | "BREVO" | "SLACK";
-  isActive: string;
-  hasCredentials: boolean;
-};
-
-type IntegrationFormValues = {
-  token?: string;
-  apiKey?: string;
-  mailFrom?: string;
-  botToken?: string;
-  defaultChannel?: string;
 };
 
 export default function OrganizationType() {
@@ -91,7 +77,7 @@ export default function OrganizationType() {
 
   const saveIntegrationMutation = useMutation({
     mutationFn: async (data: {
-      type: "GITHUB" | "BREVO" | "SLACK";
+      type: IntegrationType;
       credentials: Record<string, unknown>;
     }) => {
       const res = await client.api.integrations.$post({
@@ -116,7 +102,7 @@ export default function OrganizationType() {
 
   const toggleMutation = useMutation({
     mutationFn: async (data: {
-      type: "GITHUB" | "BREVO" | "SLACK";
+      type: IntegrationType;
       isActive: boolean;
     }) => {
       const res = await client.api.integrations.toggle.$post({
@@ -183,11 +169,11 @@ export default function OrganizationType() {
     });
   };
 
-  const getIntegration = (type: string) =>
+  const getIntegration = (type: IntegrationType) =>
     integrations?.find((i) => i.type === type);
 
   const handleSaveIntegration = (
-    type: "GITHUB" | "BREVO" | "SLACK",
+    type: IntegrationType,
     values: IntegrationFormValues,
   ) => {
     let credentials: Record<string, unknown> = {};
@@ -210,9 +196,9 @@ export default function OrganizationType() {
     saveIntegrationMutation.mutate({ type, credentials });
   };
 
-  const handleToggleIntegration = (type: string, isActive: boolean) => {
+  const handleToggleIntegration = (type: IntegrationType, isActive: boolean) => {
     toggleMutation.mutate({
-      type: type as "GITHUB" | "BREVO" | "SLACK",
+      type,
       isActive,
     });
   };
@@ -453,62 +439,5 @@ export default function OrganizationType() {
 
       <Tabs items={tabItems} />
     </div>
-  );
-}
-
-function IntegrationCard({
-  integration,
-  loading,
-  onSave,
-  onToggle,
-  renderForm,
-}: {
-  integration?: Integration;
-  loading: boolean;
-  onSave: (values: IntegrationFormValues) => void;
-  onToggle: (isActive: boolean) => void;
-  renderForm: (
-    form: ReturnType<typeof Form.useForm>[0],
-    disabled: boolean,
-  ) => React.ReactNode;
-}) {
-  const [form] = Form.useForm();
-
-  return (
-    <Card>
-      <div style={{ marginBottom: 16 }}>
-        <Switch
-          checked={integration?.isActive === "true"}
-          onChange={onToggle}
-          disabled={!integration?.hasCredentials}
-        />
-        <span style={{ marginLeft: 8 }}>Active</span>
-      </div>
-
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={onSave}
-        initialValues={{
-          token: "",
-          apiKey: "",
-          mailFrom: "",
-          botToken: "",
-          defaultChannel: "",
-        }}
-      >
-        {renderForm(form, false)}
-
-        <Form.Item>
-          <span style={{ marginRight: 8 }}>
-            Status:{" "}
-            {integration?.hasCredentials ? "Configured" : "Not configured"}
-          </span>
-          <Button type="primary" htmlType="submit" loading={loading}>
-            Save
-          </Button>
-        </Form.Item>
-      </Form>
-    </Card>
   );
 }

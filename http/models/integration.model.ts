@@ -9,7 +9,7 @@ export const githubCredentialsSchema = z.object({
 
 export const brevoCredentialsSchema = z.object({
   apiKey: z.string().min(1),
-  mailFrom: z.string().email().or(z.string().includes("@")),
+  mailFrom: z.email().or(z.string().includes("@")),
 });
 
 export const slackCredentialsSchema = z.object({
@@ -61,8 +61,8 @@ export type IntegrationCredentials =
   | { slack: z.infer<typeof slackCredentialsSchema> };
 
 export const integrationResponseSchema = z.object({
-  id: z.string().uuid(),
-  organizationId: z.string().uuid(),
+  id: z.uuid(),
+  organizationId: z.uuid(),
   type: integrationTypeSchema,
   isActive: z.string(),
   config: z.string().nullable().optional(),
