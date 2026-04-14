@@ -14,7 +14,13 @@ import type {
   UpdateProjectInput,
 } from "@/http/models/project.model";
 
-const normalizeProject = <T extends { baseRate: string | null }>(
+const normalizeProject = <
+  T extends {
+    baseRate: string | null;
+    slackChannel?: string | null;
+    slackNotificationsEnabled?: boolean | null;
+  },
+>(
   project: T,
 ) => ({
   ...project,

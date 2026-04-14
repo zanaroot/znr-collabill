@@ -13,17 +13,25 @@ import {
 const NOTIFICATION_TYPE_IN_REVIEW = "in_review";
 
 export const notifyTaskInReview = async (taskId: string): Promise<void> => {
+  console.log(`[TaskNotification] Processing task: ${taskId}`);
+
   const task = await taskRepository.findTaskWithAssigneeById(taskId);
   if (!task) {
     console.warn(`[TaskNotification] Task not found: ${taskId}`);
     return;
   }
+  console.log(
+    `[TaskNotification] Task title: ${task.title}, projectId: ${task.projectId}`,
+  );
 
   const project = await projectRepository.findProjectById(task.projectId);
   if (!project) {
     console.warn(`[TaskNotification] Project not found: ${task.projectId}`);
     return;
   }
+  console.log(
+    `[TaskNotification] Project: ${project.name}, slackNotificationsEnabled: ${project.slackNotificationsEnabled}, slackChannel: ${project.slackChannel}`,
+  );
 
   if (project.slackNotificationsEnabled === false) {
     console.log(
@@ -41,6 +49,9 @@ export const notifyTaskInReview = async (taskId: string): Promise<void> => {
     );
     return;
   }
+  console.log(
+    `[TaskNotification] Organization: ${organization.name}, hasToken: ${!!organization.slackBotTokenEncrypted}, defaultChannel: ${organization.slackDefaultChannel}`,
+  );
 
   if (!organization.slackBotTokenEncrypted) {
     console.log(
@@ -56,6 +67,7 @@ export const notifyTaskInReview = async (taskId: string): Promise<void> => {
     );
     return;
   }
+  console.log(`[TaskNotification] Using channel: ${channel}`);
 
   const alreadyNotified = await db
     .select({ taskId: taskNotifications.taskId })
@@ -88,10 +100,12 @@ export const notifyTaskInReview = async (taskId: string): Promise<void> => {
     taskUrl,
   });
 
+  console.log(`[TaskNotification] Sending message to ${channel}...`);
   await sendSlackMessageWithToken(
     organization.slackBotTokenEncrypted,
     channel,
     text,
     blocks,
   );
+  console.log(`[TaskNotification] Message sent successfully`);
 };

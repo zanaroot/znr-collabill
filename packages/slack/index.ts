@@ -41,7 +41,14 @@ export const sendSlackMessageWithToken = async (
     });
     return true;
   } catch (error) {
-    console.error("[Slack] Failed to send message:", error);
+    const err = error as { data?: { error?: string } };
+    if (err.data?.error === "not_in_channel") {
+      console.error(
+        "[Slack] Bot is not in the channel. Invite the bot to the channel first using /invite @bot-name",
+      );
+    } else {
+      console.error("[Slack] Failed to send message:", error);
+    }
     return false;
   }
 };
