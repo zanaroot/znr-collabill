@@ -92,11 +92,12 @@ export const notifyTaskInReview = async (taskId: string): Promise<void> => {
     type: NOTIFICATION_TYPE_IN_REVIEW,
   });
 
-  const taskUrl = getTaskUrl(taskId);
+  const taskUrl = getTaskUrl(taskId, project.id);
   const { blocks, text } = buildTaskReviewMessage({
     taskId: task.id,
     taskTitle: task.title,
     assigneeName: task.assigneeName,
+    projectName: project.name,
     taskUrl,
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 import {
@@ -33,6 +33,7 @@ export type UseBoardOptions = {
   tasks: TaskModel[];
   projectId?: string;
   userRole?: Role;
+  taskId?: string;
 };
 
 export type UseBoardReturn = {
@@ -68,6 +69,7 @@ export function useBoard({
   tasks,
   projectId,
   userRole,
+  taskId,
 }: UseBoardOptions): UseBoardReturn {
   const [boardView, setBoardView] = useState<BoardView>("ACTIVE");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -77,6 +79,27 @@ export function useBoard({
   const [formValues, setFormValues] = useState<TaskFormValues>(() =>
     defaultFormValues("TODO"),
   );
+
+  useEffect(() => {
+    if (taskId && tasks.length > 0) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (task) {
+        setActiveTask(task);
+        setFormValues({
+          title: task.title,
+          description: task.description ?? "",
+          size: task.size,
+          priorityLabel: PRIORITY_LABEL_FROM_VALUE(task.priority),
+          dueDate: task.dueDate ?? "",
+          status: task.status,
+          assigneeId: task.assignedTo ?? null,
+          gitBranch: task.gitBranch ?? "",
+        });
+        setDrawerOpen(true);
+        setIsEditing(false);
+      }
+    }
+  }, [taskId, tasks]);
 
   const createTaskMutation = useCreateTask();
   const updateTaskMutation = useUpdateTask();

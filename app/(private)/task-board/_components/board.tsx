@@ -18,6 +18,7 @@ type CreateBoardProps = {
   userRole?: Role;
   members: TaskMembers;
   isAdmin: boolean;
+  taskId?: string;
 };
 
 export function CreateBoard({
@@ -27,11 +28,13 @@ export function CreateBoard({
   userRole,
   members,
   isAdmin,
+  taskId,
 }: CreateBoardProps) {
   const board = useBoard({
     tasks,
     projectId,
     userRole,
+    taskId,
   });
 
   const hasPermission = isAdmin || userRole === "OWNER" || userRole === "ADMIN";

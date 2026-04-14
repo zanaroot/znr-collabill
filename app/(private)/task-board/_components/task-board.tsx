@@ -31,6 +31,7 @@ export function TaskBoard({ currentUserId: _currentUserId }: TaskBoardProps) {
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
 
   const projectId = searchParams.get("projectId") ?? undefined;
+  const taskId = searchParams.get("taskId") ?? undefined;
 
   const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
 
@@ -137,6 +138,7 @@ export function TaskBoard({ currentUserId: _currentUserId }: TaskBoardProps) {
               role: user.role,
             })) ?? []
           }
+          taskId={taskId}
         />
       )}
     </div>

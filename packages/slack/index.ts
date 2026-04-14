@@ -56,11 +56,19 @@ export const sendSlackMessageWithToken = async (
 export const buildTaskReviewMessage = (params: {
   taskId: string;
   taskTitle: string;
+  projectName: string;
   assigneeName: string | null;
   taskUrl: string;
   previousStatus?: string;
 }) => {
-  const { taskId, taskTitle, assigneeName, taskUrl, previousStatus } = params;
+  const {
+    taskId,
+    taskTitle,
+    projectName,
+    assigneeName,
+    taskUrl,
+    previousStatus,
+  } = params;
 
   const headerText = previousStatus
     ? `*Task moved to In Review*`
@@ -71,6 +79,7 @@ export const buildTaskReviewMessage = (params: {
     fields.push({ type: "mrkdwn", text: `*Assignee:*\n${assigneeName}` });
   }
   fields.push({ type: "mrkdwn", text: `*Status:*\nIn Review` });
+  fields.push({ type: "mrkdwn", text: `*Project:*\n${projectName}` });
 
   const blocks: SlackBlock[] = [
     {
@@ -127,9 +136,9 @@ export const buildTaskReviewMessage = (params: {
   return { blocks, text: fallbackText };
 };
 
-export const getTaskUrl = (taskId: string): string => {
+export const getTaskUrl = (taskId: string, projectId: string): string => {
   const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL;
-  return `${baseUrl}/tasks/${taskId}`;
+  return `${baseUrl}/task-board?projectId=${projectId}&taskId=${taskId}`;
 };
 
 export const encryptSlackToken = (token: string): string => {
