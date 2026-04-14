@@ -163,6 +163,8 @@ Important:
 - `.env.example` is set up for local development, so its default `DATABASE_URL` uses `localhost`. If `.env` runs against the bundled `postgres` container, set `DATABASE_URL` to `postgresql://user:password@postgres:5432/collabill_db` or provide matching `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` values.
 - `docker-compose.prod.yml` now prefers explicit app env values from `.env` for `DATABASE_URL`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY`, while keeping bundled service defaults aligned with `.env.example`.
 - If you use the bundled `postgres` service with a persisted volume, changing `POSTGRES_PASSWORD` later does not rotate the existing database user's password. In that case, update `DATABASE_URL` to the real live credential or rotate the Postgres role password manually before rerunning migrations.
+- `next` is no longer exposed on public port `3000`; `nginx` is the public entrypoint on `80/443`.
+- `postgres` and `minio` are internal-only in production. Public file access should go through `https://files.collabill.tchi.xyz`.
 
 ### Check logs:
 - `docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env logs -f next`
