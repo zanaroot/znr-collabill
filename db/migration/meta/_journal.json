@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1775120986165,
-      "tag": "0000_sparkling_carlie_cooper",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1775575927181,
-      "tag": "0001_square_hannibal_king",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1776166874330,
-      "tag": "0002_huge_stark_industries",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1776178129616,
-      "tag": "0003_fast_misty_knight",
+      "when": 1776195950041,
+      "tag": "0000_sudden_nextwave",
       "breakpoints": true
     }
   ]
