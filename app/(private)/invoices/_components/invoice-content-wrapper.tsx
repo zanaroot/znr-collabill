@@ -22,6 +22,10 @@ interface InvoiceContentWrapperProps {
   selectedPeriod: Period;
   existingInvoice: InvoiceWithLines | null;
   isOwner: boolean;
+  customLines?: Array<{ label: string; amount: string; key: string }>;
+  onCustomLinesChange?: (
+    lines: Array<{ label: string; amount: string; key: string }>,
+  ) => void;
 }
 
 export const InvoiceContentWrapper = ({
@@ -33,6 +37,8 @@ export const InvoiceContentWrapper = ({
   selectedPeriod,
   existingInvoice,
   isOwner,
+  customLines,
+  onCustomLinesChange,
 }: InvoiceContentWrapperProps) => {
   const screens = useBreakpoint();
 
@@ -85,6 +91,8 @@ export const InvoiceContentWrapper = ({
             periodName={selectedPeriod.name}
             existingInvoice={existingInvoice}
             isOwner={isOwner}
+            customLines={customLines}
+            onCustomLinesChange={onCustomLinesChange}
           />
           <InvoiceComments invoiceId={existingInvoice?.id ?? null} />
         </Space>

@@ -11,8 +11,7 @@ import { getOrganizationMembers } from "@/http/repositories/organization.reposit
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
-import { InvoiceContentWrapper } from "./_components/invoice-content-wrapper";
-import { InvoiceFilters } from "./_components/invoice-filters";
+import { InvoiceDetailView } from "./_components/invoice-detail-view";
 import { InvoiceHistoryTable } from "./_components/invoice-history-table";
 import type { PresenceSummary } from "./_components/presence-summary-table";
 import type { RawTaskSummary } from "./_components/task-summary-table";
@@ -93,27 +92,10 @@ const InvoicesPage = async ({
         </div>
       </div>
 
-      <div className="no-print">
-        <InvoiceFilters
-          members={members}
-          currentUserId={user.id}
-          showMemberFilter={isOwner}
-          organizationId={user.organizationId}
-          targetUserId={targetUserId}
-          periodStart={selectedPeriod.startDate}
-          periodEnd={selectedPeriod.endDate}
-          existingInvoice={existingInvoice}
-          isOwner={isOwner}
-          presenceData={presenceSummary as unknown as PresenceSummary[]}
-          taskData={taskSummary as unknown as RawTaskSummary[]}
-          isDetailsPage={!showHistory}
-        />
-      </div>
-
       {showHistory ? (
         <InvoiceHistoryTable data={history} isOwner={isOwner} />
       ) : (
-        <InvoiceContentWrapper
+        <InvoiceDetailView
           presenceSummary={presenceSummary as unknown as PresenceSummary[]}
           taskSummary={taskSummary as unknown as RawTaskSummary[]}
           user={user}
@@ -122,6 +104,7 @@ const InvoicesPage = async ({
           selectedPeriod={selectedPeriod}
           existingInvoice={existingInvoice}
           isOwner={isOwner}
+          members={members}
         />
       )}
     </div>

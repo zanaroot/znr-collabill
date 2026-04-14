@@ -40,6 +40,7 @@ type InvoiceFiltersProps = {
   presenceData: PresenceSummary[];
   taskData: RawTaskSummary[];
   isDetailsPage?: boolean;
+  customLines?: Array<{ label: string; amount: string; key: string }>;
 };
 
 export const InvoiceFilters = ({
@@ -55,6 +56,7 @@ export const InvoiceFilters = ({
   isDetailsPage,
   presenceData,
   taskData,
+  customLines = [],
 }: InvoiceFiltersProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -209,6 +211,22 @@ export const InvoiceFilters = ({
           label: `Tasks ${t.size} for ${t.userName} (${t.projectName})`,
           quantity: t.taskCount,
           unitPrice: totalRate.toString(),
+          total: amount.toString(),
+        });
+      }
+    }
+
+    // Add custom lines
+    for (const cl of customLines) {
+      const amount = Number(cl.amount || 0);
+      if (amount !== 0) {
+        totalAmount += amount;
+        linesInput.push({
+          type: "CUSTOM",
+          referenceId: null,
+          label: cl.label,
+          quantity: 1,
+          unitPrice: amount.toString(),
           total: amount.toString(),
         });
       }

@@ -1,7 +1,8 @@
 "use client";
 
+import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Divider, message, Space, Typography } from "antd";
+import { Button, Divider, Input, message, Space, Typography } from "antd";
 import { useMemo, useState } from "react";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
@@ -23,7 +24,6 @@ type InvoiceLineInput = {
   unitPrice: string;
   total: string;
 };
-
 type InvoicePrintableProps = {
   presenceData: PresenceSummary[];
   taskData: RawTaskSummary[];
@@ -37,6 +37,10 @@ type InvoicePrintableProps = {
   periodName?: string;
   existingInvoice?: { id: string; status: InvoiceStatus | null } | null;
   isOwner?: boolean;
+  customLines?: Array<{ label: string; amount: string; key: string }>;
+  onCustomLinesChange?: (
+    lines: Array<{ label: string; amount: string; key: string }>,
+  ) => void;
 };
 
 export const InvoicePrintable = ({
@@ -50,6 +54,9 @@ export const InvoicePrintable = ({
   periodEnd,
   periodName,
   existingInvoice,
+  isOwner,
+  customLines = [],
+  onCustomLinesChange,
 }: InvoicePrintableProps) => {
   const [clientInvoiceDate] = useState(() =>
     new Date().toLocaleDateString("en-US", {
@@ -117,9 +124,17 @@ export const InvoicePrintable = ({
     }, 0);
   }, [taskData]);
 
-  const grandTotal = presenceTotal + taskTotal;
+  const customTotal = useMemo(() => {
+    return customLines.reduce((acc, item) => {
+      return acc + Number(item.amount || 0);
+    }, 0);
+  }, [customLines]);
+
+  const grandTotal = presenceTotal + taskTotal + customTotal;
   const invoiceDate = clientInvoiceDate;
   const invoiceNumber = clientInvoiceNumber;
+  const [newFieldLabel, setNewFieldLabel] = useState("");
+  const [newFieldAmount, setNewFieldAmount] = useState("");
 
   const _handleValidate = async () => {
     if (!targetUserId || !periodStart || !periodEnd) return;
@@ -160,6 +175,22 @@ export const InvoicePrintable = ({
           label: `Tasks ${t.size} for ${t.userName} (${t.projectName})`,
           quantity: t.taskCount,
           unitPrice: totalRate.toString(),
+          total: amount.toString(),
+        });
+      }
+    }
+
+    // Add custom lines
+    for (const cl of customLines) {
+      const amount = Number(cl.amount || 0);
+      if (amount !== 0) {
+        totalAmount += amount;
+        linesInput.push({
+          type: "CUSTOM",
+          referenceId: null,
+          label: cl.label,
+          quantity: 1,
+          unitPrice: amount.toString(),
           total: amount.toString(),
         });
       }
@@ -437,6 +468,140 @@ export const InvoicePrintable = ({
           </div>
         </div>
 
+        <div className="mb-12">
+          <Title
+            level={4}
+            className="flex items-center gap-2 mb-6 text-gray-700 dark:text-gray-200"
+          >
+            <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+            Custom Fields
+          </Title>
+          <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 dark:bg-gray-800/50">
+                  <th className="text-left p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Label
+                  </th>
+                  <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  {!existingInvoice && isOwner && (
+                    <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider no-print">
+                      Actions
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {customLines.map((item, index) => (
+                  <tr
+                    key={item.key}
+                    className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors"
+                  >
+                    <td className="p-4">
+                      <Text strong className="dark:text-gray-200">
+                        {item.label}
+                      </Text>
+                    </td>
+                    <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
+                      {Number(item.amount).toLocaleString()} €
+                    </td>
+                    {!existingInvoice && isOwner && (
+                      <td className="text-right p-4 no-print">
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => {
+                            const newLines = [...customLines];
+                            newLines.splice(index, 1);
+                            onCustomLinesChange?.(newLines);
+                          }}
+                        />
+                      </td>
+                    )}
+                  </tr>
+                ))}
+                {!existingInvoice && isOwner && (
+                  <tr className="bg-gray-50/20 dark:bg-gray-800/20 no-print">
+                    <td className="p-4">
+                      <Input
+                        placeholder="Label (e.g. Bonus, Prime)"
+                        value={newFieldLabel}
+                        onChange={(e) => setNewFieldLabel(e.target.value)}
+                        variant="borderless"
+                        className="font-medium"
+                      />
+                    </td>
+                    <td className="text-right p-4">
+                      <Input
+                        placeholder="Amount"
+                        type="number"
+                        value={newFieldAmount}
+                        onChange={(e) => setNewFieldAmount(e.target.value)}
+                        variant="borderless"
+                        className="text-right font-mono"
+                        onPressEnter={() => {
+                          if (newFieldLabel && newFieldAmount) {
+                            onCustomLinesChange?.([
+                              ...customLines,
+                              {
+                                label: newFieldLabel,
+                                amount: newFieldAmount,
+                                key: crypto.randomUUID(),
+                              },
+                            ]);
+                            setNewFieldLabel("");
+                            setNewFieldAmount("");
+                          }
+                        }}
+                      />
+                    </td>
+                    <td className="text-right p-4">
+                      <Button
+                        type="primary"
+                        ghost
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                          if (newFieldLabel && newFieldAmount) {
+                            onCustomLinesChange?.([
+                              ...customLines,
+                              {
+                                label: newFieldLabel,
+                                amount: newFieldAmount,
+                                key: crypto.randomUUID(),
+                              },
+                            ]);
+                            setNewFieldLabel("");
+                            setNewFieldAmount("");
+                          } else {
+                            message.warning(
+                              "Please enter both label and amount",
+                            );
+                          }
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </td>
+                  </tr>
+                )}
+                {customLines.length === 0 && (existingInvoice || !isOwner) && (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="p-8 text-center text-gray-400 italic bg-gray-50/20 dark:bg-gray-800/20"
+                    >
+                      No custom fields for this invoice
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div className="flex justify-end mt-16 mb-12">
           <div className="w-full md:w-80">
             <div className="space-y-3">
@@ -452,6 +617,14 @@ export const InvoicePrintable = ({
                   {taskTotal.toLocaleString()} €
                 </Text>
               </div>
+              {customTotal !== 0 && (
+                <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
+                  <Text className="dark:text-gray-300">Custom Fields</Text>
+                  <Text className="font-mono dark:text-gray-200">
+                    {customTotal.toLocaleString()} €
+                  </Text>
+                </div>
+              )}
               <Divider className="my-2 border-gray-200 dark:border-gray-700" />
               <div className="flex justify-between items-center bg-gray-100 dark:bg-gray-800 text-white dark:text-white p-4 rounded-lg shadow-inner print:bg-gray-100 print:text-black">
                 <Title level={3} className="m-0! text-white print:text-black">
