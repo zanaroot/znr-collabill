@@ -159,6 +159,11 @@ scp -r docker-compose.prod.yml nginx <user>@<host>:/var/docker-infra/
 
 Then run the GitHub Actions deploy workflow. The workflow will generate the `.env` file automatically.
 
+Important:
+- `.env.example` is set up for local development, so its default `DATABASE_URL` uses `localhost`. If `.env` runs against the bundled `postgres` container, set `DATABASE_URL` to `postgresql://user:password@postgres:5432/collabill_db` or provide matching `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` values.
+- `docker-compose.prod.yml` now prefers explicit app env values from `.env` for `DATABASE_URL`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY`, while keeping bundled service defaults aligned with `.env.example`.
+- If you use the bundled `postgres` service with a persisted volume, changing `POSTGRES_PASSWORD` later does not rotate the existing database user's password. In that case, update `DATABASE_URL` to the real live credential or rotate the Postgres role password manually before rerunning migrations.
+
 ### Check logs:
 - `docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env logs -f next`
 - `docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env logs -f nginx`

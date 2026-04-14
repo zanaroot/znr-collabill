@@ -23,7 +23,7 @@ import {
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { getFutureDate } from "@/lib/date";
 import { generateSessionToken } from "@/lib/session-token";
-import { serverEnv } from "@/packages/env/server";
+// import { serverEnv } from "@/packages/env/server";
 import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 
 const shouldUseSecureCookie = async () => {
@@ -40,7 +40,7 @@ const shouldUseSecureCookie = async () => {
     return false;
   }
 
-  return serverEnv.NODE_ENV === "production";
+  return process.env.NODE_ENV === "production";
 };
 
 export const registerAction = async (

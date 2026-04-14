@@ -30,6 +30,8 @@ import { invitationContent } from "@/http/ressources/invitation-content";
 import { sendEmail } from "@/packages/email";
 import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const inviteUserAction = async (
   input: InviteUserInput,
 ): Promise<ActionResponse> => {
