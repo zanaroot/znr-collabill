@@ -37,7 +37,7 @@ jobs:
       MAIL_FROM: CI <ci@collabill.local>
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       S3_ENDPOINT: http://localhost:9000
-      ENCRYPTION_KEY: CI_ENCRYPTION_KEY
+      ENCRYPTION_KEY: CI_ENCRYPTION_KEY_12345678901234567890123456789012
       S3_ACCESS_KEY: admin
       S3_SECRET_KEY: password
       S3_BUCKET: my-buckets
