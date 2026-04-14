@@ -4,9 +4,11 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { publicEnv } from "@/packages/env";
+import { serverEnv } from "@/packages/env/server";
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN ?? process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: serverEnv.SENTRY_DSN ?? publicEnv.NEXT_PUBLIC_SENTRY_DSN,
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1,
@@ -14,9 +16,7 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  enabled: Boolean(
-    process.env.SENTRY_DSN ?? process.env.NEXT_PUBLIC_SENTRY_DSN,
-  ),
+  enabled: Boolean(serverEnv.SENTRY_DSN ?? publicEnv.NEXT_PUBLIC_SENTRY_DSN),
   environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
   // Par défaut on évite d’envoyer des PII (cookies, headers, etc.)
   sendDefaultPii: false,
