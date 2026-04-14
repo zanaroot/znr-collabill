@@ -13,6 +13,7 @@ x-next-env: &next-env
   MAIL_FROM: ${MAIL_FROM}
   NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
   GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY}
 
 services:
   postgres:
