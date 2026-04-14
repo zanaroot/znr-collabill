@@ -148,3 +148,40 @@ const actions = {
 export const organizationActions = wrapActionsWithSentry(
   actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
 );
+
+export const deleteOrganizationAction = async (
+  organizationId: string,
+  _confirmDelete: "DELETE",
+  hardDelete = false,
+): Promise<ActionResponse> => {
+  try {
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return { error: "Unauthorized", success: false };
+    }
+
+    await deleteOrganizationById(organizationId, currentUser.id, hardDelete);
+
+    if (hardDelete) {
+      const cookieStore = await cookies();
+      const token = cookieStore.get("session_token")?.value;
+
+      if (token) {
+        await updateSessionOrganization(token, null);
+      }
+    }
+
+    revalidatePath("/");
+
+    return {
+      message: hardDelete
+        ? "Organization permanently deleted"
+        : "Organization deleted successfully",
+      success: true,
+    };
+  } catch (error) {
+    console.error("Delete organization error:", error);
+    return { error: "Something went wrong", success: false };
+  }
+};
