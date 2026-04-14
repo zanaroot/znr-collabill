@@ -28,9 +28,10 @@ import {
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { invitationContent } from "@/http/ressources/invitation-content";
 import { sendEmail } from "@/packages/email";
+import { publicEnv } from "@/packages/env";
 import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const appUrl = publicEnv.NEXT_PUBLIC_APP_URL;
 
 export const inviteUserAction = async (
   input: InviteUserInput,
