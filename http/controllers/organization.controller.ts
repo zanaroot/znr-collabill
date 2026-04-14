@@ -49,15 +49,31 @@ export const getOwnedOrganizations = factory.createHandlers(async (c) => {
   return c.json(organizations);
 });
 
-export const deleteOrganization = factory.createHandlers(async (c) => {
-  const currentUser = c.get("user");
+export const deleteOrganization = factory.createHandlers(
+  zValidator(
+    "json",
+    z.object({
+      confirmDelete: z.literal("DELETE"),
+      hardDelete: z.boolean().optional().default(false),
+    }),
+  ),
+  async (c) => {
+    const currentUser = c.get("user");
 
-  const id = c.req.param("id");
-  if (!id) return c.json({ error: "ID required" }, 400);
+    const id = c.req.param("id");
+    if (!id) return c.json({ error: "ID required" }, 400);
 
-  await deleteOrganizationById(id, currentUser.id);
-  return c.json({ message: "Organization deleted" });
-});
+    const { hardDelete } = c.req.valid("json");
+
+    await deleteOrganizationById(id, currentUser.id, hardDelete);
+    return c.json({
+      message: hardDelete
+        ? "Organization permanently deleted"
+        : "Organization deleted",
+      success: true,
+    });
+  },
+);
 
 export const organizationOwner = factory.createHandlers(async (c) => {
   const id = c.req.param("id");

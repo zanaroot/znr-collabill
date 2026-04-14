@@ -19,7 +19,7 @@ export const projects = pgTable("projects", {
   baseRate: numeric("base_rate", { precision: 10, scale: 2 }).default("1"),
   organizationId: uuid("organization_id")
     .notNull()
-    .references(() => organizations.id),
+    .references(() => organizations.id, { onDelete: "cascade" }),
   slackChannel: text("slack_channel"),
   slackNotificationsEnabled: boolean("slack_notifications_enabled").default(
     true,

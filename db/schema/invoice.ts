@@ -20,7 +20,7 @@ export const invoices = pgTable("invoices", {
     .references(() => users.id),
   organizationId: uuid("organization_id")
     .notNull()
-    .references(() => organizations.id),
+    .references(() => organizations.id, { onDelete: "cascade" }),
   periodStart: date("period_start").notNull(),
   periodEnd: date("period_end").notNull(),
   status: invoiceStatusEnum("status").default("DRAFT"),

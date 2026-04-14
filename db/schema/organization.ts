@@ -17,6 +17,7 @@ export const organizations = pgTable("organizations", {
   slackBotTokenEncrypted: text("slack_bot_token_encrypted"),
   slackDefaultChannel: text("slack_default_channel"),
   createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const organizationMembers = pgTable(
@@ -24,10 +25,10 @@ export const organizationMembers = pgTable(
   {
     organizationId: uuid("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     userId: uuid("user_id")
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     role: roleEnum("role").notNull().default("COLLABORATOR"),
     joinedAt: timestamp("joined_at").defaultNow(),
   },

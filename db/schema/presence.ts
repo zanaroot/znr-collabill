@@ -13,7 +13,7 @@ export const presences = pgTable(
       .references(() => users.id),
     organizationId: uuid("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     date: date("date").notNull(),
     checkInAt: timestamp("check_in_at").defaultNow().notNull(),
     checkOutAt: timestamp("check_out_at"),

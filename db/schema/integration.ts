@@ -7,7 +7,7 @@ export const organizationIntegrations = pgTable("organization_integrations", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id")
     .notNull()
-    .references(() => organizations.id),
+    .references(() => organizations.id, { onDelete: "cascade" }),
   type: integrationTypeEnum("type").notNull(),
   credentialsEncrypted: text("credentials_encrypted").notNull(),
   config: text("config"),

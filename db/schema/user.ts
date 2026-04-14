@@ -25,11 +25,11 @@ export const userRoles = pgTable(
   {
     userId: uuid("user_id")
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     role: roleEnum("role").notNull(),
     organizationId: uuid("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
   },
   (t) => [
     primaryKey({ columns: [t.userId, t.role, t.organizationId] }),
@@ -44,10 +44,10 @@ export const collaboratorRates = pgTable(
   {
     userId: uuid("user_id")
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     organizationId: uuid("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     dailyRate: numeric("daily_rate", { precision: 10, scale: 2 }).notNull(),
     rateXs: numeric("rate_xs", { precision: 10, scale: 2 }).notNull(),
     rateS: numeric("rate_s", { precision: 10, scale: 2 }).notNull(),

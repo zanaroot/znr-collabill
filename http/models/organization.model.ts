@@ -16,6 +16,15 @@ export const organizationSchema = z.object({
   slackBotTokenEncrypted: z.string().nullable().optional(),
   slackDefaultChannel: z.string().nullable().optional(),
   createdAt: z.date().nullable().or(z.string()),
+  deletedAt: z.date().nullable().or(z.string()).optional(),
 });
 
 export type Organization = z.infer<typeof organizationSchema>;
+
+export const deleteOrganizationSchema = z.object({
+  organizationId: z.string().uuid(),
+  confirmDelete: z.literal("DELETE"),
+  hardDelete: z.boolean().optional().default(false),
+});
+
+export type DeleteOrganizationInput = z.infer<typeof deleteOrganizationSchema>;

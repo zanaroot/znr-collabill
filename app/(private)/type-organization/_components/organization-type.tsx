@@ -23,7 +23,10 @@ import {
   Typography,
 } from "antd";
 import { useRouter } from "next/navigation";
-import type { Integration, IntegrationFormValues } from "@/app/(private)/type-organization/_components/integration-card-form";
+import type {
+  Integration,
+  IntegrationFormValues,
+} from "@/app/(private)/type-organization/_components/integration-card-form";
 import { IntegrationCard } from "@/app/(private)/type-organization/_components/integration-card-form";
 import type { IntegrationType } from "@/http/models/integration.model";
 import type { Role } from "@/http/models/user.model";
@@ -101,10 +104,7 @@ export default function OrganizationType() {
   });
 
   const toggleMutation = useMutation({
-    mutationFn: async (data: {
-      type: IntegrationType;
-      isActive: boolean;
-    }) => {
+    mutationFn: async (data: { type: IntegrationType; isActive: boolean }) => {
       const res = await client.api.integrations.toggle.$post({
         json: data,
       });
@@ -126,9 +126,16 @@ export default function OrganizationType() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({
+      id,
+      hardDelete,
+    }: {
+      id: string;
+      hardDelete?: boolean;
+    }) => {
       const res = await client.api.organizations[":id"].$delete({
         param: { id },
+        json: { confirmDelete: "DELETE", hardDelete },
       });
 
       if (!res.ok) {
@@ -149,18 +156,33 @@ export default function OrganizationType() {
 
   const router = useRouter();
 
-  const handleDelete = (id: string) => {
+  const handleDelete = ({
+    id,
+    hardDelete,
+  }: {
+    id: string;
+    hardDelete?: boolean;
+  }) => {
+    const isHardDelete = hardDelete ?? false;
+
+    const content = isHardDelete
+      ? "This will permanently delete the organization and ALL its data (projects, tasks, invoices, integrations, etc.). This action cannot be undone."
+      : "Are you sure you want to delete this organization? This will also delete its projects and tasks.";
+
     Modal.confirm({
       title: "Delete Organization",
-      content:
-        "Are you sure you want to delete this organization? This will also delete its projects and tasks.",
-      okText: "Yes",
+      content,
+      okText: "Yes, delete it",
       okType: "danger",
       cancelText: "Cancel",
       onOk: async () => {
         try {
-          await deleteMutation.mutateAsync(id);
-          message.success("Organization deleted");
+          await deleteMutation.mutateAsync({ id, hardDelete });
+          message.success(
+            isHardDelete
+              ? "Organization permanently deleted"
+              : "Organization deleted",
+          );
           router.push("/select-organization");
         } catch (error) {
           message.error((error as Error).message || "Delete failed");
@@ -196,7 +218,10 @@ export default function OrganizationType() {
     saveIntegrationMutation.mutate({ type, credentials });
   };
 
-  const handleToggleIntegration = (type: IntegrationType, isActive: boolean) => {
+  const handleToggleIntegration = (
+    type: IntegrationType,
+    isActive: boolean,
+  ) => {
     toggleMutation.mutate({
       type,
       isActive,
@@ -235,10 +260,10 @@ export default function OrganizationType() {
                   <Button
                     danger
                     icon={<DeleteOutlined />}
-                    onClick={() => handleDelete(org.id)}
+                    onClick={() => handleDelete({ id: org.id })}
                     loading={
                       deleteMutation.isPending &&
-                      deleteMutation.variables === org.id
+                      deleteMutation.variables?.id === org.id
                     }
                   />
                 }

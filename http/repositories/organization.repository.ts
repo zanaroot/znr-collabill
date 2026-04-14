@@ -3,9 +3,15 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
+  auditLogs,
   collaboratorRates,
+  invoiceComments,
+  invoiceLines,
+  invoices,
+  organizationIntegrations,
   organizationMembers,
   organizations,
+  presences,
   projectMembers,
   projects,
   tasks,
@@ -503,6 +509,7 @@ export const isOrganizationOwner = async (
 export const deleteOrganizationById = async (
   organizationId: string,
   userId: string,
+  hardDelete = false,
 ) => {
   await db.transaction(async (tx) => {
     const membership = await tx
@@ -524,6 +531,83 @@ export const deleteOrganizationById = async (
       throw new Error("Only the owner can delete this organization");
     }
 
+    if (hardDelete) {
+      const orgProjects = await tx
+        .select({ id: projects.id })
+        .from(projects)
+        .where(eq(projects.organizationId, organizationId));
+
+      const projectIds = orgProjects.map((p) => p.id);
+
+      if (projectIds.length > 0) {
+        await tx.delete(tasks).where(inArray(tasks.projectId, projectIds));
+        await tx
+          .delete(projectMembers)
+          .where(inArray(projectMembers.projectId, projectIds));
+      }
+
+      await tx
+        .delete(projects)
+        .where(eq(projects.organizationId, organizationId));
+
+      await tx
+        .delete(organizationIntegrations)
+        .where(eq(organizationIntegrations.organizationId, organizationId));
+
+      await tx
+        .delete(presences)
+        .where(eq(presences.organizationId, organizationId));
+
+      await tx
+        .delete(auditLogs)
+        .where(eq(auditLogs.organizationId, organizationId));
+
+      const orgInvoices = await tx
+        .select({ id: invoices.id })
+        .from(invoices)
+        .where(eq(invoices.organizationId, organizationId));
+
+      const invoiceIds = orgInvoices.map((i) => i.id);
+
+      if (invoiceIds.length > 0) {
+        await tx
+          .delete(invoiceLines)
+          .where(inArray(invoiceLines.invoiceId, invoiceIds));
+        await tx
+          .delete(invoiceComments)
+          .where(inArray(invoiceComments.invoiceId, invoiceIds));
+      }
+
+      await tx
+        .delete(invoices)
+        .where(eq(invoices.organizationId, organizationId));
+
+      await tx
+        .delete(collaboratorRates)
+        .where(eq(collaboratorRates.organizationId, organizationId));
+
+      await tx
+        .delete(organizationMembers)
+        .where(eq(organizationMembers.organizationId, organizationId));
+
+      await tx
+        .delete(userRoles)
+        .where(eq(userRoles.organizationId, organizationId));
+
+      await tx
+        .delete(organizations)
+        .where(eq(organizations.id, organizationId));
+    } else {
+      await tx
+        .update(organizations)
+        .set({ deletedAt: new Date() })
+        .where(eq(organizations.id, organizationId));
+    }
+  });
+};
+
+export const permanentlyDeleteOrganization = async (organizationId: string) => {
+  await db.transaction(async (tx) => {
     const orgProjects = await tx
       .select({ id: projects.id })
       .from(projects)
@@ -541,6 +625,42 @@ export const deleteOrganizationById = async (
     await tx
       .delete(projects)
       .where(eq(projects.organizationId, organizationId));
+
+    await tx
+      .delete(organizationIntegrations)
+      .where(eq(organizationIntegrations.organizationId, organizationId));
+
+    await tx
+      .delete(presences)
+      .where(eq(presences.organizationId, organizationId));
+
+    await tx
+      .delete(auditLogs)
+      .where(eq(auditLogs.organizationId, organizationId));
+
+    const orgInvoices = await tx
+      .select({ id: invoices.id })
+      .from(invoices)
+      .where(eq(invoices.organizationId, organizationId));
+
+    const invoiceIds = orgInvoices.map((i) => i.id);
+
+    if (invoiceIds.length > 0) {
+      await tx
+        .delete(invoiceLines)
+        .where(inArray(invoiceLines.invoiceId, invoiceIds));
+      await tx
+        .delete(invoiceComments)
+        .where(inArray(invoiceComments.invoiceId, invoiceIds));
+    }
+
+    await tx
+      .delete(invoices)
+      .where(eq(invoices.organizationId, organizationId));
+
+    await tx
+      .delete(collaboratorRates)
+      .where(eq(collaboratorRates.organizationId, organizationId));
 
     await tx
       .delete(organizationMembers)

@@ -9,7 +9,6 @@ export type Integration = {
   hasCredentials: boolean;
 };
 
-
 export type IntegrationFormValues = {
   token?: string;
   apiKey?: string;
@@ -73,4 +72,4 @@ export const IntegrationCard = ({
       </Form>
     </Card>
   );
-}
+};

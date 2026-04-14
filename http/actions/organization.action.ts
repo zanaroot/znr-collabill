@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import type { ActionResponse } from "@/http/models/auth.model";
 import {
   createOrganization,
+  deleteOrganizationById,
   getUserOrganizations,
   updateOrganizationSlackSettings,
 } from "@/http/repositories/organization.repository";
@@ -97,6 +98,43 @@ export const updateOrganizationSlackSettingsAction = async (data: {
     return { message: "Slack settings updated successfully", success: true };
   } catch (error) {
     console.error("Update organization Slack settings error:", error);
+    return { error: "Something went wrong", success: false };
+  }
+};
+
+export const deleteOrganizationAction = async (
+  organizationId: string,
+  _confirmDelete: "DELETE",
+  hardDelete = false,
+): Promise<ActionResponse> => {
+  try {
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return { error: "Unauthorized", success: false };
+    }
+
+    await deleteOrganizationById(organizationId, currentUser.id, hardDelete);
+
+    if (hardDelete) {
+      const cookieStore = await cookies();
+      const token = cookieStore.get("session_token")?.value;
+
+      if (token) {
+        await updateSessionOrganization(token, null);
+      }
+    }
+
+    revalidatePath("/");
+
+    return {
+      message: hardDelete
+        ? "Organization permanently deleted"
+        : "Organization deleted successfully",
+      success: true,
+    };
+  } catch (error) {
+    console.error("Delete organization error:", error);
     return { error: "Something went wrong", success: false };
   }
 };
