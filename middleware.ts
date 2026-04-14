@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const sessionToken = req.cookies.get("session_token")?.value;
 
   // Only check if session cookie exists
@@ -25,6 +25,6 @@ export const config = {
      * - public folder
      * - auth routes (sign-in, sign-up, forgot-password, etc.)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|public|sign-in|sign-up|forgot-password|create-password|reset-password).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|public|sign-in|sign-up|forgot-password|create-account|reset-password).*)",
   ],
 };

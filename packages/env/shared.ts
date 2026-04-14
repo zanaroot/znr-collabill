@@ -11,6 +11,11 @@ export const publicEnvSchema = z.object({
     .trim()
     .min(1)
     .default("http://localhost:9000"),
+  NEXT_PUBLIC_APP_URL: z
+    .string()
+    .trim()
+    .min(1)
+    .default("http://localhost:3000"),
 });
 
 export const serverEnvSchema = publicEnvSchema.extend({

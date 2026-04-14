@@ -30,8 +30,9 @@ import { findUserByEmail } from "@/http/repositories/user.repository";
 import { invitationContent } from "@/http/ressources/invitation-content";
 import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/packages/email";
+import { publicEnv } from "@/packages/env";
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const appUrl = publicEnv.NEXT_PUBLIC_APP_URL;
 
 export const inviteUserAction = async (
   input: InviteUserInput,
