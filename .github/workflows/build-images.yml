@@ -37,6 +37,9 @@ jobs:
           context: .
           file: ./Dockerfile
           target: runner
+          build-args: |
+            NEXT_PUBLIC_APP_URL=https://collabill.tchi.xyz
+            NEXT_PUBLIC_S3_ENDPOINT=https://files.collabill.tchi.xyz
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:latest

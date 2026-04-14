@@ -78,7 +78,15 @@ cp .env.example .env
 # Set image reference for the first boot
 echo "NEXT_IMAGE=ghcr.io/<owner>/collabill:latest" >> .env
 
-# Start all services (Next.js + postgres + minio)
+# Set public URLs
+pnpm env:set -- NEXT_PUBLIC_APP_URL "https://collabill.tchi.xyz"
+pnpm env:set -- NEXT_PUBLIC_S3_ENDPOINT "https://files.collabill.tchi.xyz"
+
+# Copy compose and nginx config to the server
+scp -r docker-compose.prod.yml nginx <droplet-user>@<droplet-host>:/var/docker-infra/
+scp .env <droplet-user>@<droplet-host>:/var/docker-infra/.env
+
+# Start all services (Next.js + postgres + minio + nginx)
 ./start-prod.sh
 ```
 
@@ -86,14 +94,53 @@ Requires:
 - `.env` with production environment variables
 - `NEXT_IMAGE` pointing at a pushed registry image
 - Docker Compose on the target host
+- `docker-compose.prod.yml` and `nginx/` copied to the target host
 
 Important:
 - `.env.example` is set up for local development, so its default `DATABASE_URL` uses `localhost`. If `.env` runs against the bundled `postgres` container, set `DATABASE_URL` to `postgresql://user:password@postgres:5432/collabill_db` or provide matching `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` values.
 - `docker-compose.prod.yml` now prefers explicit app env values from `.env` for `DATABASE_URL`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY`, while keeping bundled service defaults aligned with `.env.example`.
 - If you use the bundled `postgres` service with a persisted volume, changing `POSTGRES_PASSWORD` later does not rotate the existing database user's password. In that case, update `DATABASE_URL` to the real live credential or rotate the Postgres role password manually before rerunning migrations.
+- `next` is no longer exposed on public port `3000`; `nginx` is the public entrypoint on `80/443`.
+- `postgres` and `minio` are internal-only in production. Public file access should go through `https://files.collabill.tchi.xyz`.
 
 ### Check logs:
 - `docker compose -f docker-compose.prod.yml --env-file .env logs -f next`
+- `docker compose -f docker-compose.prod.yml --env-file .env logs -f nginx`
+
+### TLS Setup
+
+The repo ships with:
+
+- `nginx/conf.d/app.conf`: active HTTP-only config used for first boot and Let's Encrypt webroot validation
+- `nginx/https.conf.example`: HTTPS config template to activate after the certificate is issued
+
+On the server:
+
+```bash
+cd /var/docker-infra
+
+# Start the stack with the HTTP-only nginx config
+docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env up -d
+
+# Issue the certificate for both app and files subdomains
+docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env run --rm certbot certonly \
+  --webroot \
+  -w /var/www/certbot \
+  -d collabill.tchi.xyz \
+  -d files.collabill.tchi.xyz \
+  --email dev@tchi.xyz \
+  --agree-tos \
+  --no-eff-email
+
+# Switch nginx to the HTTPS config and reload
+cp nginx/https.conf.example nginx/conf.d/app.conf
+docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env exec nginx nginx -s reload
+```
+
+DNS required before certificate issuance:
+
+- `collabill.tchi.xyz` -> droplet IP
+- `files.collabill.tchi.xyz` -> droplet IP
 
 ## GitHub Actions Deploy
 
