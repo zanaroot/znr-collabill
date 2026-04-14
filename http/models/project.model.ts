@@ -12,6 +12,8 @@ export const projectSchema = z.object({
     .or(z.string().length(0)),
   baseRate: z.number().default(0),
   organizationId: z.string().uuid(),
+  slackChannel: z.string().nullable().optional(),
+  slackNotificationsEnabled: z.boolean().nullable().optional(),
   createdBy: z.string().uuid().nullable(),
   createdAt: z.date().nullable().or(z.string()),
 });

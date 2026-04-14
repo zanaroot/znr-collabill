@@ -110,3 +110,32 @@ export const deleteProjectAction = async (
     return { error: "Something went wrong", success: false };
   }
 };
+
+export const updateProjectSlackSettingsAction = async (
+  projectId: string,
+  data: {
+    slackChannel?: string | null;
+    slackNotificationsEnabled?: boolean | null;
+  },
+): Promise<ActionResponse> => {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { error: "Unauthorized", success: false };
+
+    const isMember = await projectRepository.isProjectMember(
+      projectId,
+      user.id,
+    );
+    if (!isMember) return { error: "Unauthorized", success: false };
+
+    await projectRepository.updateProjectSlackSettings(projectId, data);
+
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${projectId}`);
+
+    return { success: true, message: "Slack settings updated successfully" };
+  } catch (error) {
+    console.error("Update project Slack settings error:", error);
+    return { error: "Something went wrong", success: false };
+  }
+};

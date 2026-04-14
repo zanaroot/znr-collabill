@@ -1,5 +1,3 @@
-"use server";
-
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
@@ -7,8 +5,10 @@ import type { ActionResponse } from "@/http/models/auth.model";
 import {
   createOrganization,
   getUserOrganizations,
+  updateOrganizationSlackSettings,
 } from "@/http/repositories/organization.repository";
 import { updateSessionOrganization } from "@/http/repositories/session.repository";
+import { encryptSlackToken } from "@/packages/slack";
 
 export const createOrganizationAction = async (
   name: string,
@@ -67,5 +67,36 @@ export const getUserOrganizationsAction = async () => {
   } catch (error) {
     console.error("Get user organizations error:", error);
     return [];
+  }
+};
+
+export const updateOrganizationSlackSettingsAction = async (data: {
+  slackBotToken?: string | null;
+  slackDefaultChannel?: string | null;
+}): Promise<ActionResponse> => {
+  try {
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser || !currentUser.organizationId) {
+      return { error: "Unauthorized", success: false };
+    }
+
+    if (currentUser.organizationRole !== "OWNER") {
+      return { error: "Only owners can update Slack settings", success: false };
+    }
+
+    const encryptedToken = data.slackBotToken
+      ? encryptSlackToken(data.slackBotToken)
+      : null;
+
+    await updateOrganizationSlackSettings(currentUser.organizationId, {
+      slackBotTokenEncrypted: encryptedToken,
+      slackDefaultChannel: data.slackDefaultChannel,
+    });
+
+    return { message: "Slack settings updated successfully", success: true };
+  } catch (error) {
+    console.error("Update organization Slack settings error:", error);
+    return { error: "Something went wrong", success: false };
   }
 };

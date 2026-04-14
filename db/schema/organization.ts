@@ -14,6 +14,8 @@ export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  slackBotTokenEncrypted: text("slack_bot_token_encrypted"),
+  slackDefaultChannel: text("slack_default_channel"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

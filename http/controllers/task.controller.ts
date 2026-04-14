@@ -7,6 +7,7 @@ import { createTaskSchema, updateTaskSchema } from "@/http/models/task.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import { logAudit } from "@/lib/audit";
+import { notifyTaskInReview } from "@/lib/task-notifications";
 import {
   canDeleteTaskByStatus,
   canTransitionTaskStatus,
@@ -195,6 +196,15 @@ export const updateTask = factory.createHandlers(
       } else if (task.validatedAt) {
         updates.validatedAt = null;
         updates.validatedBy = null;
+      }
+
+      if (payload.status === "IN_REVIEW") {
+        notifyTaskInReview(id).catch((err) => {
+          console.error(
+            "[TaskNotification] Failed to send Slack notification:",
+            err,
+          );
+        });
       }
     }
 

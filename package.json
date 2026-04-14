@@ -34,6 +34,7 @@
     "@hono/zod-openapi": "^1.2.3",
     "@hono/zod-validator": "^0.7.6",
     "@hookform/resolvers": "^5.2.2",
+    "@slack/web-api": "^7.15.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-query": "^5.90.20",
     "@tiptap/core": "^3.22.3",

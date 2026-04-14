@@ -10,6 +10,7 @@ import {
   ProjectOutlined,
   QuestionCircleOutlined,
   RightOutlined,
+  SettingOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons";
 import {
@@ -123,6 +124,11 @@ export const PrivateLayout = ({
             key: "type-organization",
             icon: <ApartmentOutlined />,
             label: "Organizations",
+          },
+          {
+            key: "settings",
+            icon: <SettingOutlined />,
+            label: "Settings",
           },
         ]
       : []),

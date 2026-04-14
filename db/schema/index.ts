@@ -8,4 +8,5 @@ export * from "./presence";
 export * from "./project";
 export * from "./task";
 export * from "./task-comment";
+export * from "./task-notification";
 export * from "./user";

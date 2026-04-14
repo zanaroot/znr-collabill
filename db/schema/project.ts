@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   numeric,
   pgTable,
   primaryKey,
@@ -19,6 +20,10 @@ export const projects = pgTable("projects", {
   organizationId: uuid("organization_id")
     .notNull()
     .references(() => organizations.id),
+  slackChannel: text("slack_channel"),
+  slackNotificationsEnabled: boolean("slack_notifications_enabled").default(
+    true,
+  ),
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });

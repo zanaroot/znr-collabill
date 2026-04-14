@@ -119,7 +119,11 @@ export function useAddProjectMember() {
           error.error || error.message || "Failed to add project member",
         );
       }
-      return (await res.json()) as { message: string };
+      return (await res.json()) as {
+        id: string;
+        projectId: string;
+        userId: string;
+      };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

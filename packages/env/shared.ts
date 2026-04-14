@@ -31,6 +31,10 @@ export const serverEnvSchema = publicEnvSchema.extend({
   S3_SECRET_KEY: z.string().trim().min(1, "S3_SECRET_KEY is required"),
   S3_BUCKET: z.string().trim().min(1, "S3_BUCKET is required"),
   S3_REGION: z.string().trim().min(1, "S3_REGION is required"),
+  ENCRYPTION_KEY: z
+    .string()
+    .trim()
+    .min(32, "ENCRYPTION_KEY must be at least 32 characters"),
 });
 
 export const parseEnv = <TSchema extends z.ZodTypeAny>(

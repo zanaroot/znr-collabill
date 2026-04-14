@@ -106,6 +106,24 @@ export const findTaskById = async (id: string) => {
   return task ?? null;
 };
 
+export const findTaskWithAssigneeById = async (id: string) => {
+  const [task] = await db
+    .select({
+      id: tasks.id,
+      projectId: tasks.projectId,
+      title: tasks.title,
+      status: sql`${tasks.status}::text`.as("status"),
+      assignedTo: tasks.assignedTo,
+      assigneeName: users.name,
+    })
+    .from(tasks)
+    .leftJoin(users, eq(tasks.assignedTo, users.id))
+    .where(eq(tasks.id, id))
+    .limit(1);
+
+  return task ?? null;
+};
+
 export const createTask = async (input: CreateTaskInput) => {
   const [task] = await db
     .insert(tasks)

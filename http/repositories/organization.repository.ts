@@ -575,3 +575,22 @@ export const getOrganizationOwner = async (organizationId: string) => {
 
   return owner ?? null;
 };
+
+export const updateOrganizationSlackSettings = async (
+  organizationId: string,
+  data: {
+    slackBotTokenEncrypted?: string | null;
+    slackDefaultChannel?: string | null;
+  },
+) => {
+  const [org] = await db
+    .update(organizations)
+    .set({
+      slackBotTokenEncrypted: data.slackBotTokenEncrypted ?? null,
+      slackDefaultChannel: data.slackDefaultChannel ?? null,
+    })
+    .where(eq(organizations.id, organizationId))
+    .returning();
+
+  return org ?? null;
+};

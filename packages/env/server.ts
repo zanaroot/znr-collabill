@@ -21,6 +21,7 @@ export const serverEnv = parseEnv(
     S3_SECRET_KEY: process.env.S3_SECRET_KEY,
     S3_BUCKET: process.env.S3_BUCKET,
     S3_REGION: process.env.S3_REGION,
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
   },
   "server",
 );

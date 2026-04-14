@@ -253,3 +253,22 @@ export const findProjectCreator = async (projectId: string) => {
     .limit(1);
   return project?.createdBy ?? null;
 };
+
+export const updateProjectSlackSettings = async (
+  projectId: string,
+  data: {
+    slackChannel?: string | null;
+    slackNotificationsEnabled?: boolean | null;
+  },
+) => {
+  const [project] = await db
+    .update(projects)
+    .set({
+      slackChannel: data.slackChannel ?? null,
+      slackNotificationsEnabled: data.slackNotificationsEnabled ?? true,
+    })
+    .where(eq(projects.id, projectId))
+    .returning();
+
+  return project ? normalizeProject(project) : null;
+};

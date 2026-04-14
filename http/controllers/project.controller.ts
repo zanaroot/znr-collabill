@@ -377,7 +377,42 @@ export const addProjectMember = factory.createHandlers(
       );
     }
 
-    await projectRepository.addProjectMember(id, userId);
-    return c.json({ message: "Member added successfully" });
+    const member = await projectRepository.addProjectMember(id, userId);
+    return c.json(member, 201);
+  },
+);
+
+export const updateProjectSlackSettings = factory.createHandlers(
+  zValidator(
+    "json",
+    z.object({
+      slackChannel: z.string().optional().nullable(),
+      slackNotificationsEnabled: z.boolean().optional().nullable(),
+    }),
+  ),
+  async (c) => {
+    const id = c.req.param("id");
+    const user = c.get("user");
+
+    if (!id) {
+      return c.json({ error: "Project ID is required" }, 400);
+    }
+
+    const project = await projectRepository.findProjectById(id);
+    if (!project) {
+      return c.json({ error: "Project not found" }, 404);
+    }
+
+    if (project.organizationId !== user.organizationId) {
+      return c.json({ error: "Unauthorized" }, 403);
+    }
+
+    const payload = c.req.valid("json");
+    await projectRepository.updateProjectSlackSettings(id, {
+      slackChannel: payload.slackChannel,
+      slackNotificationsEnabled: payload.slackNotificationsEnabled,
+    });
+
+    return c.json({ message: "Slack settings updated", success: true });
   },
 );

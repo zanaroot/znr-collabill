@@ -121,3 +121,70 @@ export const getMyOrganizations = factory.createHandlers(async (c) => {
   const organizations = await getUserOrganizations(currentUser.id);
   return c.json(organizations);
 });
+
+export const getOrganizationSlackSettings = factory.createHandlers(
+  async (c) => {
+    const currentUser = c.get("user");
+
+    if (currentUser.organizationRole !== "OWNER") {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    if (!currentUser.organizationId) {
+      return c.json({ error: "No organization selected" }, 400);
+    }
+
+    const { getOrganizationById } = await import(
+      "@/http/repositories/organization.repository"
+    );
+
+    const org = await getOrganizationById(currentUser.organizationId);
+    if (!org) {
+      return c.json({ error: "Organization not found" }, 404);
+    }
+
+    return c.json({
+      slackBotTokenEncrypted: !!org.slackBotTokenEncrypted,
+      slackDefaultChannel: org.slackDefaultChannel,
+    });
+  },
+);
+
+export const updateOrganizationSlackSettings = factory.createHandlers(
+  zValidator(
+    "json",
+    z.object({
+      slackBotToken: z.string().optional().nullable(),
+      slackDefaultChannel: z.string().optional().nullable(),
+    }),
+  ),
+  async (c) => {
+    const currentUser = c.get("user");
+
+    if (currentUser.organizationRole !== "OWNER") {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    if (!currentUser.organizationId) {
+      return c.json({ error: "No organization selected" }, 400);
+    }
+
+    const payload = c.req.valid("json");
+
+    const { updateOrganizationSlackSettings } = await import(
+      "@/http/repositories/organization.repository"
+    );
+    const { encryptSlackToken } = await import("@/packages/slack");
+
+    const encryptedToken = payload.slackBotToken
+      ? encryptSlackToken(payload.slackBotToken)
+      : null;
+
+    await updateOrganizationSlackSettings(currentUser.organizationId, {
+      slackBotTokenEncrypted: encryptedToken,
+      slackDefaultChannel: payload.slackDefaultChannel,
+    });
+
+    return c.json({ message: "Slack settings updated", success: true });
+  },
+);

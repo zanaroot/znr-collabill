@@ -10,6 +10,7 @@ import {
   getProjects,
   removeProjectMember,
   updateProject,
+  updateProjectSlackSettings,
 } from "@/http/controllers/project.controller";
 import {
   adminMiddleware,
@@ -26,4 +27,5 @@ export const projectRoutes = new Hono()
   .delete("/:id", adminMiddleware, ...deleteProject)
   .get("/:id/members", ...getProjectMembers)
   .post("/:id/members", adminMiddleware, ...addProjectMember)
-  .delete("/:id/members/:userId", adminMiddleware, ...removeProjectMember);
+  .delete("/:id/members/:userId", adminMiddleware, ...removeProjectMember)
+  .put("/:id/slack-settings", adminMiddleware, ...updateProjectSlackSettings);
