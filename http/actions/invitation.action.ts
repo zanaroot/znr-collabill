@@ -27,6 +27,7 @@ import {
   isUserInOrganization,
 } from "@/http/repositories/organization.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
+import { invitationContent } from "@/http/ressources/invitation-content";
 import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/packages/email";
 import { publicEnv } from "@/packages/env";
@@ -93,16 +94,18 @@ export const inviteUserAction = async (
 
     await upsertInvitation({ email, token, role, expiresAt, organizationId });
 
-    const inviteLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/create-password?token=${token}`;
+    const inviteLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/create-account?token=${token}`;
 
     await sendEmail({
       to: email,
       subject: `You've been invited to join ${organization.name} on Collabill`,
-      html: `
-        <p>You have been invited by ${currentUser.name} to join <strong>${organization.name}</strong> on Collabill as a ${role}.</p>
-        <p>Click <a href="${inviteLink}">here</a> to create your account and set your password.</p>
-        <p>This link will expire in 7 days.</p>
-      `,
+      organizationId,
+      html: invitationContent({
+        currentUserName: currentUser.name,
+        organizationName: organization.name,
+        role,
+        inviteLink,
+      }),
     });
 
     await logAudit({
@@ -300,16 +303,18 @@ export const resendInvitationAction = async (
       invitation.expiresAt = newExpiresAt;
     }
 
-    const inviteLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/create-password?token=${invitation.token}`;
+    const inviteLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/create-account?token=${invitation.token}`;
 
     await sendEmail({
       to: invitation.email,
-      subject: `You've been invited to join ${organization.name} on Collabill`,
-      html: `
-        <p>You have been invited by ${currentUser.name} to join <strong>${organization.name}</strong> on Collabill as a ${invitation.role}.</p>
-        <p>Click <a href="${inviteLink}">here</a> to create your account and set your password.</p>
-        <p>This link will expire in 7 days.</p>
-      `,
+      organizationId,
+      subject: `You're invited to join ${organization.name} on Collabill`,
+      html: invitationContent({
+        currentUserName: currentUser.name,
+        organizationName: organization.name,
+        role: invitation.role,
+        inviteLink,
+      }),
     });
 
     return { message: "Invitation resent successfully", success: true };

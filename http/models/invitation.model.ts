@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { roleEnum } from "@/http/models/user.model";
 
 export const inviteUserSchema = z.object({
   email: z.email(),
@@ -14,3 +15,12 @@ export const createPasswordSchema = z.object({
 });
 
 export type CreatePasswordInput = z.infer<typeof createPasswordSchema>;
+
+export const invitationContentSchema = z.object({
+  currentUserName: z.string(),
+  organizationName: z.string(),
+  role: roleEnum,
+  inviteLink: z.string(),
+});
+
+export type InvitationContentInput = z.infer<typeof invitationContentSchema>;

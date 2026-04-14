@@ -8,6 +8,7 @@ import {
   userRoles,
   users,
 } from "@/db/schema";
+import type { Role } from "@/http/models/user.model";
 
 export const findValidInvitationByToken = async (token: string) => {
   const [invitation] = await db
@@ -100,7 +101,7 @@ export const createUserFromInvitation = async (data: {
   email: string;
   name: string;
   passwordHash: string;
-  role: "ADMIN" | "COLLABORATOR" | "OWNER";
+  role: Role;
   invitationId: string;
   organizationId: string;
 }) => {
@@ -147,7 +148,7 @@ export const createUserFromInvitation = async (data: {
 export const acceptInvitation = async (data: {
   userId: string;
   organizationId: string;
-  role: "ADMIN" | "COLLABORATOR" | "OWNER";
+  role: Role;
   invitationId: string;
 }) => {
   return db.transaction(async (tx) => {

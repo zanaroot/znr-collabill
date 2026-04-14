@@ -1,4 +1,4 @@
-import { Button, Card, Form, Switch } from "antd";
+import { Button, Card, Form, Switch, Tooltip } from "antd";
 import type { IntegrationType } from "@/http/models/integration.model";
 
 export type Integration = {
@@ -15,6 +15,19 @@ export type IntegrationFormValues = {
   mailFrom?: string;
   botToken?: string;
   defaultChannel?: string;
+};
+
+const getImpactMessage = (type?: IntegrationType) => {
+  switch (type) {
+    case "SLACK":
+      return "Deactivating Slack will stop all notifications and alerts to your workspace channels.";
+    case "GITHUB":
+      return "Deactivating GitHub will stop repository automation and issue synchronization.";
+    case "BREVO":
+      return "Deactivating Brevo will stop all automated email deliveries (e.g., invoice sending).";
+    default:
+      return "Deactivating this integration will stop all related automated processes.";
+  }
 };
 
 export const IntegrationCard = ({
@@ -38,11 +51,21 @@ export const IntegrationCard = ({
   return (
     <Card>
       <div style={{ marginBottom: 16 }}>
-        <Switch
-          checked={integration?.isActive === "true"}
-          onChange={onToggle}
-          disabled={!integration?.hasCredentials}
-        />
+        <Tooltip
+          title={
+            integration?.isActive === "true"
+              ? getImpactMessage(integration?.type)
+              : !integration?.hasCredentials
+                ? "Please configure credentials to activate"
+                : "Activate this integration"
+          }
+        >
+          <Switch
+            checked={integration?.isActive === "true"}
+            onChange={onToggle}
+            disabled={!integration?.hasCredentials}
+          />
+        </Tooltip>
         <span style={{ marginLeft: 8 }}>Active</span>
       </div>
 

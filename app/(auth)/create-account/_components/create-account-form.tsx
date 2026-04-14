@@ -31,7 +31,7 @@ type InvitationResponse = {
   exists: boolean;
 };
 
-export const CreatePasswordForm = () => {
+export const CreateAccountForm = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const router = useRouter();
