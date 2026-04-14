@@ -30,7 +30,8 @@ import { findUserByEmail } from "@/http/repositories/user.repository";
 import { invitationContent } from "@/http/ressources/invitation-content";
 import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/packages/email";
-import { publicEnv } from "@/packages/env";
+
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export const inviteUserAction = async (
   input: InviteUserInput,
@@ -94,7 +95,7 @@ export const inviteUserAction = async (
 
     await upsertInvitation({ email, token, role, expiresAt, organizationId });
 
-    const inviteLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/create-account?token=${token}`;
+    const inviteLink = `${appUrl}/create-account?token=${token}`;
 
     await sendEmail({
       to: email,
@@ -303,7 +304,7 @@ export const resendInvitationAction = async (
       invitation.expiresAt = newExpiresAt;
     }
 
-    const inviteLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/create-account?token=${invitation.token}`;
+    const inviteLink = `${appUrl}/create-account?token=${invitation.token}`;
 
     await sendEmail({
       to: invitation.email,

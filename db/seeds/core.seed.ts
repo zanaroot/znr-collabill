@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { hash } from "bcryptjs";
 import { and, eq } from "drizzle-orm";
-import { serverEnv } from "../../packages/env/server";
 import { uploadFile } from "../../packages/minio";
 import { db } from "../index";
 import {
@@ -22,6 +21,12 @@ type SeedUserInput = {
   role: "OWNER" | "COLLABORATOR" | "ADMIN";
 };
 
+const seedOwnerEmail = process.env.SEED_OWNER_EMAIL ?? "owner@collabill.local";
+const seedAdminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@collabill.local";
+const seedCollaboratorEmail =
+  process.env.SEED_COLLABORATOR_EMAIL ?? "collab@collabill.local";
+const seedPassword = process.env.SEED_PASSWORD ?? "password123";
+
 export type CoreSeedResult = {
   collaborator: typeof users.$inferSelect;
   owner: typeof users.$inferSelect;
@@ -34,23 +39,21 @@ export type CoreSeedResult = {
 
 const seedUsers: SeedUserInput[] = [
   {
-    email: serverEnv.SEED_OWNER_EMAIL,
+    email: seedOwnerEmail,
     name: "Seed Owner",
     role: "OWNER",
   },
   {
-    email: serverEnv.SEED_ADMIN_EMAIL,
+    email: seedAdminEmail,
     name: "Seed Admin",
     role: "ADMIN",
   },
   {
-    email: serverEnv.SEED_COLLABORATOR_EMAIL,
+    email: seedCollaboratorEmail,
     name: "Seed Collaborator",
     role: "COLLABORATOR",
   },
 ];
-
-const seedPassword = serverEnv.SEED_PASSWORD;
 
 async function getOrCreateUser(input: SeedUserInput, passwordHash: string) {
   const existing = await db.query.users.findFirst({

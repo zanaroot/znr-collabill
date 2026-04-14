@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   createTaskSchema,
   TASK_SIZES,
@@ -6,6 +5,7 @@ import {
   taskSchema,
   updateTaskSchema,
 } from "@/http/models/task.model";
+import { describe, expect, it } from "vitest";
 
 describe("task model schemas", () => {
   describe("taskSchema", () => {
@@ -264,6 +264,7 @@ describe("task model schemas", () => {
   describe("TASK_STATUSES", () => {
     it("contains expected statuses", () => {
       expect(TASK_STATUSES).toEqual([
+        "BACKLOG",
         "TODO",
         "IN_PROGRESS",
         "IN_REVIEW",

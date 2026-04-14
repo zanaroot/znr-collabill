@@ -2,7 +2,6 @@
 
 import { Octokit } from "octokit";
 import { getOrgGithubCredentialsDecrypted } from "@/lib/integrations";
-import { serverEnv } from "@/packages/env/server";
 
 export const getGithubClient = async (organizationId?: string) => {
   let token: string | undefined;
@@ -15,7 +14,7 @@ export const getGithubClient = async (organizationId?: string) => {
   }
 
   if (!token) {
-    token = serverEnv.GITHUB_TOKEN;
+    token = process.env.GITHUB_TOKEN;
   }
 
   if (!token) {

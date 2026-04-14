@@ -72,9 +72,8 @@ export const sendEmail = async ({
   }
 
   if (!apiKey || !mailFrom) {
-    const { serverEnv } = await import("@/packages/env/server");
-    apiKey = serverEnv.BREVO_API_KEY;
-    mailFrom = serverEnv.MAIL_FROM;
+    apiKey = process.env.BREVO_API_KEY;
+    mailFrom = process.env.MAIL_FROM;
   }
 
   if (!apiKey) {

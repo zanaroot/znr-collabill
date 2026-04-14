@@ -13,7 +13,6 @@ export default defineConfig({
     user: databaseUrl.username,
     password: databaseUrl.password,
     database: databaseUrl.pathname.replace("/", ""),
-    ssl: false,
   },
   verbose: true,
   strict: false,

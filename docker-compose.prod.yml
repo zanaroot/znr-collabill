@@ -1,18 +1,17 @@
 name: collabill-prod
 
 x-next-env: &next-env
-  DATABASE_URL: postgresql://${POSTGRES_USER:-admin_prod}:${POSTGRES_PASSWORD:-password_prod}@postgres:5432/${POSTGRES_DB:-collabill_db_prod}
-  S3_ENDPOINT: http://minio:9000
-  NEXT_PUBLIC_S3_ENDPOINT: ${NEXT_PUBLIC_S3_ENDPOINT:-http://localhost:9100}
-  S3_ACCESS_KEY: ${MINIO_ROOT_USER:-admin_prod}
-  S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-password_prod}
-  S3_BUCKET: ${S3_BUCKET:-my-buckets}
-  S3_REGION: ${S3_REGION:-us-east-1}
-  NODE_ENV: ${NODE_ENV:-production}
-  BREVO_API_KEY: ${BREVO_API_KEY}
-  MAIL_FROM: ${MAIL_FROM}
+  DATABASE_URL: ${DATABASE_URL}
+  S3_ENDPOINT: ${S3_ENDPOINT}
+  NEXT_PUBLIC_S3_ENDPOINT: ${NEXT_PUBLIC_S3_ENDPOINT}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  S3_BUCKET: ${S3_BUCKET}
+  S3_REGION: ${S3_REGION}
+  NODE_ENV: production
+  MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+  MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
   NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-  GITHUB_TOKEN: ${GITHUB_TOKEN:-}
   ENCRYPTION_KEY: ${ENCRYPTION_KEY}
 
 services:
@@ -20,15 +19,15 @@ services:
     image: postgres:17
     restart: always
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-collabill_db_prod}
-      POSTGRES_USER: ${POSTGRES_USER:-admin_prod}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password_prod}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_HOST_BIND:-127.0.0.1}:${POSTGRES_PORT:-5434}:5432"
+      - "5434:5432"
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin_prod} -d ${POSTGRES_DB:-collabill_db_prod}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -38,11 +37,11 @@ services:
     restart: always
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin_prod}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password_prod}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
-      - "${MINIO_HOST_BIND:-127.0.0.1}:${MINIO_PORT:-9100}:9000"
-      - "${MINIO_CONSOLE_HOST_BIND:-127.0.0.1}:${MINIO_CONSOLE_PORT:-9101}:9001"
+      - "9100:9000"
+      - "9001:9001"
     volumes:
       - minio_data_prod:/data
     healthcheck:
@@ -57,12 +56,18 @@ services:
       minio:
         condition: service_healthy
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin_prod}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password_prod}
-      S3_BUCKET: ${S3_BUCKET:-my-buckets}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET}
     entrypoint: >
       /bin/sh -c "
       mc alias set myminio http://minio:9000 \"$$MINIO_ROOT_USER\" \"$$MINIO_ROOT_PASSWORD\";
+      if [ \"$$S3_ACCESS_KEY\" != \"$$MINIO_ROOT_USER\" ]; then
+      mc admin user add myminio \"$$S3_ACCESS_KEY\" \"$$S3_SECRET_KEY\";
+      mc admin policy attach myminio readwrite --user \"$$S3_ACCESS_KEY\";
+      fi;
       mc mb myminio/\"$$S3_BUCKET\" || true;
       mc anonymous set download myminio/\"$$S3_BUCKET\";
       exit 0;
@@ -79,7 +84,7 @@ services:
         condition: service_healthy
     environment: *next-env
     ports:
-      - "${APP_HOST_BIND:-0.0.0.0}:${APP_PORT:-3022}:3000"
+      - "3000:3000"
 
   migrator:
     image: ${MIGRATOR_IMAGE:?MIGRATOR_IMAGE is required}

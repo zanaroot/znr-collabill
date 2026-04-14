@@ -20,9 +20,9 @@
     "format": "biome format",
     "format:fix": "biome format --write .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:ui": "vitest --ui"
+    "test:unit": "vitest run",
+    "test:unit:ui": "vitest --ui",
+    "test:unit:interactive": "vitest"
   },
   "dependencies": {
     "@ant-design/icons": "~6.1.0",

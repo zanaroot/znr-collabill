@@ -2,7 +2,6 @@ import "server-only";
 
 import { WebClient } from "@slack/web-api";
 import { decrypt, encrypt } from "@/lib/crypto";
-import { publicEnv } from "@/packages/env";
 
 export type SlackBlock = {
   type: string;
@@ -180,7 +179,7 @@ export const buildTaskReviewMessage = (params: {
 };
 
 export const getTaskUrl = (taskId: string, projectId: string): string => {
-  const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   return `${baseUrl}/task-board?projectId=${projectId}&taskId=${taskId}`;
 };
 

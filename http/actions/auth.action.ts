@@ -23,7 +23,6 @@ import { findUserByEmail } from "@/http/repositories/user.repository";
 import { logAudit } from "@/lib/audit";
 import { getFutureDate } from "@/lib/date";
 import { generateSessionToken } from "@/lib/session-token";
-import { serverEnv } from "@/packages/env/server";
 
 const shouldUseSecureCookie = async () => {
   const hdrs = await headers();
@@ -39,7 +38,7 @@ const shouldUseSecureCookie = async () => {
     return false;
   }
 
-  return serverEnv.NODE_ENV === "production";
+  return process.env.NODE_ENV === "production";
 };
 
 export const registerAction = async (

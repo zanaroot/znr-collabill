@@ -6,7 +6,6 @@ const formatIssues = (issues: z.core.$ZodIssue[]) =>
     .join("\n");
 
 export const publicEnvSchema = z.object({
-  NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000"),
   NEXT_PUBLIC_S3_ENDPOINT: z
     .string()
     .trim()
@@ -15,17 +14,12 @@ export const publicEnvSchema = z.object({
 });
 
 export const serverEnvSchema = publicEnvSchema.extend({
-  BREVO_API_KEY: z.string().trim().optional(),
   DATABASE_URL: z.string().trim().min(1, "DATABASE_URL is required"),
-  MAIL_FROM: z.string().trim().optional(),
-  GITHUB_TOKEN: z.string().trim().optional(),
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
-  SEED_COLLABORATOR_EMAIL: z.email().trim().default("collab@collabill.local"),
-  SEED_OWNER_EMAIL: z.email().trim().default("owner@collabill.local"),
-  SEED_ADMIN_EMAIL: z.email().trim().default("admin@collabill.local"),
-  SEED_PASSWORD: z.string().trim().min(8).default("password123"),
+  MINIO_ROOT_USER: z.string().trim().min(1, "MINIO_ROOT_USER is required"),
+  MINIO_ROOT_PASSWORD: z
+    .string()
+    .trim()
+    .min(1, "MINIO_ROOT_PASSWORD is required"),
   S3_ENDPOINT: z.string().trim().min(1, "S3_ENDPOINT is required"),
   S3_ACCESS_KEY: z.string().trim().min(1, "S3_ACCESS_KEY is required"),
   S3_SECRET_KEY: z.string().trim().min(1, "S3_SECRET_KEY is required"),

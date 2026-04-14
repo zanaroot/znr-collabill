@@ -1,9 +1,12 @@
 name: Deploy
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy"
+        required: true
+        default: "latest"
 
 env:
   REGISTRY: ghcr.io
@@ -19,43 +22,11 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Log in to GHCR
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push app image
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
-        with:
-          context: .
-          file: ./Dockerfile
-          target: runner
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.sha }}
-
-      - name: Build and push migrator image
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
-        with:
-          context: .
-          file: ./Dockerfile
-          target: migrator
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:${{ github.sha }}
-
       - name: Deploy to droplet
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         env:
-          APP_IMAGE: ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.sha }}
-          MIGRATOR_IMAGE: ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:${{ github.sha }}
+          APP_IMAGE: ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ inputs.image_tag }}
+          MIGRATOR_IMAGE: ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:${{ inputs.image_tag }}
           DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
@@ -78,21 +49,21 @@ jobs:
             docker compose \
               -p collabill-prod \
               -f docker-compose.prod.yml \
-              --env-file .env.prod \
+              --env-file .env \
               --profile migrate \
               pull next migrator
 
             docker compose \
               -p collabill-prod \
               -f docker-compose.prod.yml \
-              --env-file .env.prod \
+              --env-file .env \
               --profile migrate \
               run --rm migrator
 
             docker compose \
               -p collabill-prod \
               -f docker-compose.prod.yml \
-              --env-file .env.prod \
+              --env-file .env \
               up -d
 
             docker image prune -af --filter "until=168h"
