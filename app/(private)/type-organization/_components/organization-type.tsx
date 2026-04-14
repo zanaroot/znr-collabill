@@ -1,7 +1,15 @@
 "use client";
 
-import { DeleteOutlined } from "@ant-design/icons";
+import {
+  ApartmentOutlined,
+  DeleteOutlined,
+  GithubOutlined,
+  MailOutlined,
+  SlackOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { TabsProps } from "antd";
 import {
   Button,
   Card,
@@ -11,6 +19,7 @@ import {
   message,
   Result,
   Switch,
+  Tabs,
   Tag,
   Typography,
 } from "antd";
@@ -34,9 +43,20 @@ type Organization = {
   members: Member[];
 };
 
-type SlackSettings = {
-  slackBotTokenEncrypted: boolean;
-  slackDefaultChannel: string | null;
+type Integration = {
+  id: string;
+  organizationId: string;
+  type: "GITHUB" | "BREVO" | "SLACK";
+  isActive: string;
+  hasCredentials: boolean;
+};
+
+type IntegrationFormValues = {
+  token?: string;
+  apiKey?: string;
+  mailFrom?: string;
+  botToken?: string;
+  defaultChannel?: string;
 };
 
 export default function OrganizationType() {
@@ -59,22 +79,22 @@ export default function OrganizationType() {
     },
   });
 
-  const { data: slackSettings } = useQuery({
-    queryKey: ["organization", "slack-settings"],
-    enabled: !!currentUser && !!currentUser.organizationId,
+  const { data: integrations, isLoading: integrationsLoading } = useQuery({
+    queryKey: ["integrations"],
+    enabled: !!currentUser && canView,
     queryFn: async () => {
-      const res = await client.api.organizations["slack-settings"].$get();
-      if (!res.ok) return null;
-      return (await res.json()) as SlackSettings;
+      const res = await client.api.integrations.$get();
+      if (!res.ok) return [];
+      return res.json() as Promise<Integration[]>;
     },
   });
 
-  const updateSlackMutation = useMutation({
+  const saveIntegrationMutation = useMutation({
     mutationFn: async (data: {
-      slackBotToken?: string | null;
-      slackDefaultChannel?: string | null;
+      type: "GITHUB" | "BREVO" | "SLACK";
+      credentials: Record<string, unknown>;
     }) => {
-      const res = await client.api.organizations["slack-settings"].$put({
+      const res = await client.api.integrations.$post({
         json: data,
       });
       if (!res.ok) {
@@ -86,10 +106,33 @@ export default function OrganizationType() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["organization", "slack-settings"],
+      queryClient.invalidateQueries({ queryKey: ["integrations"] });
+      message.success("Integration saved");
+    },
+    onError: (error: Error) => {
+      message.error(error.message);
+    },
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: async (data: {
+      type: "GITHUB" | "BREVO" | "SLACK";
+      isActive: boolean;
+    }) => {
+      const res = await client.api.integrations.toggle.$post({
+        json: data,
       });
-      message.success("Slack settings saved");
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(body?.error || "Failed to toggle");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["integrations"] });
+      message.success("Integration updated");
     },
     onError: (error: Error) => {
       message.error(error.message);
@@ -140,6 +183,40 @@ export default function OrganizationType() {
     });
   };
 
+  const getIntegration = (type: string) =>
+    integrations?.find((i) => i.type === type);
+
+  const handleSaveIntegration = (
+    type: "GITHUB" | "BREVO" | "SLACK",
+    values: IntegrationFormValues,
+  ) => {
+    let credentials: Record<string, unknown> = {};
+
+    if (type === "GITHUB" && values.token) {
+      credentials = { github: { token: values.token } };
+    } else if (type === "BREVO" && values.apiKey) {
+      credentials = {
+        brevo: { apiKey: values.apiKey, mailFrom: values.mailFrom || "" },
+      };
+    } else if (type === "SLACK" && values.botToken) {
+      credentials = {
+        slack: {
+          botToken: values.botToken,
+          defaultChannel: values.defaultChannel,
+        },
+      };
+    }
+
+    saveIntegrationMutation.mutate({ type, credentials });
+  };
+
+  const handleToggleIntegration = (type: string, isActive: boolean) => {
+    toggleMutation.mutate({
+      type: type as "GITHUB" | "BREVO" | "SLACK",
+      isActive,
+    });
+  };
+
   if (isLoadingUser) {
     return null;
   }
@@ -147,6 +224,217 @@ export default function OrganizationType() {
   if (!canView) {
     return <Result status="403" title="403" subTitle="Forbidden" />;
   }
+
+  const tabItems: TabsProps["items"] = [
+    {
+      key: "members",
+      label: (
+        <span>
+          <TeamOutlined /> Members
+        </span>
+      ),
+      children: (
+        <div style={{ padding: "16px 0" }}>
+          {isLoading ? (
+            <p>Loading...</p>
+          ) : organizations?.length === 0 ? (
+            <p>No organizations</p>
+          ) : (
+            (organizations ?? []).map((org) => (
+              <Card
+                key={org.id}
+                style={{ marginBottom: 20 }}
+                title={org.name}
+                extra={
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDelete(org.id)}
+                    loading={
+                      deleteMutation.isPending &&
+                      deleteMutation.variables === org.id
+                    }
+                  />
+                }
+              >
+                <Title level={5}>Members :</Title>
+
+                {org.members.map((member) => (
+                  <div
+                    key={member.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <div>
+                      <Text strong>{member.name}</Text>
+                      <br />
+                      <Text type="secondary">{member.email}</Text>
+                    </div>
+
+                    <Tag
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                      color={
+                        member.role === "OWNER"
+                          ? "gold"
+                          : member.role === "ADMIN"
+                            ? "purple"
+                            : "blue"
+                      }
+                    >
+                      {member.role}
+                    </Tag>
+                  </div>
+                ))}
+              </Card>
+            ))
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "integrations",
+      label: (
+        <span>
+          <ApartmentOutlined /> Integrations
+        </span>
+      ),
+      children: (
+        <div style={{ padding: "16px 0" }}>
+          <Tabs
+            defaultActiveKey="slack"
+            items={[
+              {
+                key: "slack",
+                label: (
+                  <span>
+                    <SlackOutlined /> Slack
+                  </span>
+                ),
+                children: (
+                  <IntegrationCard
+                    integration={getIntegration("SLACK")}
+                    loading={
+                      saveIntegrationMutation.isPending || integrationsLoading
+                    }
+                    onSave={(values) => handleSaveIntegration("SLACK", values)}
+                    onToggle={(isActive) =>
+                      handleToggleIntegration("SLACK", isActive)
+                    }
+                    renderForm={(_form, disabled) => (
+                      <>
+                        <Form.Item
+                          name="botToken"
+                          label="Slack Bot Token (xoxb-...)"
+                          help="Enter your Slack Bot User OAuth Token"
+                        >
+                          <Input.Password
+                            placeholder="xoxb-..."
+                            disabled={disabled}
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          name="defaultChannel"
+                          label="Default Channel"
+                          help="Default channel for task notifications (e.g., #general)"
+                        >
+                          <Input placeholder="#general" disabled={disabled} />
+                        </Form.Item>
+                      </>
+                    )}
+                  />
+                ),
+              },
+              {
+                key: "github",
+                label: (
+                  <span>
+                    <GithubOutlined /> GitHub
+                  </span>
+                ),
+                children: (
+                  <IntegrationCard
+                    integration={getIntegration("GITHUB")}
+                    loading={
+                      saveIntegrationMutation.isPending || integrationsLoading
+                    }
+                    onSave={(values) => handleSaveIntegration("GITHUB", values)}
+                    onToggle={(isActive) =>
+                      handleToggleIntegration("GITHUB", isActive)
+                    }
+                    renderForm={(_form, disabled) => (
+                      <Form.Item
+                        name="token"
+                        label="GitHub Personal Access Token"
+                        help="Enter your GitHub Personal Access Token with repo scope"
+                      >
+                        <Input.Password
+                          placeholder="ghp_..."
+                          disabled={disabled}
+                        />
+                      </Form.Item>
+                    )}
+                  />
+                ),
+              },
+              {
+                key: "brevo",
+                label: (
+                  <span>
+                    <MailOutlined /> Brevo
+                  </span>
+                ),
+                children: (
+                  <IntegrationCard
+                    integration={getIntegration("BREVO")}
+                    loading={
+                      saveIntegrationMutation.isPending || integrationsLoading
+                    }
+                    onSave={(values) => handleSaveIntegration("BREVO", values)}
+                    onToggle={(isActive) =>
+                      handleToggleIntegration("BREVO", isActive)
+                    }
+                    renderForm={(_form, disabled) => (
+                      <>
+                        <Form.Item
+                          name="apiKey"
+                          label="Brevo API Key"
+                          help="Enter your Brevo API Key"
+                        >
+                          <Input.Password
+                            placeholder="xkeysib-..."
+                            disabled={disabled}
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          name="mailFrom"
+                          label="Sender Email"
+                          help="Email address for sending emails (e.g., noreply@example.com)"
+                        >
+                          <Input
+                            placeholder="noreply@example.com"
+                            disabled={disabled}
+                          />
+                        </Form.Item>
+                      </>
+                    )}
+                  />
+                ),
+              },
+            ]}
+          />
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div style={{ padding: 24 }}>
@@ -163,138 +451,64 @@ export default function OrganizationType() {
         </Title>
       </div>
 
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : organizations?.length === 0 ? (
-        <p>No organizations</p>
-      ) : (
-        (organizations ?? []).map((org) => (
-          <Card
-            key={org.id}
-            style={{ marginBottom: 20 }}
-            title={org.name}
-            extra={
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleDelete(org.id)}
-                loading={
-                  deleteMutation.isPending &&
-                  deleteMutation.variables === org.id
-                }
-              />
-            }
-          >
-            <Title level={5}>Members :</Title>
-
-            {org.members.map((member) => (
-              <div
-                key={member.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: 8,
-                }}
-              >
-                <div>
-                  <Text strong>{member.name}</Text>
-                  <br />
-                  <Text type="secondary">{member.email}</Text>
-                </div>
-
-                <Tag
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  color={
-                    member.role === "OWNER"
-                      ? "gold"
-                      : member.role === "ADMIN"
-                        ? "purple"
-                        : "blue"
-                  }
-                >
-                  {member.role}
-                </Tag>
-              </div>
-            ))}
-          </Card>
-        ))
-      )}
-
-      <Card title="Slack Integration" style={{ marginTop: 16 }}>
-        <SlackSettingsForm
-          initialToken={slackSettings?.slackBotTokenEncrypted}
-          initialChannel={slackSettings?.slackDefaultChannel}
-          loading={updateSlackMutation.isPending}
-          onFinish={(values) =>
-            updateSlackMutation.mutate({
-              slackBotToken: values.slackBotToken || null,
-              slackDefaultChannel: values.slackDefaultChannel || null,
-            })
-          }
-        />
-      </Card>
+      <Tabs items={tabItems} />
     </div>
   );
 }
 
-type SlackFormValues = {
-  slackBotToken: string;
-  slackDefaultChannel: string;
-};
-
-function SlackSettingsForm({
-  initialToken,
-  initialChannel,
+function IntegrationCard({
+  integration,
   loading,
-  onFinish,
+  onSave,
+  onToggle,
+  renderForm,
 }: {
-  initialToken?: boolean;
-  initialChannel?: string | null;
-  loading?: boolean;
-  onFinish: (values: SlackFormValues) => void;
+  integration?: Integration;
+  loading: boolean;
+  onSave: (values: IntegrationFormValues) => void;
+  onToggle: (isActive: boolean) => void;
+  renderForm: (
+    form: ReturnType<typeof Form.useForm>[0],
+    disabled: boolean,
+  ) => React.ReactNode;
 }) {
-  const [form] = Form.useForm<SlackFormValues>();
+  const [form] = Form.useForm();
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      initialValues={{
-        slackBotToken: "",
-        slackDefaultChannel: initialChannel || "",
-      }}
-      onFinish={onFinish}
-    >
-      <Form.Item
-        name="slackBotToken"
-        label="Slack Bot Token (xoxb-...)"
-        help="Enter your Slack Bot User OAuth Token"
+    <Card>
+      <div style={{ marginBottom: 16 }}>
+        <Switch
+          checked={integration?.isActive === "true"}
+          onChange={onToggle}
+          disabled={!integration?.hasCredentials}
+        />
+        <span style={{ marginLeft: 8 }}>Active</span>
+      </div>
+
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onSave}
+        initialValues={{
+          token: "",
+          apiKey: "",
+          mailFrom: "",
+          botToken: "",
+          defaultChannel: "",
+        }}
       >
-        <Input.Password placeholder="xoxb-..." style={{ maxWidth: 400 }} />
-      </Form.Item>
+        {renderForm(form, false)}
 
-      <Form.Item
-        name="slackDefaultChannel"
-        label="Default Channel"
-        help="Default channel for task notifications (e.g., #general)"
-      >
-        <Input placeholder="#general" style={{ maxWidth: 400 }} />
-      </Form.Item>
-
-      <Form.Item>
-        <Switch checked={!!initialToken} disabled style={{ marginRight: 8 }} />
-        <span>Token configured</span>
-      </Form.Item>
-
-      <Form.Item>
-        <Button type="primary" htmlType="submit" loading={loading}>
-          Save Slack Settings
-        </Button>
-      </Form.Item>
-    </Form>
+        <Form.Item>
+          <span style={{ marginRight: 8 }}>
+            Status:{" "}
+            {integration?.hasCredentials ? "Configured" : "Not configured"}
+          </span>
+          <Button type="primary" htmlType="submit" loading={loading}>
+            Save
+          </Button>
+        </Form.Item>
+      </Form>
+    </Card>
   );
 }

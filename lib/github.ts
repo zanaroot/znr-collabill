@@ -1,19 +1,33 @@
+"server only";
+
 import { Octokit } from "octokit";
+import { getOrgGithubCredentialsDecrypted } from "@/lib/integrations";
 import { serverEnv } from "@/packages/env/server";
 
-const octokit = new Octokit({
-  auth: serverEnv.GITHUB_TOKEN || undefined,
-});
+export const getGithubClient = async (organizationId?: string) => {
+  let token: string | undefined;
 
-if (!serverEnv.GITHUB_TOKEN) {
-  console.warn(
-    "[GitHub] GITHUB_TOKEN is not set in environment variables. Write operations will fail on private repos and some API calls may be rate limited.",
-  );
-} else {
-  console.log(
-    `[GitHub] GITHUB_TOKEN is present (length: ${serverEnv.GITHUB_TOKEN.length})`,
-  );
-}
+  if (organizationId) {
+    const orgCreds = await getOrgGithubCredentialsDecrypted(organizationId);
+    if (orgCreds?.token) {
+      token = orgCreds.token;
+    }
+  }
+
+  if (!token) {
+    token = serverEnv.GITHUB_TOKEN;
+  }
+
+  if (!token) {
+    console.warn(
+      "[GitHub] No token configured. Write operations will fail on private repos and some API calls may be rate limited.",
+    );
+  } else {
+    console.log(`[GitHub] Using token (length: ${token.length})`);
+  }
+
+  return new Octokit({ auth: token });
+};
 
 /**
  * Extracts owner and repo from a GitHub URL.
@@ -27,7 +41,6 @@ export const getRepoDetails = (repoUrl: string) => {
     const url = new URL(repoUrl);
     if (url.hostname !== "github.com") return null;
 
-    // Split pathname and filter out empty strings
     const parts = url.pathname.split("/").filter(Boolean);
     if (parts.length < 2) return null;
 
@@ -44,9 +57,14 @@ export const getRepoDetails = (repoUrl: string) => {
  * Fetches all branches for a given GitHub repository URL.
  * Returns an array of branch names.
  */
-export const fetchBranches = async (repoUrl: string): Promise<string[]> => {
+export const fetchBranches = async (
+  repoUrl: string,
+  organizationId?: string,
+): Promise<string[]> => {
   const details = getRepoDetails(repoUrl);
   if (!details) return [];
+
+  const octokit = await getGithubClient(organizationId);
 
   try {
     const branches = await octokit.paginate(octokit.rest.repos.listBranches, {
@@ -68,9 +86,12 @@ export const fetchBranches = async (repoUrl: string): Promise<string[]> => {
 export const getBranchSha = async (
   repoUrl: string,
   branchName: string,
+  organizationId?: string,
 ): Promise<string | null> => {
   const details = getRepoDetails(repoUrl);
   if (!details) return null;
+
+  const octokit = await getGithubClient(organizationId);
 
   try {
     const { data } = await octokit.rest.git.getRef({
@@ -95,18 +116,21 @@ export const createBranch = async (
   repoUrl: string,
   newBranchName: string,
   sourceBranchName: string,
+  organizationId?: string,
 ): Promise<{ success: boolean; error?: string }> => {
   const details = getRepoDetails(repoUrl);
   if (!details) {
     return { success: false, error: "Invalid GitHub repository URL" };
   }
 
+  const octokit = await getGithubClient(organizationId);
+
   try {
     console.log(
       `[GitHub] Creating branch "${newBranchName}" from "${sourceBranchName}" in ${details.owner}/${details.repo}`,
     );
 
-    const sha = await getBranchSha(repoUrl, sourceBranchName);
+    const sha = await getBranchSha(repoUrl, sourceBranchName, organizationId);
     if (!sha) {
       return {
         success: false,

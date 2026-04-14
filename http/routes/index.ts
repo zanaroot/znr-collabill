@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { authMiddleware } from "@/http/middleware/auth.middleware";
 import { authRoutes } from "./auth.route";
 import { openAPIDocument } from "./docs/open-api.doc";
+import { integrationRoutes } from "./integration.route";
 import { publicInvitationRoutes } from "./invitation.route";
 import { invoiceRoutes } from "./invoice.route";
 import { invoiceCommentRoutes } from "./invoice-comment.route";
@@ -25,6 +26,7 @@ export const app = new Hono()
   .route("/invoices", invoiceRoutes)
   .route("/users", userRoutes)
   .route("/organizations", organizationRoutes)
+  .route("/integrations", integrationRoutes)
   .route("/presence", presenceRoutes)
   .route("/projects", projectRoutes)
   .route("/tasks", taskRoutes);

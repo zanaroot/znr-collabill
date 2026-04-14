@@ -1,13 +1,13 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { taskNotifications } from "@/db/schema";
-import * as organizationRepository from "@/http/repositories/organization.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
+import { getOrgSlackCredentialsDecrypted } from "@/lib/integrations";
 import {
   buildTaskReviewMessage,
   getTaskUrl,
-  sendSlackMessageWithToken,
+  sendSlackMessageWithCredentials,
 } from "@/packages/slack";
 
 const NOTIFICATION_TYPE_IN_REVIEW = "in_review";
@@ -40,27 +40,17 @@ export const notifyTaskInReview = async (taskId: string): Promise<void> => {
     return;
   }
 
-  const organization = await organizationRepository.getOrganizationById(
+  const slackCreds = await getOrgSlackCredentialsDecrypted(
     project.organizationId,
   );
-  if (!organization) {
-    console.warn(
-      `[TaskNotification] Organization not found: ${project.organizationId}`,
-    );
-    return;
-  }
-  console.log(
-    `[TaskNotification] Organization: ${organization.name}, hasToken: ${!!organization.slackBotTokenEncrypted}, defaultChannel: ${organization.slackDefaultChannel}`,
-  );
-
-  if (!organization.slackBotTokenEncrypted) {
+  if (!slackCreds) {
     console.log(
-      `[TaskNotification] No slack bot token configured for organization: ${organization.name}`,
+      `[TaskNotification] No Slack integration configured for organization: ${project.organizationId}`,
     );
     return;
   }
 
-  const channel = project.slackChannel ?? organization.slackDefaultChannel;
+  const channel = project.slackChannel ?? slackCreds.defaultChannel;
   if (!channel) {
     console.log(
       `[TaskNotification] No slack channel configured for project: ${project.name}`,
@@ -102,11 +92,6 @@ export const notifyTaskInReview = async (taskId: string): Promise<void> => {
   });
 
   console.log(`[TaskNotification] Sending message to ${channel}...`);
-  await sendSlackMessageWithToken(
-    organization.slackBotTokenEncrypted,
-    channel,
-    text,
-    blocks,
-  );
+  await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
   console.log(`[TaskNotification] Message sent successfully`);
 };

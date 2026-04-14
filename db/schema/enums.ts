@@ -28,3 +28,9 @@ export const presenceStatusEnum = pgEnum("presence_status", [
   "SICK",
   "VACATION",
 ]);
+
+export const integrationTypeEnum = pgEnum("integration_type", [
+  "GITHUB",
+  "BREVO",
+  "SLACK",
+]);

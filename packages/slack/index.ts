@@ -1,7 +1,7 @@
 import "server-only";
 
 import { WebClient } from "@slack/web-api";
-import { decrypt } from "@/lib/crypto";
+import { decrypt, encrypt } from "@/lib/crypto";
 import { publicEnv } from "@/packages/env";
 
 export type SlackBlock = {
@@ -10,6 +10,49 @@ export type SlackBlock = {
   elements?: unknown[];
   accessory?: unknown;
   fields?: { type: string; text: string }[];
+};
+
+export type SlackCredentials = {
+  botToken: string;
+  defaultChannel?: string;
+};
+
+export const createSlackClient = (credentials: SlackCredentials) => {
+  const token = decrypt(credentials.botToken);
+  return new WebClient(token);
+};
+
+export const sendSlackMessageWithCredentials = async (
+  credentials: SlackCredentials,
+  channel: string,
+  text: string,
+  blocks?: SlackBlock[],
+): Promise<boolean> => {
+  if (!channel) {
+    console.warn("[Slack] No channel configured, skipping notification");
+    return false;
+  }
+
+  const slack = createSlackClient(credentials);
+
+  try {
+    await slack.chat.postMessage({
+      channel,
+      text,
+      blocks,
+    });
+    return true;
+  } catch (error) {
+    const err = error as { data?: { error?: string } };
+    if (err.data?.error === "not_in_channel") {
+      console.error(
+        "[Slack] Bot is not in the channel. Invite the bot to the channel first using /invite @bot-name",
+      );
+    } else {
+      console.error("[Slack] Failed to send message:", error);
+    }
+    return false;
+  }
 };
 
 export const sendSlackMessageWithToken = async (
@@ -148,5 +191,3 @@ export const encryptSlackToken = (token: string): string => {
 export const decryptSlackToken = (encryptedToken: string): string => {
   return decrypt(encryptedToken);
 };
-
-import { encrypt } from "@/lib/crypto";

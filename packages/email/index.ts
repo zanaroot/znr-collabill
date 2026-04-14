@@ -1,8 +1,8 @@
-import "server-only";
+"server only";
 
 import type { Brevo } from "@getbrevo/brevo";
 import { BrevoClient, BrevoError } from "@getbrevo/brevo";
-import { serverEnv } from "@/packages/env/server";
+import { getOrgBrevoCredentialsDecrypted } from "@/lib/integrations";
 
 type BrevoSender = {
   email: string;
@@ -13,10 +13,6 @@ type BrevoRecipient = {
   email: string;
   name?: string;
 };
-
-const brevo = new BrevoClient({
-  apiKey: serverEnv.BREVO_API_KEY,
-});
 
 const parseSender = (value: string): BrevoSender => {
   const namedSenderMatch = value.match(/^(.*?)\s*<([^>]+)>$/);
@@ -50,6 +46,11 @@ export type SendEmailParams = {
   subject: string;
   html: string;
   text?: string;
+  organizationId?: string;
+};
+
+const createBrevoClient = (apiKey: string) => {
+  return new BrevoClient({ apiKey });
 };
 
 export const sendEmail = async ({
@@ -57,9 +58,37 @@ export const sendEmail = async ({
   subject,
   html,
   text,
+  organizationId,
 }: SendEmailParams): Promise<void> => {
+  let apiKey: string | undefined;
+  let mailFrom: string | undefined;
+
+  if (organizationId) {
+    const orgCreds = await getOrgBrevoCredentialsDecrypted(organizationId);
+    if (orgCreds) {
+      apiKey = orgCreds.apiKey;
+      mailFrom = orgCreds.mailFrom;
+    }
+  }
+
+  if (!apiKey || !mailFrom) {
+    const { serverEnv } = await import("@/packages/env/server");
+    apiKey = serverEnv.BREVO_API_KEY;
+    mailFrom = serverEnv.MAIL_FROM;
+  }
+
+  if (!apiKey) {
+    throw new Error("Brevo API key not configured");
+  }
+
+  if (!mailFrom) {
+    throw new Error("Sender email not configured");
+  }
+
+  const brevo = createBrevoClient(apiKey);
+
   const request: Brevo.SendTransacEmailRequest = {
-    sender: parseSender(serverEnv.MAIL_FROM),
+    sender: parseSender(mailFrom),
     to: toBrevoRecipients(to),
     subject,
     htmlContent: html,

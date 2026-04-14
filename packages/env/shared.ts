@@ -15,9 +15,9 @@ export const publicEnvSchema = z.object({
 });
 
 export const serverEnvSchema = publicEnvSchema.extend({
-  BREVO_API_KEY: z.string().trim().min(1, "BREVO_API_KEY is required"),
+  BREVO_API_KEY: z.string().trim().optional(),
   DATABASE_URL: z.string().trim().min(1, "DATABASE_URL is required"),
-  MAIL_FROM: z.string().trim().min(1, "MAIL_FROM is required"),
+  MAIL_FROM: z.string().trim().optional(),
   GITHUB_TOKEN: z.string().trim().optional(),
   NODE_ENV: z
     .enum(["development", "production", "test"])
