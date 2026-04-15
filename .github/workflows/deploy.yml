@@ -1,15 +1,19 @@
 name: Build and Deploy
 
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       environment:
+#         description: "Environment to deploy"
+#         required: true
+#         default: "production"
+#         type: choice
+#         options:
+#           - production
+# -
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: "Environment to deploy"
-        required: true
-        default: "production"
-        type: choice
-        options:
-          - production
+  push:
+    branches: ["main"]
 
 env:
   REGISTRY: ghcr.io
@@ -121,7 +125,8 @@ jobs:
           script_stop: true
           script: |
             #!/bin/bash
-            set -eu
+            set -Eeuo pipefail
+            trap 'echo "Deploy failed at line $LINENO with exit code $?" >&2' ERR
 
             # Create deploy directory if it doesn't exist
             mkdir -p "$DEPLOY_PATH"
@@ -159,6 +164,21 @@ jobs:
             mv "$DEPLOY_PATH/.env.tmp" "$DEPLOY_PATH/.env"
 
             cd "$DEPLOY_PATH"
+
+            test -f docker-compose.prod.yml
+            command -v docker
+            docker compose version
+
+            grep -q '^NEXT_IMAGE=' .env
+            grep -q '^POSTGRES_DB=' .env
+            grep -q '^POSTGRES_USER=' .env
+            grep -q '^S3_ENDPOINT=' .env
+
+            docker compose \
+              -p collabill-prod \
+              -f docker-compose.prod.yml \
+              --env-file .env \
+              config > /dev/null
 
             # Login to GHCR
             echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
