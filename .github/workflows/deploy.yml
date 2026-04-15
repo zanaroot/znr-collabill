@@ -107,14 +107,13 @@ jobs:
       packages: read
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
       - name: Prepare docker compose payload
         run: |
-          {
-            echo "DOCKER_COMPOSE_PROD_B64<<EOF"
-            base64 -w 0 docker-compose.prod.yml
-            echo
-            echo "EOF"
-          } >> "$GITHUB_ENV"
+          DOCKER_COMPOSE_PROD_B64="$(base64 -w 0 docker-compose.prod.yml)"
+          echo "DOCKER_COMPOSE_PROD_B64=$DOCKER_COMPOSE_PROD_B64" >> "$GITHUB_ENV"
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
