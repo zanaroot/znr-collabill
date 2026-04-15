@@ -43,6 +43,7 @@ export const TaskBoard = () => {
     if (!projects?.length) return undefined;
     const exists = projects.some((p) => p.id === projectId);
     if (exists) return projectId;
+    if (typeof window === "undefined") return undefined;
     const lastProjectId = localStorage.getItem(
       lastProjectKey(currentUser?.id ?? "", currentUser?.organizationId ?? ""),
     );
@@ -64,10 +65,15 @@ export const TaskBoard = () => {
   }
 
   const handleProjectChange = (value: string) => {
-    localStorage.setItem(
-      lastProjectKey(currentUser?.id ?? "", currentUser?.organizationId ?? ""),
-      value,
-    );
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        lastProjectKey(
+          currentUser?.id ?? "",
+          currentUser?.organizationId ?? "",
+        ),
+        value,
+      );
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("projectId", value);
     router.replace(`${pathname}?${params.toString()}`);
