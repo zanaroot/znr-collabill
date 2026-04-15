@@ -176,6 +176,10 @@ jobs:
             cd "$DEPLOY_PATH"
 
             echo "Preflight: verify deploy files"
+            pwd
+            ls -la
+            ls -la nginx || true
+            ls -la nginx/conf.d || true
             test -f docker-compose.prod.yml
             test -d nginx
             test -d nginx/conf.d
@@ -189,6 +193,7 @@ jobs:
             grep -q '^POSTGRES_DB=' .env
             grep -q '^POSTGRES_USER=' .env
             grep -q '^S3_ENDPOINT=' .env
+            sed -n '1,40p' .env | sed 's/=.*$/=[redacted]/'
 
             echo "Preflight: docker compose config"
             docker compose \
