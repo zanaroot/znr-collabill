@@ -17,8 +17,7 @@ export type SlackCredentials = {
 };
 
 export const createSlackClient = (credentials: SlackCredentials) => {
-  const token = decrypt(credentials.botToken);
-  return new WebClient(token);
+  return new WebClient(credentials.botToken);
 };
 
 export const sendSlackMessageWithCredentials = async (

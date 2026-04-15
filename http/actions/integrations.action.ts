@@ -2,7 +2,6 @@
 
 import type { IntegrationType } from "@/http/models/integration.model";
 import { getIntegration } from "@/http/repositories/integration.repository";
-import { decrypt } from "@/lib/crypto";
 
 export const getOrgIntegrationCredentials = async (
   organizationId: string,
@@ -52,7 +51,7 @@ export const getOrgSlackCredentialsDecrypted = async (
   }
 
   return {
-    botToken: decrypt(creds.slack.botToken),
+    botToken: creds.slack.botToken,
     defaultChannel: creds.slack.defaultChannel,
   };
 };
