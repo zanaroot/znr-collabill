@@ -91,19 +91,21 @@ export const PresenceModal = ({
     >
       <Flex vertical align="center" className="py-6 text-center">
         <Title level={4}>{getGreeting(userName)}</Title>
-        {isAlreadyPresent ? (
-          <Text type="secondary" className="mb-6 block">
-            You are already marked as present for today.
-            <br />
-            Have a productive day!
-          </Text>
-        ) : (
-          <Text type="secondary" className="mb-6 block">
-            Ready to start your day?
-            <br />
-            Check in to begin tracking your work and activity.
-          </Text>
-        )}
+        {
+          isAlreadyPresent ? (
+            <Text type="secondary" className="mb-6 block">
+              You are already marked as present for today.
+              <br />
+              Have a productive day!
+            </Text>
+          ) : (
+            <Text type="secondary" className="mb-6 block">
+              Ready to start your day?
+              <br />
+              Check in to begin tracking your work and activity.
+            </Text>
+          )
+        }
         <Button
           type="primary"
           block
@@ -114,7 +116,7 @@ export const PresenceModal = ({
         >
           {isAlreadyPresent ? "Already Checked In" : "Check-in for today"}
         </Button>
-      </Flex>
-    </Modal>
+      </Flex >
+    </Modal >
   );
 };
