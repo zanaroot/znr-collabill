@@ -6,6 +6,7 @@ import { AntProvider } from "@/packages/antd";
 import { ReactQueryProvider } from "@/packages/react-query";
 import { ThemeProvider } from "./_components/theme-provider";
 import "./globals.css";
+import { publicEnv } from "@/packages/env";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +20,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    publicEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ),
   title: {
     default: "CollaBill - Collaborative Billing & Project Management for Teams",
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    url: publicEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     siteName: "CollaBill",
     title: "CollaBill - Collaborative Billing & Project Management for Teams",
     description:
@@ -78,9 +79,9 @@ export const metadata: Metadata = {
     creator: "@collabill",
   },
   alternates: {
-    canonical: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    canonical: publicEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     languages: {
-      en: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      en: publicEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     },
   },
 };
@@ -92,17 +93,17 @@ const RootLayout = ({
 }>) => {
   return (
     <html lang="en">
-      <ThemeProvider>
-        <AntProvider>
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased `}
-          >
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+      >
+        <ThemeProvider>
+          <AntProvider>
             <ReactQueryProvider>
               <App>{children}</App>
             </ReactQueryProvider>
-          </body>
-        </AntProvider>
-      </ThemeProvider>
+          </AntProvider>
+        </ThemeProvider>
+      </body>
     </html>
   );
 };
