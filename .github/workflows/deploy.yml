@@ -110,10 +110,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Prepare docker compose payload
+      - name: Prepare deploy payload
         run: |
-          DOCKER_COMPOSE_PROD_B64="$(base64 -w 0 docker-compose.prod.yml)"
-          echo "DOCKER_COMPOSE_PROD_B64=$DOCKER_COMPOSE_PROD_B64" >> "$GITHUB_ENV"
+          DEPLOY_PAYLOAD_B64="$(tar -czf - docker-compose.prod.yml nginx | base64 -w 0)"
+          echo "DEPLOY_PAYLOAD_B64=$DEPLOY_PAYLOAD_B64" >> "$GITHUB_ENV"
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
@@ -121,12 +121,12 @@ jobs:
           DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
-          DOCKER_COMPOSE_PROD_B64: ${{ env.DOCKER_COMPOSE_PROD_B64 }}
+          DEPLOY_PAYLOAD_B64: ${{ env.DEPLOY_PAYLOAD_B64 }}
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          envs: DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN,DOCKER_COMPOSE_PROD_B64
+          envs: DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN,DEPLOY_PAYLOAD_B64
           script_stop: true
           script: |
             #!/bin/bash
@@ -136,8 +136,10 @@ jobs:
             # Create deploy directory if it doesn't exist
             mkdir -p "$DEPLOY_PATH"
 
-            # Sync docker compose file from current repository revision
-            echo "$DOCKER_COMPOSE_PROD_B64" | base64 -d > "$DEPLOY_PATH/docker-compose.prod.yml"
+            # Sync deploy files from current repository revision
+            echo "$DEPLOY_PAYLOAD_B64" | base64 -d > "$DEPLOY_PATH/deploy.tgz"
+            tar -xzf "$DEPLOY_PATH/deploy.tgz" -C "$DEPLOY_PATH"
+            rm -f "$DEPLOY_PATH/deploy.tgz"
 
             # Generate .env file with restrictive permissions
             umask 077
