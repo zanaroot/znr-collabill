@@ -47,6 +47,8 @@ export const serverEnvSchema = publicEnvSchema.extend({
     .default("development")
     .optional(),
   SENTRY_DSN: z.string().trim().optional(),
+  BREVO_API_KEY: z.string().trim().min(1, "BREVO_API_KEY is required"),
+  MAIL_FROM: z.email().trim().min(1, "MAIL_FROM is required"),
 });
 
 export const parseEnv = <TSchema extends z.ZodTypeAny>(
