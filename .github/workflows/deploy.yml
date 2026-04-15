@@ -193,14 +193,6 @@ jobs:
             grep -q '^POSTGRES_DB=' .env
             grep -q '^POSTGRES_USER=' .env
             grep -q '^S3_ENDPOINT=' .env
-            sed -n '1,40p' .env | sed 's/=.*$/=[redacted]/'
-
-            echo "Preflight: docker compose config"
-            docker compose \
-              -p collabill-prod \
-              -f docker-compose.prod.yml \
-              --env-file .env \
-              config
 
             # Login to GHCR
             echo "Preflight: ghcr login"
