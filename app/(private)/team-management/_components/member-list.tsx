@@ -6,12 +6,12 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import {
+  App,
   Button,
   Card,
   Flex,
   Input,
   Modal,
-  message,
   Select,
   Table,
   Tag,
@@ -36,10 +36,12 @@ import {
 } from "../_hooks/use-team";
 
 const { Title } = Typography;
-const { confirm } = Modal;
 
-export function MemberList() {
+export const MemberList = () => {
   const router = useRouter();
+
+  const { message, modal } = App.useApp();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
   const [rates, setRates] = useState<CollaboratorRate>(() => ({
@@ -62,7 +64,7 @@ export function MemberList() {
   const { data: currentRates } = useCollaboratorRates(selectedUser?.id || "");
 
   const handleDelete = (id: string) => {
-    confirm({
+    modal.confirm({
       title: "Are you sure you want to remove this member?",
       icon: <ExclamationCircleOutlined />,
       content: "This action cannot be undone.",
@@ -84,7 +86,7 @@ export function MemberList() {
     const orgId = currentUser?.organizationId;
     if (!orgId) return;
 
-    confirm({
+    modal.confirm({
       title: "Are you sure you want to leave this organization?",
       icon: <ExclamationCircleOutlined />,
       content: "You will no longer have access to this organization's data.",
@@ -116,7 +118,7 @@ export function MemberList() {
     };
 
     if (role === "OWNER") {
-      confirm({
+      modal.confirm({
         title: "Transfer Ownership?",
         icon: <ExclamationCircleOutlined />,
         content:
@@ -435,4 +437,4 @@ export function MemberList() {
       </Modal>
     </>
   );
-}
+};

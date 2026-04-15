@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Form, Input, Modal, message, Select } from "antd";
+import { App, Button, Form, Input, Modal, Select } from "antd";
 import { useState } from "react";
 import type { CreateInvitationInput } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
@@ -12,6 +12,8 @@ export const InviteUserModal = () => {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
   const { data: currentUser } = useCurrentUser();
+
+  const { message } = App.useApp();
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (data: CreateInvitationInput) => {

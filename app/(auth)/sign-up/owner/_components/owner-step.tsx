@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { Button, Card, Form, Input, message, Typography } from "antd";
+import { App, Button, Card, Form, Input, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import type { RegisterInput } from "@/http/models/auth.model";
@@ -11,6 +11,7 @@ const { Title } = Typography;
 
 const OwnerStepContent = () => {
   const router = useRouter();
+  const { message } = App.useApp();
   const searchParams = useSearchParams();
   const orgName = searchParams.get("orgName");
 

@@ -5,7 +5,7 @@ import {
   ExclamationCircleOutlined,
   SendOutlined,
 } from "@ant-design/icons";
-import { Button, Card, Modal, message, Table, Tag, Typography } from "antd";
+import { App, Button, Card, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { Invitation } from "@/http/models/user.model";
 import {
@@ -16,16 +16,17 @@ import {
 } from "../_hooks/use-team";
 
 const { Title } = Typography;
-const { confirm } = Modal;
 
-export function InvitationList() {
+export const InvitationList = () => {
   const { data: invitations, isLoading } = useInvitations();
   const revokeMutation = useRevokeInvitation();
   const resendMutation = useResendInvitation();
   const { data: currentUser } = useCurrentUser();
 
+  const { message, modal } = App.useApp();
+
   const handleRevoke = (id: string) => {
-    confirm({
+    modal.confirm({
       title: "Are you sure you want to revoke this invitation?",
       icon: <ExclamationCircleOutlined />,
       content: "The invitee will no longer be able to use the link.",
@@ -129,4 +130,4 @@ export function InvitationList() {
       />
     </Card>
   );
-}
+};

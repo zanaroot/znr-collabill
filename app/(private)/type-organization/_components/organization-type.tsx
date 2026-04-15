@@ -10,12 +10,11 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TabsProps } from "antd";
 import {
+  App,
   Button,
   Card,
   Form,
   Input,
-  Modal,
-  message,
   Result,
   Tabs,
   Tag,
@@ -47,7 +46,8 @@ type Organization = {
   members: Member[];
 };
 
-export default function OrganizationType() {
+export const OrganizationType = () => {
+  const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
   const canView = currentUser?.organizationRole === "OWNER";
@@ -168,7 +168,7 @@ export default function OrganizationType() {
       ? "This will permanently delete the organization and ALL its data (projects, tasks, invoices, integrations, etc.). This action cannot be undone."
       : "Are you sure you want to delete this organization? This will also delete its projects and tasks.";
 
-    Modal.confirm({
+    modal.confirm({
       title: "Delete Organization",
       content,
       okText: "Yes, delete it",
@@ -415,4 +415,4 @@ export default function OrganizationType() {
       <Tabs items={tabItems} />
     </div>
   );
-}
+};

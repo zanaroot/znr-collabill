@@ -2,7 +2,7 @@
 
 import { CommentOutlined, SendOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Card, Input, List, message, Spin, Typography } from "antd";
+import { App, Button, Card, Input, List, Spin, Typography } from "antd";
 import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { client } from "@/packages/hono";
@@ -30,6 +30,7 @@ type InvoiceCommentsProps = {
 export const InvoiceComments = ({ invoiceId }: InvoiceCommentsProps) => {
   const [newComment, setNewComment] = useState("");
   const queryClient = useQueryClient();
+  const { message } = App.useApp();
 
   const { data: comments, isLoading } = useQuery({
     queryKey: ["invoice-comments", invoiceId],

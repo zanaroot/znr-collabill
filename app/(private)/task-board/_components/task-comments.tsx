@@ -2,16 +2,7 @@
 
 import { CommentOutlined, EditOutlined, SendOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Button,
-  Card,
-  Flex,
-  Input,
-  List,
-  message,
-  Spin,
-  Typography,
-} from "antd";
+import { App, Button, Card, Flex, Input, List, Spin, Typography } from "antd";
 import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
@@ -46,6 +37,7 @@ const CommentItem = ({
   isAuthor: boolean;
   onUpdate: (id: string, content: string) => Promise<void>;
 }) => {
+  const { message } = App.useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isSaving, setIsSaving] = useState(false);
@@ -132,6 +124,7 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
   const [newComment, setNewComment] = useState("");
   const queryClient = useQueryClient();
   const { data: currentUser } = useCurrentUser();
+  const { message } = App.useApp();
 
   const { data: comments, isLoading } = useQuery({
     queryKey: ["task-comments", taskId],

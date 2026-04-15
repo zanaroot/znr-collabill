@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  App,
   Button,
   Card,
   Drawer,
@@ -16,8 +17,6 @@ import {
   Form,
   Input,
   InputNumber,
-  Modal,
-  message,
   Table,
   Typography,
 } from "antd";
@@ -39,7 +38,6 @@ import {
 import { ProjectDetailsDrawer } from "./project-details-drawer";
 
 const { Title } = Typography;
-const { confirm } = Modal;
 const { TextArea } = Input;
 
 export function ProjectList() {
@@ -48,11 +46,15 @@ export function ProjectList() {
   const [selectedProjectForDetails, setSelectedProjectForDetails] =
     useState<Project | null>(null);
 
+  const { modal, message } = App.useApp();
+
   const { data: currentUser } = useCurrentUser();
   const { data: projects, isLoading: isFetching } = useProjects();
   const createProjectMutation = useCreateProject();
   const updateProjectMutation = useUpdateProject();
   const deleteProjectMutation = useDeleteProject();
+
+  const [form] = Form.useForm();
 
   const {
     control,
@@ -88,7 +90,7 @@ export function ProjectList() {
   }, [editingProject, reset]);
 
   const handleDelete = (id: string) => {
-    confirm({
+    modal.confirm({
       title: "Are you sure you want to delete this project?",
       icon: <ExclamationCircleOutlined />,
       content: "This action cannot be undone.",
@@ -300,7 +302,7 @@ export function ProjectList() {
 
       <Drawer
         title={editingProject ? "Edit project" : "Create a new project"}
-        width={500}
+        size={500}
         onClose={() => {
           setIsDrawerOpen(false);
           setEditingProject(null);
@@ -334,7 +336,7 @@ export function ProjectList() {
           </Flex>
         }
       >
-        <Form layout="vertical">
+        <Form form={form} layout="vertical">
           <Form.Item
             label="Project Name"
             required

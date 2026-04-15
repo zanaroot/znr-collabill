@@ -1,11 +1,12 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Card, List, message, Typography } from "antd";
+import { App, Button, Card, List, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { client } from "@/packages/hono";
 
 export const SelectOrganizationForm = () => {
+  const { message } = App.useApp();
   const router = useRouter();
 
   const { data: organizations, isLoading } = useQuery({

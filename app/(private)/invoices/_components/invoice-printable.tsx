@@ -2,7 +2,7 @@
 
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Divider, Input, message, Space, Typography } from "antd";
+import { App, Button, Divider, Input, Space, Typography } from "antd";
 import { useMemo, useState } from "react";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
@@ -58,6 +58,7 @@ export const InvoicePrintable = ({
   customLines = [],
   onCustomLinesChange,
 }: InvoicePrintableProps) => {
+  const { message } = App.useApp();
   const [clientInvoiceDate] = useState(() =>
     new Date().toLocaleDateString("en-US", {
       year: "numeric",

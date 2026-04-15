@@ -2,26 +2,18 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Button, Card, Form, Input, message, Typography } from "antd";
+import { App, Button, Card, Form, Input, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-import type { ResetPasswordInput } from "@/http/models/password.model";
+import {
+  type ResetPasswordConfirmInput,
+  type ResetPasswordInput,
+  resetPasswordConfirmSchema,
+} from "@/http/models/password.model";
 import { client } from "@/packages/hono";
 
-const schema = z
-  .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type DataType = z.infer<typeof schema>;
-
 export const ResetPasswordForm = () => {
+  const { message } = App.useApp();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const router = useRouter();
@@ -30,8 +22,8 @@ export const ResetPasswordForm = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<DataType>({
-    resolver: zodResolver(schema),
+  } = useForm<ResetPasswordConfirmInput>({
+    resolver: zodResolver(resetPasswordConfirmSchema),
   });
 
   const { mutateAsync: resetPassword, isPending } = useMutation({
@@ -65,7 +57,7 @@ export const ResetPasswordForm = () => {
     );
   }
 
-  const onSubmit = async (data: DataType) => {
+  const onSubmit = async (data: ResetPasswordConfirmInput) => {
     try {
       await resetPassword({ token, password: data.password });
     } catch (error) {

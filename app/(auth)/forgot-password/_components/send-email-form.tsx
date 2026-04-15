@@ -6,23 +6,20 @@ import { useMutation } from "@tanstack/react-query";
 import { Button, Card, Flex, Form, Input, message, Typography } from "antd";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
+import {
+  type ForgotPasswordInput,
+  forgotPasswordSchema,
+} from "@/http/models/auth.model";
 import { client } from "@/packages/hono";
 import { PendingConfirmationForm } from "./pending-confirmation-form";
-
-const schema = z.object({
-  email: z.string().email("Please enter a valid email"),
-});
-
-type DataType = z.infer<typeof schema>;
 
 export const SendEmailForm = () => {
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<DataType>({
-    resolver: zodResolver(schema),
+  } = useForm<ForgotPasswordInput>({
+    resolver: zodResolver(forgotPasswordSchema),
   });
 
   const {
@@ -30,7 +27,7 @@ export const SendEmailForm = () => {
     isPending,
     isSuccess,
   } = useMutation({
-    mutationFn: async (data: DataType) => {
+    mutationFn: async (data: ForgotPasswordInput) => {
       const res = await client.api.password.forgot.$post({
         json: data,
       });
@@ -49,7 +46,7 @@ export const SendEmailForm = () => {
     },
   });
 
-  const onSubmit = async (data: DataType) => {
+  const onSubmit = async (data: ForgotPasswordInput) => {
     try {
       await sendEmail(data);
     } catch (error) {

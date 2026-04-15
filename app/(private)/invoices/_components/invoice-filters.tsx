@@ -6,7 +6,7 @@ import {
   PrinterOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, message, Select, Typography } from "antd";
+import { App, Button, Select, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { z } from "zod";
 import type {
@@ -62,6 +62,8 @@ export const InvoiceFilters = ({
   const searchParams = useSearchParams();
   const periodId = searchParams.get("periodId");
   const selectedMemberId = searchParams.get("memberId") || currentUserId;
+
+  const { message } = App.useApp();
 
   const periods = getMonthlyPeriods(24);
 

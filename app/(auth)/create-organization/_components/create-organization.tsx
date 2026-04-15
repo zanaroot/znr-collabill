@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { Button, Card, Form, Input, message, Typography } from "antd";
+import { App, Button, Card, Form, Input, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { client } from "@/packages/hono";
 
@@ -13,6 +13,7 @@ interface OrganizationForm {
 
 export const CreateOrganization = () => {
   const router = useRouter();
+  const { message } = App.useApp();
 
   const { mutateAsync: createOrg, isPending: loading } = useMutation({
     mutationFn: async (values: OrganizationForm) => {

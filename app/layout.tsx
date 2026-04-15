@@ -1,3 +1,4 @@
+import { App } from "antd";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
@@ -96,7 +97,9 @@ const RootLayout = ({
           <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased `}
           >
-            <ReactQueryProvider>{children}</ReactQueryProvider>
+            <ReactQueryProvider>
+              <App>{children}</App>
+            </ReactQueryProvider>
           </body>
         </AntProvider>
       </ThemeProvider>

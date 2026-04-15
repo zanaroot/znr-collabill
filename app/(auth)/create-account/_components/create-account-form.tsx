@@ -2,25 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Card, Form, Input, message, Typography } from "antd";
+import { App, Button, Card, Form, Input, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
+import {
+  type CreateAccountInput,
+  createAccountSchema,
+} from "@/http/models/auth.model";
 import type { CreatePasswordInput } from "@/http/models/invitation.model";
 import { client } from "@/packages/hono";
-
-const schema = z
-  .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type DataType = z.infer<typeof schema>;
 
 type InvitationResponse = {
   id: string;
@@ -32,6 +22,7 @@ type InvitationResponse = {
 };
 
 export const CreateAccountForm = () => {
+  const { message } = App.useApp();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const router = useRouter();
@@ -40,8 +31,8 @@ export const CreateAccountForm = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<DataType>({
-    resolver: zodResolver(schema),
+  } = useForm<CreateAccountInput>({
+    resolver: zodResolver(createAccountSchema),
   });
 
   const { data: invitation, isLoading } = useQuery<InvitationResponse | null>({
@@ -145,7 +136,7 @@ export const CreateAccountForm = () => {
     );
   }
 
-  const onSubmit = async (data: DataType) => {
+  const onSubmit = async (data: CreateAccountInput) => {
     try {
       await createAccount({
         token: token,

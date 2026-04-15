@@ -38,3 +38,22 @@ export type ActionResponse = {
   error?: string;
   success: boolean;
 };
+
+export const createAccountSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type CreateAccountInput = z.infer<typeof createAccountSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.email("Please enter a valid email"),
+});
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

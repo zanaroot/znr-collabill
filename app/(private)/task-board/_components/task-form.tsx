@@ -1,11 +1,11 @@
 "use client";
 
 import {
+  App,
   Button,
   Flex,
   Input,
   Modal,
-  message,
   Segmented,
   Select,
   Space,
@@ -51,14 +51,15 @@ type TaskFormProps = {
   userRole?: Role;
 };
 
-export function TaskForm({
+export const TaskForm = ({
   formValues,
   onFormValuesChange,
   isEditing,
   members,
   projectId,
   userRole,
-}: TaskFormProps) {
+}: TaskFormProps) => {
+  const { message } = App.useApp();
   const { data: branches, isLoading: isLoadingBranches } =
     useProjectBranches(projectId);
   const { mutate: createBranch, isPending: isCreatingBranch } =
@@ -420,4 +421,4 @@ export function TaskForm({
       </Modal>
     </Space>
   );
-}
+};

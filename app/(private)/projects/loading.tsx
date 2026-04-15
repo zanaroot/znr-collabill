@@ -11,4 +11,3 @@ const ProjectsLoading = () => {
 };
 
 export default ProjectsLoading;
-

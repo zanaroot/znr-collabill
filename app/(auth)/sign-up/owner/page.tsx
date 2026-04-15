@@ -1,7 +1,5 @@
 import { OwnerStep } from "./_components/owner-step";
 
-const OwnerSignUpPage = () => {
-  return <OwnerStep />;
-};
+const OwnerSignUpPage = () => <OwnerStep />;
 
 export default OwnerSignUpPage;

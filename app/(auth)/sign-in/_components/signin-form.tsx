@@ -2,13 +2,13 @@
 
 import { useMutation } from "@tanstack/react-query";
 import {
+  App,
   Button,
   Card,
   Col,
   Divider,
   Form,
   Input,
-  message,
   Row,
   Typography,
 } from "antd";
@@ -23,6 +23,7 @@ type DataType = {
 
 export const SignInForm = () => {
   const router = useRouter();
+  const { message } = App.useApp();
 
   const { mutateAsync: signIn, isPending } = useMutation({
     mutationFn: async (values: DataType) => {
