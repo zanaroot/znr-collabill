@@ -9,31 +9,15 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 
-ARG DATABASE_URL=postgresql://build:build@postgres:5432/collabill_db
+# Build-time arguments only - these are the only values that should be baked into the image
+# All other environment variables should be provided at runtime
 ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
 ARG NEXT_PUBLIC_S3_ENDPOINT=http://localhost:9100
 ARG NODE_ENV=production
-ARG S3_ENDPOINT=http://minio:9000
-ARG MINIO_ROOT_USER=minio_root
-ARG MINIO_ROOT_PASSWORD=build-placeholder
-ARG S3_ACCESS_KEY=minio_user
-ARG S3_SECRET_KEY=build-placeholder
-ARG S3_BUCKET=my-buckets
-ARG S3_REGION=us-east-1
-ARG ENCRYPTION_KEY=build-placeholder-12345678901234567890123456789012
 
-ENV ENCRYPTION_KEY=$ENCRYPTION_KEY
-ENV DATABASE_URL=$DATABASE_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_S3_ENDPOINT=$NEXT_PUBLIC_S3_ENDPOINT
 ENV NODE_ENV=$NODE_ENV
-ENV S3_ENDPOINT=$S3_ENDPOINT
-ENV MINIO_ROOT_USER=$MINIO_ROOT_USER
-ENV MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD
-ENV S3_ACCESS_KEY=$S3_ACCESS_KEY
-ENV S3_SECRET_KEY=$S3_SECRET_KEY
-ENV S3_BUCKET=$S3_BUCKET
-ENV S3_REGION=$S3_REGION
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

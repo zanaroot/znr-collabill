@@ -26,15 +26,32 @@ App URL: `http://localhost:3000`
 
 ## Environment Variables
 
+### Build-time (baked into the image)
+
+- `NEXT_PUBLIC_APP_URL`: Public app base URL used in client-side code.
+- `NEXT_PUBLIC_S3_ENDPOINT`: Public S3/MinIO endpoint for browser access.
+
+### Runtime (provided at container start)
+
+**Required Secrets:**
 - `DATABASE_URL`: PostgreSQL connection string.
 - `ENCRYPTION_KEY`: Required 32+ character key used by the app.
-- `S3_ENDPOINT`: Server-side S3/MinIO endpoint used by the app.
-- `NEXT_PUBLIC_S3_ENDPOINT`: Public S3/MinIO endpoint exposed to the browser.
-- `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`: Credentials for the bundled MinIO container.
-- `S3_ACCESS_KEY`, `S3_SECRET_KEY`: Credentials used by the app to access S3/MinIO.
-- `NEXT_PUBLIC_APP_URL`: Public app base URL used to build links in emails.
+- `POSTGRES_PASSWORD`: Password for the Postgres database user.
+- `MINIO_ROOT_PASSWORD`: Root password for the MinIO container.
+- `S3_SECRET_KEY`: Secret key for S3/MinIO access.
 - `BREVO_API_KEY`: API key for Brevo (or another email provider) to send emails.
+
+**Required Variables:**
+- `POSTGRES_DB`: Database name.
+- `POSTGRES_USER`: Database user.
+- `MINIO_ROOT_USER`: MinIO root username.
+- `S3_ACCESS_KEY`: Access key for S3/MinIO.
+- `S3_BUCKET`: S3 bucket name.
+- `S3_REGION`: S3 region.
+- `S3_ENDPOINT`: Server-side S3/MinIO endpoint.
 - `MAIL_FROM`: The "From" address for outgoing emails.
+
+**Development Seeds (optional):**
 - `SEED_OWNER_EMAIL`, `SEED_COLLABORATOR_EMAIL`, `SEED_PASSWORD`: Optional seed overrides for `pnpm db:seed` and `pnpm db:seed:dev`.
 
 Use `pnpm env:set -- <KEY> <VALUE>` to add a new variable to `.env.dev` or update an existing one via `dotenvx` through `scripts/env-set.sh`.
@@ -71,41 +88,64 @@ pnpm create:user
 
 ## Production Deployment
 
+Production deployment is handled entirely through GitHub Actions. The workflow builds the image, pushes it to GHCR, and deploys to the VPS with the generated `.env` file.
+
+### GitHub Environment Setup
+
+1. Go to **Settings > Environments** and create a `production` environment
+2. Add **Environment Secrets** (sensitive values):
+   - `DATABASE_URL`
+   - `POSTGRES_PASSWORD`
+   - `MINIO_ROOT_PASSWORD`
+   - `S3_SECRET_KEY`
+   - `ENCRYPTION_KEY`
+   - `BREVO_API_KEY`
+   - `GHCR_USERNAME` (username used for image pull on VPS)
+   - `GHCR_READ_TOKEN` (token with `read:packages` scope)
+   - `DROPLET_HOST`
+   - `DROPLET_USER`
+   - `DROPLET_SSH_KEY`
+
+3. Add **Environment Variables** (non-sensitive):
+   - `NEXT_PUBLIC_APP_URL` (e.g., `https://collabill.tchi.xyz`)
+   - `NEXT_PUBLIC_S3_ENDPOINT` (e.g., `https://files.collabill.tchi.xyz`)
+   - `POSTGRES_DB`
+   - `POSTGRES_USER`
+   - `MINIO_ROOT_USER`
+   - `S3_ACCESS_KEY`
+   - `S3_BUCKET`
+   - `S3_REGION`
+   - `S3_ENDPOINT`
+   - `MAIL_FROM`
+
+### Deploy
+
+1. Go to **Actions > Build and Deploy**
+2. Click **Run workflow**
+3. Select the `production` environment
+4. The workflow will:
+   - Run lint, typecheck, and unit tests
+   - Build the Docker image with build-time env vars
+   - Push to GHCR with both the commit SHA and `latest` tags
+   - SSH to the VPS
+   - Generate `/var/docker-infra/.env` from GitHub-managed secrets/vars
+   - Pull the new image and restart the stack
+   - Prune old images
+
+### Initial Server Setup
+
+For first-time setup on a new VPS, copy the compose file and nginx config:
+
 ```bash
-# Create production env file
-cp .env.example .env
-
-# Set image reference for the first boot
-echo "NEXT_IMAGE=ghcr.io/<owner>/collabill:latest" >> .env
-
-# Set public URLs
-pnpm env:set -- NEXT_PUBLIC_APP_URL "https://collabill.tchi.xyz"
-pnpm env:set -- NEXT_PUBLIC_S3_ENDPOINT "https://files.collabill.tchi.xyz"
-
-# Copy compose and nginx config to the server
-scp -r docker-compose.prod.yml nginx <droplet-user>@<droplet-host>:/var/docker-infra/
-scp .env <droplet-user>@<droplet-host>:/var/docker-infra/.env
-
-# Start all services (Next.js + postgres + minio + nginx)
-./start-prod.sh
+# On your local machine
+scp -r docker-compose.prod.yml nginx <user>@<host>:/var/docker-infra/
 ```
 
-Requires:
-- `.env` with production environment variables
-- `NEXT_IMAGE` pointing at a pushed registry image
-- Docker Compose on the target host
-- `docker-compose.prod.yml` and `nginx/` copied to the target host
-
-Important:
-- `.env.example` is set up for local development, so its default `DATABASE_URL` uses `localhost`. If `.env` runs against the bundled `postgres` container, set `DATABASE_URL` to `postgresql://user:password@postgres:5432/collabill_db` or provide matching `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` values.
-- `docker-compose.prod.yml` now prefers explicit app env values from `.env` for `DATABASE_URL`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY`, while keeping bundled service defaults aligned with `.env.example`.
-- If you use the bundled `postgres` service with a persisted volume, changing `POSTGRES_PASSWORD` later does not rotate the existing database user's password. In that case, update `DATABASE_URL` to the real live credential or rotate the Postgres role password manually before rerunning migrations.
-- `next` is no longer exposed on public port `3000`; `nginx` is the public entrypoint on `80/443`.
-- `postgres` and `minio` are internal-only in production. Public file access should go through `https://files.collabill.tchi.xyz`.
+Then run the GitHub Actions deploy workflow. The workflow will generate the `.env` file automatically.
 
 ### Check logs:
-- `docker compose -f docker-compose.prod.yml --env-file .env logs -f next`
-- `docker compose -f docker-compose.prod.yml --env-file .env logs -f nginx`
+- `docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env logs -f next`
+- `docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env logs -f nginx`
 
 ### TLS Setup
 
@@ -142,34 +182,14 @@ DNS required before certificate issuance:
 - `collabill.tchi.xyz` -> droplet IP
 - `files.collabill.tchi.xyz` -> droplet IP
 
-## GitHub Actions Deploy
+### Important Notes
 
-This repository includes:
-
-- `.github/workflows/build-images.yml` to build and push the app image to GHCR after the `Validation` workflow succeeds on `main`
-- `.github/workflows/deploy.yml` to deploy a selected image tag manually to a Docker host such as a DigitalOcean Droplet
-
-Expected GitHub secrets:
-
-- `DROPLET_HOST`
-- `DROPLET_USER`
-- `DROPLET_SSH_KEY`
-- `GHCR_USERNAME`
-- `GHCR_READ_TOKEN`
-
-The image workflow:
-
-1. Waits for the `Validation` workflow to complete successfully on `main`.
-2. Builds and pushes the runtime image to `ghcr.io/<owner>/collabill`.
-3. Tags the image as both `latest` and the validated commit SHA.
-
-The deploy workflow:
-
-1. Runs manually from GitHub Actions with an `image_tag` input such as `latest` or a specific commit SHA.
-2. SSHes into the droplet.
-3. Pulls the selected app image.
-4. Restarts the application stack with the selected runtime image.
-5. Lets the app container apply pending migrations before it starts serving traffic.
+- `.env.example` is set up for local development, so its default `DATABASE_URL` uses `localhost`. If `.env` runs against the bundled `postgres` container, set `DATABASE_URL` to `postgresql://user:password@postgres:5432/collabill_db` or provide matching `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` values.
+- The deploy workflow generates `/var/docker-infra/.env` on the VPS from GitHub-managed secrets and vars. This file has restrictive permissions (`chmod 600`) and contains the runtime configuration.
+- Secrets are **not** baked into the Docker image. Only `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_S3_ENDPOINT` are build-time values.
+- If you use the bundled `postgres` service with a persisted volume, changing `POSTGRES_PASSWORD` later does not rotate the existing database user's password. In that case, update `DATABASE_URL` to the real live credential or rotate the Postgres role password manually before rerunning migrations.
+- `next` is no longer exposed on public port `3000`; `nginx` is the public entrypoint on `80/443`.
+- `postgres` and `minio` are internal-only in production. Public file access should go through `https://files.collabill.tchi.xyz`.
 
 ## Project Structure
 
@@ -207,13 +227,13 @@ pnpm lint
 pnpm build
 ```
 
-## port
+## Port Mapping
 
 1. Dev
-    Postgres → localhost:5432
-    MinIO → localhost:9000
-    Next → pnpm dev
+    - Postgres → localhost:5432
+    - MinIO → localhost:9000
+    - Next → pnpm dev
 2. Prod
-    Postgres → localhost:5434
-    MinIO → localhost:9100
-    Next → localhost:3022
+    - Postgres → localhost:5434
+    - MinIO → localhost:9100
+    - Next → localhost:3022

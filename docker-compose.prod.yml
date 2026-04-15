@@ -13,20 +13,8 @@ x-next-env: &next-env
   MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
   NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
   ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-
-x-next-build-args: &next-build-args
-  DATABASE_URL: ${DATABASE_URL}
-  NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
-  NEXT_PUBLIC_S3_ENDPOINT: ${NEXT_PUBLIC_S3_ENDPOINT}
-  NODE_ENV: production
-  S3_ENDPOINT: ${S3_ENDPOINT}
-  MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-  MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-  S3_SECRET_KEY: ${S3_SECRET_KEY}
-  S3_BUCKET: ${S3_BUCKET}
-  S3_REGION: ${S3_REGION}
-  ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+  BREVO_API_KEY: ${BREVO_API_KEY}
+  MAIL_FROM: ${MAIL_FROM}
 
 services:
   postgres:
@@ -87,11 +75,6 @@ services:
 
   next:
     image: ${NEXT_IMAGE:?NEXT_IMAGE is required}
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runner
-      args: *next-build-args
     restart: always
     depends_on:
       postgres:
