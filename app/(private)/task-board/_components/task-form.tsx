@@ -17,6 +17,14 @@ import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { RichTextEditor } from "@/app/_components/editor/rich-text-editor";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import {
+  getPriorityTagColor,
+  PRIORITY_LABELS,
+  type PriorityLabel,
+  type TaskFormValues,
+} from "@/app/_utils/priority";
+import { formatStatus } from "@/app/_utils/status-task";
+import { getAllowedTaskTransitions } from "@/app/_utils/task-workflow";
+import {
   useCreateProjectBranch,
   useProjectBranches,
 } from "@/app/(private)/projects/_hooks/use-projects";
@@ -24,14 +32,6 @@ import type { TaskSize, TaskStatus } from "@/http/models/task.model";
 import { TASK_SIZES } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 import { formatDueDate } from "@/lib/date";
-import {
-  getPriorityTagColor,
-  PRIORITY_LABELS,
-  type PriorityLabel,
-  type TaskFormValues,
-} from "@/lib/priority";
-import { formatStatus } from "@/lib/status-task";
-import { getAllowedTaskTransitions } from "@/lib/task-workflow";
 import type { TaskMembers } from "./column";
 import { InfoRow } from "./info-row";
 

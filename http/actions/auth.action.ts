@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { logAudit } from "@/http/actions/audit.action";
 import type {
   ActionResponse,
   RegisterInput,
@@ -20,9 +21,9 @@ import {
   findValidSessionByToken,
 } from "@/http/repositories/session.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
-import { logAudit } from "@/lib/audit";
 import { getFutureDate } from "@/lib/date";
 import { generateSessionToken } from "@/lib/session-token";
+import { serverEnv } from "@/packages/env/server";
 
 const shouldUseSecureCookie = async () => {
   const hdrs = await headers();
@@ -38,7 +39,7 @@ const shouldUseSecureCookie = async () => {
     return false;
   }
 
-  return process.env.NODE_ENV === "production";
+  return serverEnv.NODE_ENV === "production";
 };
 
 export const registerAction = async (

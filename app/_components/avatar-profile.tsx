@@ -1,8 +1,8 @@
 "use client";
 
 import { Avatar, type AvatarProps } from "antd";
+import { getInitials } from "@/app/_utils/get-initials-text";
 import { getAvatarUrl } from "@/lib/get-avatar-url";
-import { getInitials } from "@/lib/get-initials-text";
 
 type AvatarProfileProps = {
   src?: string | null;

@@ -10,9 +10,9 @@ import {
   message,
   Typography,
 } from "antd";
+import { getInitials } from "@/app/_utils/get-initials-text";
 import { CreateOrganization } from "@/app/(private)/_components/create-organization";
 import { taskKeys } from "@/app/(private)/task-board/_hooks/use-tasks";
-import { getInitials } from "@/lib/get-initials-text";
 import { client } from "@/packages/hono";
 import { queryClient } from "@/packages/react-query";
 

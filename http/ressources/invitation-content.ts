@@ -1,4 +1,7 @@
+import { publicEnv } from "@/packages/env";
 import type { InvitationContentInput } from "../models/invitation.model";
+
+const appUrl = publicEnv.NEXT_PUBLIC_APP_URL;
 
 export const invitationContent = (input: InvitationContentInput) => `
       <!DOCTYPE html>
@@ -85,7 +88,7 @@ export const invitationContent = (input: InvitationContentInput) => `
               </p>
     
               <p style="text-align:center;">
-                <a href="${input.inviteLink}" class="button">
+                <a href="${appUrl}/create-account?token=${input.invitationToken}" class="button">
                   Accept Invitation
                 </a>
               </p>

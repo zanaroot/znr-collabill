@@ -20,7 +20,7 @@ import {
   Underline as UnderlineIcon,
   Undo,
 } from "lucide-react";
-import { cn } from "@/lib/class-name";
+import { cn } from "@/app/_utils/class-name";
 
 interface ToolbarProps {
   editor: Editor | null;

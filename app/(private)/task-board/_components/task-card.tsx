@@ -4,9 +4,9 @@ import { Card, Modal, Tag, Typography } from "antd";
 import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
+import { getPriorityLabel, priorityTagColor } from "@/app/_utils/priority";
 import type { Task as TaskModel } from "@/http/models/task.model";
 import { formatDueDate } from "@/lib/date";
-import { getPriorityLabel, priorityTagColor } from "@/lib/priority";
 
 const { Text } = Typography;
 

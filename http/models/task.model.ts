@@ -19,18 +19,18 @@ const taskSizeEnum = z.enum(TASK_SIZES);
 const taskStatusEnum = z.enum(TASK_STATUSES);
 
 export const taskSchema = z.object({
-  id: z.string().uuid(),
-  projectId: z.string().uuid(),
+  id: z.uuid(),
+  projectId: z.uuid(),
   title: z.string().min(1),
   description: z.string().nullable().optional(),
   size: taskSizeEnum,
   priority: z.number().int().nullable().optional(),
   dueDate: z.string().nullable().optional(),
-  assignedTo: z.string().uuid().nullable().optional(),
+  assignedTo: z.uuid().nullable().optional(),
   status: taskStatusEnum,
   validatedAt: z.string().nullable().optional(),
-  validatedBy: z.string().uuid().nullable().optional(),
-  gitRepo: z.string().url().nullable().optional().or(z.literal("")),
+  validatedBy: z.uuid().nullable().optional(),
+  gitRepo: z.url().nullable().optional().or(z.literal("")),
   gitBranch: z.string().nullable().optional(),
   gitPullRequest: z.string().nullable().optional(),
   createdAt: z.string(),
@@ -41,15 +41,15 @@ export type TaskStatusValue = TaskStatus;
 export type TaskSizeValue = TaskSize;
 
 export const createTaskSchema = z.object({
-  projectId: z.string().uuid(),
+  projectId: z.uuid(),
   title: z.string().min(1),
   description: z.string().optional(),
   size: taskSizeEnum,
   priority: z.number().int().optional(),
   dueDate: z.string().optional().nullable(),
-  assignedTo: z.string().uuid().optional().nullable(),
+  assignedTo: z.uuid().optional().nullable(),
   status: taskStatusEnum.optional(),
-  gitRepo: z.string().url().optional().nullable().or(z.literal("")),
+  gitRepo: z.url().optional().nullable().or(z.literal("")),
   gitBranch: z.string().optional().nullable(),
   gitPullRequest: z.string().optional().nullable(),
 });
@@ -62,9 +62,9 @@ export const updateTaskSchema = z.object({
   size: taskSizeEnum.optional(),
   priority: z.number().int().optional(),
   dueDate: z.string().optional().nullable(),
-  assignedTo: z.string().uuid().optional().nullable(),
+  assignedTo: z.uuid().optional().nullable(),
   status: taskStatusEnum.optional(),
-  gitRepo: z.string().url().optional().nullable().or(z.literal("")),
+  gitRepo: z.url().optional().nullable().or(z.literal("")),
   gitBranch: z.string().optional().nullable(),
   gitPullRequest: z.string().optional().nullable(),
 });

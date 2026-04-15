@@ -23,12 +23,12 @@ import {
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { type ReactNode, Suspense, useEffect, useState } from "react";
+import { cn } from "@/app/_utils/class-name";
 import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
 import { lastProjectKey } from "@/http/ressources/keys";
-import { cn } from "@/lib/class-name";
 import { PresenceModal } from "./presence-modal";
 
 const { Header, Sider, Content } = Layout;

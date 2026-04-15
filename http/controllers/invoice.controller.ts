@@ -1,13 +1,13 @@
 import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
 import type { invoices } from "@/db/schema/invoice";
+import { logAudit } from "@/http/actions/audit.action";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   createInvoiceSchema,
   updateInvoiceStatusSchema,
 } from "@/http/models/invoice.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
-import { logAudit } from "@/lib/audit";
 
 const factory = createFactory<AuthEnv>();
 

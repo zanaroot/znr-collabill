@@ -1,6 +1,8 @@
 import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
 import { z } from "zod";
+import { logAudit } from "@/http/actions/audit.action";
+import { createBranch, fetchBranches } from "@/http/actions/github";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   createProjectSchema,
@@ -8,8 +10,6 @@ import {
 } from "@/http/models/project.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
-import { logAudit } from "@/lib/audit";
-import { createBranch, fetchBranches } from "@/lib/github";
 
 const factory = createFactory<AuthEnv>();
 
@@ -261,6 +261,13 @@ export const updateProject = factory.createHandlers(
 
     if (project.organizationId !== user.organizationId) {
       return c.json({ error: "Unauthorized" }, 403);
+    }
+
+    if ("baseRate" in data && user.organizationRole !== "OWNER") {
+      return c.json(
+        { error: "Only the owner can modify the project rate" },
+        403,
+      );
     }
 
     const updated = await projectRepository.updateProject(id, data);

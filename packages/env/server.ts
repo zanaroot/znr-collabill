@@ -7,7 +7,6 @@ export const serverEnv = parseEnv(
   serverEnvSchema,
   {
     DATABASE_URL: process.env.DATABASE_URL,
-    NEXT_PUBLIC_S3_ENDPOINT: process.env.NEXT_PUBLIC_S3_ENDPOINT,
     MINIO_ROOT_USER: process.env.MINIO_ROOT_USER,
     MINIO_ROOT_PASSWORD: process.env.MINIO_ROOT_PASSWORD,
     S3_ENDPOINT: process.env.S3_ENDPOINT,
@@ -18,6 +17,7 @@ export const serverEnv = parseEnv(
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     BREVO_API_KEY: process.env.BREVO_API_KEY,
     MAIL_FROM: process.env.MAIL_FROM,
+    NODE_ENV: process.env.NODE_ENV,
   },
   "server",
 );

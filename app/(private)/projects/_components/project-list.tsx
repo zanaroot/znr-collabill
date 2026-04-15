@@ -117,9 +117,12 @@ export function ProjectList() {
   };
 
   const onFormSubmit = (data: CreateProjectInput) => {
+    const isOwner = currentUser?.organizationRole === "OWNER";
+    const payload = isOwner ? data : { ...data, baseRate: undefined };
+
     if (editingProject) {
       updateProjectMutation.mutate(
-        { id: editingProject.id, data },
+        { id: editingProject.id, data: payload },
         {
           onSuccess: () => {
             message.success("Project updated successfully");
@@ -384,19 +387,29 @@ export function ProjectList() {
             validateStatus={errors.baseRate ? "error" : ""}
             help={errors.baseRate?.message}
           >
-            <Controller
-              name="baseRate"
-              control={control}
-              render={({ field }) => (
-                <InputNumber
-                  {...field}
-                  min={0}
-                  step={0.01}
-                  placeholder="Enter base rate"
-                  style={{ width: "100%" }}
-                />
-              )}
-            />
+            {currentUser?.organizationRole === "OWNER" ? (
+              <Controller
+                name="baseRate"
+                control={control}
+                render={({ field }) => (
+                  <InputNumber
+                    {...field}
+                    min={0}
+                    step={0.01}
+                    placeholder="Enter base rate"
+                    style={{ width: "100%" }}
+                  />
+                )}
+              />
+            ) : (
+              <InputNumber
+                value={editingProject?.baseRate || 1}
+                disabled
+                min={0}
+                step={0.01}
+                style={{ width: "100%" }}
+              />
+            )}
           </Form.Item>
         </Form>
       </Drawer>

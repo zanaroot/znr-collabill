@@ -1,19 +1,5 @@
-const getPublicS3Endpoint = () => {
-  const endpoint =
-    process.env.NEXT_PUBLIC_S3_ENDPOINT || "http://localhost:9000";
-  return endpoint.replace(/\/$/, "");
-};
-
-const normalizeEmail = (email: string | null | undefined): string => {
-  if (!email) return "default";
-
-  return email
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "");
-};
+import { getPublicS3Endpoint } from "@/app/_utils/get-pulic-s3-endpoint";
+import { normalizeEmail } from "@/lib/normalize-email";
 
 export const getAvatarUrl = (
   avatar: string | null | undefined,

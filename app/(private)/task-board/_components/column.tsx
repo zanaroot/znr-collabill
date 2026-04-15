@@ -4,8 +4,8 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Button, Card, Empty, Tag, Typography } from "antd";
 import type { DragEvent, MouseEvent } from "react";
 import { useState } from "react";
+import { formatStatus, statusTagColor } from "@/app/_utils/status-task";
 import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
-import { formatStatus, statusTagColor } from "@/lib/status-task";
 import { TaskCard } from "./task-card";
 
 const { Text } = Typography;

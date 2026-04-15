@@ -61,6 +61,13 @@ export const updateProjectAction = async (
       return { error: "Invalid data", success: false };
     }
 
+    if ("baseRate" in parsed.data && user.organizationRole !== "OWNER") {
+      return {
+        error: "Only the owner can modify the project rate",
+        success: false,
+      };
+    }
+
     const project = await projectRepository.updateProject(id, parsed.data);
     if (!project) {
       return { error: "Project not found", success: false };

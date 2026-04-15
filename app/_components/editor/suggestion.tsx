@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import tippy, { type Instance, type Props } from "tippy.js";
-import { cn } from "@/lib/class-name";
+import { cn } from "@/app/_utils/class-name";
 
 export interface CommandItem {
   title: string;

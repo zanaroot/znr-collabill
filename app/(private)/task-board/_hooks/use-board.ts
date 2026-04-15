@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
-import type { Role } from "@/http/models/user.model";
 import {
   BOARD_VIEW_STATUSES,
   type BoardView,
@@ -10,12 +8,14 @@ import {
   getPriorityValue,
   PRIORITY_LABEL_FROM_VALUE,
   type TaskFormValues,
-} from "@/lib/priority";
+} from "@/app/_utils/priority";
 import {
   canDeleteTaskByStatus,
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
-} from "@/lib/task-workflow";
+} from "@/app/_utils/task-workflow";
+import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
+import type { Role } from "@/http/models/user.model";
 import {
   useCreateTask,
   useDeleteTask,

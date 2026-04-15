@@ -3,8 +3,8 @@
 import { useMutation } from "@tanstack/react-query";
 import { Button, Flex, Modal, message, Typography } from "antd";
 import { useEffect, useState } from "react";
+import { getGreeting } from "@/app/_utils/get-greeting";
 import type { PresenceStatus } from "@/http/models/presence.model";
-import { getGreeting } from "@/lib/get-greeting";
 import { client } from "@/packages/hono";
 
 const { Text, Title } = Typography;

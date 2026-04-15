@@ -19,7 +19,7 @@ import {
   users,
 } from "@/db/schema";
 import type { Role } from "@/http/models/user.model";
-import { generateSlug } from "@/lib/organization-utils";
+import { generateSlug } from "@/lib/text-to-slug";
 
 export const registerOrganizationAndOwner = async (data: {
   organizationName: string;

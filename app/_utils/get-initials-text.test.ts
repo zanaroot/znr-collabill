@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getInitials } from "@/lib/get-initials-text";
+import { getInitials } from "@/app/_utils/get-initials-text";
 
 describe("getInitials", () => {
   it("returns empty string for null", () => {

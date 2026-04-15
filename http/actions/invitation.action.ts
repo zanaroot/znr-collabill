@@ -2,6 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
+import { logAudit } from "@/http/actions/audit.action";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import type { ActionResponse } from "@/http/models/auth.model";
 import type {
@@ -28,11 +29,7 @@ import {
 } from "@/http/repositories/organization.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { invitationContent } from "@/http/ressources/invitation-content";
-import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/packages/email";
-import { publicEnv } from "@/packages/env";
-
-const appUrl = publicEnv.NEXT_PUBLIC_APP_URL;
 
 export const inviteUserAction = async (
   input: InviteUserInput,
@@ -96,8 +93,6 @@ export const inviteUserAction = async (
 
     await upsertInvitation({ email, token, role, expiresAt, organizationId });
 
-    const inviteLink = `${appUrl}/create-account?token=${token}`;
-
     await sendEmail({
       to: email,
       subject: `You've been invited to join ${organization.name} on Collabill`,
@@ -105,7 +100,7 @@ export const inviteUserAction = async (
         currentUserName: currentUser.name,
         organizationName: organization.name,
         role,
-        inviteLink,
+        invitationToken: token,
       }),
     });
 
@@ -304,8 +299,6 @@ export const resendInvitationAction = async (
       invitation.expiresAt = newExpiresAt;
     }
 
-    const inviteLink = `${appUrl}/create-account?token=${invitation.token}`;
-
     await sendEmail({
       to: invitation.email,
       subject: `You're invited to join ${organization.name} on Collabill`,
@@ -313,7 +306,7 @@ export const resendInvitationAction = async (
         currentUserName: currentUser.name,
         organizationName: organization.name,
         role: invitation.role,
-        inviteLink,
+        invitationToken: invitation.token,
       }),
     });
 

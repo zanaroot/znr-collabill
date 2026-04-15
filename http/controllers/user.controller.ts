@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
 import { z } from "zod";
+import { logAudit } from "@/http/actions/audit.action";
 import {
   inviteUserAction,
   resendInvitationAction,
@@ -25,7 +26,6 @@ import {
   updateUser,
   upsertCollaboratorRate,
 } from "@/http/repositories/user.repository";
-import { logAudit } from "@/lib/audit";
 import { serverEnv } from "@/packages/env/server";
 import { deleteFile, uploadFile } from "@/packages/minio";
 

@@ -1,9 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { taskNotifications } from "@/db/schema";
+import { getOrgSlackCredentialsDecrypted } from "@/http/actions/integrations.action";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
-import { getOrgSlackCredentialsDecrypted } from "@/lib/integrations";
 import {
   buildTaskReviewMessage,
   getTaskUrl,

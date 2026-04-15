@@ -1,12 +1,12 @@
 "use client";
 
 import { Segmented } from "antd";
-import type { Task as TaskModel } from "@/http/models/task.model";
-import type { Role } from "@/http/models/user.model";
 import {
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
-} from "@/lib/task-workflow";
+} from "@/app/_utils/task-workflow";
+import type { Task as TaskModel } from "@/http/models/task.model";
+import type { Role } from "@/http/models/user.model";
 import { useBoard } from "../_hooks/use-board";
 import { Column, type TaskMembers } from "./column";
 import { TaskDrawer } from "./task-drawer";

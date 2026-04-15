@@ -3,7 +3,7 @@ import {
   canDeleteTaskByStatus,
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
-} from "@/lib/task-workflow";
+} from "@/app/_utils/task-workflow";
 
 describe("task-workflow", () => {
   describe("canTransitionTaskStatus", () => {

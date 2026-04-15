@@ -20,7 +20,7 @@ export const invitationContentSchema = z.object({
   currentUserName: z.string(),
   organizationName: z.string(),
   role: roleEnum,
-  inviteLink: z.string(),
+  invitationToken: z.string(),
 });
 
 export type InvitationContentInput = z.infer<typeof invitationContentSchema>;

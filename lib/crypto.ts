@@ -1,13 +1,8 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
-import { serverEnv } from "@/packages/env/server";
+import { getKey } from "@/http/actions/get-encryption-key.action";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
-
-const getKey = (): Buffer => {
-  const key = serverEnv.ENCRYPTION_KEY;
-  return Buffer.from(key.slice(0, 32).padEnd(32, "0"));
-};
 
 export const encrypt = (plaintext: string): string => {
   const iv = randomBytes(IV_LENGTH);
