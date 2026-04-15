@@ -110,7 +110,6 @@ jobs:
       - name: Deploy to VPS
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         env:
-          NEXT_IMAGE: ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.sha }}
           DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
@@ -118,7 +117,7 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          envs: NEXT_IMAGE,DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN
+          envs: DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN
           script_stop: true
           script: |
             #!/bin/bash
@@ -130,7 +129,7 @@ jobs:
             # Generate .env file with restrictive permissions
             umask 077
             cat > "$DEPLOY_PATH/.env.tmp" << 'ENVEOF'
-            NEXT_IMAGE=${NEXT_IMAGE}
+            NEXT_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.sha }}
 
             # Build-time env (used for reference)
             NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
