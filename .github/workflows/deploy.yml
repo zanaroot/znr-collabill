@@ -92,6 +92,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
             NEXT_PUBLIC_S3_ENDPOINT=${{ vars.NEXT_PUBLIC_S3_ENDPOINT }}
+            SKIP_SERVER_ENV_VALIDATION=1
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.sha }}
