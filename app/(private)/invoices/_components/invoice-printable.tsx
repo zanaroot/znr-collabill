@@ -2,7 +2,7 @@
 
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { App, Button, Divider, Input, Space, Typography } from "antd";
+import { App, Button, Divider, Input, InputNumber, Space, Typography } from "antd";
 import { useMemo, useState } from "react";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
@@ -93,7 +93,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+          "Failed to validate invoice",
         );
       }
       return res.json();
@@ -412,7 +412,7 @@ export const InvoicePrintable = ({
                     Count
                   </th>
                   <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Rate (×{0})
+                    Rate
                   </th>
                   <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Amount
@@ -536,11 +536,11 @@ export const InvoicePrintable = ({
                       />
                     </td>
                     <td className="text-right p-4">
-                      <Input
+                      <InputNumber
                         placeholder="Amount"
-                        type="number"
+                        controls={false}
                         value={newFieldAmount}
-                        onChange={(e) => setNewFieldAmount(e.target.value)}
+                        onChange={(val) => setNewFieldAmount(val === null ? "" : String(val))}
                         variant="borderless"
                         className="text-right font-mono"
                         onPressEnter={() => {
