@@ -4,7 +4,6 @@ import {
   ApartmentOutlined,
   DeleteOutlined,
   GithubOutlined,
-  MailOutlined,
   SlackOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
@@ -202,10 +201,6 @@ export default function OrganizationType() {
 
     if (type === "GITHUB" && values.token) {
       credentials = { github: { token: values.token } };
-    } else if (type === "BREVO" && values.apiKey) {
-      credentials = {
-        brevo: { apiKey: values.apiKey, mailFrom: values.mailFrom || "" },
-      };
     } else if (type === "SLACK" && values.botToken) {
       credentials = {
         slack: {
@@ -391,51 +386,6 @@ export default function OrganizationType() {
                           disabled={disabled}
                         />
                       </Form.Item>
-                    )}
-                  />
-                ),
-              },
-              {
-                key: "brevo",
-                label: (
-                  <span>
-                    <MailOutlined /> Brevo
-                  </span>
-                ),
-                children: (
-                  <IntegrationCard
-                    integration={getIntegration("BREVO")}
-                    loading={
-                      saveIntegrationMutation.isPending || integrationsLoading
-                    }
-                    onSave={(values) => handleSaveIntegration("BREVO", values)}
-                    onToggle={(isActive) =>
-                      handleToggleIntegration("BREVO", isActive)
-                    }
-                    renderForm={(_form, disabled) => (
-                      <>
-                        <Form.Item
-                          name="apiKey"
-                          label="Brevo API Key"
-                          help="Enter your Brevo API Key"
-                        >
-                          <Input.Password
-                            placeholder="xkeysib-..."
-                            disabled={disabled}
-                          />
-                        </Form.Item>
-
-                        <Form.Item
-                          name="mailFrom"
-                          label="Sender Email"
-                          help="Email address for sending emails (e.g., noreply@example.com)"
-                        >
-                          <Input
-                            placeholder="noreply@example.com"
-                            disabled={disabled}
-                          />
-                        </Form.Item>
-                      </>
                     )}
                   />
                 ),

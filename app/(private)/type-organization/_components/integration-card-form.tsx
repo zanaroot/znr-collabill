@@ -11,8 +11,6 @@ export type Integration = {
 
 export type IntegrationFormValues = {
   token?: string;
-  apiKey?: string;
-  mailFrom?: string;
   botToken?: string;
   defaultChannel?: string;
 };
@@ -23,8 +21,6 @@ const getImpactMessage = (type?: IntegrationType) => {
       return "Deactivating Slack will stop all notifications and alerts to your workspace channels.";
     case "GITHUB":
       return "Deactivating GitHub will stop repository automation and issue synchronization.";
-    case "BREVO":
-      return "Deactivating Brevo will stop all automated email deliveries (e.g., invoice sending).";
     default:
       return "Deactivating this integration will stop all related automated processes.";
   }
@@ -75,8 +71,6 @@ export const IntegrationCard = ({
         onFinish={onSave}
         initialValues={{
           token: "",
-          apiKey: "",
-          mailFrom: "",
           botToken: "",
           defaultChannel: "",
         }}

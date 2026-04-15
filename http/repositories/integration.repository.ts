@@ -10,10 +10,6 @@ export type IntegrationCredentials = {
   github?: {
     token: string;
   };
-  brevo?: {
-    apiKey: string;
-    mailFrom: string;
-  };
   slack?: {
     botToken: string;
     defaultChannel?: string;

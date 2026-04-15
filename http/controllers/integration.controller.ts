@@ -41,7 +41,7 @@ export const getIntegrations = factory.createHandlers(async (c) => {
 });
 
 export const getIntegrationByType = factory.createHandlers(
-  zValidator("param", z.object({ type: z.enum(["GITHUB", "BREVO", "SLACK"]) })),
+  zValidator("param", z.object({ type: z.enum(["GITHUB", "SLACK"]) })),
   async (c) => {
     const organizationId = getOrganizationId(c);
     if (!organizationId) {
@@ -81,7 +81,7 @@ export const saveIntegrationHandler = factory.createHandlers(
 );
 
 export const updateIntegration = factory.createHandlers(
-  zValidator("param", z.object({ type: z.enum(["GITHUB", "BREVO", "SLACK"]) })),
+  zValidator("param", z.object({ type: z.enum(["GITHUB", "SLACK"]) })),
   zValidator("json", saveIntegrationSchema.omit({ type: true })),
   async (c) => {
     const organizationId = getOrganizationId(c);
@@ -132,7 +132,7 @@ export const deleteIntegrationHandler = factory.createHandlers(
 );
 
 export const getIntegrationCredentials = factory.createHandlers(
-  zValidator("param", z.object({ type: z.enum(["GITHUB", "BREVO", "SLACK"]) })),
+  zValidator("param", z.object({ type: z.enum(["GITHUB", "SLACK"]) })),
   async (c) => {
     const organizationId = getOrganizationId(c);
     if (!organizationId) {

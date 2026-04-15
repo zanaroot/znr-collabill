@@ -101,7 +101,6 @@ export const inviteUserAction = async (
     await sendEmail({
       to: email,
       subject: `You've been invited to join ${organization.name} on Collabill`,
-      organizationId,
       html: invitationContent({
         currentUserName: currentUser.name,
         organizationName: organization.name,
@@ -309,7 +308,6 @@ export const resendInvitationAction = async (
 
     await sendEmail({
       to: invitation.email,
-      organizationId,
       subject: `You're invited to join ${organization.name} on Collabill`,
       html: invitationContent({
         currentUserName: currentUser.name,

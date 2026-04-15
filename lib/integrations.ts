@@ -27,11 +27,6 @@ export const getOrgGithubCredentials = async (organizationId: string) => {
   return creds?.github ?? null;
 };
 
-export const getOrgBrevoCredentials = async (organizationId: string) => {
-  const creds = await getOrgIntegrationCredentials(organizationId, "BREVO");
-  return creds?.brevo ?? null;
-};
-
 export const getOrgIntegrationConfig = async (
   organizationId: string,
   type: IntegrationType,
@@ -77,23 +72,4 @@ export const getOrgGithubCredentialsDecrypted = async (
   }
 
   return creds.github;
-};
-
-export const getOrgBrevoCredentialsDecrypted = async (
-  organizationId: string,
-) => {
-  const integration = await getIntegration(organizationId, "BREVO");
-
-  if (!integration || integration.isActive !== "true") {
-    return null;
-  }
-
-  const creds = integration.credentials as {
-    brevo?: { apiKey: string; mailFrom: string };
-  };
-  if (!creds?.brevo?.apiKey) {
-    return null;
-  }
-
-  return creds.brevo;
 };

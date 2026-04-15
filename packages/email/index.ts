@@ -2,7 +2,7 @@
 
 import type { Brevo } from "@getbrevo/brevo";
 import { BrevoClient, BrevoError } from "@getbrevo/brevo";
-import { getOrgBrevoCredentialsDecrypted } from "@/lib/integrations";
+import { serverEnv } from "@/packages/env/server";
 
 type BrevoSender = {
   email: string;
@@ -53,35 +53,21 @@ const createBrevoClient = (apiKey: string) => {
   return new BrevoClient({ apiKey });
 };
 
+const apiKey = serverEnv.BREVO_API_KEY;
+const mailFrom = serverEnv.MAIL_FROM;
+
 export const sendEmail = async ({
   to,
   subject,
   html,
   text,
-  organizationId,
 }: SendEmailParams): Promise<void> => {
-  let apiKey: string | undefined;
-  let mailFrom: string | undefined;
-
-  if (organizationId) {
-    const orgCreds = await getOrgBrevoCredentialsDecrypted(organizationId);
-    if (orgCreds) {
-      apiKey = orgCreds.apiKey;
-      mailFrom = orgCreds.mailFrom;
-    }
-  }
-
-  if (!apiKey || !mailFrom) {
-    apiKey = process.env.BREVO_API_KEY;
-    mailFrom = process.env.MAIL_FROM;
-  }
-
   if (!apiKey) {
-    throw new Error("Brevo API key not configured");
+    throw new Error("Brevo API key not configured (BREVO_API_KEY)");
   }
 
   if (!mailFrom) {
-    throw new Error("Sender email not configured");
+    throw new Error("Sender email not configured (MAIL_FROM)");
   }
 
   const brevo = createBrevoClient(apiKey);

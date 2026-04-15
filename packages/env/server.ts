@@ -16,6 +16,8 @@ export const serverEnv = parseEnv(
     S3_BUCKET: process.env.S3_BUCKET,
     S3_REGION: process.env.S3_REGION,
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+    BREVO_API_KEY: process.env.BREVO_API_KEY,
+    MAIL_FROM: process.env.MAIL_FROM,
   },
   "server",
 );

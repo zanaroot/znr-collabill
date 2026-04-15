@@ -21,6 +21,8 @@ jobs:
       S3_SECRET_KEY: password
       S3_BUCKET: my-buckets
       S3_REGION: us-east-1
+      BREVO_API_KEY: CI_BREVO_API_KEY_12345678901234567890123456789012
+      MAIL_FROM: MAIL_FROM_@CI.COM
 
     steps:
       - name: Checkout code

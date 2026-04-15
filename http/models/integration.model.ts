@@ -1,15 +1,10 @@
 import { z } from "zod";
 
-export const integrationTypeSchema = z.enum(["GITHUB", "BREVO", "SLACK"]);
+export const integrationTypeSchema = z.enum(["GITHUB", "SLACK"]);
 export type IntegrationType = z.infer<typeof integrationTypeSchema>;
 
 export const githubCredentialsSchema = z.object({
   token: z.string().min(1),
-});
-
-export const brevoCredentialsSchema = z.object({
-  apiKey: z.string().min(1),
-  mailFrom: z.email().or(z.string().includes("@")),
 });
 
 export const slackCredentialsSchema = z.object({
@@ -21,7 +16,6 @@ export const saveIntegrationSchema = z.object({
   type: integrationTypeSchema,
   credentials: z.object({
     github: githubCredentialsSchema.optional(),
-    brevo: brevoCredentialsSchema.optional(),
     slack: slackCredentialsSchema.optional(),
   }),
   config: z
@@ -57,7 +51,6 @@ export type DeleteIntegrationInput = z.infer<typeof deleteIntegrationSchema>;
 
 export type IntegrationCredentials =
   | { github: z.infer<typeof githubCredentialsSchema> }
-  | { brevo: z.infer<typeof brevoCredentialsSchema> }
   | { slack: z.infer<typeof slackCredentialsSchema> };
 
 export const integrationResponseSchema = z.object({
