@@ -14,6 +14,8 @@ export const statusTagColor = (status: TaskStatus) => {
       return "orange";
     case "TRASH":
       return "red";
+    case "BACKLOG":
+      return "volcano";
     default:
       return "default";
   }

@@ -1,12 +1,10 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { Button, Flex, Modal, message, Radio, Space, Typography } from "antd";
+import { Button, Flex, Modal, message, Typography } from "antd";
 import { useEffect, useState } from "react";
-import {
-  PRESENCE_STATUSES,
-  type PresenceStatus,
-} from "@/http/models/presence.model";
+import type { PresenceStatus } from "@/http/models/presence.model";
+import { getGreeting } from "@/lib/get-greeting";
 import { client } from "@/packages/hono";
 
 const { Text, Title } = Typography;
@@ -14,11 +12,15 @@ const { Text, Title } = Typography;
 interface PresenceModalProps {
   open: boolean;
   organizationId?: string;
+  userName?: string;
   onSuccess: () => void;
 }
 
-export const PresenceModal = ({ open, onSuccess }: PresenceModalProps) => {
-  const [status, setStatus] = useState<PresenceStatus>("OFFICE");
+export const PresenceModal = ({
+  open,
+  onSuccess,
+  userName,
+}: PresenceModalProps) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export const PresenceModal = ({ open, onSuccess }: PresenceModalProps) => {
   });
 
   const handleCheckIn = async () => {
-    await markPresence({ status });
+    await markPresence({ status: "REMOTE" });
   };
 
   return (
@@ -64,34 +66,13 @@ export const PresenceModal = ({ open, onSuccess }: PresenceModalProps) => {
       width={400}
     >
       <Flex vertical align="center" className="py-6 text-center">
-        <Title level={4}>👋 Welcome back!</Title>
+        <Title level={4}>{getGreeting(userName)}</Title>
         <Text type="secondary" className="mb-6 block">
-          Please mark your presence for today to continue.
+          Ready to start your day? <br />
+          Check in to begin tracking your work and activity.
         </Text>
-
-        <Radio.Group
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          optionType="button"
-          buttonStyle="solid"
-          className="mb-8"
-        >
-          <Space orientation="vertical" className="w-full">
-            {PRESENCE_STATUSES.map((s) => (
-              <Radio.Button
-                key={s}
-                value={s}
-                className="w-full h-12 flex items-center justify-center rounded-lg!"
-              >
-                {s}
-              </Radio.Button>
-            ))}
-          </Space>
-        </Radio.Group>
-
         <Button
           type="primary"
-          size="large"
           block
           loading={isPending}
           onClick={handleCheckIn}

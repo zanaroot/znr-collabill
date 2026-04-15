@@ -9,14 +9,13 @@ import {
   useProjects,
 } from "@/app/(private)/projects/_hooks/use-projects";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
+import { lastProjectKey } from "@/http/ressources/keys";
 import { useTasks } from "../_hooks/use-tasks";
 import { CreateBoard } from "./board";
 
 const { Title, Text } = Typography;
 
-const LAST_PROJECT_KEY = "collabill_last_project_id";
-
-export function TaskBoard() {
+export const TaskBoard = () => {
   const { data: currentUser } = useCurrentUser();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -44,11 +43,13 @@ export function TaskBoard() {
     if (!projects?.length) return undefined;
     const exists = projects.some((p) => p.id === projectId);
     if (exists) return projectId;
-    const lastProjectId = localStorage.getItem(LAST_PROJECT_KEY);
+    const lastProjectId = localStorage.getItem(
+      lastProjectKey(currentUser?.id ?? "", currentUser?.organizationId ?? ""),
+    );
     const lastProjectExists = projects.some((p) => p.id === lastProjectId);
     if (lastProjectId && lastProjectExists) return lastProjectId;
     return projects[0].id;
-  }, [projects, projectId]);
+  }, [projects, projectId, currentUser?.id, currentUser?.organizationId]);
 
   if (
     !isLoadingProjects &&
@@ -63,7 +64,10 @@ export function TaskBoard() {
   }
 
   const handleProjectChange = (value: string) => {
-    localStorage.setItem(LAST_PROJECT_KEY, value);
+    localStorage.setItem(
+      lastProjectKey(currentUser?.id ?? "", currentUser?.organizationId ?? ""),
+      value,
+    );
     const params = new URLSearchParams(searchParams.toString());
     params.set("projectId", value);
     router.replace(`${pathname}?${params.toString()}`);
@@ -137,4 +141,4 @@ export function TaskBoard() {
       )}
     </div>
   );
-}
+};

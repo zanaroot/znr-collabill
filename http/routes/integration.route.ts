@@ -8,16 +8,13 @@ import {
   toggleIntegrationHandler,
   updateIntegration,
 } from "@/http/controllers/integration.controller";
-import {
-  adminMiddleware,
-  ownerMiddleware,
-} from "@/http/middleware/auth.middleware";
+import { adminMiddleware } from "@/http/middleware/auth.middleware";
 
 export const integrationRoutes = new Hono()
   .get("/", ...getIntegrations)
   .get("/:type", ...getIntegrationByType)
   .get("/:type/credentials", ...getIntegrationCredentials)
-  .post("/", ownerMiddleware, ...saveIntegrationHandler)
-  .put("/:type", ownerMiddleware, ...updateIntegration)
+  .post("/", adminMiddleware, ...saveIntegrationHandler)
+  .put("/:type", adminMiddleware, ...updateIntegration)
   .post("/toggle", adminMiddleware, ...toggleIntegrationHandler)
-  .delete("/", ownerMiddleware, ...deleteIntegrationHandler);
+  .delete("/", adminMiddleware, ...deleteIntegrationHandler);

@@ -2,18 +2,15 @@
 
 import {
   ApartmentOutlined,
-  BellOutlined,
   ContactsOutlined,
   FileTextOutlined,
   LeftOutlined,
   MenuOutlined,
   ProjectOutlined,
-  QuestionCircleOutlined,
   RightOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons";
 import {
-  Badge,
   Breadcrumb,
   Button,
   Col,
@@ -30,6 +27,7 @@ import { OrganizationSwitcher } from "@/app/(private)/_components/organization-s
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
+import { lastProjectKey } from "@/http/ressources/keys";
 import { cn } from "@/lib/class-name";
 import { PresenceModal } from "./presence-modal";
 
@@ -89,12 +87,21 @@ export const PrivateLayout = ({
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setLastProjectId(localStorage.getItem("collabill_last_project_id"));
+      setLastProjectId(
+        localStorage.getItem(
+          lastProjectKey(
+            currentUser?.id ?? "",
+            currentUser?.organizationId ?? "",
+          ),
+        ),
+      );
     }
-  }, []);
+  }, [currentUser?.id, currentUser?.organizationId]);
 
   const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
-  const isOwner = currentUser?.organizationRole === "OWNER";
+  const hasAdminAccess =
+    currentUser?.organizationRole === "OWNER" ||
+    currentUser?.organizationRole === "ADMIN";
 
   const menuItems = [
     {
@@ -115,9 +122,9 @@ export const PrivateLayout = ({
     {
       key: "team-management",
       icon: <UsergroupAddOutlined />,
-      label: isOwner ? "Team Management" : "Team members",
+      label: hasAdminAccess ? "Team Management" : "Team members",
     },
-    ...(isOwner
+    ...(hasAdminAccess
       ? [
           {
             key: "type-organization",
@@ -134,6 +141,7 @@ export const PrivateLayout = ({
         open={showPresenceModal}
         organizationId={organization?.id}
         onSuccess={() => setShowPresenceModal(false)}
+        userName={currentUser?.name}
       />
       <Sider
         className="desktop-sider"
@@ -235,10 +243,6 @@ export const PrivateLayout = ({
             </Col>
             <Col className="header-right">
               <Space size={16}>
-                <QuestionCircleOutlined className="header-icon" />
-                <Badge dot>
-                  <BellOutlined className="header-icon" />
-                </Badge>
                 <UserDropdownMenus />
               </Space>
             </Col>
