@@ -161,6 +161,7 @@ Local repo skills currently present under `.ai/skills/`:
 - `biome`
 - `brevo`
 - `drizzle-orm`
+- `env-vars`
 - `hono-routing`
 - `next-best-practices`
 - `react-hook-form`
