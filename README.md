@@ -54,6 +54,22 @@ App URL: `http://localhost:3000`
 **Development Seeds (optional):**
 - `SEED_OWNER_EMAIL`, `SEED_COLLABORATOR_EMAIL`, `SEED_PASSWORD`: Optional seed overrides for `pnpm db:seed` and `pnpm db:seed:dev`.
 
+### Adding a new env var
+
+When adding or changing an environment variable, update all relevant wiring in the same change:
+
+1. Decide whether it is a public build-time var (`NEXT_PUBLIC_*`) or a runtime server var.
+2. Update validation in `packages/env/shared.ts` plus the matching source mapping in `packages/env/index.ts` or `packages/env/server.ts`.
+3. Add it to `.env.example`.
+4. If production uses it at runtime, add it to `docker-compose.prod.yml`.
+5. If production deploy generates it, add it to the env payload in `.github/workflows/deploy.yml`.
+6. If CI validation jobs need it, add a safe value to the `validate` job env block in `.github/workflows/deploy.yml`.
+7. If it is a public build-time var, add it to the Docker build args in `.github/workflows/deploy.yml`.
+8. Only update `Dockerfile` when the build itself truly needs a new build arg or env.
+9. Update this README if the variable changes setup or deployment expectations.
+
+Common misses are `.env.example`, the `validate` job env block, and public vars that were added to runtime config but not to Docker build args.
+
 Use `pnpm env:set -- <KEY> <VALUE>` to add a new variable to `.env.dev` or update an existing one via `dotenvx` through `scripts/env-set.sh`.
 
 Examples:

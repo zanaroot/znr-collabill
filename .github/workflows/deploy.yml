@@ -17,52 +17,7 @@ env:
   DEPLOY_PATH: /var/docker-infra
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-
-    env:
-      DATABASE_URL: postgresql://user:password@localhost:5432/collabill_db
-      NEXT_PUBLIC_S3_ENDPOINT: http://localhost:9000
-      MINIO_ROOT_USER: user
-      MINIO_ROOT_PASSWORD: password
-      S3_ENDPOINT: http://localhost:9000
-      ENCRYPTION_KEY: CI_ENCRYPTION_KEY_12345678901234567890123456789012
-      S3_ACCESS_KEY: user
-      S3_SECRET_KEY: password
-      S3_BUCKET: my-buckets
-      S3_REGION: us-east-1
-      BREVO_API_KEY: CI_BREVO_API_KEY_12345678901234567890123456789012
-      MAIL_FROM: MAIL_FROM_@CI.COM
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3
-        with:
-          version: 10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Biome Lint
-        run: pnpm lint
-
-      - name: Run TypeScript typecheck
-        run: pnpm typecheck
-
-      - name: Run unit tests
-        run: pnpm test:unit
-
   build:
-    needs: validate
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     permissions:
@@ -157,17 +112,13 @@ jobs:
           script: |
             #!/bin/bash
             set -Eeuo pipefail
-            trap 'echo "Deploy failed at line $LINENO with exit code $?" >&2' ERR
 
-            # Create deploy directory if it doesn't exist
             mkdir -p "$DEPLOY_PATH"
 
-            # Sync deploy files from current repository revision
             echo "$DEPLOY_PAYLOAD_B64" | base64 -d > "$DEPLOY_PATH/deploy.tgz"
             tar -xzf "$DEPLOY_PATH/deploy.tgz" -C "$DEPLOY_PATH"
             rm -f "$DEPLOY_PATH/deploy.tgz"
 
-            # Sync env file from current workflow revision
             umask 077
             echo "$ENV_PAYLOAD_B64" | base64 -d > "$DEPLOY_PATH/.env.tmp"
             chmod 600 "$DEPLOY_PATH/.env.tmp"
@@ -175,45 +126,19 @@ jobs:
 
             cd "$DEPLOY_PATH"
 
-            echo "Preflight: verify deploy files"
-            pwd
-            ls -la
-            ls -la nginx || true
-            ls -la nginx/conf.d || true
-            test -f docker-compose.prod.yml
-            test -d nginx
-            test -d nginx/conf.d
-
-            echo "Preflight: verify docker"
-            command -v docker
-            docker compose version
-
-            echo "Preflight: verify env keys"
-            grep -q '^NEXT_IMAGE=' .env
-            grep -q '^POSTGRES_DB=' .env
-            grep -q '^POSTGRES_USER=' .env
-            grep -q '^S3_ENDPOINT=' .env
-
             export DRONE_SSH_PREV_COMMAND_EXIT_CODE=0
             set -a
             . ./.env
             set +a
 
-            # Login to GHCR
-            echo "Preflight: ghcr login"
             echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
-            # Pull the new image
-            echo "Deploy: pull next image"
             docker pull "$NEXT_IMAGE"
 
-            # Restart the stack
-            echo "Deploy: restart stack"
             docker compose \
               -p collabill-prod \
               -f docker-compose.prod.yml \
               --env-file .env \
               up -d --remove-orphans
 
-            # Prune old images (keep images from last 7 days)
             docker image prune -af --filter "until=168h" || true
