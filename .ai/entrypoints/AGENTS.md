@@ -1,6 +1,18 @@
 # AGENTS.md - Collabill Development Guide
 
-This file provides essential information for AI agents operating in this repository.
+This file is the root entrypoint for AI agents in this repository. Start here, then read [README.md](README.md) for user-facing setup and deployment details.
+
+## Repository Overview
+
+Collabill is a `Next.js 16` App Router application for collaboration and billing workflows. The current stack in `package.json` centers on:
+
+- `next@16`, `react@19`, `typescript@5`
+- `antd@6` for UI
+- `hono@4` mounted under `/api`
+- `drizzle-orm` with PostgreSQL
+- `zod@4` for validation
+- `@tanstack/react-query` for server state
+- `vitest` + Testing Library for unit tests
 
 ## Quick Start
 
@@ -16,183 +28,174 @@ pnpm dev
 ### Development
 
 ```bash
-pnpm install           # Install dependencies
-cp .env.example .env.dev # Initialize local env file
-docker compose up -d   # Start PostgreSQL database
-pnpm dev               # Start Next.js dev server (http://localhost:3000)
+pnpm install
+cp .env.example .env.dev
+docker compose up -d
+pnpm dev
+pnpm dev:env
+pnpm env:set -- <KEY> <VALUE>
 ```
 
 ### Build and Serve
 
 ```bash
-pnpm build             # Production build
-pnpm start             # Start production server
+pnpm build
+pnpm build:prod
+pnpm start
 ```
 
 ### Code Quality
 
 ```bash
-pnpm lint              # Biome check (linting + formatting)
-pnpm lint:fix          # Biome auto-fix (formatting + lint)
-pnpm format            # Biome format only
-pnpm format:fix       # Biome format write
-pnpm typecheck         # TypeScript type check (tsc --noEmit)
-pnpm env:set -- <KEY> <VALUE> # Set or update an env var in .env.dev via scripts/env-set.sh
+pnpm lint
+pnpm lint:fix
+pnpm format
+pnpm format:fix
+pnpm typecheck
 ```
 
 ### Database
 
 ```bash
-pnpm db:generate       # Generate Drizzle migrations (drizzle-kit generate)
-pnpm db:push           # Push schema to DB (drizzle-kit push)
-pnpm db:migrate        # Run migrations (drizzle-kit migrate)
-pnpm db:pull           # Pull schema from DB
-pnpm db:seed           # Seed production database
-pnpm db:seed:dev       # Seed development database
+pnpm db:generate
+pnpm db:push
+pnpm db:migrate
+pnpm db:pull
+pnpm db:seed
+pnpm db:seed:dev
 ```
 
 ### Testing
 
-**No test framework is currently configured.** There are no test files in this project.
-- If adding tests, prefer Vitest for unit tests
-- Run tests with: `pnpm vitest` (once configured)
-- Run a single test: `pnpm vitest run <file>` or `pnpm vitest <file>`
+Vitest is configured in `vitest.config.ts`. Current unit tests live in `app/`, `http/models/`, and `lib/`.
 
----
+```bash
+pnpm test:unit
+pnpm test:unit:ui
+pnpm test:unit:interactive
+```
+
+## Architecture Map
+
+- `app/`: Next.js App Router UI.
+  - `app/(auth)`: public auth and onboarding pages.
+  - `app/(private)`: protected product pages such as invoices, projects, task board, team management, and presence/settings UI.
+  - `app/api/[[...route]]/route.ts`: bridges Hono to Next via `handle(app)`.
+- `middleware.ts`: redirects unauthenticated requests for protected routes based on `session_token` cookie presence.
+- `http/`: API and server orchestration.
+  - `http/routes/index.ts`: mounts public auth/password/invitation routes, then authenticated invoice, task, project, organization, integration, presence, and user routes; also exposes `/api/openapi.json` and `/api/docs`.
+  - `http/models/`: Zod schemas and shared types.
+  - `http/controllers/`: Hono handlers.
+  - `http/actions/`: server actions and server-only queries.
+  - `http/repositories/`: Drizzle data access.
+  - `http/middleware/`: Hono middleware.
+- `db/`: Drizzle schema, migrations, and seeds.
+  - `db/index.ts`: global `postgres` + Drizzle singleton.
+  - `db/schema/`: entity files plus `enums.ts` and barrel exports.
+- `packages/`: repo-approved wrappers and providers.
+  - `packages/antd`, `packages/react-query`, `packages/hono`
+  - `packages/env`, `packages/email`, `packages/minio`, `packages/slack`
+- `lib/`: shared utilities and pure helpers.
+- `.github/workflows/`: CI/CD.
+  - `validation.yml`: runs `pnpm lint`, `pnpm typecheck`, and `pnpm test:unit`.
+  - `build-images.yml`: builds GHCR image after successful validation on `main`.
+  - `deploy.yml`: manual deploy to the Docker host.
 
 ## Code Style Guidelines
 
 ### Tooling
 
-- **Biome** (`biome.json`) is the primary linter and formatter
-- **TypeScript** with strict mode enabled
-- **Zod** for runtime validation at system boundaries
-- **pnpm** as package manager
+- Biome is the primary formatter and linter.
+- TypeScript strict mode is enabled.
+- Use Zod at system boundaries.
+- Prefer repo wrappers in `packages/*` before introducing new integration helpers.
 
 ### TypeScript Conventions
 
-- Use arrow functions by default. Named `function` declarations only for hoisted utilities
-- Strict mode: never use `any`; prefer `unknown` + narrowing
-- Use `const` over `let`. No `var`
-- Target ~250 LOC per file
-
-### Import Organization
-
-```typescript
-// Order: external → internal (grouped)
-// 1. Next.js/React
-// 2. Third-party libs (antd, react-query, hono, drizzle-orm)
-// 3. Internal packages (packages/*)
-// 4. Internal modules (http/*, app/*, lib/*)
-// 5. Types and schemas
-// 6. Relative imports
-```
+- Use arrow functions by default.
+- Never use `any`.
+- Prefer `unknown` plus narrowing when compile-time type is genuinely unavailable.
+- Prefer `const` over `let`.
+- Target roughly 250 LOC per file unless a generated or schema file clearly warrants more.
 
 ### Naming Conventions
 
-| Directory | Pattern | Example |
-|-----------|---------|---------|
-| `app/` route groups | `(auth)/`, `(private)/` | `(auth)/login/page.tsx` |
-| `app/` colocated | `_components/`, `_hooks/` | `app/(private)/_hooks/use-auth.ts` |
-| `app/` files | `kebab-case.tsx` | `task-board.tsx` |
-| `http/models/` | `<entity>.model.ts` | `auth.model.ts` |
-| `http/controllers/` | `<entity>.controller.ts` | `task.controller.ts` |
-| `http/actions/` | `<entity>.action.ts` | `task.action.ts` |
-| `http/middleware/` | `<entity>.middleware.ts` | `auth.middleware.ts` |
-| `http/repositories/` | `<entity>.repository.ts` | `task.repository.ts` |
-| `http/routes/` | `<entity>.route.ts` | `task.route.ts` |
-| `db/schema/` | `<entity>.ts` | `user.ts` |
-| `lib/` | `<domain>.ts` | `date.ts`, `currency.ts` |
+- `app/`: route groups like `(auth)` and `(private)`; colocated folders such as `_components`, `_hooks`, `_utils`; file names in `kebab-case`.
+- `http/models/`: `<entity>.model.ts`
+- `http/controllers/`: `<entity>.controller.ts`
+- `http/actions/`: `<entity>.action.ts`
+- `http/middleware/`: `<entity>.middleware.ts`
+- `http/repositories/`: `<entity>.repository.ts`
+- `http/routes/`: `<entity>.route.ts`
+- `db/schema/`: one entity-focused file per domain plus `enums.ts`
+- `lib/`: `<domain>.ts`
 
-### React/Next.js Patterns
+### React and Next.js Patterns
 
-- **Server Components by default** in `app/`
-- `"use client"` only when required: hooks, browser APIs, event handlers, antd interactive components
-- `layout.tsx` and `page.tsx` must be Server Components
-- Use Ant Design (`antd`) for UI components
-- Use React Hook Form + Zod for form handling
-- Minimize `useEffect` - prefer Server-side fetch or React Query
+- Server Components by default.
+- `layout.tsx` and `page.tsx` stay server-side.
+- Use `"use client"` only for hooks, browser APIs, event handlers, or interactive antd usage.
+- Use Ant Design for UI primitives.
+- Use React Hook Form + Zod for forms.
+- Minimize `useEffect`; prefer server fetches, React Query, derived state, or event handlers.
+- Keep colocated code as near as possible to its consuming route.
 
-### Error Handling
+### Data and Error Handling
 
-- Use Zod for input validation at system boundaries
-- Actions return `ActionResponse<T>` type from models
-- Repository functions throw on DB errors (let them propagate)
-- Controllers catch errors and return appropriate HTTP responses
+- Models define schemas and shared types.
+- Repositories handle database access only.
+- Controllers and actions validate at boundaries and orchestrate behavior.
+- Let repository/database errors propagate unless a boundary must translate them.
 
-### Styling
+## Package Research Guidance
 
-- Antd tokens first for component customization
-- Tailwind for layout utilities, spacing, responsive tweaks
-- `globals.css` for heavy overrides that can't use tokens
-
-### Architecture Layers
-
-| Layer | Path | Role |
-|-------|------|------|
-| **Models** | `http/models/` | Zod schemas + inferred types |
-| **Controllers** | `http/controllers/` | Hono endpoint handlers |
-| **Actions** | `http/actions/` | Server Actions + server queries |
-| **Middleware** | `http/middleware/` | Hono middleware |
-| **Repositories** | `http/repositories/` | Drizzle data access only |
-| **Lib** | `lib/` | Pure utilities (client + server) |
-| **Packages** | `packages/` | Third-party wrappers |
-
-### Proximity Principle
-
-Keep colocated folders (`_components/`, `_hooks/`, `_utils/`) as close as possible to files that use them:
-- If used by a single route, put in that route's folder
-- If shared across sibling routes, move to nearest common parent
-- Don't elevate to top-level unless truly shared app-wide
-
----
+- Before using an unfamiliar package or an advanced API, check Context7 or the package's official docs first.
+- Prefer patterns already established in this repo, especially under `.ai/skills/`, `packages/*`, and nearby feature code.
+- Record version-sensitive assumptions when they matter. Current notable versions from `package.json`: Next `16.1.5`, React `19.2.3`, antd `6.2.2`, Hono `4.11.9`, Drizzle `0.45.1`, Zod `4.3.6`, Vitest `4.1.2`.
 
 ## Available Skills
 
-This project has specialized skills for common tasks. Use the `skill` tool to load them:
+Local repo skills currently present under `.ai/skills/`:
 
-| Skill | Use When |
-|-------|----------|
-| `ant-design` | Component/layout decisions, theming, Ant Design Pro patterns |
-| `biome` | Biome linter/formatter configuration and rules |
-| `brevo` | Managing Brevo contacts, organizations, deals, pipelines |
-| `drizzle-orm` | Database queries, schema design, migrations |
-| `hono-routing` | Building APIs with Hono, validation, middleware |
-| `next-best-practices` | Next.js patterns, RSC, metadata, routing |
-| `react-hook-form` | Form validation, controlled components |
-| `react-query` | Server state, data fetching, caching |
-| `vercel-react-best-practices` | React performance optimization |
-| `zod` | Schema validation, type inference |
-| `minio` | Minio S3 storage operations |
-
-Load a skill: `/home/tophy/Documents/collabill <task>` then use `skill` tool with the skill name.
-
----
+- `ant-design`
+- `biome`
+- `brevo`
+- `drizzle-orm`
+- `hono-routing`
+- `next-best-practices`
+- `react-hook-form`
+- `react-query`
+- `vercel-react-best-practices`
+- `zod`
 
 ## Mandatory Reads Before Edits
 
-1. `.ai/context/architecture.md` - Module boundaries and layer responsibilities
-2. `.ai/rules/code-style.md` - Naming conventions and file structure
-3. `.ai/rules/react.md` - Component patterns and hook discipline
-4. `.ai/context/commands.md` - Verified run/build/lint commands
-5. `.ai/constitution.md` - Core principles and anti-vibecoding policy
+1. `.ai/context/architecture.md`
+2. `.ai/rules/code-style.md`
+3. `.ai/rules/react.md`
+4. `.ai/context/commands.md`
+5. `.ai/constitution.md`
 
----
+Useful supporting context when the task touches process or safety:
+
+- `.ai/README.md`
+- `.ai/rules/core.md`
+- `.ai/rules/safety.md`
+- `.ai/context/decisions.md`
 
 ## Constraints
 
-- Keep edits minimal and aligned to existing patterns
-- Do not create new top-level directories without justification
-- Verify with `pnpm lint` after changes
-- Run `pnpm build` before committing significant changes
-- Never commit secrets or env files
-
----
+- Keep edits minimal and aligned to existing patterns.
+- Do not create new top-level directories without justification.
+- Verify with `pnpm lint` after changes.
+- Run `pnpm build` before committing significant changes.
+- Never commit secrets or env files.
+- Keep `.codex` excluded in `.git/info/exclude`.
 
 ## Database Schema Rules
 
-- Table definitions and relations colocated in one file per entity
-- Enums in `db/schema/enums.ts` (not in entity files) to prevent circular imports
-- Entity files import enums from `./enums`
-- Never hand-edit migration files in `db/migration/`
-- Use `db:generate` → `db:push` or `db:migrate` workflow
+- Keep table definitions and relations colocated in one entity-focused schema file.
+- Put shared enums in `db/schema/enums.ts`.
+- Import enums from `./enums`.
+- Do not hand-edit `db/migration/` files.
+- Use the `db:generate` -> `db:push` or `db:migrate` workflow.
