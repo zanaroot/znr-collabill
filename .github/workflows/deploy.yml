@@ -1,19 +1,15 @@
 name: Build and Deploy
 
-# on:
-#   workflow_dispatch:
-#     inputs:
-#       environment:
-#         description: "Environment to deploy"
-#         required: true
-#         default: "production"
-#         type: choice
-#         options:
-#           - production
-# -
 on:
-  push:
-    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - production
 
 env:
   REGISTRY: ghcr.io
@@ -111,17 +107,27 @@ jobs:
       packages: read
 
     steps:
+      - name: Prepare docker compose payload
+        run: |
+          {
+            echo "DOCKER_COMPOSE_PROD_B64<<EOF"
+            base64 -w 0 docker-compose.prod.yml
+            echo
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
       - name: Deploy to VPS
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         env:
           DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          DOCKER_COMPOSE_PROD_B64: ${{ env.DOCKER_COMPOSE_PROD_B64 }}
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          envs: DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN
+          envs: DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN,DOCKER_COMPOSE_PROD_B64
           script_stop: true
           script: |
             #!/bin/bash
@@ -130,6 +136,9 @@ jobs:
 
             # Create deploy directory if it doesn't exist
             mkdir -p "$DEPLOY_PATH"
+
+            # Sync docker compose file from current repository revision
+            echo "$DOCKER_COMPOSE_PROD_B64" | base64 -d > "$DEPLOY_PATH/docker-compose.prod.yml"
 
             # Generate .env file with restrictive permissions
             umask 077
