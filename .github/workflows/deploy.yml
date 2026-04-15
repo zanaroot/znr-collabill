@@ -194,17 +194,18 @@ jobs:
             grep -q '^POSTGRES_USER=' .env
             grep -q '^S3_ENDPOINT=' .env
 
+            export DRONE_SSH_PREV_COMMAND_EXIT_CODE=0
+            set -a
+            . ./.env
+            set +a
+
             # Login to GHCR
             echo "Preflight: ghcr login"
             echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
             # Pull the new image
             echo "Deploy: pull next image"
-            docker compose \
-              -p collabill-prod \
-              -f docker-compose.prod.yml \
-              --env-file .env \
-              pull next
+            docker pull "$NEXT_IMAGE"
 
             # Restart the stack
             echo "Deploy: restart stack"
