@@ -115,6 +115,31 @@ jobs:
           DEPLOY_PAYLOAD_B64="$(tar -czf - docker-compose.prod.yml nginx | base64 -w 0)"
           echo "DEPLOY_PAYLOAD_B64=$DEPLOY_PAYLOAD_B64" >> "$GITHUB_ENV"
 
+      - name: Prepare env payload
+        run: |
+          cat > deploy.env <<EOF
+          NEXT_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.sha }}
+          NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
+          NEXT_PUBLIC_S3_ENDPOINT=${{ vars.NEXT_PUBLIC_S3_ENDPOINT }}
+          POSTGRES_DB=${{ vars.POSTGRES_DB }}
+          POSTGRES_USER=${{ vars.POSTGRES_USER }}
+          MINIO_ROOT_USER=${{ vars.MINIO_ROOT_USER }}
+          S3_ACCESS_KEY=${{ vars.S3_ACCESS_KEY }}
+          S3_BUCKET=${{ vars.S3_BUCKET }}
+          S3_REGION=${{ vars.S3_REGION }}
+          S3_ENDPOINT=${{ vars.S3_ENDPOINT }}
+          MAIL_FROM=${{ vars.MAIL_FROM }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
+          S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}
+          ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
+          BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}
+          EOF
+          ENV_PAYLOAD_B64="$(base64 -w 0 deploy.env)"
+          rm -f deploy.env
+          echo "ENV_PAYLOAD_B64=$ENV_PAYLOAD_B64" >> "$GITHUB_ENV"
+
       - name: Deploy to VPS
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         env:
@@ -122,11 +147,12 @@ jobs:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
           DEPLOY_PAYLOAD_B64: ${{ env.DEPLOY_PAYLOAD_B64 }}
+          ENV_PAYLOAD_B64: ${{ env.ENV_PAYLOAD_B64 }}
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          envs: DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN,DEPLOY_PAYLOAD_B64
+          envs: DEPLOY_PATH,GHCR_USERNAME,GHCR_READ_TOKEN,DEPLOY_PAYLOAD_B64,ENV_PAYLOAD_B64
           script_stop: true
           script: |
             #!/bin/bash
@@ -141,35 +167,9 @@ jobs:
             tar -xzf "$DEPLOY_PATH/deploy.tgz" -C "$DEPLOY_PATH"
             rm -f "$DEPLOY_PATH/deploy.tgz"
 
-            # Generate .env file with restrictive permissions
+            # Sync env file from current workflow revision
             umask 077
-            cat > "$DEPLOY_PATH/.env.tmp" << 'ENVEOF'
-            NEXT_IMAGE=${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.sha }}
-
-            # Build-time env (used for reference)
-            NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
-            NEXT_PUBLIC_S3_ENDPOINT=${{ vars.NEXT_PUBLIC_S3_ENDPOINT }}
-
-            # Runtime env - Non-secrets
-            POSTGRES_DB=${{ vars.POSTGRES_DB }}
-            POSTGRES_USER=${{ vars.POSTGRES_USER }}
-            MINIO_ROOT_USER=${{ vars.MINIO_ROOT_USER }}
-            S3_ACCESS_KEY=${{ vars.S3_ACCESS_KEY }}
-            S3_BUCKET=${{ vars.S3_BUCKET }}
-            S3_REGION=${{ vars.S3_REGION }}
-            S3_ENDPOINT=${{ vars.S3_ENDPOINT }}
-            MAIL_FROM=${{ vars.MAIL_FROM }}
-
-            # Runtime env - Secrets
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
-            S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}
-            ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
-            BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}
-            ENVEOF
-
-            # Atomic move with correct permissions
+            echo "$ENV_PAYLOAD_B64" | base64 -d > "$DEPLOY_PATH/.env.tmp"
             chmod 600 "$DEPLOY_PATH/.env.tmp"
             mv "$DEPLOY_PATH/.env.tmp" "$DEPLOY_PATH/.env"
 
