@@ -8,6 +8,10 @@ import {
   updateInvoiceStatusSchema,
 } from "@/http/models/invoice.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
+import {
+  notifyInvoicePaidEmail,
+  notifyInvoiceValidatedEmail,
+} from "@/lib/notifications";
 
 const factory = createFactory<AuthEnv>();
 
@@ -101,8 +105,16 @@ export const updateInvoiceStatus = factory.createHandlers(
 
     if (status === "PAID") {
       updateParams.paidAt = new Date();
+
+      notifyInvoicePaidEmail(id).catch((err) => {
+        console.error("[Notification] Failed to send email:", err);
+      });
     } else if (status === "VALIDATED") {
       updateParams.validatedAt = new Date();
+
+      notifyInvoiceValidatedEmail(id).catch((err) => {
+        console.error("[Notification] Failed to send email:", err);
+      });
     } else if (status === "DRAFT") {
       await invoiceRepository.deleteInvoiceLines(id);
       await invoiceRepository.deleteInvoice(id);

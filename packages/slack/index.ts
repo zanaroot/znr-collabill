@@ -177,11 +177,6 @@ export const buildTaskReviewMessage = (params: {
   return { blocks, text: fallbackText };
 };
 
-export const getTaskUrl = (taskId: string, projectId: string): string => {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  return `${baseUrl}/task-board?projectId=${projectId}&taskId=${taskId}`;
-};
-
 export const encryptSlackToken = (token: string): string => {
   return encrypt(token);
 };

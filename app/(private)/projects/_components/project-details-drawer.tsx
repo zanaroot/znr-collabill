@@ -2,31 +2,27 @@
 
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import {
+  App,
   Button,
   Card,
   Divider,
   Drawer,
   Empty,
   Flex,
-  Form,
-  Input,
   List,
-  Modal,
-  message,
   Select,
   Space,
   Spin,
-  Switch,
   Typography,
 } from "antd";
 import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { ProjectSlackSettingsForm } from "@/app/(private)/projects/_components/project-slack-settings-form";
 import {
   useCurrentUser,
   useUsers,
 } from "@/app/(private)/team-management/_hooks/use-team";
 import type { Project } from "@/http/models/project.model";
-import { client } from "@/packages/hono";
 import {
   useAddProjectMember,
   useProjectMembers,
@@ -46,6 +42,7 @@ export function ProjectDetailsDrawer({
   open,
   onClose,
 }: ProjectDetailsDrawerProps) {
+  const { message, modal } = App.useApp();
   const [isGrantingAccess, setIsGrantingAccess] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | undefined>();
 
@@ -72,8 +69,6 @@ export function ProjectDetailsDrawer({
     return true;
   };
 
-  const { confirm } = Modal;
-
   const handleGrantAccess = async () => {
     if (!project || !selectedUserId) return;
 
@@ -93,7 +88,7 @@ export function ProjectDetailsDrawer({
   const handleRemoveAccess = async (userId: string, userName: string) => {
     if (!project) return;
 
-    confirm({
+    modal.confirm({
       title: "Remove Access",
       content: `Are you sure you want to remove ${userName} from this project?`,
       okText: "Remove",
@@ -178,10 +173,7 @@ export function ProjectDetailsDrawer({
             </Flex>
 
             {isGrantingAccess && (
-              <Card
-                size="small"
-                style={{ marginBottom: 16, backgroundColor: "#fafafa" }}
-              >
+              <Card size="small">
                 <Space orientation="vertical" style={{ width: "100%" }}>
                   <Select
                     showSearch={{
@@ -273,72 +265,5 @@ export function ProjectDetailsDrawer({
         <Empty />
       )}
     </Drawer>
-  );
-}
-
-type SlackFormValues = {
-  slackChannel: string;
-  slackNotificationsEnabled: boolean;
-};
-
-function ProjectSlackSettingsForm({ project }: { project: Project }) {
-  const [form] = Form.useForm<SlackFormValues>();
-  const [loading, setLoading] = useState(false);
-
-  const handleFinish = async (values: SlackFormValues) => {
-    if (!project) return;
-    setLoading(true);
-    try {
-      const res = await client.api.projects[":id"]["slack-settings"].$put({
-        param: { id: project.id },
-        json: {
-          slackChannel: values.slackChannel || null,
-          slackNotificationsEnabled: values.slackNotificationsEnabled,
-        },
-      });
-
-      if (res.ok) {
-        message.success("Slack settings saved");
-      } else {
-        const body = (await res.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        message.error(body?.error || "Failed to save");
-      }
-    } catch {
-      message.error("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Form
-      form={form}
-      layout="vertical"
-      initialValues={{
-        slackChannel: project.slackChannel || "",
-        slackNotificationsEnabled: project.slackNotificationsEnabled ?? true,
-      }}
-      onFinish={handleFinish}
-    >
-      <Form.Item name="slackChannel" label="Channel ID">
-        <Input placeholder="#general or C01234ABC" style={{ maxWidth: 300 }} />
-      </Form.Item>
-
-      <Form.Item
-        name="slackNotificationsEnabled"
-        label="Enable notifications"
-        valuePropName="checked"
-      >
-        <Switch />
-      </Form.Item>
-
-      <Form.Item>
-        <Button type="primary" htmlType="submit" loading={loading}>
-          Save
-        </Button>
-      </Form.Item>
-    </Form>
   );
 }

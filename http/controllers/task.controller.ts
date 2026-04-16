@@ -11,7 +11,11 @@ import type { UpdateTaskSystemInput } from "@/http/models/task.model";
 import { createTaskSchema, updateTaskSchema } from "@/http/models/task.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
-import { notifyTaskInReview } from "@/lib/task-notifications";
+import {
+  notifyTaskAssignedSlack,
+  notifyTaskInReviewSlack,
+  notifyTaskValidatedSlack,
+} from "@/lib/notifications";
 
 const factory = createFactory<AuthEnv>();
 
@@ -193,19 +197,32 @@ export const updateTask = factory.createHandlers(
       if (payload.status === "VALIDATED") {
         updates.validatedAt = new Date();
         updates.validatedBy = user.id;
+
+        notifyTaskValidatedSlack(id).catch((err) => {
+          console.error(
+            "[Notification] Failed to send Slack notification:",
+            err,
+          );
+        });
       } else if (task.validatedAt) {
         updates.validatedAt = null;
         updates.validatedBy = null;
       }
 
       if (payload.status === "IN_REVIEW") {
-        notifyTaskInReview(id).catch((err) => {
+        notifyTaskInReviewSlack(id).catch((err) => {
           console.error(
-            "[TaskNotification] Failed to send Slack notification:",
+            "[Notification] Failed to send Slack notification:",
             err,
           );
         });
       }
+    }
+
+    if (payload.assignedTo && payload.assignedTo !== task.assignedTo) {
+      notifyTaskAssignedSlack(id).catch((err) => {
+        console.error("[Notification] Failed to send Slack notification:", err);
+      });
     }
 
     const updated = await taskRepository.updateTask(id, updates);
