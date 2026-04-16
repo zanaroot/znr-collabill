@@ -53,30 +53,72 @@ const createMockUser = (
 
 describe("InviteUserModal permissions", () => {
   it("renders invite button for OWNER role", () => {
-    vi.mocked(useCurrentUser).mockReturnValue({
+    (useCurrentUser as ReturnType<typeof vi.fn>).mockReturnValue({
       data: createMockUser("OWNER"),
       isLoading: false,
-    });
+      isSuccess: true,
+      isError: false,
+      error: null,
+      isPending: false,
+      isLoadingError: false,
+      isRefetchError: false,
+      isRefetching: false,
+      isFetching: false,
+      failureCount: 0,
+      failureReason: null,
+      fetchStatus: "idle",
+      status: "success",
+      refetch: vi.fn(),
+      remove: vi.fn(),
+    } as never);
 
     render(<InviteUserModal />, { wrapper: createWrapper() });
     expect(screen.getAllByText("Invite User").length).toBeGreaterThan(0);
   });
 
   it("renders invite button for ADMIN role", () => {
-    vi.mocked(useCurrentUser).mockReturnValue({
+    (useCurrentUser as ReturnType<typeof vi.fn>).mockReturnValue({
       data: createMockUser("ADMIN"),
       isLoading: false,
-    });
+      isSuccess: true,
+      isError: false,
+      error: null,
+      isPending: false,
+      isLoadingError: false,
+      isRefetchError: false,
+      isRefetching: false,
+      isFetching: false,
+      failureCount: 0,
+      failureReason: null,
+      fetchStatus: "idle",
+      status: "success",
+      refetch: vi.fn(),
+      remove: vi.fn(),
+    } as never);
 
     render(<InviteUserModal />, { wrapper: createWrapper() });
     expect(screen.getAllByText("Invite User").length).toBeGreaterThan(0);
   });
 
   it("does not render for COLLABORATOR role", () => {
-    vi.mocked(useCurrentUser).mockReturnValue({
+    (useCurrentUser as ReturnType<typeof vi.fn>).mockReturnValue({
       data: createMockUser("COLLABORATOR"),
       isLoading: false,
-    });
+      isSuccess: true,
+      isError: false,
+      error: null,
+      isPending: false,
+      isLoadingError: false,
+      isRefetchError: false,
+      isRefetching: false,
+      isFetching: false,
+      failureCount: 0,
+      failureReason: null,
+      fetchStatus: "idle",
+      status: "success",
+      refetch: vi.fn(),
+      remove: vi.fn(),
+    } as never);
 
     const { container } = render(<InviteUserModal />, {
       wrapper: createWrapper(),
