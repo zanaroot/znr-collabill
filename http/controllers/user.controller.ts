@@ -147,8 +147,10 @@ export const getInvitations = factory.createHandlers(async (c) => {
     return c.json({ error: "No organization found" }, 404);
   }
 
-  const isOwner = currentUser.organizationRole === "OWNER";
-  if (!isOwner) {
+  const isAdmin =
+    currentUser.organizationRole === "OWNER" ||
+    currentUser.organizationRole === "ADMIN";
+  if (!isAdmin) {
     return c.json({ error: "Forbidden" }, 403);
   }
 
@@ -160,9 +162,11 @@ export const createInvitation = factory.createHandlers(
   zValidator("json", createInvitationSchema),
   async (c) => {
     const currentUser = c.get("user");
-    const isOwner = currentUser.organizationRole === "OWNER";
+    const isAdmin =
+      currentUser.organizationRole === "OWNER" ||
+      currentUser.organizationRole === "ADMIN";
 
-    if (!isOwner) {
+    if (!isAdmin) {
       return c.json({ error: "Forbidden" }, 403);
     }
 
@@ -179,9 +183,11 @@ export const createInvitation = factory.createHandlers(
 
 export const revokeInvitation = factory.createHandlers(async (c) => {
   const currentUser = c.get("user");
-  const isOwner = currentUser.organizationRole === "OWNER";
+  const isAdmin =
+    currentUser.organizationRole === "OWNER" ||
+    currentUser.organizationRole === "ADMIN";
 
-  if (!isOwner) {
+  if (!isAdmin) {
     return c.json({ error: "Forbidden" }, 403);
   }
 
@@ -193,9 +199,11 @@ export const revokeInvitation = factory.createHandlers(async (c) => {
 
 export const resendInvitation = factory.createHandlers(async (c) => {
   const currentUser = c.get("user");
-  const isOwner = currentUser.organizationRole === "OWNER";
+  const isAdmin =
+    currentUser.organizationRole === "OWNER" ||
+    currentUser.organizationRole === "ADMIN";
 
-  if (!isOwner) {
+  if (!isAdmin) {
     return c.json({ error: "Forbidden" }, 403);
   }
 
@@ -213,9 +221,11 @@ export const resendInvitation = factory.createHandlers(async (c) => {
 
 export const removeUser = factory.createHandlers(async (c) => {
   const currentUser = c.get("user");
-  const isOwner = currentUser.organizationRole === "OWNER";
+  const isAdmin =
+    currentUser.organizationRole === "OWNER" ||
+    currentUser.organizationRole === "ADMIN";
 
-  if (!isOwner) {
+  if (!isAdmin) {
     return c.json({ error: "Forbidden" }, 403);
   }
 

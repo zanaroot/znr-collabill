@@ -61,6 +61,10 @@ export const MemberList = () => {
   const updateRatesMutation = useUpdateCollaboratorRates();
   const { data: currentUser } = useCurrentUser();
   const isOwner = currentUser?.organizationRole === "OWNER";
+  const isAdmin =
+    currentUser?.organizationRole === "OWNER" ||
+    currentUser?.organizationRole === "ADMIN";
+  const canManageMembers = isOwner || isAdmin;
   const { data: currentRates } = useCollaboratorRates(selectedUser?.id || "");
 
   const handleDelete = (id: string) => {
@@ -304,7 +308,7 @@ export const MemberList = () => {
                   Leave
                 </Button>
               )
-            : isOwner && (
+            : canManageMembers && (
                 <Button
                   danger
                   type="text"

@@ -107,7 +107,8 @@ export const InvitationList = () => {
   if (
     !invitations ||
     invitations.length === 0 ||
-    currentUser?.organizationRole !== "OWNER"
+    (currentUser?.organizationRole !== "ADMIN" &&
+      currentUser?.organizationRole !== "OWNER")
   ) {
     return null;
   }

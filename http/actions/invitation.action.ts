@@ -41,7 +41,10 @@ export const inviteUserAction = async (
       return { error: "Unauthorized", success: false };
     }
 
-    if (currentUser.organizationRole !== "OWNER") {
+    if (
+      currentUser.organizationRole !== "OWNER" &&
+      currentUser.organizationRole !== "ADMIN"
+    ) {
       return { error: "Forbidden", success: false };
     }
 
@@ -265,7 +268,10 @@ export const resendInvitationAction = async (
       return { error: "Unauthorized", success: false };
     }
 
-    if (currentUser.organizationRole !== "OWNER") {
+    if (
+      currentUser.organizationRole !== "OWNER" &&
+      currentUser.organizationRole !== "ADMIN"
+    ) {
       return { error: "Forbidden", success: false };
     }
 
