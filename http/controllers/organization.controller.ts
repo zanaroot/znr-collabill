@@ -41,7 +41,7 @@ export const leaveOrganization = factory.createHandlers(async (c) => {
 export const getOwnedOrganizations = factory.createHandlers(async (c) => {
   const currentUser = c.get("user");
 
-  if (currentUser.organizationRole !== "OWNER") {
+  if (currentUser.organizationRole === "COLLABORATOR") {
     return c.json({ error: "Forbidden" }, 403);
   }
 

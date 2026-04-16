@@ -15,11 +15,11 @@
     "db:pull": "drizzle-kit pull",
     "db:seed": "tsx db/seed.ts",
     "db:seed:dev": "tsx db/seed-dev.ts",
+    "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format",
     "format:fix": "biome format --write .",
-    "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:ui": "vitest --ui",
     "test:unit:interactive": "vitest"

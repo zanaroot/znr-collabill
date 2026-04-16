@@ -50,7 +50,9 @@ export const OrganizationType = () => {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
-  const canView = currentUser?.organizationRole === "OWNER";
+  const canView =
+    currentUser?.organizationRole === "OWNER" ||
+    currentUser?.organizationRole === "ADMIN";
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ["organizations", "all"],
