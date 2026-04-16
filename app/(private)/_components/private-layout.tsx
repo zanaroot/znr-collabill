@@ -10,6 +10,7 @@ import {
   RightOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons";
+import { useQuery } from "@tanstack/react-query";
 import {
   Breadcrumb,
   Button,
@@ -29,6 +30,7 @@ import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-men
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
 import { lastProjectKey } from "@/http/ressources/keys";
+import { client } from "@/packages/hono";
 import { PresenceModal } from "./presence-modal";
 
 const { Header, Sider, Content } = Layout;
@@ -78,8 +80,19 @@ export const PrivateLayout = ({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showPresenceModal, setShowPresenceModal] = useState(isMissingPresence);
+  const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const { data: currentUser } = useCurrentUser();
   const [lastProjectId, setLastProjectId] = useState<string | null>(null);
+
+  const { data: todayPresence } = useQuery({
+    queryKey: ["today-presence"],
+    queryFn: async () => {
+      const res = await client.api.presence.today.$get();
+      return res.json();
+    },
+  });
+
+  const isPresent = !!todayPresence || hasCheckedIn;
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -135,12 +148,26 @@ export const PrivateLayout = ({
       : []),
   ];
 
+  const handlePresenceSuccess = () => {
+    setHasCheckedIn(true);
+    setShowPresenceModal(false);
+  };
+
+  const handlePresenceClose = () => {
+    setShowPresenceModal(false);
+  };
+
+  const handlePresenceClick = () => {
+    setShowPresenceModal(true);
+  };
+
   return (
     <Layout className="responsive-layout">
       <PresenceModal
         open={showPresenceModal}
         organizationId={organization?.id}
-        onSuccess={() => setShowPresenceModal(false)}
+        onSuccess={handlePresenceSuccess}
+        onClose={handlePresenceClose}
         userName={currentUser?.name}
       />
       <Sider
@@ -243,7 +270,10 @@ export const PrivateLayout = ({
             </Col>
             <Col className="header-right">
               <Space size={16}>
-                <UserDropdownMenus />
+                <UserDropdownMenus
+                  isPresent={isPresent}
+                  onPresenceClick={handlePresenceClick}
+                />
               </Space>
             </Col>
           </Row>

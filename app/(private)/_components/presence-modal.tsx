@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Flex, Modal, message, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { getGreeting } from "@/app/_utils/get-greeting";
@@ -14,20 +14,34 @@ interface PresenceModalProps {
   organizationId?: string;
   userName?: string;
   onSuccess: () => void;
+  onClose: () => void;
 }
 
 export const PresenceModal = ({
   open,
   onSuccess,
+  onClose,
   userName,
 }: PresenceModalProps) => {
   const [isVisible, setIsVisible] = useState(false);
 
+  const { data: todayPresence, refetch: refetchPresence } = useQuery({
+    queryKey: ["today-presence"],
+    queryFn: async () => {
+      const res = await client.api.presence.today.$get();
+      return res.json();
+    },
+    enabled: open,
+  });
+
+  const isAlreadyPresent = !!todayPresence;
+
   useEffect(() => {
     if (open) {
       setIsVisible(true);
+      refetchPresence();
     }
-  }, [open]);
+  }, [open, refetchPresence]);
 
   const { mutateAsync: markPresence, isPending } = useMutation({
     mutationFn: async (payload: { status: PresenceStatus }) => {
@@ -52,33 +66,53 @@ export const PresenceModal = ({
   });
 
   const handleCheckIn = async () => {
+    if (isAlreadyPresent || isPending) return;
     await markPresence({ status: "REMOTE" });
+  };
+
+  const handleCancel = () => {
+    setIsVisible(false);
+    onClose();
+  };
+
+  const handleAfterClose = () => {
+    setIsVisible(false);
   };
 
   return (
     <Modal
       title={null}
       open={isVisible}
-      closable={false}
-      maskClosable={false}
+      onCancel={handleCancel}
+      afterClose={handleAfterClose}
       footer={null}
       centered
       width={400}
     >
       <Flex vertical align="center" className="py-6 text-center">
         <Title level={4}>{getGreeting(userName)}</Title>
-        <Text type="secondary" className="mb-6 block">
-          Ready to start your day? <br />
-          Check in to begin tracking your work and activity.
-        </Text>
+        {isAlreadyPresent ? (
+          <Text type="secondary" className="mb-6 block">
+            You are already marked as present for today.
+            <br />
+            Have a productive day!
+          </Text>
+        ) : (
+          <Text type="secondary" className="mb-6 block">
+            Ready to start your day?
+            <br />
+            Check in to begin tracking your work and activity.
+          </Text>
+        )}
         <Button
           type="primary"
           block
           loading={isPending}
+          disabled={isAlreadyPresent}
           onClick={handleCheckIn}
           style={{ height: 48, borderRadius: 8, marginTop: 24 }}
         >
-          Check-in for today
+          {isAlreadyPresent ? "Already Checked In" : "Check-in for today"}
         </Button>
       </Flex>
     </Modal>

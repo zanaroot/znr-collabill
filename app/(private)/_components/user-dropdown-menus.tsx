@@ -13,7 +13,15 @@ import { client } from "@/packages/hono";
 import { ProfileDrawer } from "./profile-drawer";
 import { SettingsModal } from "./settings-modal";
 
-export const UserDropdownMenus = () => {
+interface UserDropdownMenusProps {
+  isPresent?: boolean;
+  onPresenceClick?: () => void;
+}
+
+export const UserDropdownMenus = ({
+  isPresent,
+  onPresenceClick,
+}: UserDropdownMenusProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { data: currentUser } = useQuery({
@@ -69,6 +77,8 @@ export const UserDropdownMenus = () => {
             userName={currentUser?.name}
             userEmail={currentUser?.email}
             size={32}
+            isPresent={isPresent}
+            onPresenceClick={onPresenceClick}
           />
         </div>
       </Dropdown>

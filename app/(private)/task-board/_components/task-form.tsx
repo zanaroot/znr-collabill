@@ -3,16 +3,19 @@
 import {
   App,
   Button,
+  Card,
+  Col,
   Flex,
   Input,
   Modal,
+  Row,
   Segmented,
   Select,
   Space,
   Tag,
   Typography,
 } from "antd";
-import { type ReactNode, useState } from "react";
+import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { RichTextEditor } from "@/app/_components/editor/rich-text-editor";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
@@ -111,39 +114,20 @@ export const TaskForm = ({
     );
   };
 
-  const renderField = (editComponent: ReactNode, viewComponent?: ReactNode) =>
-    isEditing ? editComponent : viewComponent;
-
   const assignee = formValues.assigneeId
     ? members.find((m) => m.id === formValues.assigneeId)
     : null;
 
-  return (
-    <Space vertical size={12} style={{ width: "100%" }}>
-      {renderField(
-        <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <Space vertical size={8} style={{ width: "100%" }}>
-            <Typography.Text strong className="dark:text-white">
-              Task title
-            </Typography.Text>
-            <Input
-              value={formValues.title}
-              onChange={(e) => updateField("title", e.target.value)}
-              placeholder="What needs to be done?"
-              size="large"
-            />
-          </Space>
-        </div>,
-      )}
-
-      {renderField(
-        <RichTextEditor
-          content={formValues.description || ""}
-          onChange={(html) => updateField("description", html)}
-        />,
-        <InfoRow>
+  const viewModeContent = (
+    <Row gutter={[16, 16]} style={{ width: "100%" }}>
+      <Col xs={24} lg={12}>
+        <Card
+          title="Description"
+          className="h-full shadow-sm border-slate-200 dark:border-gray-700"
+          styles={{ body: { padding: 16 } }}
+        >
           {formValues.description ? (
-            <div className="max-w-[50%]">
+            <>
               <div
                 className="prose prose-sm dark:prose-invert max-w-none text-zinc-900 dark:text-zinc-100 prose-pre:text-zinc-900 dark:prose-pre:text-zinc-100"
                 dangerouslySetInnerHTML={{ __html: formValues.description }}
@@ -163,15 +147,91 @@ export const TaskForm = ({
                   </Button>
                 ))}
               </Flex>
-            </div>
+            </>
           ) : (
             <Typography.Text type="secondary">No description</Typography.Text>
           )}
-        </InfoRow>,
-      )}
+        </Card>
+      </Col>
+      <Col xs={24} lg={12}>
+        <Card
+          title="Details"
+          className="h-full shadow-sm border-slate-200 dark:border-gray-700"
+          styles={{ body: { padding: 16 } }}
+        >
+          <Space orientation="vertical" size={16} style={{ width: "100%" }}>
+            <InfoRow label="Due date">
+              <Typography.Text>
+                {formValues.dueDate
+                  ? formatDueDate(formValues.dueDate)
+                  : "No due date"}
+              </Typography.Text>
+            </InfoRow>
 
-      {renderField(
-        <div className="task-form-grid">
+            <InfoRow label="Status">
+              <Tag color="blue">{formatStatus(formValues.status)}</Tag>
+            </InfoRow>
+
+            <InfoRow label="Priority">
+              <Tag color={getPriorityTagColor(formValues.priorityLabel)}>
+                {formValues.priorityLabel}
+              </Tag>
+            </InfoRow>
+
+            <InfoRow label="Size">
+              <TaskSizeTag size={formValues.size} />
+            </InfoRow>
+
+            <InfoRow label="Assignee">
+              {assignee ? (
+                <div className="flex items-center gap-2">
+                  <AvatarProfile
+                    size="small"
+                    src={assignee.avatar}
+                    userName={assignee.name}
+                    userEmail={assignee.email}
+                  />
+                  <Text>{assignee.name}</Text>
+                </div>
+              ) : (
+                <Text type="secondary">Unassigned</Text>
+              )}
+            </InfoRow>
+
+            <InfoRow label="Git Branch">
+              <Typography.Text code>
+                {formValues.gitBranch || "—"}
+              </Typography.Text>
+            </InfoRow>
+          </Space>
+        </Card>
+      </Col>
+    </Row>
+  );
+
+  const editModeContent = (
+    <Space vertical size={12} style={{ width: "100%" }}>
+      <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <Space vertical size={8} style={{ width: "100%" }}>
+          <Typography.Text strong className="dark:text-white">
+            Task title
+          </Typography.Text>
+          <Input
+            value={formValues.title}
+            onChange={(e) => updateField("title", e.target.value)}
+            placeholder="What needs to be done?"
+            size="large"
+          />
+        </Space>
+      </div>
+
+      <RichTextEditor
+        content={formValues.description || ""}
+        onChange={(html) => updateField("description", html)}
+      />
+
+      <Space vertical size={16} style={{ width: "100%" }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
             <Space vertical size={8} style={{ width: "100%" }}>
               <Typography.Text strong>Due date</Typography.Text>
@@ -202,26 +262,10 @@ export const TaskForm = ({
               />
             </Space>
           </div>
-        </div>,
+        </div>
 
-        <>
-          <InfoRow label="Due date">
-            <Typography.Text>
-              {formValues.dueDate
-                ? formatDueDate(formValues.dueDate)
-                : "No due date"}
-            </Typography.Text>
-          </InfoRow>
-
-          <InfoRow label="Status">
-            <Tag color="blue">{formatStatus(formValues.status)}</Tag>
-          </InfoRow>
-        </>,
-      )}
-
-      {renderField(
-        <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <Space vertical size={12} style={{ width: "100%" }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
             <Space vertical size={8} style={{ width: "100%" }}>
               <Text strong>Priority</Text>
               <Segmented
@@ -233,7 +277,9 @@ export const TaskForm = ({
                 block
               />
             </Space>
+          </div>
 
+          <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
             <Space vertical size={8} style={{ width: "100%" }}>
               <Text strong>Size</Text>
               <Segmented
@@ -243,23 +289,9 @@ export const TaskForm = ({
                 block
               />
             </Space>
-          </Space>
-        </div>,
+          </div>
+        </div>
 
-        <>
-          <InfoRow label="Priority">
-            <Tag color={getPriorityTagColor(formValues.priorityLabel)}>
-              {formValues.priorityLabel}
-            </Tag>
-          </InfoRow>
-
-          <InfoRow label="Size">
-            <TaskSizeTag size={formValues.size} />
-          </InfoRow>
-        </>,
-      )}
-
-      {renderField(
         <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <Space vertical size={8} style={{ width: "100%" }}>
             <Text strong>Assignee</Text>
@@ -314,26 +346,8 @@ export const TaskForm = ({
               }}
             />
           </Space>
-        </div>,
+        </div>
 
-        <InfoRow label="Assignee">
-          {assignee ? (
-            <div className="flex items-center gap-2">
-              <AvatarProfile
-                size="small"
-                src={assignee.avatar}
-                userName={assignee.name}
-                userEmail={assignee.email}
-              />
-              <Text>{assignee.name}</Text>
-            </div>
-          ) : (
-            <Text type="secondary">Unassigned</Text>
-          )}
-        </InfoRow>,
-      )}
-
-      {renderField(
         <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <Space vertical size={8} style={{ width: "100%" }}>
             <div className="flex items-center justify-between">
@@ -361,12 +375,14 @@ export const TaskForm = ({
               allowClear
             />
           </Space>
-        </div>,
+        </div>
+      </Space>
+    </Space>
+  );
 
-        <InfoRow label="Git Branch">
-          <Typography.Text code>{formValues.gitBranch || "—"}</Typography.Text>
-        </InfoRow>,
-      )}
+  return (
+    <>
+      {isEditing ? editModeContent : viewModeContent}
 
       <Modal
         title="Create New Git Branch"
@@ -419,6 +435,6 @@ export const TaskForm = ({
           }}
         />
       </Modal>
-    </Space>
+    </>
   );
 };
