@@ -29,7 +29,9 @@ export const OrgStep = () => {
       <Card
         title={
           <div className="text-center mt-10">
-            <Typography.Title level={3}>Create an Organization</Typography.Title>
+            <Typography.Title level={3}>
+              Create an Organization
+            </Typography.Title>
             <Typography.Text style={{ color: "#666" }}>
               First, tell us the name of your organization.
             </Typography.Text>
@@ -37,7 +39,11 @@ export const OrgStep = () => {
         }
         style={{ width: 500 }}
       >
-        <Form layout="vertical" onFinish={onFinish} initialValues={{ name: "" }}>
+        <Form
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{ name: "" }}
+        >
           <Form.Item
             label="Organization Name"
             name="name"

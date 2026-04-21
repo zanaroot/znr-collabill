@@ -1,33 +1,36 @@
 "use server";
 
+import * as Sentry from "@sentry/nextjs";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
+
 import { db } from "@/db";
 import { users } from "@/db/schema";
+
 import type { ActionResponse } from "@/http/models/auth.model";
 import type {
   ForgotPasswordInput,
   ResetPasswordInput,
 } from "@/http/models/password.model";
+
 import {
   forgotPasswordSchema,
   resetPasswordSchema,
 } from "@/http/models/password.model";
+
 import {
   createPasswordResetToken,
   deleteResetTokenById,
   findValidResetToken,
 } from "@/http/repositories/password-reset.repository";
+
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { sendEmail } from "@/packages/email";
-// import { publicEnv } from "@/packages/env";
+
 import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
-import { publicEnv } from "@/packages/env";
-import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 
 export const forgotPasswordAction = async (
   input: ForgotPasswordInput,
@@ -67,6 +70,9 @@ export const forgotPasswordAction = async (
     };
   } catch (error) {
     console.error("Password reset error:", error);
+
+    Sentry.captureException(error);
+
     return { error: "Something went wrong", success: false };
   }
 };
@@ -100,15 +106,23 @@ export const resetPasswordWithTokenAction = async (
     return { message: "Password updated successfully", success: true };
   } catch (error) {
     console.error("Password reset error:", error);
+
+    Sentry.captureException(error);
+
     return { error: "Something went wrong", success: false };
   }
+};
+
+export const testSentryAction = async (): Promise<ActionResponse> => {
+  console.log("🔥 ACTION EXECUTED");
+  throw new Error("🚨 Test wrapActionsWithSentry");
 };
 
 const actions = {
   forgotPasswordAction,
   resetPasswordWithTokenAction,
+  testSentryAction,
 };
-
 export const passwordActions = wrapActionsWithSentry(
   actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
 );

@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { SentryErrorBoundary } from "@/app/_components/sentry-error-boundary";
+import { SentryProvider } from "@/app/sentry-povider";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import {
   getOrganizationById,
@@ -35,12 +37,16 @@ const PrivateLayout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div>
-      <PrivateLayoutComponent
-        organization={organization}
-        isMissingPresence={isMissingPresence}
-      >
-        {children}
-      </PrivateLayoutComponent>
+      <SentryProvider>
+        <SentryErrorBoundary>
+          <PrivateLayoutComponent
+            organization={organization}
+            isMissingPresence={isMissingPresence}
+          >
+            {children}
+          </PrivateLayoutComponent>
+        </SentryErrorBoundary>
+      </SentryProvider>
     </div>
   );
 };

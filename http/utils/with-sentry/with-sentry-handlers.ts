@@ -55,8 +55,5 @@ export const withSentryHandlers = <THandlers extends readonly unknown[]>(
     }
   };
 
-  return handlers
-    .slice(0, -1)
-    .concat(wrappedLast) as unknown as THandlers;
+  return handlers.slice(0, -1).concat(wrappedLast) as unknown as THandlers;
 };
-

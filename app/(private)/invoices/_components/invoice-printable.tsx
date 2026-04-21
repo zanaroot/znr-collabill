@@ -15,7 +15,11 @@ import { useMemo, useState } from "react";
 import type { z } from "zod";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
-import type { CreateInvoiceInput, InvoiceStatus, invoiceLineSchema } from "@/http/models/invoice.model";
+import type {
+  CreateInvoiceInput,
+  InvoiceStatus,
+  invoiceLineSchema,
+} from "@/http/models/invoice.model";
 
 type InvoiceLineInput = z.infer<typeof invoiceLineSchema>;
 
@@ -94,7 +98,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-          "Failed to validate invoice",
+            "Failed to validate invoice",
         );
       }
       return res.json();

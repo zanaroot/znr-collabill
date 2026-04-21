@@ -29,8 +29,9 @@ export const InvoiceHistoryTable = ({
   const router = useRouter();
 
   const getDetailsUrl = (record: InvoiceHistoryItem) => {
-    return `/invoices?periodId=${format(parseISO(record.periodStart), "yyyy-MM")}${isOwner ? `&memberId=${record.userId}` : ""
-      }`;
+    return `/invoices?periodId=${format(parseISO(record.periodStart), "yyyy-MM")}${
+      isOwner ? `&memberId=${record.userId}` : ""
+    }`;
   };
 
   const columns = [

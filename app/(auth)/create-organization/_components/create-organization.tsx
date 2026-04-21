@@ -80,6 +80,6 @@ export const CreateOrganization = () => {
           </Form.Item>
         </Form>
       </Card>
-    </div >
+    </div>
   );
 };

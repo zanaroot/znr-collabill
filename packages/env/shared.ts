@@ -11,18 +11,12 @@ export const publicEnvSchema = z.object({
     .trim()
     .min(1)
     .default("http://localhost:9000"),
-  NEXT_PUBLIC_APP_URL: z
-    .string()
-    .trim()
-    .min(1)
-    .default("http://localhost:3000"),
   NEXT_PUBLIC_SENTRY_DSN: z.string().trim().optional(),
   NEXT_PUBLIC_APP_URL: z
     .string()
     .trim()
     .min(1)
     .default("http://localhost:3000"),
-  NEXT_PUBLIC_SENTRY_DSN: z.string().trim().optional(),
 });
 
 export const serverEnvSchema = publicEnvSchema.extend({
@@ -41,13 +35,6 @@ export const serverEnvSchema = publicEnvSchema.extend({
     .string()
     .trim()
     .min(32, "ENCRYPTION_KEY must be at least 32 characters"),
-  BREVO_API_KEY: z.string().trim().min(1, "BREVO_API_KEY is required"),
-  MAIL_FROM: z.email().trim().min(1, "MAIL_FROM is required"),
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development")
-    .optional(),
-  SENTRY_DSN: z.string().trim().optional(),
   BREVO_API_KEY: z.string().trim().min(1, "BREVO_API_KEY is required"),
   MAIL_FROM: z.email().trim().min(1, "MAIL_FROM is required"),
   NODE_ENV: z

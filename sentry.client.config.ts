@@ -26,5 +26,6 @@ Sentry.init({
     return { ...event, request };
   },
 });
+console.log("🔥 CLIENT SENTRY FILE EXECUTED");
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
