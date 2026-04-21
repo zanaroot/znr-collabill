@@ -12,5 +12,5 @@ export const taskRoutes = new Hono()
   .get("/project/:projectId", ...getTasksByProject)
   .get("/project/:projectId/period", ...getTasksByPeriod)
   .post("/", adminMiddleware, ...createTask)
-  .put("/:id", adminMiddleware, ...updateTask)
+  .put("/:id", ...updateTask)
   .delete("/:id", adminMiddleware, ...deleteTask);

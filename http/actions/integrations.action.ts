@@ -2,6 +2,8 @@
 
 import type { IntegrationType } from "@/http/models/integration.model";
 import { getIntegration } from "@/http/repositories/integration.repository";
+import { getOrganizationById } from "@/http/repositories/organization.repository";
+import { decrypt } from "@/lib/crypto";
 
 export const getOrgIntegrationCredentials = async (
   organizationId: string,
@@ -18,7 +20,25 @@ export const getOrgIntegrationCredentials = async (
 
 export const getOrgSlackCredentials = async (organizationId: string) => {
   const creds = await getOrgIntegrationCredentials(organizationId, "SLACK");
-  return creds?.slack ?? null;
+
+  if (creds?.slack) {
+    return creds.slack;
+  }
+
+  // Fallback to organizations table
+  const org = await getOrganizationById(organizationId);
+  if (org?.slackBotTokenEncrypted) {
+    try {
+      return {
+        botToken: decrypt(org.slackBotTokenEncrypted),
+        defaultChannel: org.slackDefaultChannel || undefined,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
 };
 
 export const getOrgGithubCredentials = async (organizationId: string) => {
@@ -39,21 +59,33 @@ export const getOrgSlackCredentialsDecrypted = async (
 ) => {
   const integration = await getIntegration(organizationId, "SLACK");
 
-  if (!integration || integration.isActive !== "true") {
-    return null;
+  if (integration && integration.isActive === "true") {
+    const creds = integration.credentials as {
+      slack?: { botToken: string; defaultChannel?: string };
+    };
+    if (creds?.slack?.botToken) {
+      return {
+        botToken: creds.slack.botToken,
+        defaultChannel: creds.slack.defaultChannel,
+      };
+    }
   }
 
-  const creds = integration.credentials as {
-    slack?: { botToken: string; defaultChannel?: string };
-  };
-  if (!creds?.slack?.botToken) {
-    return null;
+  // Fallback to organizations table
+  const org = await getOrganizationById(organizationId);
+  if (org?.slackBotTokenEncrypted) {
+    try {
+      return {
+        botToken: decrypt(org.slackBotTokenEncrypted),
+        defaultChannel: org.slackDefaultChannel || undefined,
+      };
+    } catch (error) {
+      console.error("[Slack] Failed to decrypt token from org table:", error);
+      return null;
+    }
   }
 
-  return {
-    botToken: creds.slack.botToken,
-    defaultChannel: creds.slack.defaultChannel,
-  };
+  return null;
 };
 
 export const getOrgGithubCredentialsDecrypted = async (

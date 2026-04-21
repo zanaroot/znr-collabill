@@ -7,6 +7,7 @@ import { organizationMembers, users } from "@/db/schema";
 import type { AuthEnv } from "@/http/models/auth.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
 import * as invoiceCommentRepository from "@/http/repositories/invoice-comment.repository";
+import { notifyInvoiceCommentSlack } from "@/lib/notifications";
 import { sendEmail } from "@/packages/email";
 
 const factory = createFactory<AuthEnv>();
@@ -137,6 +138,11 @@ View invoice: ${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/invo
       console.error(`Failed to send email to ${member.email}:`, error);
     }),
   );
+
+  // Send Slack notification
+  notifyInvoiceCommentSlack(invoiceId, commenterName, content).catch((err) => {
+    console.error("[Notification] Failed to send Slack notification:", err);
+  });
 
   await Promise.all(emailPromises);
 }

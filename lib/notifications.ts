@@ -7,7 +7,13 @@ import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import { sendEmail } from "@/packages/email";
 import {
+  buildInvoiceCommentMessage,
+  buildInvoicePaidMessage,
+  buildInvoiceValidatedMessage,
+  buildTaskAssignedMessage,
+  buildTaskCommentMessage,
   buildTaskReviewMessage,
+  buildTaskValidatedMessage,
   sendSlackMessageWithCredentials,
 } from "@/packages/slack";
 
@@ -40,74 +46,6 @@ export const notifyTaskCommentSlack = async (taskId: string) => {
   });
 
   await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
-};
-
-const buildTaskCommentMessage = (params: {
-  taskId: string;
-  taskTitle: string;
-  projectName: string;
-  assigneeName: string | null;
-  taskUrl: string;
-}) => {
-  const { taskId, taskTitle, projectName, assigneeName, taskUrl } = params;
-
-  const fields = [];
-  if (assigneeName) {
-    fields.push({ type: "mrkdwn", text: `*Assignee:*\n${assigneeName}` });
-  }
-  fields.push({ type: "mrkdwn", text: `*Project:*\n${projectName}` });
-
-  const blocks = [
-    {
-      type: "header",
-      text: {
-        type: "plain_text",
-        text: "💬 New Comment on Task",
-        emoji: true,
-      },
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*New comment added*`,
-      },
-      accessory: {
-        type: "button",
-        text: {
-          type: "plain_text",
-          text: "View Task",
-          emoji: true,
-        },
-        url: taskUrl,
-        action_id: "view_task",
-      },
-    },
-    {
-      type: "section",
-      fields: fields,
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Task:* ${taskTitle}`,
-      },
-    },
-    {
-      type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: `ID: ${taskId}`,
-        },
-      ],
-    },
-  ];
-
-  const fallbackText = `[${taskId}] New comment on "${taskTitle}" (Project: ${projectName})`;
-
-  return { blocks, text: fallbackText };
 };
 
 export const notifyTaskInReviewSlack = async (taskId: string) => {
@@ -168,75 +106,6 @@ export const notifyTaskValidatedSlack = async (taskId: string) => {
   await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
 };
 
-const buildTaskValidatedMessage = (params: {
-  taskId: string;
-  taskTitle: string;
-  projectName: string;
-  assigneeName: string | null;
-  taskUrl: string;
-}) => {
-  const { taskId, taskTitle, projectName, assigneeName, taskUrl } = params;
-
-  const fields = [];
-  if (assigneeName) {
-    fields.push({ type: "mrkdwn", text: `*Assignee:*\n${assigneeName}` });
-  }
-  fields.push({ type: "mrkdwn", text: `*Status:*\nValidated` });
-  fields.push({ type: "mrkdwn", text: `*Project:*\n${projectName}` });
-
-  const blocks = [
-    {
-      type: "header",
-      text: {
-        type: "plain_text",
-        text: "✅ Task Validated",
-        emoji: true,
-      },
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Task has been validated*`,
-      },
-      accessory: {
-        type: "button",
-        text: {
-          type: "plain_text",
-          text: "View Task",
-          emoji: true,
-        },
-        url: taskUrl,
-        action_id: "view_task",
-      },
-    },
-    {
-      type: "section",
-      fields: fields,
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Task:* ${taskTitle}`,
-      },
-    },
-    {
-      type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: `ID: ${taskId}`,
-        },
-      ],
-    },
-  ];
-
-  const fallbackText = `[${taskId}] Task "${taskTitle}" has been validated (Project: ${projectName})`;
-
-  return { blocks, text: fallbackText };
-};
-
 export const notifyTaskAssignedSlack = async (taskId: string) => {
   const task = await taskRepository.findTaskWithAssigneeById(taskId);
   if (!task) return;
@@ -266,73 +135,96 @@ export const notifyTaskAssignedSlack = async (taskId: string) => {
   await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
 };
 
-const buildTaskAssignedMessage = (params: {
-  taskId: string;
-  taskTitle: string;
-  projectName: string;
-  assigneeName: string | null;
-  taskUrl: string;
-}) => {
-  const { taskId, taskTitle, projectName, assigneeName, taskUrl } = params;
+export const notifyInvoiceValidatedSlack = async (invoiceId: string) => {
+  const invoice = await db.query.invoices.findFirst({
+    where: eq(invoices.id, invoiceId),
+    with: {
+      organization: true,
+    },
+  });
 
-  const fields = [];
-  if (assigneeName) {
-    fields.push({ type: "mrkdwn", text: `*Assignee:*\n${assigneeName}` });
-  }
-  fields.push({ type: "mrkdwn", text: `*Status:*\nBacklog` });
-  fields.push({ type: "mrkdwn", text: `*Project:*\n${projectName}` });
+  if (!invoice) return;
 
-  const blocks = [
-    {
-      type: "header",
-      text: {
-        type: "plain_text",
-        text: "👤 Task Assigned",
-        emoji: true,
-      },
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Task assigned to ${assigneeName || "Unknown"}*`,
-      },
-      accessory: {
-        type: "button",
-        text: {
-          type: "plain_text",
-          text: "View Task",
-          emoji: true,
-        },
-        url: taskUrl,
-        action_id: "view_task",
-      },
-    },
-    {
-      type: "section",
-      fields: fields,
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Task:* ${taskTitle}`,
-      },
-    },
-    {
-      type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: `ID: ${taskId}`,
-        },
-      ],
-    },
-  ];
+  const slackCreds = await getOrgSlackCredentialsDecrypted(
+    invoice.organizationId,
+  );
+  if (!slackCreds) return;
 
-  const fallbackText = `[${taskId}] Task "${taskTitle}" assigned to ${assigneeName || "Unknown"} (Project: ${projectName})`;
+  const channel = slackCreds.defaultChannel;
+  if (!channel) return;
 
-  return { blocks, text: fallbackText };
+  const invoiceUrl = `${baseUrl}/invoices/${invoiceId}`;
+  const { blocks, text } = buildInvoiceValidatedMessage({
+    invoiceId: invoice.id,
+    organizationName: invoice.organization.name,
+    totalAmount: invoice.totalAmount,
+    invoiceUrl,
+  });
+
+  await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
+};
+
+export const notifyInvoicePaidSlack = async (invoiceId: string) => {
+  const invoice = await db.query.invoices.findFirst({
+    where: eq(invoices.id, invoiceId),
+    with: {
+      organization: true,
+    },
+  });
+
+  if (!invoice) return;
+
+  const slackCreds = await getOrgSlackCredentialsDecrypted(
+    invoice.organizationId,
+  );
+  if (!slackCreds) return;
+
+  const channel = slackCreds.defaultChannel;
+  if (!channel) return;
+
+  const invoiceUrl = `${baseUrl}/invoices/${invoiceId}`;
+  const { blocks, text } = buildInvoicePaidMessage({
+    invoiceId: invoice.id,
+    organizationName: invoice.organization.name,
+    totalAmount: invoice.totalAmount,
+    invoiceUrl,
+  });
+
+  await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
+};
+
+export const notifyInvoiceCommentSlack = async (
+  invoiceId: string,
+  commenterName: string,
+  content: string,
+) => {
+  const invoice = await db.query.invoices.findFirst({
+    where: eq(invoices.id, invoiceId),
+    with: {
+      organization: true,
+    },
+  });
+
+  if (!invoice) return;
+
+  const slackCreds = await getOrgSlackCredentialsDecrypted(
+    invoice.organizationId,
+  );
+  if (!slackCreds) return;
+
+  const channel = slackCreds.defaultChannel;
+  if (!channel) return;
+
+  const invoiceUrl = `${baseUrl}/invoices/${invoiceId}`;
+  const { blocks, text } = buildInvoiceCommentMessage({
+    invoiceId: invoice.id,
+    organizationName: invoice.organization.name,
+    commenterName,
+    content,
+    invoiceUrl,
+  });
+
+  await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
 };
 
 export const notifyInvoiceValidatedEmail = async (invoiceId: string) => {

@@ -10,7 +10,9 @@ import {
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
 import {
   notifyInvoicePaidEmail,
+  notifyInvoicePaidSlack,
   notifyInvoiceValidatedEmail,
+  notifyInvoiceValidatedSlack,
 } from "@/lib/notifications";
 
 const factory = createFactory<AuthEnv>();
@@ -109,11 +111,17 @@ export const updateInvoiceStatus = factory.createHandlers(
       notifyInvoicePaidEmail(id).catch((err) => {
         console.error("[Notification] Failed to send email:", err);
       });
+      notifyInvoicePaidSlack(id).catch((err) => {
+        console.error("[Notification] Failed to send Slack notification:", err);
+      });
     } else if (status === "VALIDATED") {
       updateParams.validatedAt = new Date();
 
       notifyInvoiceValidatedEmail(id).catch((err) => {
         console.error("[Notification] Failed to send email:", err);
+      });
+      notifyInvoiceValidatedSlack(id).catch((err) => {
+        console.error("[Notification] Failed to send Slack notification:", err);
       });
     } else if (status === "DRAFT") {
       await invoiceRepository.deleteInvoiceLines(id);
