@@ -10,6 +10,7 @@ import {
 } from "@/http/repositories/organization.repository";
 import { updateSessionOrganization } from "@/http/repositories/session.repository";
 import { encryptSlackToken } from "@/packages/slack";
+import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 
 export const createOrganizationAction = async (
   name: string,
@@ -101,7 +102,6 @@ export const updateOrganizationSlackSettingsAction = async (data: {
     return { error: "Something went wrong", success: false };
   }
 };
-
 export const deleteOrganizationAction = async (
   organizationId: string,
   _confirmDelete: "DELETE",
@@ -138,3 +138,12 @@ export const deleteOrganizationAction = async (
     return { error: "Something went wrong", success: false };
   }
 };
+const actions = {
+  createOrganizationAction,
+  selectOrganizationAction,
+  getUserOrganizationsAction,
+};
+
+export const organizationActions = wrapActionsWithSentry(
+  actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
+);

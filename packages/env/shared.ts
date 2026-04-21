@@ -11,6 +11,7 @@ export const publicEnvSchema = z.object({
     .trim()
     .min(1)
     .default("http://localhost:9000"),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().trim().optional(),
   NEXT_PUBLIC_APP_URL: z
     .string()
     .trim()
@@ -40,6 +41,7 @@ export const serverEnvSchema = publicEnvSchema.extend({
     .enum(["development", "production", "test"])
     .default("development")
     .optional(),
+  SENTRY_DSN: z.string().trim().optional(),
 });
 
 export const parseEnv = <TSchema extends z.ZodTypeAny>(

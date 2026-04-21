@@ -26,8 +26,10 @@ import {
   updateUser,
   upsertCollaboratorRate,
 } from "@/http/repositories/user.repository";
+import { withSentryHandlers } from "@/http/utils/with-sentry/with-sentry-handlers";
 import { serverEnv } from "@/packages/env/server";
 import { deleteFile, uploadFile } from "@/packages/minio";
+import { wrapControllerWithSentry } from "../utils/wrap-with-sentry/wrap-controller-with-sentry";
 
 const factory = createFactory<AuthEnv>();
 
@@ -82,20 +84,20 @@ export const updateMe = factory.createHandlers(
   },
 );
 
-export const uploadAvatar = factory.createHandlers(
-  zValidator(
-    "form",
-    z.object({
-      file: z
-        .any()
-        .refine(
-          (file) => file instanceof File && file.size > 0,
-          "File is empty",
-        ),
-    }),
-  ),
-  async (c) => {
-    try {
+export const uploadAvatar = withSentryHandlers(
+  factory.createHandlers(
+    zValidator(
+      "form",
+      z.object({
+        file: z
+          .any()
+          .refine(
+            (file) => file instanceof File && file.size > 0,
+            "File is empty",
+          ),
+      }),
+    ),
+    async (c) => {
       const user = c.get("user");
       const { file } = c.req.valid("form");
 
@@ -124,11 +126,9 @@ export const uploadAvatar = factory.createHandlers(
       await updateUser(user.id, { avatar: url });
 
       return c.json({ url });
-    } catch (error) {
-      console.error("Error uploading avatar:", error);
-      return c.json({ error: "Failed to upload avatar" }, 500);
-    }
-  },
+    },
+  ),
+  { handlerName: "uploadAvatar", publicMessage: "Failed to upload avatar" },
 );
 
 export const getUsers = factory.createHandlers(async (c) => {
@@ -347,3 +347,21 @@ export const updateCollaboratorRateHandler = factory.createHandlers(
     return c.json(updatedRate);
   },
 );
+
+const controllers = {
+  getMe,
+  updateMe,
+  getUsers,
+  getInvitations,
+  createInvitation,
+  revokeInvitation,
+  resendInvitation,
+  removeUser,
+  updateUserRoleHandler,
+  getCollaboratorRateHandler,
+  updateCollaboratorRateHandler,
+};
+
+export const userControllers = wrapControllerWithSentry(controllers, {
+  layerName: "user-controller",
+});

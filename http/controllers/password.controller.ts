@@ -18,8 +18,10 @@ import {
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { sendEmail } from "@/packages/email";
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+import { publicEnv } from "@/packages/env";
+import { wrapControllerWithSentry } from "../utils/wrap-with-sentry/wrap-controller-with-sentry";
 
+const appUrl = publicEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const factory = createFactory<AuthEnv>();
 
 export const forgotPassword = factory.createHandlers(
@@ -93,3 +95,12 @@ export const resetPassword = factory.createHandlers(
     }
   },
 );
+
+const controllers = {
+  forgotPassword,
+  resetPassword,
+};
+
+export const passwordControllers = wrapControllerWithSentry(controllers, {
+  layerName: "password-controller",
+});

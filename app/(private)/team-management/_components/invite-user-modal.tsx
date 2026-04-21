@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { App, Button, Form, Input, Modal, Select } from "antd";
 import { useState } from "react";
+import { SentryErrorBoundary } from "@/app/_components/sentry-error-boundary";
 import type { CreateInvitationInput } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 import { teamKeys, useCurrentUser } from "../_hooks/use-team";
@@ -49,7 +50,7 @@ export const InviteUserModal = () => {
   }
 
   return (
-    <>
+    <SentryErrorBoundary>
       <Button type="primary" onClick={() => setIsOpen(true)}>
         Invite User
       </Button>
@@ -92,8 +93,15 @@ export const InviteUserModal = () => {
               Invite
             </Button>
           </Form.Item>
+          <Button
+            onClick={() => {
+              throw new Error("Test Sentry error 🚨");
+            }}
+          >
+            Test Sentry
+          </Button>
         </Form>
       </Modal>
-    </>
+    </SentryErrorBoundary>
   );
 };

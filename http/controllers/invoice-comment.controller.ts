@@ -9,6 +9,7 @@ import * as invoiceRepository from "@/http/repositories/invoice.repository";
 import * as invoiceCommentRepository from "@/http/repositories/invoice-comment.repository";
 import { notifyInvoiceCommentSlack } from "@/lib/notifications";
 import { sendEmail } from "@/packages/email";
+import { wrapControllerWithSentry } from "../utils/wrap-with-sentry/wrap-controller-with-sentry";
 
 const factory = createFactory<AuthEnv>();
 
@@ -146,3 +147,12 @@ View invoice: ${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/invo
 
   await Promise.all(emailPromises);
 }
+
+const controllers = {
+  getCommentsByInvoice,
+  createComment,
+};
+
+export const invoiceCommentControllers = wrapControllerWithSentry(controllers, {
+  layerName: "invoice-comment-controller",
+});

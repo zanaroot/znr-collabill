@@ -10,6 +10,7 @@ import {
 } from "@/http/models/project.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
+import { wrapControllerWithSentry } from "../utils/wrap-with-sentry/wrap-controller-with-sentry";
 
 const factory = createFactory<AuthEnv>();
 
@@ -423,3 +424,17 @@ export const updateProjectSlackSettings = factory.createHandlers(
     return c.json({ message: "Slack settings updated", success: true });
   },
 );
+
+const controllers = {
+  getProjects,
+  getProject,
+  createProject,
+  updateProject,
+  deleteProject,
+  getProjectMembers,
+  addProjectMember,
+};
+
+export const projectControllers = wrapControllerWithSentry(controllers, {
+  layerName: "project-controller",
+});

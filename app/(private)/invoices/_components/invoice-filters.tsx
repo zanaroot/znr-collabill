@@ -14,12 +14,12 @@ import type {
   invoiceLineSchema,
 } from "@/http/models/invoice.model";
 import { client } from "@/packages/hono";
+import type { PresenceSummary } from "./presence-summary-table";
+import type { RawTaskSummary } from "./task-summary-table";
 
 const { Text } = Typography;
 
 import { getMonthlyPeriods } from "@/lib/periods";
-import type { PresenceSummary } from "./presence-summary-table";
-import type { RawTaskSummary } from "./task-summary-table";
 
 type Member = {
   id: string;

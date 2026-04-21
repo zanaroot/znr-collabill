@@ -1,0 +1,58 @@
+name: Build Images
+
+on:
+  workflow_run:
+    workflows: ["Validation"]
+    types: [completed]
+    branches: ["main"]
+
+env:
+  REGISTRY: ghcr.io
+  APP_IMAGE_NAME: ${{ github.repository }}
+  MIGRATOR_IMAGE_NAME: ${{ github.repository }}-migrator
+
+jobs:
+  build-and-push:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push app image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: ./Dockerfile
+          target: runner
+          build-args: |
+            NEXT_PUBLIC_APP_URL=https://collabill.tchi.xyz
+            NEXT_PUBLIC_S3_ENDPOINT=https://files.collabill.tchi.xyz
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}:${{ github.event.workflow_run.head_sha }}
+
+      - name: Build and push migrator image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: ./Dockerfile
+          target: migrator
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.MIGRATOR_IMAGE_NAME }}:${{ github.event.workflow_run.head_sha }}

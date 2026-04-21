@@ -24,6 +24,7 @@ import { findUserByEmail } from "@/http/repositories/user.repository";
 import { getFutureDate } from "@/lib/date";
 import { generateSessionToken } from "@/lib/session-token";
 import { serverEnv } from "@/packages/env/server";
+import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 
 const shouldUseSecureCookie = async () => {
   const hdrs = await headers();
@@ -207,3 +208,13 @@ export const logoutAction = async () => {
   cookieStore.delete("session_token");
   redirect("/");
 };
+
+const actions = {
+  registerAction,
+  signInAction,
+  logoutAction,
+};
+
+export const authActions = wrapActionsWithSentry(
+  actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
+);

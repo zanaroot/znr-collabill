@@ -13,6 +13,7 @@ import {
   deleteSessionByToken,
 } from "@/http/repositories/session.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
+import { wrapControllerWithSentry } from "@/http/utils/wrap-with-sentry/wrap-controller-with-sentry";
 import { getFutureDate } from "@/lib/date";
 import { generateSessionToken } from "@/lib/session-token";
 
@@ -127,3 +128,13 @@ export const login = factory.createHandlers(
     }
   },
 );
+
+const controllers = {
+  logout,
+  register,
+  login,
+};
+
+export const authControllers = wrapControllerWithSentry(controllers, {
+  layerName: "auth-controller",
+});

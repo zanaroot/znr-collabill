@@ -9,6 +9,7 @@ import {
   users,
 } from "@/db/schema";
 import type { Role } from "@/http/models/user.model";
+import { wrapRepositoryWithSentry } from "../utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 export const findValidInvitationByToken = async (token: string) => {
   const [invitation] = await db
@@ -169,3 +170,23 @@ export const acceptInvitation = async (data: {
     await tx.delete(invitations).where(eq(invitations.id, data.invitationId));
   });
 };
+
+export const invitationRepository = {
+  findValidInvitationByToken,
+  upsertInvitation,
+  findPendingInvitation,
+  deleteInvitationById,
+  findInvitationById,
+  refreshInvitationToken,
+  getAllInvitations,
+  createUserFromInvitation,
+  acceptInvitation,
+};
+
+export const invitationRepositoryWithSentry = wrapRepositoryWithSentry(
+  invitationRepository as Record<
+    string,
+    (...args: unknown[]) => Promise<unknown>
+  >,
+  "invitation-repository",
+) as typeof invitationRepository;

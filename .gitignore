@@ -49,3 +49,7 @@ CLAUDE.md
 GEMINI.md
 .env
 .env.prod
+.env.local
+
+# Sentry Config File
+.env.sentry-build-plugin

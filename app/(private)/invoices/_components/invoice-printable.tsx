@@ -12,33 +12,30 @@ import {
   Typography,
 } from "antd";
 import { useMemo, useState } from "react";
+import type { z } from "zod";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
 import type {
   CreateInvoiceInput,
   InvoiceStatus,
+  invoiceLineSchema,
 } from "@/http/models/invoice.model";
+
+type InvoiceLineInput = z.infer<typeof invoiceLineSchema>;
+
 import { client } from "@/packages/hono";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary } from "./task-summary-table";
 
 const { Title, Text, Paragraph } = Typography;
 
-type InvoiceLineInput = {
-  type: string;
-  referenceId: string | null;
-  label: string;
-  quantity: number;
-  unitPrice: string;
-  total: string;
-};
 type InvoicePrintableProps = {
   presenceData: PresenceSummary[];
   taskData: RawTaskSummary[];
   organizationName: string;
   organizationId: string;
   targetUserName?: string;
-  targetUserId: string;
+  targetUserId?: string;
   periodId?: string;
   periodStart?: string;
   periodEnd?: string;

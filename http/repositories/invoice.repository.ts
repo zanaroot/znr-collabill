@@ -3,6 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { invoiceLines, invoices } from "@/db/schema/invoice";
+import { wrapRepositoryWithSentry } from "../utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 type CreateInvoiceInput = typeof invoices.$inferInsert;
 type CreateInvoiceLineInput = typeof invoiceLines.$inferInsert;
@@ -123,3 +124,18 @@ export const deleteInvoiceLines = async (invoiceId: string) => {
 export const deleteInvoice = async (id: string) => {
   await db.delete(invoices).where(eq(invoices.id, id));
 };
+
+export const invoiceRepository = {
+  findInvoiceById,
+  findInvoiceByPeriodAndUser,
+  createInvoiceWithLines,
+  findInvoicesByOrganizationId,
+  updateInvoice,
+  deleteInvoiceLines,
+  deleteInvoice,
+};
+
+export const invoiceRepositoryWithSentry = wrapRepositoryWithSentry(
+  invoiceRepository as Record<string, (...args: unknown[]) => Promise<unknown>>,
+  "invoice-repository",
+) as typeof invoiceRepository;

@@ -8,6 +8,7 @@ import {
   getUserOrganizationsWithMembers,
   removeOrganizationMember,
 } from "@/http/repositories/organization.repository";
+import { wrapControllerWithSentry } from "../utils/wrap-with-sentry/wrap-controller-with-sentry";
 
 const factory = createFactory<AuthEnv>();
 
@@ -204,3 +205,16 @@ export const updateOrganizationSlackSettings = factory.createHandlers(
     return c.json({ message: "Slack settings updated", success: true });
   },
 );
+const controllers = {
+  leaveOrganization,
+  getOwnedOrganizations,
+  deleteOrganization,
+  organizationOwner,
+  selectOrganization,
+  createOrganization,
+  getMyOrganizations,
+};
+
+export const organizationControllers = wrapControllerWithSentry(controllers, {
+  layerName: "organization-controller",
+});

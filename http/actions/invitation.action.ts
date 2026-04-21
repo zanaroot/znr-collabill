@@ -1,5 +1,3 @@
-"use server";
-
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { logAudit } from "@/http/actions/audit.action";
@@ -30,6 +28,7 @@ import {
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { invitationContent } from "@/http/ressources/invitation-content";
 import { sendEmail } from "@/packages/email";
+import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 
 export const inviteUserAction = async (
   input: InviteUserInput,
@@ -322,3 +321,16 @@ export const resendInvitationAction = async (
     return { error: "Something went wrong", success: false };
   }
 };
+
+const actions = {
+  inviteUserAction,
+  createPasswordAction,
+  getInvitationByToken,
+  acceptInvitationAction,
+  declineInvitationAction,
+  resendInvitationAction,
+};
+
+export const invitationActions = wrapActionsWithSentry(
+  actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
+);

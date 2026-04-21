@@ -20,6 +20,7 @@ const readServerEnv = (): ParsedServerEnv => {
     BREVO_API_KEY: process.env.BREVO_API_KEY,
     MAIL_FROM: process.env.MAIL_FROM,
     NODE_ENV: process.env.NODE_ENV ?? "development",
+    SENTRY_DSN: process.env.SENTRY_DSN,
   };
 
   if (process.env.SKIP_SERVER_ENV_VALIDATION === "1") {

@@ -9,6 +9,7 @@ import {
 } from "@/http/models/presence.model";
 import * as presenceRepository from "@/http/repositories/presence.repository";
 import { getISODate } from "@/lib/date";
+import { wrapActionsWithSentry } from "../utils/wrap-with-sentry/wrap-actions-with-sentry";
 import { getCurrentUser } from "./get-current-user.action";
 
 export const checkTodayPresenceAction = async (): Promise<Presence | null> => {
@@ -52,3 +53,12 @@ export const markPresenceAction = async (
     return { error: "Something went wrong", success: false };
   }
 };
+
+const actions = {
+  checkTodayPresenceAction,
+  markPresenceAction,
+};
+
+export const presenceActions = wrapActionsWithSentry(
+  actions as Record<string, (...args: unknown[]) => Promise<unknown>>,
+);

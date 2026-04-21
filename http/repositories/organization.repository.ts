@@ -20,6 +20,7 @@ import {
 } from "@/db/schema";
 import type { Role } from "@/http/models/user.model";
 import { generateSlug } from "@/lib/text-to-slug";
+import { wrapRepositoryWithSentry } from "../utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 export const registerOrganizationAndOwner = async (data: {
   organizationName: string;
@@ -714,3 +715,22 @@ export const updateOrganizationSlackSettings = async (
 
   return org ?? null;
 };
+export const organizationRepository = {
+  registerOrganizationAndOwner,
+  getOrganizationById,
+  createOrganization,
+  findOrganizationBySlug,
+  getUserOrganizations,
+  getOrganizationMembers,
+  isUserInOrganization,
+  updateOrganizationMemberRole,
+  removeOrganizationMember,
+};
+
+export const organizationRepositoryWithSentry = wrapRepositoryWithSentry(
+  organizationRepository as Record<
+    string,
+    (...args: unknown[]) => Promise<unknown>
+  >,
+  "organization-repository",
+) as typeof organizationRepository;

@@ -3,6 +3,7 @@
 import { and, desc, eq, ilike, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { auditLogs } from "@/db/schema";
+import { wrapRepositoryWithSentry } from "../utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 export type AuditAction =
   | "CREATE"
@@ -138,3 +139,16 @@ export const deleteAuditLogsByOrganizationId = async (
     .delete(auditLogs)
     .where(eq(auditLogs.organizationId, organizationId));
 };
+
+export const auditRepository = {
+  createAuditLog,
+  getAuditLogs,
+  countAuditLogs,
+  getAuditLogById,
+  deleteAuditLogsByOrganizationId,
+};
+
+export const auditRepositoryWithSentry = wrapRepositoryWithSentry(
+  auditRepository as Record<string, (...args: unknown[]) => Promise<unknown>>,
+  "audit-repository",
+) as typeof auditRepository;

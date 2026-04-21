@@ -26,6 +26,10 @@ import type {
   CreateTaskInput,
   UpdateTaskSystemInput,
 } from "@/http/models/task.model";
+import {
+  type WrapperClass,
+  wrapRepositoryWithSentry,
+} from "@/http/utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 const taskSelectFields = {
   id: tasks.id,
@@ -68,7 +72,6 @@ export const findTasksByProjectIdAndPeriod = async (
   ];
 
   if (isCurrentPeriod) {
-    // Current period: show all non-validated tasks OR tasks validated in this period
     const validatedInPeriod = and(
       eq(tasks.status, "VALIDATED"),
       gte(tasks.validatedAt, startDate),
@@ -83,7 +86,6 @@ export const findTasksByProjectIdAndPeriod = async (
       whereClauses.push(ne(tasks.status, "VALIDATED"));
     }
   } else {
-    // Past period: ONLY show tasks validated in that period
     const validatedInPeriod = and(
       eq(tasks.status, "VALIDATED"),
       gte(tasks.validatedAt, startDate),
@@ -254,3 +256,15 @@ export const getValidatedTaskIdsByPeriodAndUser = async (
     );
   return result.map((r) => r.id);
 };
+export const taskRepository = {
+  findTasksByProjectId,
+  findTasksByProjectIdAndPeriod,
+  findTaskById,
+  createTask,
+  updateTask,
+  deleteTask,
+  countTasksByProjectId,
+  getValidatedTaskSummaryByOrganization,
+};
+
+wrapRepositoryWithSentry(taskRepository as WrapperClass, "task-repository");

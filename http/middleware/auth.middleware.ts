@@ -1,4 +1,5 @@
-import { and, eq } from "drizzle-orm";
+import * as Sentry from "@sentry/nextjs";
+import { eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import { createMiddleware } from "hono/factory";
 import { db } from "@/db";
@@ -9,49 +10,51 @@ import { findValidSessionByToken } from "@/http/repositories/session.repository"
 
 export const authMiddleware = createMiddleware<AuthEnv>(
   async (c: Context, next: Next) => {
-    const token =
-      c.req.header("Authorization")?.replace("Bearer ", "") ??
-      getCookieValue(c, "session_token");
+    try {
+      const token =
+        c.req.header("Authorization")?.replace("Bearer ", "") ??
+        getCookieValue(c, "session_token");
 
-    if (!token) {
-      return c.redirect("/", 302);
-    }
+      if (!token) {
+        return c.redirect("/", 302);
+      }
 
-    const result = await findValidSessionByToken(token);
+      const result = await findValidSessionByToken(token);
 
-    if (!result) {
-      return c.redirect("/", 302);
-    }
+      if (!result || !result.user || !result.session) {
+        return c.redirect("/", 302);
+      }
 
-    let organizationRole: Role | null = null;
-    if (result.session.organizationId) {
-      const members = await db
-        .select({ role: organizationMembers.role })
-        .from(organizationMembers)
-        .where(
-          and(
+      let organizationRole: Role | null = null;
+      if (result.session.organizationId) {
+        const members = await db
+          .select({ role: organizationMembers.role })
+          .from(organizationMembers)
+          .where(
             eq(
               organizationMembers.organizationId,
               result.session.organizationId,
             ),
-            eq(organizationMembers.userId, result.user.id),
-          ),
-        )
-        .limit(1);
-      organizationRole = members[0]?.role ?? null;
+          )
+          .limit(1);
+        organizationRole = members[0]?.role ?? null;
+      }
+
+      c.set("user", {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        avatar: result.user.avatar ?? null,
+        organizationId: result.organization?.id ?? null,
+        organizationName: result.organization?.name ?? null,
+        organizationRole,
+      });
+
+      await next();
+    } catch (error) {
+      Sentry.captureException(error);
+      return c.json({ error: "Something went wrong" }, 500);
     }
-
-    c.set("user", {
-      id: result.user.id,
-      email: result.user.email,
-      name: result.user.name,
-      avatar: result.user.avatar ?? null,
-      organizationId: result.organization?.id ?? null,
-      organizationName: result.organization?.name ?? null,
-      organizationRole,
-    });
-
-    await next();
   },
 );
 

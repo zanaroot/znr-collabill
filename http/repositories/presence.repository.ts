@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import type { PresenceStatusValue } from "@/http/models/presence.model";
 import { getISODate } from "@/lib/date";
+import { wrapRepositoryWithSentry } from "../utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 export const findPresenceByUserIdAndDate = async (
   userId: string,
@@ -141,3 +142,19 @@ export const getPresenceSummaryByOrganization = async (
     )
     .groupBy(users.id, collaboratorRates.dailyRate);
 };
+
+export const presenceRepository = {
+  findPresenceByUserIdAndDate,
+  markPresence,
+  checkOut,
+  findRecentPresences,
+  getPresenceSummaryByOrganization,
+};
+
+export const presenceRepositoryWithSentry = wrapRepositoryWithSentry(
+  presenceRepository as Record<
+    string,
+    (...args: unknown[]) => Promise<unknown>
+  >,
+  "presence-repository",
+) as typeof presenceRepository;

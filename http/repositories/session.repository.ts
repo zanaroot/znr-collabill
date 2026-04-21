@@ -3,6 +3,7 @@
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db";
 import { organizations, sessions, users } from "@/db/schema";
+import { wrapRepositoryWithSentry } from "../utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 export const createSession = async (data: {
   userId: string;
@@ -59,3 +60,15 @@ export const updateSessionOrganization = async (
     .set({ organizationId })
     .where(eq(sessions.token, token));
 };
+
+export const sessionRepository = {
+  createSession,
+  findValidSessionByToken,
+  deleteSessionByToken,
+  updateSessionOrganization,
+};
+
+export const sessionRepositoryWithSentry = wrapRepositoryWithSentry(
+  sessionRepository as Record<string, (...args: unknown[]) => Promise<unknown>>,
+  "session-repository",
+) as typeof sessionRepository;

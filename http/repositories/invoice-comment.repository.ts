@@ -3,6 +3,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { invoiceComments, invoices, users } from "@/db/schema";
+import { wrapRepositoryWithSentry } from "../utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 export interface CreateCommentInput {
   invoiceId: string;
@@ -78,3 +79,18 @@ export const findOrganizationMembersToNotify = async (
     )
     .where(and(eq(invoices.userId, users.id), eq(users.id, excludeUserId)));
 };
+
+export const invoiceCommentRepository = {
+  findCommentsByInvoiceId,
+  createComment,
+  findInvoiceWithOrganization,
+  findOrganizationMembersToNotify,
+};
+
+export const invoiceCommentRepositoryWithSentry = wrapRepositoryWithSentry(
+  invoiceCommentRepository as Record<
+    string,
+    (...args: unknown[]) => Promise<unknown>
+  >,
+  "invoice-comment-repository",
+) as typeof invoiceCommentRepository;

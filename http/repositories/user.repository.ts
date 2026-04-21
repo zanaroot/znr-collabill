@@ -10,6 +10,7 @@ import {
   users,
 } from "@/db/schema";
 import type { Role } from "@/http/models/user.model";
+import { wrapRepositoryWithSentry } from "../utils/wrap-with-sentry/wrap-repository-with-sentry";
 
 export const findUserByEmail = async (email: string) => {
   const [user] = await db
@@ -186,3 +187,21 @@ export const upsertCollaboratorRate = async (
     return newRate;
   }
 };
+
+export const userRepository = {
+  findUserByEmail,
+  findUserById,
+  hasUserRole,
+  getAllUsersWithRoles,
+  deleteUser,
+  updateUserRole,
+  updateUser,
+  getOrganizations,
+  getCollaboratorRate,
+  upsertCollaboratorRate,
+};
+
+export const userRepositoryWithSentry = wrapRepositoryWithSentry(
+  userRepository as Record<string, (...args: unknown[]) => Promise<unknown>>,
+  "user-repository",
+) as typeof userRepository;
