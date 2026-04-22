@@ -13,6 +13,7 @@ import {
 } from "@/http/models/project.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
+import { logError } from "@/lib/sentry";
 import { getCurrentUser } from "./get-current-user.action";
 
 export const createProjectAction = async (
@@ -40,6 +41,11 @@ export const createProjectAction = async (
     revalidatePath("/projects");
     return { success: true, data: project };
   } catch (error) {
+    logError(error, {
+      action: "createProjectAction",
+      input,
+      userId: undefined,
+    });
     console.error("Create project error:", error);
     return { error: "Something went wrong", success: false };
   }
@@ -78,6 +84,12 @@ export const updateProjectAction = async (
 
     return { success: true, data: project };
   } catch (error) {
+    logError(error, {
+      action: "updateProjectAction",
+      id,
+      input,
+      userId: undefined,
+    });
     console.error("Update project error:", error);
     return { error: "Something went wrong", success: false };
   }
@@ -113,6 +125,11 @@ export const deleteProjectAction = async (
     revalidatePath("/projects");
     return { success: true, message: "Project deleted successfully" };
   } catch (error) {
+    logError(error, {
+      action: "deleteProjectAction",
+      id,
+      userId: undefined,
+    });
     console.error("Delete project error:", error);
     return { error: "Something went wrong", success: false };
   }
@@ -142,7 +159,13 @@ export const updateProjectSlackSettingsAction = async (
 
     return { success: true, message: "Slack settings updated successfully" };
   } catch (error) {
-    console.error("Update project Slack settings error:", error);
+    logError(error, {
+      action: "updateProjectSlackSettingsAction",
+      projectId,
+      data,
+      userId: undefined,
+    });
+    console.error("Update project slack settings error:", error);
     return { error: "Something went wrong", success: false };
   }
 };

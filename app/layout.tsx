@@ -6,6 +6,7 @@ import { AntProvider } from "@/packages/antd";
 import { ReactQueryProvider } from "@/packages/react-query";
 import { ThemeProvider } from "./_components/theme-provider";
 import "./globals.css";
+import { SentryProvider } from "@/app/sentry-povider";
 import { publicEnv } from "@/packages/env";
 
 const geistSans = Geist({
@@ -96,13 +97,15 @@ const RootLayout = ({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
-        <ThemeProvider>
-          <AntProvider>
-            <ReactQueryProvider>
-              <App>{children}</App>
-            </ReactQueryProvider>
-          </AntProvider>
-        </ThemeProvider>
+        <SentryProvider>
+          <ThemeProvider>
+            <AntProvider>
+              <ReactQueryProvider>
+                <App>{children}</App>
+              </ReactQueryProvider>
+            </AntProvider>
+          </ThemeProvider>
+        </SentryProvider>
       </body>
     </html>
   );
