@@ -112,11 +112,15 @@ export function Column({
           />
         }
         style={{
-          minHeight: 640,
+          height: "calc(100vh - 200px)",
+          minHeight: 400,
+          maxHeight: "calc(100vh - 120px)",
           borderColor: isDragOver ? "#1677ff" : undefined,
           background: isDragOver ? "#f0f7ff" : undefined,
           transition: "border-color 0.2s ease, background-color 0.2s ease",
           boxShadow: "0 8px 20px rgba(15, 23, 42, 0.06)",
+          display: "flex",
+          flexDirection: "column",
         }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -128,9 +132,10 @@ export function Column({
               display: "flex",
               flexDirection: "column",
               gap: 8,
-              maxHeight: 500,
+              flex: 1,
               overflowY: "auto",
               paddingRight: 4,
+              minHeight: 0,
             }}
           >
             {tasks.map((task) => (
