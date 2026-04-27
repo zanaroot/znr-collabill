@@ -26,10 +26,17 @@ export const canTransitionTaskStatus = ({
 }: TaskWorkflowContext) => {
   if (from === to) return true;
 
-  if (from === "BACKLOG") {
-    const canMoveFromBacklog = userRole === "OWNER" || userRole === "ADMIN";
-    if (!canMoveFromBacklog) return false;
-    return to === "TODO" || to === "TRASH";
+  if (from === "BACKLOG" || to === "BACKLOG") {
+    const canAccessBacklog = userRole === "OWNER" || userRole === "ADMIN";
+    if (!canAccessBacklog) return false;
+
+    if (from === "BACKLOG") {
+      return to === "TODO" || to === "TRASH";
+    }
+
+    if (to === "BACKLOG") {
+      return from === "TODO" || from === "IN_PROGRESS" || from === "BLOCKED";
+    }
   }
 
   if (from === "IN_REVIEW") {
@@ -50,13 +57,24 @@ export const getAllowedTaskTransitions = ({
       : [];
   }
 
+  const canAccessBacklog = userRole === "OWNER" || userRole === "ADMIN";
+  const allowedToBacklog =
+    canAccessBacklog && ["TODO", "IN_PROGRESS", "BLOCKED"].includes(from)
+      ? ["BACKLOG"]
+      : [];
+
   if (from === "IN_REVIEW") {
     return userRole && userRole !== "COLLABORATOR"
-      ? ["TRASH", "IN_PROGRESS", "VALIDATED"]
+      ? ([
+          "TRASH",
+          "IN_PROGRESS",
+          "VALIDATED",
+          ...allowedToBacklog,
+        ] as TaskStatus[])
       : [];
   }
 
-  return [...COMMON_TRANSITIONS[from]];
+  return [...COMMON_TRANSITIONS[from], ...allowedToBacklog] as TaskStatus[];
 };
 
 export const canDeleteTaskByStatus = (status: TaskStatus) => {
