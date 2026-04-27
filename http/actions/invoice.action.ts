@@ -10,6 +10,7 @@ import {
   archiveTasksByIds,
   getValidatedTaskIdsByPeriodAndUser,
 } from "@/http/repositories/task.repository";
+import { logError } from "@/lib/sentry";
 import { getCurrentUser } from "./get-current-user.action";
 
 type ValidateInvoiceArgs = {
@@ -106,7 +107,15 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
     revalidatePath("/invoices");
     return { success: true };
   } catch (error) {
-    console.error("Failed to create invoice:", error);
+    logError(error, {
+      action: "validateInvoiceAction",
+      targetUserId,
+      periodStart,
+      periodEnd,
+      totalAmount,
+      linesCount: linesInput.length,
+    });
+    console.error("Validate invoice error:", error);
     return { error: "Failed to validate invoice" };
   }
 };
@@ -125,7 +134,12 @@ export const markInvoiceAsPaidAction = async (invoiceId: string) => {
     revalidatePath("/invoices");
     return { success: true };
   } catch (error) {
-    console.error("Failed to mark invoice as paid:", error);
+    logError(error, {
+      action: "markInvoiceAsPaidAction",
+      invoiceId,
+      userId: undefined,
+    });
+    console.error("Mark invoice as paid error:", error);
     return { error: "Failed to mark invoice as paid" };
   }
 };

@@ -4,6 +4,7 @@ import { Select, Spin, Typography } from "antd";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useMemo } from "react";
+// import TestSentry from "@/app/_components/test-sentry";
 import {
   useProjectMembers,
   useProjects,
@@ -145,6 +146,7 @@ export const TaskBoard = () => {
           taskId={taskId}
         />
       )}
+      {/* <TestSentry /> */}
     </div>
   );
 };

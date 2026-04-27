@@ -14,6 +14,7 @@ import {
 } from "@/http/repositories/session.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { getFutureDate } from "@/lib/date";
+import { logError } from "@/lib/sentry";
 import { generateSessionToken } from "@/lib/session-token";
 
 const factory = createFactory<AuthEnv>();
@@ -70,6 +71,11 @@ export const register = factory.createHandlers(
 
       return c.json({ message: "Registration successful", success: true }, 201);
     } catch (error) {
+      logError(error, {
+        action: "register",
+        email: undefined,
+        organizationName: undefined,
+      });
       console.error("Registration error:", error);
       return c.json({ error: "Something went wrong", success: false }, 500);
     }
@@ -122,6 +128,10 @@ export const login = factory.createHandlers(
         redirectToOrganization: orgCount === 0,
       });
     } catch (error) {
+      logError(error, {
+        action: "login",
+        email: undefined,
+      });
       console.error("Sign in error:", error);
       return c.json({ error: "Something went wrong", success: false }, 500);
     }
