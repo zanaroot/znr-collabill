@@ -47,6 +47,8 @@ jobs:
           build-args: |
             NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
             NEXT_PUBLIC_S3_ENDPOINT=${{ vars.NEXT_PUBLIC_S3_ENDPOINT }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
+            SENTRY_DNS=${{ vars.SENTRY_DNS }}
             SKIP_SERVER_ENV_VALIDATION=1
           push: true
           tags: |
@@ -80,6 +82,7 @@ jobs:
           POSTGRES_USER=${{ vars.POSTGRES_USER }}
           MINIO_ROOT_USER=${{ vars.MINIO_ROOT_USER }}
           S3_ACCESS_KEY=${{ vars.S3_ACCESS_KEY }}
+          SENTRY_DNS=${{ vars.SENTRY_DNS }}
           S3_BUCKET=${{ vars.S3_BUCKET }}
           S3_REGION=${{ vars.S3_REGION }}
           S3_ENDPOINT=${{ vars.S3_ENDPOINT }}
