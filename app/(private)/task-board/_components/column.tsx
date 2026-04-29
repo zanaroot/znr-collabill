@@ -112,9 +112,8 @@ export function Column({
           />
         }
         style={{
-          height: "calc(100vh - 200px)",
-          minHeight: 400,
-          maxHeight: "calc(100vh - 120px)",
+          height: "calc(100vh - 350px)",
+          minHeight: 300,
           borderColor: isDragOver ? "#1677ff" : undefined,
           background: isDragOver ? "#f0f7ff" : undefined,
           transition: "border-color 0.2s ease, background-color 0.2s ease",

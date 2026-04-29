@@ -76,7 +76,7 @@ const InvoicesPage = async ({
   const showHistory = !periodId && !memberId && history.length > 0;
 
   return (
-    <div className="invoice-page">
+    <div className="invoice-page" style={{ height: "calc(100vh - 160px)", overflowY: "auto", paddingRight: "8px" }}>
       <div className="invoice-header no-print">
         <div className="flex items-center gap-4">
           {!showHistory && history.length > 0 && (
