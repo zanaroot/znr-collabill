@@ -1,1 +1,1 @@
-DROP TABLE "task_notifications" CASCADE;
+DROP TABLE IF EXISTS "task_notifications" CASCADE;

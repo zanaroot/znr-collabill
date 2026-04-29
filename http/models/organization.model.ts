@@ -15,6 +15,11 @@ export const organizationSchema = z.object({
   slug: z.string().min(1),
   slackBotTokenEncrypted: z.string().nullable().optional(),
   slackDefaultChannel: z.string().nullable().optional(),
+  unusedLeavePolicy: z
+    .enum(["CARRY_OVER", "PAID_AS_WORKED"])
+    .default("CARRY_OVER"),
+  adminLeaveQuota: z.string().default("2.5"),
+  collaboratorLeaveQuota: z.string().default("2.0"),
   createdAt: z.date().nullable().or(z.string()),
   deletedAt: z.date().nullable().or(z.string()).optional(),
 });
