@@ -15,6 +15,13 @@
       "when": 1776337113438,
       "tag": "0001_shocking_rachel_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777470320069,
+      "tag": "0002_groovy_nighthawk",
+      "breakpoints": true
     }
   ]
 }

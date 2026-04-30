@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { AuthUser } from "@/http/models/auth.model";
+import type { Organization } from "@/http/models/organization.model";
 import type { Period } from "@/http/models/period.model";
 import type { InvoiceWithLines } from "@/http/repositories/invoice.repository";
 import { InvoiceContentWrapper } from "./invoice-content-wrapper";
@@ -25,6 +26,7 @@ interface InvoiceDetailViewProps {
   existingInvoice: InvoiceWithLines | null;
   isOwner: boolean;
   members: Member[];
+  organization: Organization;
 }
 
 export const InvoiceDetailView = ({
@@ -37,12 +39,12 @@ export const InvoiceDetailView = ({
   existingInvoice,
   isOwner,
   members,
+  organization,
 }: InvoiceDetailViewProps) => {
   const [customLines, setCustomLines] = useState<
     Array<{ label: string; amount: string; key: string }>
   >([]);
 
-  // Initialize custom lines from existing invoice if any
   useMemo(() => {
     if (existingInvoice?.lines) {
       const custom = existingInvoice.lines
@@ -75,6 +77,7 @@ export const InvoiceDetailView = ({
           taskData={taskSummary}
           isDetailsPage={true}
           customLines={customLines}
+          organization={organization}
         />
       </div>
 

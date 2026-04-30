@@ -6,6 +6,7 @@ export const PRESENCE_STATUSES = [
   "ON_SITE",
   "SICK",
   "VACATION",
+  "ON_LEAVE",
 ] as const;
 
 export type PresenceStatus = (typeof PRESENCE_STATUSES)[number];

@@ -27,6 +27,24 @@ export const presenceStatusEnum = pgEnum("presence_status", [
   "ON_SITE",
   "SICK",
   "VACATION",
+  "ON_LEAVE",
+]);
+
+export const leaveRequestStatusEnum = pgEnum("leave_request_status", [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+]);
+
+export const unusedLeavePolicyEnum = pgEnum("unused_leave_policy", [
+  "CARRY_OVER",
+  "PAID_AS_WORKED",
+]);
+
+export const leaveTypeEnum = pgEnum("leave_type", [
+  "FULL_DAY",
+  "HALF_DAY_AM",
+  "HALF_DAY_PM",
 ]);
 
 export const integrationTypeEnum = pgEnum("integration_type", [
