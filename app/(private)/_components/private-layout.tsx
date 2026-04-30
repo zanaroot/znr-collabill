@@ -290,7 +290,8 @@ export const PrivateLayout = ({
           style={{
             margin: "16px",
             padding: 18,
-            minHeight: "calc(100vh - 64px)",
+            height: "calc(100vh - 96px)",
+            overflow: "hidden",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
