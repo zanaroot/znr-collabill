@@ -96,6 +96,23 @@ export const findRecentPresences = async (
   });
 };
 
+export const findPresencesByUserIdAndDateRange = async (
+  userId: string,
+  organizationId: string,
+  startDate: string,
+  endDate: string,
+) => {
+  return await db.query.presences.findMany({
+    where: and(
+      eq(presences.userId, userId),
+      eq(presences.organizationId, organizationId),
+      gte(presences.date, startDate),
+      lte(presences.date, endDate),
+    ),
+    orderBy: (presences, { asc }) => [asc(presences.date)],
+  });
+};
+
 export const getPresenceSummaryByOrganization = async (
   userId: string,
   organizationId: string,

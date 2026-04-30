@@ -23,6 +23,28 @@ export const getTodayPresence = factory.createHandlers(async (c) => {
   return c.json(presence);
 });
 
+export const getMyPresences = factory.createHandlers(async (c) => {
+  const user = c.get("user");
+  if (!user.organizationId)
+    return c.json({ error: "No organization found" }, 404);
+
+  const startDate = c.req.query("startDate");
+  const endDate = c.req.query("endDate");
+
+  if (!startDate || !endDate) {
+    return c.json({ error: "startDate and endDate are required" }, 400);
+  }
+
+  const presences = await presenceRepository.findPresencesByUserIdAndDateRange(
+    user.id,
+    user.organizationId,
+    startDate,
+    endDate,
+  );
+
+  return c.json(presences);
+});
+
 export const markPresence = factory.createHandlers(
   zValidator("json", markPresenceSchema.omit({ organizationId: true })),
   async (c) => {
