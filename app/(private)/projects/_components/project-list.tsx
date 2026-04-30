@@ -6,26 +6,15 @@ import {
   EyeOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import {
-  App,
-  Button,
-  Card,
-  Flex,
-  Table,
-  Typography,
-} from "antd";
+import { App, Button, Card, Flex, Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import type { Project } from "@/http/models/project.model";
 import { useCurrentUser } from "../../team-management/_hooks/use-team";
-import {
-  useDeleteProject,
-  useProjects,
-} from "../_hooks/use-projects";
+import { useDeleteProject, useProjects } from "../_hooks/use-projects";
 import { ProjectDetailsDrawer } from "./project-details-drawer";
 
 const { Title } = Typography;
-
 
 export function ProjectList() {
   const [selectedProjectForDetails, setSelectedProjectForDetails] =
