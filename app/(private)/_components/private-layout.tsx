@@ -2,6 +2,7 @@
 
 import {
   ApartmentOutlined,
+  CalendarOutlined,
   ContactsOutlined,
   FileTextOutlined,
   LeftOutlined,
@@ -126,6 +127,11 @@ export const PrivateLayout = ({
       key: "projects",
       icon: <ProjectOutlined />,
       label: "Projects",
+    },
+    {
+      key: "leave-management",
+      icon: <CalendarOutlined />,
+      label: "Leaves",
     },
     {
       key: "invoices",

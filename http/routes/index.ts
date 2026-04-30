@@ -7,6 +7,7 @@ import { integrationRoutes } from "./integration.route";
 import { publicInvitationRoutes } from "./invitation.route";
 import { invoiceRoutes } from "./invoice.route";
 import { invoiceCommentRoutes } from "./invoice-comment.route";
+import { leaveRoutes } from "./leave.route";
 import { organizationRoutes } from "./organization.route";
 import { publicPasswordRoutes } from "./password.route";
 import { presenceRoutes } from "./presence.route";
@@ -28,6 +29,7 @@ export const app = new Hono()
   .route("/organizations", organizationRoutes)
   .route("/integrations", integrationRoutes)
   .route("/presence", presenceRoutes)
+  .route("/leave-requests", leaveRoutes)
   .route("/projects", projectRoutes)
   .route("/tasks", taskRoutes);
 

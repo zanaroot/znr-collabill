@@ -7,7 +7,10 @@ import {
   findInvoiceByPeriodAndUser,
   findInvoicesWithUsersByOrganizationId,
 } from "@/http/repositories/invoice.repository";
-import { getOrganizationMembers } from "@/http/repositories/organization.repository";
+import {
+  getOrganizationById,
+  getOrganizationMembers,
+} from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
@@ -35,38 +38,41 @@ const InvoicesPage = async ({
   const selectedPeriod =
     getPeriodById(periodId || currentPeriod.id) || currentPeriod;
 
-  const [presenceSummary, taskSummary, members, existingInvoice, history] =
-    await Promise.all([
-      getPresenceSummaryByOrganization(
-        user.id,
-        user.organizationId,
-        targetUserId,
-        selectedPeriod.startDate,
-        selectedPeriod.endDate,
-      ),
-      getValidatedTaskSummaryByOrganization(
-        user.id,
-        user.organizationId,
-        targetUserId,
-        selectedPeriod.startDate
-          ? new Date(selectedPeriod.startDate)
-          : undefined,
-        selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : undefined,
-      ),
-      isOwner
-        ? getOrganizationMembers(user.organizationId)
-        : Promise.resolve([]),
-      findInvoiceByPeriodAndUser(
-        selectedPeriod.startDate,
-        selectedPeriod.endDate,
-        targetUserId,
-        user.organizationId,
-      ),
-      findInvoicesWithUsersByOrganizationId(
-        user.organizationId,
-        isOwner ? undefined : user.id,
-      ),
-    ]);
+  const [
+    presenceSummary,
+    taskSummary,
+    members,
+    existingInvoice,
+    history,
+    organization,
+  ] = await Promise.all([
+    getPresenceSummaryByOrganization(
+      user.id,
+      user.organizationId,
+      targetUserId,
+      selectedPeriod.startDate,
+      selectedPeriod.endDate,
+    ),
+    getValidatedTaskSummaryByOrganization(
+      user.id,
+      user.organizationId,
+      targetUserId,
+      selectedPeriod.startDate ? new Date(selectedPeriod.startDate) : undefined,
+      selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : undefined,
+    ),
+    isOwner ? getOrganizationMembers(user.organizationId) : Promise.resolve([]),
+    findInvoiceByPeriodAndUser(
+      selectedPeriod.startDate,
+      selectedPeriod.endDate,
+      targetUserId,
+      user.organizationId,
+    ),
+    findInvoicesWithUsersByOrganizationId(
+      user.organizationId,
+      isOwner ? undefined : user.id,
+    ),
+    getOrganizationById(user.organizationId),
+  ]);
 
   const targetUserName =
     targetUserId === user.id
@@ -112,6 +118,7 @@ const InvoicesPage = async ({
           existingInvoice={existingInvoice}
           isOwner={isOwner}
           members={members}
+          organization={organization}
         />
       )}
     </div>

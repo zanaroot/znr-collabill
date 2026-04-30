@@ -6,7 +6,90 @@ on:
   pull_request:
     branches: ["main"]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
+  validate-github-config:
+    name: Validate GitHub config
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+
+    env:
+      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+      NEXT_PUBLIC_S3_ENDPOINT: ${{ vars.NEXT_PUBLIC_S3_ENDPOINT }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
+      POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+      POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+      MINIO_ROOT_USER: ${{ vars.MINIO_ROOT_USER }}
+      S3_ACCESS_KEY: ${{ vars.S3_ACCESS_KEY }}
+      SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+      S3_BUCKET: ${{ vars.S3_BUCKET }}
+      S3_REGION: ${{ vars.S3_REGION }}
+      S3_ENDPOINT: ${{ vars.S3_ENDPOINT }}
+      MAIL_FROM: ${{ vars.MAIL_FROM }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+      S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+      DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+      DROPLET_USER: ${{ secrets.DROPLET_USER }}
+      DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+
+    steps:
+      - name: Validate required GitHub vars and secrets
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          missing=0
+
+          check_required() {
+            local kind="$1"
+            local name="$2"
+            local value="$3"
+
+            if [ -n "$value" ]; then
+              return
+            fi
+
+            echo "::error title=Missing GitHub ${kind}::${name} is not configured in the production environment"
+            missing=1
+          }
+
+          check_required "variable" "NEXT_PUBLIC_APP_URL" "$NEXT_PUBLIC_APP_URL"
+          check_required "variable" "NEXT_PUBLIC_S3_ENDPOINT" "$NEXT_PUBLIC_S3_ENDPOINT"
+          check_required "variable" "NEXT_PUBLIC_SENTRY_DSN" "$NEXT_PUBLIC_SENTRY_DSN"
+          check_required "variable" "POSTGRES_DB" "$POSTGRES_DB"
+          check_required "variable" "POSTGRES_USER" "$POSTGRES_USER"
+          check_required "variable" "MINIO_ROOT_USER" "$MINIO_ROOT_USER"
+          check_required "variable" "S3_ACCESS_KEY" "$S3_ACCESS_KEY"
+          check_required "variable" "SENTRY_DSN" "$SENTRY_DSN"
+          check_required "variable" "S3_BUCKET" "$S3_BUCKET"
+          check_required "variable" "S3_REGION" "$S3_REGION"
+          check_required "variable" "S3_ENDPOINT" "$S3_ENDPOINT"
+          check_required "variable" "MAIL_FROM" "$MAIL_FROM"
+          check_required "secret" "DATABASE_URL" "$DATABASE_URL"
+          check_required "secret" "POSTGRES_PASSWORD" "$POSTGRES_PASSWORD"
+          check_required "secret" "MINIO_ROOT_PASSWORD" "$MINIO_ROOT_PASSWORD"
+          check_required "secret" "S3_SECRET_KEY" "$S3_SECRET_KEY"
+          check_required "secret" "ENCRYPTION_KEY" "$ENCRYPTION_KEY"
+          check_required "secret" "BREVO_API_KEY" "$BREVO_API_KEY"
+          check_required "secret" "GHCR_USERNAME" "$GHCR_USERNAME"
+          check_required "secret" "GHCR_READ_TOKEN" "$GHCR_READ_TOKEN"
+          check_required "secret" "DROPLET_HOST" "$DROPLET_HOST"
+          check_required "secret" "DROPLET_USER" "$DROPLET_USER"
+          check_required "secret" "DROPLET_SSH_KEY" "$DROPLET_SSH_KEY"
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
   build-and-check:
     runs-on: ubuntu-latest
 

@@ -7,12 +7,15 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { App, Button, Select, Typography } from "antd";
+import dayjs from "dayjs";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { z } from "zod";
 import type {
   CreateInvoiceInput,
   invoiceLineSchema,
 } from "@/http/models/invoice.model";
+import type { LeaveBalance } from "@/http/models/leave.model";
+import type { Organization } from "@/http/models/organization.model";
 import { client } from "@/packages/hono";
 
 const { Text } = Typography;
@@ -41,6 +44,7 @@ type InvoiceFiltersProps = {
   taskData: RawTaskSummary[];
   isDetailsPage?: boolean;
   customLines?: Array<{ label: string; amount: string; key: string }>;
+  organization: Organization;
 };
 
 export const InvoiceFilters = ({
@@ -57,6 +61,7 @@ export const InvoiceFilters = ({
   presenceData,
   taskData,
   customLines = [],
+  organization,
 }: InvoiceFiltersProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -174,6 +179,24 @@ export const InvoiceFilters = ({
       },
     });
 
+  const { data: leaveBalance } = useQuery({
+    queryKey: ["leave-balance", targetUserId, periodStart],
+    queryFn: async () => {
+      if (!periodStart) return null;
+      const date = dayjs(periodStart);
+      const res = await client.api["leave-requests"].balance.$get({
+        query: {
+          month: (date.month() + 1).toString(),
+          year: date.year().toString(),
+        },
+      });
+      const data = await res.json();
+      if ("error" in data) return null;
+      return data as LeaveBalance;
+    },
+    enabled: !!targetUserId && !!periodStart,
+  });
+
   const handleValidate = async () => {
     if (!targetUserId || !periodStart || !periodEnd) return;
 
@@ -193,6 +216,30 @@ export const InvoiceFilters = ({
           unitPrice: rate.toString(),
           total: amount.toString(),
         });
+      }
+    }
+
+    // Add unused leave logic
+    if (organization?.unusedLeavePolicy === "PAID_AS_WORKED" && leaveBalance) {
+      const remaining = Number(leaveBalance.remaining || 0);
+      if (remaining > 0) {
+        const member = members.find((m) => m.id === targetUserId);
+        const memberRate = Number(
+          presenceData.find((p) => p.userId === targetUserId)?.dailyRate || 0,
+        );
+        const amount = remaining * memberRate;
+
+        if (amount > 0) {
+          totalAmount += amount;
+          linesInput.push({
+            type: "PRESENCE",
+            referenceId: targetUserId,
+            label: `Unused Leave (Paid as Worked) for ${member?.name}`,
+            quantity: remaining,
+            unitPrice: memberRate.toString(),
+            total: amount.toString(),
+          });
+        }
       }
     }
 

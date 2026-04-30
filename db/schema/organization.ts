@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  numeric,
   pgTable,
   primaryKey,
   text,
@@ -7,7 +8,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { roleEnum } from "./enums";
+import { roleEnum, unusedLeavePolicyEnum } from "./enums";
 import { users } from "./user";
 
 export const organizations = pgTable("organizations", {
@@ -16,6 +17,18 @@ export const organizations = pgTable("organizations", {
   slug: text("slug").notNull().unique(),
   slackBotTokenEncrypted: text("slack_bot_token_encrypted"),
   slackDefaultChannel: text("slack_default_channel"),
+  unusedLeavePolicy: unusedLeavePolicyEnum("unused_leave_policy")
+    .default("CARRY_OVER")
+    .notNull(),
+  adminLeaveQuota: numeric("admin_leave_quota", { precision: 4, scale: 1 })
+    .default("2.5")
+    .notNull(),
+  collaboratorLeaveQuota: numeric("collaborator_leave_quota", {
+    precision: 4,
+    scale: 1,
+  })
+    .default("2.0")
+    .notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
 });
