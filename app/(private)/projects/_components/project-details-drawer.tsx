@@ -304,113 +304,112 @@ export function ProjectDetailsDrawer({
             )}
           </Form.Item>
         </Form>
-      ) : (
-        project ? (
-          <Space orientation="vertical" size="large" style={{ width: "100%" }}>
-            <section>
-              <Title level={4}>{project.name}</Title>
-              <Paragraph type="secondary">
-                {project.description || "No description provided."}
-              </Paragraph>
-              {project.gitRepo && (
-                <Text type="secondary">
-                  Git Repo:{" "}
-                  <Typography.Link href={project.gitRepo} target="_blank">
-                    {project.gitRepo}
-                  </Typography.Link>
-                </Text>
-              )}
-            </section>
+      ) : project ? (
+        <Space orientation="vertical" size="large" style={{ width: "100%" }}>
+          <section>
+            <Title level={4}>{project.name}</Title>
+            <Paragraph type="secondary">
+              {project.description || "No description provided."}
+            </Paragraph>
+            {project.gitRepo && (
+              <Text type="secondary">
+                Git Repo:{" "}
+                <Typography.Link href={project.gitRepo} target="_blank">
+                  {project.gitRepo}
+                </Typography.Link>
+              </Text>
+            )}
+          </section>
 
-            <Divider />
+          <Divider />
 
-            <section>
-              <Title level={5} style={{ marginBottom: 16 }}>
-                Slack Notifications
+          <section>
+            <Title level={5} style={{ marginBottom: 16 }}>
+              Slack Notifications
+            </Title>
+            <ProjectSlackSettingsForm project={project} />
+          </section>
+
+          <Divider />
+
+          <section>
+            <Flex
+              justify="space-between"
+              align="center"
+              style={{ marginBottom: 16 }}
+            >
+              <Title level={5} style={{ margin: 0 }}>
+                Team Members
               </Title>
-              <ProjectSlackSettingsForm project={project} />
-            </section>
-
-            <Divider />
-
-            <section>
-              <Flex
-                justify="space-between"
-                align="center"
-                style={{ marginBottom: 16 }}
-              >
-                <Title level={5} style={{ margin: 0 }}>
-                  Team Members
-                </Title>
-                {!isGrantingAccess && isAdminOrOwner && (
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    size="small"
-                    onClick={() => setIsGrantingAccess(true)}
-                  >
-                    Grant Access
-                  </Button>
-                )}
-              </Flex>
-
-              {isGrantingAccess && (
-                <Card size="small">
-                  <Space orientation="vertical" style={{ width: "100%" }}>
-                    <Select
-                      showSearch={{
-                        filterOption: (input, option) =>
-                          (
-                            (option as { label: string; value: string })?.label ??
-                            ""
-                          )
-                            .toLowerCase()
-                            .includes(input.toLowerCase()),
-                      }}
-                      placeholder="Select a user to grant access"
-                      style={{ width: "100%" }}
-                      loading={isLoadingUsers}
-                      onChange={setSelectedUserId}
-                      value={selectedUserId}
-                      options={availableUsers.map((u) => ({
-                        label: `${u.name} (${u.email})`,
-                        value: u.id,
-                      }))}
-                    />
-                    <Flex gap={8} justify="end">
-                      <Button
-                        size="small"
-                        onClick={() => setIsGrantingAccess(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="small"
-                        type="primary"
-                        onClick={handleGrantAccess}
-                        loading={addMemberMutation.isPending}
-                        disabled={!selectedUserId}
-                      >
-                        Confirm
-                      </Button>
-                    </Flex>
-                  </Space>
-                </Card>
+              {!isGrantingAccess && isAdminOrOwner && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  size="small"
+                  onClick={() => setIsGrantingAccess(true)}
+                >
+                  Grant Access
+                </Button>
               )}
+            </Flex>
 
-              {isLoadingMembers ? (
-                <Flex justify="center" align="center" style={{ padding: 24 }}>
-                  <Spin />
-                </Flex>
-              ) : members && members.length > 0 ? (
-                <List
-                  itemLayout="horizontal"
-                  dataSource={members}
-                  renderItem={(item) => (
-                    <List.Item
-                      actions={
-                        isAdminOrOwner && canRemoveUser(item.id)
-                          ? [
+            {isGrantingAccess && (
+              <Card size="small">
+                <Space orientation="vertical" style={{ width: "100%" }}>
+                  <Select
+                    showSearch={{
+                      filterOption: (input, option) =>
+                        (
+                          (option as { label: string; value: string })?.label ??
+                          ""
+                        )
+                          .toLowerCase()
+                          .includes(input.toLowerCase()),
+                    }}
+                    placeholder="Select a user to grant access"
+                    style={{ width: "100%" }}
+                    loading={isLoadingUsers}
+                    onChange={setSelectedUserId}
+                    value={selectedUserId}
+                    options={availableUsers.map((u) => ({
+                      label: `${u.name} (${u.email})`,
+                      value: u.id,
+                    }))}
+                  />
+                  <Flex gap={8} justify="end">
+                    <Button
+                      size="small"
+                      onClick={() => setIsGrantingAccess(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={handleGrantAccess}
+                      loading={addMemberMutation.isPending}
+                      disabled={!selectedUserId}
+                    >
+                      Confirm
+                    </Button>
+                  </Flex>
+                </Space>
+              </Card>
+            )}
+
+            {isLoadingMembers ? (
+              <Flex justify="center" align="center" style={{ padding: 24 }}>
+                <Spin />
+              </Flex>
+            ) : members && members.length > 0 ? (
+              <List
+                itemLayout="horizontal"
+                dataSource={members}
+                renderItem={(item) => (
+                  <List.Item
+                    actions={
+                      isAdminOrOwner && canRemoveUser(item.id)
+                        ? [
                             <Button
                               key="remove"
                               type="text"
@@ -421,31 +420,31 @@ export function ProjectDetailsDrawer({
                               }
                             />,
                           ]
-                          : undefined
+                        : undefined
+                    }
+                  >
+                    <List.Item.Meta
+                      avatar={
+                        <AvatarProfile
+                          src={item.avatar}
+                          userName={item.name}
+                          userEmail={item.email}
+                        />
                       }
-                    >
-                      <List.Item.Meta
-                        avatar={
-                          <AvatarProfile
-                            src={item.avatar}
-                            userName={item.name}
-                            userEmail={item.email}
-                          />
-                        }
-                        title={item.name}
-                        description={item.email}
-                      />
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <Empty description="No members found" />
-              )}
-            </section>
-          </Space>
-        ) : (
-          <Empty />
-        ))}
-    </Drawer >
+                      title={item.name}
+                      description={item.email}
+                    />
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Empty description="No members found" />
+            )}
+          </section>
+        </Space>
+      ) : (
+        <Empty />
+      )}
+    </Drawer>
   );
 }
