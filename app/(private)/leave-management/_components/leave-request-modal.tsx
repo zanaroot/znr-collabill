@@ -90,7 +90,7 @@ export const LeaveRequestModal = ({
       open={open}
       onCancel={onClose}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <Row gutter={16} className="mb-6">
         <Col span={8}>
@@ -112,7 +112,7 @@ export const LeaveRequestModal = ({
             title="Remaining"
             value={balance && !("error" in balance) ? balance.remaining : 0}
             precision={1}
-            valueStyle={{ color: "#3f8600" }}
+            styles={{ content: { color: "#3f8600" } }}
           />
         </Col>
       </Row>

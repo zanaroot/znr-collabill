@@ -96,19 +96,6 @@ export const InvoiceFilters = ({
     window.print();
   };
 
-  const { data: _organizationOwner, isLoading: _isLoadingOwner } = useQuery({
-    queryKey: ["organization-owner", organizationId],
-    queryFn: async () => {
-      const res = await client.api.organizations[":id"].owner.$get({
-        param: { id: organizationId },
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch organization owner");
-      }
-      return res.json();
-    },
-  });
-
   const { mutateAsync: validateInvoice, isPending: isValidating } = useMutation(
     {
       mutationFn: async (args: CreateInvoiceInput) => {
@@ -219,27 +206,31 @@ export const InvoiceFilters = ({
       }
     }
 
-    // Add unused leave logic
     if (organization?.unusedLeavePolicy === "PAID_AS_WORKED" && leaveBalance) {
       const remaining = Number(leaveBalance.remaining || 0);
-      if (remaining > 0) {
-        const member = members.find((m) => m.id === targetUserId);
-        const memberRate = Number(
+      const member = members.find((m) => m.id === targetUserId);
+      const isAdmin = member?.role === "ADMIN";
+      const leaveQuota = Number(
+        isAdmin
+          ? organization.adminLeaveQuota
+          : organization.collaboratorLeaveQuota,
+      );
+      const memberRate =
+        Number(
           presenceData.find((p) => p.userId === targetUserId)?.dailyRate || 0,
-        );
-        const amount = remaining * memberRate;
+        ) || leaveQuota * 100;
+      const amount = remaining * memberRate;
 
-        if (amount > 0) {
-          totalAmount += amount;
-          linesInput.push({
-            type: "PRESENCE",
-            referenceId: targetUserId,
-            label: `Unused Leave (Paid as Worked) for ${member?.name}`,
-            quantity: remaining,
-            unitPrice: memberRate.toString(),
-            total: amount.toString(),
-          });
-        }
+      if (amount > 0) {
+        totalAmount += amount;
+        linesInput.push({
+          type: "LEAVE",
+          referenceId: targetUserId,
+          label: `Unused Leave (Paid as Worked) for ${member?.name}`,
+          quantity: remaining,
+          unitPrice: memberRate.toString(),
+          total: amount.toString(),
+        });
       }
     }
 
@@ -265,7 +256,6 @@ export const InvoiceFilters = ({
       }
     }
 
-    // Add custom lines
     for (const cl of customLines) {
       const amount = Number(cl.amount || 0);
       if (amount !== 0) {
