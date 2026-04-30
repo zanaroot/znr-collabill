@@ -361,19 +361,29 @@ export const TaskForm = ({
                 Create new branch
               </Button>
             </div>
-            <Select
-              showSearch
-              loading={isLoadingBranches}
-              value={formValues.gitBranch}
-              onChange={(value) => updateField("gitBranch", value)}
-              placeholder="Select a branch"
-              options={branches?.map((branch) => ({
-                label: branch,
-                value: branch,
-              }))}
-              style={{ width: "100%" }}
-              allowClear
-            />
+            {branches && branches.length > 0 ? (
+              <Select
+                showSearch
+                loading={isLoadingBranches}
+                value={formValues.gitBranch}
+                onChange={(value) => updateField("gitBranch", value)}
+                placeholder="Select a branch"
+                options={branches?.map((branch) => ({
+                  label: branch,
+                  value: branch,
+                }))}
+                style={{ width: "100%" }}
+                allowClear
+              />
+            ) : (
+              <Input
+                value={formValues.gitBranch || ""}
+                onChange={(e) => updateField("gitBranch", e.target.value)}
+                placeholder="Enter branch name"
+                style={{ width: "100%" }}
+                allowClear
+              />
+            )}
           </Space>
         </div>
       </Space>
