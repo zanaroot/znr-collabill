@@ -20,6 +20,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { AvatarProfile } from "@/app/_components/avatar-profile";
 import type {
   CollaboratorRate,
   Role,
@@ -226,7 +227,17 @@ export const MemberList = () => {
       dataIndex: "name",
       key: "name",
       responsive: ["xs", "sm", "md", "lg", "xl"],
-      render: (text) => <Typography.Text strong>{text}</Typography.Text>,
+      render: (text: string, record: UserWithRoles) => (
+        <Flex align="center" gap={8}>
+          <AvatarProfile
+            src={record.avatar}
+            userName={record.name}
+            userEmail={record.email}
+            size={32}
+          />
+          <Typography.Text strong>{text}</Typography.Text>
+        </Flex>
+      ),
     },
     {
       title: "Email",

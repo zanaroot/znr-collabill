@@ -5,8 +5,9 @@ import {
   ExclamationCircleOutlined,
   SendOutlined,
 } from "@ant-design/icons";
-import { App, Button, Card, Table, Tag, Typography } from "antd";
+import { App, Button, Card, Flex, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { AvatarProfile } from "@/app/_components/avatar-profile";
 import type { Invitation } from "@/http/models/user.model";
 import {
   useCurrentUser,
@@ -58,6 +59,17 @@ export const InvitationList = () => {
       title: "Email",
       dataIndex: "email",
       key: "email",
+      render: (email: string) => (
+        <Flex align="center" gap={8}>
+          <AvatarProfile
+            src={null}
+            userName={email}
+            userEmail={email}
+            size={32}
+          />
+          <Typography.Text>{email}</Typography.Text>
+        </Flex>
+      ),
     },
     {
       title: "Role",
