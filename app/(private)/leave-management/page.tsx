@@ -53,7 +53,7 @@ export default function LeaveManagementPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 overflow-y-auto">
       <Title level={2}>Leave Management</Title>
 
       <Card>
