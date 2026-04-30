@@ -2,47 +2,32 @@
 
 import {
   DeleteOutlined,
-  EditOutlined,
   ExclamationCircleOutlined,
   EyeOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   App,
   Button,
   Card,
-  Drawer,
   Flex,
-  Form,
-  Input,
-  InputNumber,
   Table,
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import {
-  type CreateProjectInput,
-  createProjectSchema,
-  type Project,
-} from "@/http/models/project.model";
+import { useState } from "react";
+import type { Project } from "@/http/models/project.model";
 import { useCurrentUser } from "../../team-management/_hooks/use-team";
 import {
-  useCreateProject,
   useDeleteProject,
   useProjects,
-  useUpdateProject,
 } from "../_hooks/use-projects";
 import { ProjectDetailsDrawer } from "./project-details-drawer";
 
 const { Title } = Typography;
-const { TextArea } = Input;
+
 
 export function ProjectList() {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [selectedProjectForDetails, setSelectedProjectForDetails] =
     useState<Project | null>(null);
 
@@ -50,44 +35,7 @@ export function ProjectList() {
 
   const { data: currentUser } = useCurrentUser();
   const { data: projects, isLoading: isFetching } = useProjects();
-  const createProjectMutation = useCreateProject();
-  const updateProjectMutation = useUpdateProject();
   const deleteProjectMutation = useDeleteProject();
-
-  const [form] = Form.useForm();
-
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<CreateProjectInput>({
-    resolver: zodResolver(createProjectSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      gitRepo: "",
-      baseRate: 1,
-    },
-  });
-
-  useEffect(() => {
-    if (editingProject) {
-      reset({
-        name: editingProject.name,
-        description: editingProject.description || "",
-        gitRepo: editingProject.gitRepo || "",
-        baseRate: editingProject.baseRate || 1,
-      });
-    } else {
-      reset({
-        name: "",
-        description: "",
-        gitRepo: "",
-        baseRate: 1,
-      });
-    }
-  }, [editingProject, reset]);
 
   const handleDelete = (id: string) => {
     modal.confirm({
@@ -108,47 +56,10 @@ export function ProjectList() {
     });
   };
 
-  const onEdit = (project: Project) => {
-    setEditingProject(project);
-    setIsDrawerOpen(true);
-  };
-
   const onAdd = () => {
-    setEditingProject(null);
-    setIsDrawerOpen(true);
-  };
-
-  const onFormSubmit = (data: CreateProjectInput) => {
-    const isOwner = currentUser?.organizationRole === "OWNER";
-    const payload = isOwner ? data : { ...data, baseRate: undefined };
-
-    if (editingProject) {
-      updateProjectMutation.mutate(
-        { id: editingProject.id, data: payload },
-        {
-          onSuccess: () => {
-            message.success("Project updated successfully");
-            setIsDrawerOpen(false);
-            setEditingProject(null);
-            reset();
-          },
-          onError: (error) => {
-            message.error(error.message || "Failed to update project");
-          },
-        },
-      );
-    } else {
-      createProjectMutation.mutate(data, {
-        onSuccess: () => {
-          message.success("Project created successfully");
-          setIsDrawerOpen(false);
-          reset();
-        },
-        onError: (error) => {
-          message.error(error.message || "Failed to create project");
-        },
-      });
-    }
+    // This will be handled by a separate create project modal/drawer in the future
+    // For now, we'll keep the existing functionality but it needs to be implemented
+    message.info("Create project functionality will be implemented separately");
   };
 
   const columns: ColumnsType<Project> = [
@@ -198,15 +109,6 @@ export function ProjectList() {
       responsive: ["xs", "sm", "md", "lg", "xl"],
       render: (_, record) => (
         <Flex gap={4}>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(record);
-            }}
-          />
           <Button
             type="text"
             danger
@@ -299,122 +201,6 @@ export function ProjectList() {
         open={!!selectedProjectForDetails}
         onClose={() => setSelectedProjectForDetails(null)}
       />
-
-      <Drawer
-        title={editingProject ? "Edit project" : "Create a new project"}
-        size={500}
-        onClose={() => {
-          setIsDrawerOpen(false);
-          setEditingProject(null);
-          reset();
-        }}
-        open={isDrawerOpen}
-        styles={{
-          body: { paddingBottom: 80 },
-        }}
-        footer={
-          <Flex justify="flex-end" gap={8}>
-            <Button
-              onClick={() => {
-                setIsDrawerOpen(false);
-                setEditingProject(null);
-                reset();
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="primary"
-              onClick={handleSubmit(onFormSubmit)}
-              loading={
-                createProjectMutation.isPending ||
-                updateProjectMutation.isPending
-              }
-            >
-              {editingProject ? "Update" : "Submit"}
-            </Button>
-          </Flex>
-        }
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            label="Project Name"
-            required
-            validateStatus={errors.name ? "error" : ""}
-            help={errors.name?.message}
-          >
-            <Controller
-              name="name"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} placeholder="Enter project name" />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Git Repository URL"
-            validateStatus={errors.gitRepo ? "error" : ""}
-            help={errors.gitRepo?.message}
-          >
-            <Controller
-              name="gitRepo"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} placeholder="https://github.com/user/repo" />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Description"
-            validateStatus={errors.description ? "error" : ""}
-            help={errors.description?.message}
-          >
-            <Controller
-              name="description"
-              control={control}
-              render={({ field }) => (
-                <TextArea
-                  {...field}
-                  rows={3}
-                  placeholder="Enter project description"
-                />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Base Rate"
-            validateStatus={errors.baseRate ? "error" : ""}
-            help={errors.baseRate?.message}
-          >
-            {currentUser?.organizationRole === "OWNER" ? (
-              <Controller
-                name="baseRate"
-                control={control}
-                render={({ field }) => (
-                  <InputNumber
-                    {...field}
-                    min={0}
-                    step={0.01}
-                    placeholder="Enter base rate"
-                    style={{ width: "100%" }}
-                  />
-                )}
-              />
-            ) : (
-              <InputNumber
-                value={editingProject?.baseRate || 1}
-                disabled
-                min={0}
-                step={0.01}
-                style={{ width: "100%" }}
-              />
-            )}
-          </Form.Item>
-        </Form>
-      </Drawer>
     </>
   );
 }
