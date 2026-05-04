@@ -102,6 +102,14 @@ export function Column({
             <Tag color={statusColor}>{tasks.length}</Tag>
           </div>
         }
+        styles={{
+          body: {
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            minHeight: 0,
+          },
+        }}
         extra={
           <Button
             type="text"
