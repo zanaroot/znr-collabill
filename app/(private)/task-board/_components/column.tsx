@@ -111,6 +111,14 @@ export function Column({
             disabled={!projectId || !canCreateTask}
           />
         }
+        styles={{
+          body: {
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            minHeight: 0,
+          },
+        }}
         style={{
           height: "calc(100vh - 350px)",
           minHeight: 300,
@@ -135,6 +143,7 @@ export function Column({
               overflowY: "auto",
               paddingRight: 4,
               minHeight: 0,
+              maxHeight: "calc(100vh - 450px)",
             }}
           >
             {tasks.map((task) => (
@@ -154,11 +163,21 @@ export function Column({
             ))}
           </div>
         ) : (
-          <Empty
-            description={
-              isDragOver ? "Drop task here" : "No tasks in this stage"
-            }
-          />
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 200,
+            }}
+          >
+            <Empty
+              description={
+                isDragOver ? "Drop task here" : "No tasks in this stage"
+              }
+            />
+          </div>
         )}
       </Card>
     </div>
