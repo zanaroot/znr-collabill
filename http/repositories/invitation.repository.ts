@@ -4,6 +4,7 @@ import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db";
 import {
   invitations,
+  invoices,
   organizationMembers,
   userRoles,
   users,
@@ -20,6 +21,19 @@ export const findValidInvitationByToken = async (token: string) => {
     .limit(1);
 
   return invitation ?? null;
+};
+
+export const findInvoiceByIdWithOrganization = async (invoiceId: string) => {
+  const result = await db
+    .select({
+      id: invoices.id,
+      organizationId: invoices.organizationId,
+    })
+    .from(invoices)
+    .where(eq(invoices.id, invoiceId))
+    .limit(1);
+
+  return result[0] || null;
 };
 
 export const upsertInvitation = async (data: {

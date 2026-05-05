@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
 import { getTaskUrl } from "@/app/_utils/get-task-by-url";
 import { db } from "@/db";
-import { invoices, organizationMembers, users } from "@/db/schema";
+import { invoices } from "@/db/schema";
 import { getOrgSlackCredentialsDecrypted } from "@/http/actions/integrations.action";
+import { findInvoiceByIdWithOrganization } from "@/http/repositories/invitation.repository";
+import { getOrganizationMembers } from "@/http/repositories/organization.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import { sendEmail } from "@/packages/email";
@@ -274,31 +276,6 @@ View invoice: ${baseUrl}/invoices/${invoiceId}
 
   await sendBulkEmail(members, subject, html, text);
 };
-
-async function findInvoiceByIdWithOrganization(invoiceId: string) {
-  const result = await db
-    .select({
-      id: invoices.id,
-      organizationId: invoices.organizationId,
-    })
-    .from(invoices)
-    .where(eq(invoices.id, invoiceId))
-    .limit(1);
-
-  return result[0] || null;
-}
-
-async function getOrganizationMembers(organizationId: string) {
-  const members = await db
-    .select({
-      email: users.email,
-    })
-    .from(organizationMembers)
-    .innerJoin(users, eq(organizationMembers.userId, users.id))
-    .where(eq(organizationMembers.organizationId, organizationId));
-
-  return members;
-}
 
 async function sendBulkEmail(
   members: { email: string }[],
