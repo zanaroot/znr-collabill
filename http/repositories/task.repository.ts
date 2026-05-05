@@ -227,12 +227,23 @@ export const getValidatedTaskSummaryByOrganization = async (
     );
 };
 
-export const archiveTasksByIds = async (taskIds: string[]) => {
+export const archiveTasksByIds = async (
+  taskIds: string[],
+  invoiceId: string,
+) => {
   if (taskIds.length === 0) return [];
   return await db
     .update(tasks)
-    .set({ status: "ARCHIVED", archivedAt: new Date() })
-    .where(inArray(tasks.id, taskIds))
+    .set({ status: "ARCHIVED", archivedAt: new Date(), invoiceId })
+    .where(and(inArray(tasks.id, taskIds), eq(tasks.status, "VALIDATED")))
+    .returning();
+};
+
+export const unarchiveTasksByInvoice = async (invoiceId: string) => {
+  return await db
+    .update(tasks)
+    .set({ status: "VALIDATED", archivedAt: null, invoiceId: null })
+    .where(and(eq(tasks.invoiceId, invoiceId), eq(tasks.status, "ARCHIVED")))
     .returning();
 };
 
@@ -253,4 +264,37 @@ export const getValidatedTaskIdsByPeriodAndUser = async (
       ),
     );
   return result.map((r) => r.id);
+};
+
+export const getArchivedTaskIdsByPeriodAndUser = async (
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) => {
+  const result = await db
+    .select({ id: tasks.id })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.assignedTo, userId),
+        eq(tasks.status, "ARCHIVED"),
+        gte(tasks.archivedAt, startDate),
+        lte(tasks.archivedAt, endOfDay(endDate)),
+      ),
+    );
+  return result.map((r) => r.id);
+};
+
+export const restoreArchivedTasksByIds = async (taskIds: string[]) => {
+  if (taskIds.length === 0) return [];
+  return await db
+    .update(tasks)
+    .set({ status: "VALIDATED", archivedAt: null })
+    .where(
+      and(
+        inArray(tasks.id, taskIds),
+        eq(tasks.status, "ARCHIVED"), // sécurité: ne restaurer que les tâches ARCHIVED
+      ),
+    )
+    .returning();
 };

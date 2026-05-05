@@ -9,6 +9,11 @@ import {
 } from "@/http/models/invoice.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
 import {
+  archiveTasksByIds,
+  getValidatedTaskIdsByPeriodAndUser,
+  unarchiveTasksByInvoice,
+} from "@/http/repositories/task.repository";
+import {
   notifyInvoicePaidEmail,
   notifyInvoiceValidatedEmail,
 } from "@/lib/notifications";
@@ -48,39 +53,6 @@ export const getInvoiceById = factory.createHandlers(async (c) => {
   return c.json(invoice);
 });
 
-export const createInvoice = factory.createHandlers(
-  zValidator("json", createInvoiceSchema),
-  async (c) => {
-    const user = c.get("user");
-    const payload = c.req.valid("json");
-
-    if (payload.organizationId !== user.organizationId) {
-      return c.json({ error: "Unauthorized" }, 403);
-    }
-
-    const { lines, ...invoiceData } = payload;
-
-    const invoice = await invoiceRepository.createInvoiceWithLines(
-      invoiceData,
-      lines,
-    );
-
-    await logAudit({
-      organizationId: user.organizationId,
-      actorId: user.id,
-      action: "CREATE",
-      entity: "INVOICE",
-      entityId: invoice.id,
-      metadata: {
-        periodStart: invoice.periodStart,
-        periodEnd: invoice.periodEnd,
-      },
-    });
-
-    return c.json(invoice, 201);
-  },
-);
-
 export const updateInvoiceStatus = factory.createHandlers(
   zValidator("json", updateInvoiceStatusSchema),
   async (c) => {
@@ -116,6 +88,17 @@ export const updateInvoiceStatus = factory.createHandlers(
         console.error("[Notification] Failed to send email:", err);
       });
     } else if (status === "DRAFT") {
+      //  Restaurer les tâches archivées liées à cette facture
+      const restoredTasks = await unarchiveTasksByInvoice(id);
+      console.log(
+        `Successfully restored ${restoredTasks.length} tasks for invoice ${id}:`,
+        restoredTasks.map((t) => ({
+          id: t.id,
+          status: t.status,
+          archivedAt: t.archivedAt,
+        })),
+      );
+
       await invoiceRepository.deleteInvoiceLines(id);
       await invoiceRepository.deleteInvoice(id);
 
@@ -142,5 +125,62 @@ export const updateInvoiceStatus = factory.createHandlers(
     });
 
     return c.json(updated);
+  },
+);
+
+export const createInvoice = factory.createHandlers(
+  zValidator("json", createInvoiceSchema),
+  async (c) => {
+    const user = c.get("user");
+    const payload = c.req.valid("json");
+
+    if (payload.organizationId !== user.organizationId) {
+      return c.json({ error: "Unauthorized" }, 403);
+    }
+
+    const { lines, ...invoiceData } = payload;
+
+    const invoice = await invoiceRepository.createInvoiceWithLines(
+      invoiceData,
+      lines,
+    );
+
+    const validatedTaskIds = await getValidatedTaskIdsByPeriodAndUser(
+      invoiceData.userId,
+      new Date(invoiceData.periodStart),
+      new Date(invoiceData.periodEnd),
+    );
+    console.log(
+      `Found ${validatedTaskIds.length} validated tasks to archive for invoice ${invoice.id}:`,
+      validatedTaskIds,
+    );
+    if (validatedTaskIds.length > 0) {
+      const archivedTasks = await archiveTasksByIds(
+        validatedTaskIds,
+        invoice.id,
+      );
+      console.log(
+        `Successfully archived ${archivedTasks.length} tasks for invoice ${invoice.id}:`,
+        archivedTasks.map((t) => ({
+          id: t.id,
+          status: t.status,
+          archivedAt: t.archivedAt,
+        })),
+      );
+    }
+
+    await logAudit({
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "CREATE",
+      entity: "INVOICE",
+      entityId: invoice.id,
+      metadata: {
+        periodStart: invoice.periodStart,
+        periodEnd: invoice.periodEnd,
+      },
+    });
+
+    return c.json(invoice, 201);
   },
 );
