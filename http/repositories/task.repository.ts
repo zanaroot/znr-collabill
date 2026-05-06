@@ -9,6 +9,7 @@ import {
   eq,
   gte,
   inArray,
+  isNotNull,
   lte,
   ne,
   or,
@@ -175,8 +176,10 @@ export const getValidatedTaskSummaryByOrganization = async (
     eq(organizationMembers.userId, targetUserId ?? userId),
     eq(organizationMembers.organizationId, organizationId),
     eq(projects.organizationId, organizationId),
-    eq(tasks.status, "VALIDATED"),
-    ne(tasks.status, "ARCHIVED"),
+    or(
+      and(eq(tasks.status, "VALIDATED"), ne(tasks.status, "ARCHIVED")),
+      and(eq(tasks.status, "ARCHIVED"), isNotNull(tasks.invoiceId)),
+    ),
   ];
 
   if (startDate && endDate) {
