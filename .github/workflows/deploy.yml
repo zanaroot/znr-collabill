@@ -45,8 +45,10 @@ jobs:
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf /opt/hostedtoolcache/CodeQL
-          docker image prune -af
-          docker builder prune -af 
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/.cache
+          docker system prune -af --volumes
+          df -h
 
       - name: Build and push app image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
@@ -54,7 +56,6 @@ jobs:
           context: .
           file: ./Dockerfile
           target: runner
-          no-cache: true
           build-args: |
             NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
             NEXT_PUBLIC_S3_ENDPOINT=${{ vars.NEXT_PUBLIC_S3_ENDPOINT }}
