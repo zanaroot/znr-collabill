@@ -81,7 +81,7 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
       return { error: "Organization ID is missing" };
     }
 
-    await createInvoiceWithLines(
+    const invoice = await createInvoiceWithLines(
       {
         userId: targetUserId,
         organizationId: user.organizationId,
@@ -115,7 +115,7 @@ export const validateInvoiceAction = async (args: ValidateInvoiceArgs) => {
     );
 
     if (validatedTaskIds.length > 0) {
-      await archiveTasksByIds(validatedTaskIds);
+      await archiveTasksByIds(validatedTaskIds, invoice.id);
     }
 
     revalidatePath("/invoices");
