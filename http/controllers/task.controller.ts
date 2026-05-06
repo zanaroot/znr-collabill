@@ -197,6 +197,7 @@ export const updateTask = factory.createHandlers(
       if (payload.status === "VALIDATED") {
         updates.validatedAt = new Date();
         updates.validatedBy = user.id;
+        updates.archivedAt = null;
 
         notifyTaskValidatedSlack(id).catch((err) => {
           console.error(
@@ -204,9 +205,12 @@ export const updateTask = factory.createHandlers(
             err,
           );
         });
+      } else if (payload.status === "ARCHIVED") {
+        updates.archivedAt = new Date();
       } else if (task.validatedAt) {
         updates.validatedAt = null;
         updates.validatedBy = null;
+        updates.archivedAt = null;
       }
 
       if (payload.status === "IN_REVIEW") {

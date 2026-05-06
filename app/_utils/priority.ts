@@ -60,11 +60,12 @@ export function getPriorityOptions() {
   }));
 }
 
-export type BoardView = "ACTIVE" | "INACTIVE" | "ALL";
+export type BoardView = "ACTIVE" | "INACTIVE" | "ARCHIVED" | "ALL";
 
 export const BOARD_VIEW_STATUSES: Record<BoardView, TaskStatus[]> = {
   ACTIVE: ["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "VALIDATED"],
-  INACTIVE: ["TODO", "BLOCKED", "TRASH"],
+  INACTIVE: ["BLOCKED", "TRASH"],
+  ARCHIVED: ["ARCHIVED"],
   ALL: [
     "BACKLOG",
     "TODO",
@@ -73,6 +74,7 @@ export const BOARD_VIEW_STATUSES: Record<BoardView, TaskStatus[]> = {
     "VALIDATED",
     "BLOCKED",
     "TRASH",
+    "ARCHIVED",
   ],
 };
 
