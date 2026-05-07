@@ -19,6 +19,8 @@ interface InvoiceContentWrapperProps {
   user: AuthUser;
   targetUserName?: string;
   targetUserId: string;
+  targetUserPhoneNumber?: string | null;
+  targetUserPhoneOwnerName?: string | null;
   selectedPeriod: Period;
   existingInvoice: InvoiceWithLines | null;
   isOwner: boolean;
@@ -34,6 +36,8 @@ export const InvoiceContentWrapper = ({
   user,
   targetUserName,
   targetUserId,
+  targetUserPhoneNumber,
+  targetUserPhoneOwnerName,
   selectedPeriod,
   existingInvoice,
   isOwner,
@@ -85,6 +89,8 @@ export const InvoiceContentWrapper = ({
             organizationId={user.organizationId || ""}
             targetUserName={targetUserName}
             targetUserId={targetUserId}
+            targetUserPhoneNumber={targetUserPhoneNumber}
+            targetUserPhoneOwnerName={targetUserPhoneOwnerName}
             periodId={selectedPeriod.id}
             periodStart={selectedPeriod.startDate}
             periodEnd={selectedPeriod.endDate}

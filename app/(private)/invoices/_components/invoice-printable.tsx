@@ -39,6 +39,8 @@ type InvoicePrintableProps = {
   organizationId: string;
   targetUserName?: string;
   targetUserId: string;
+  targetUserPhoneNumber?: string | null;
+  targetUserPhoneOwnerName?: string | null;
   periodId?: string;
   periodStart?: string;
   periodEnd?: string;
@@ -58,6 +60,8 @@ export const InvoicePrintable = ({
   organizationId,
   targetUserName,
   targetUserId,
+  targetUserPhoneNumber,
+  targetUserPhoneOwnerName,
   periodStart,
   periodEnd,
   periodName,
@@ -101,7 +105,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+          "Failed to validate invoice",
         );
       }
       return res.json();
@@ -319,13 +323,31 @@ export const InvoicePrintable = ({
 
         {targetUserName && (
           <div className="mb-8 p-4 bg-blue-50/50 rounded-lg border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800 print:bg-transparent">
-            <Space>
-              <Text strong className="dark:text-gray-200">
-                Billing for Member:
-              </Text>
-              <Text className="text-blue-700 dark:text-blue-300 font-semibold underline decoration-2 underline-offset-4 decoration-blue-200 dark:decoration-blue-700">
-                {targetUserName}
-              </Text>
+            <Space direction="vertical" size="small">
+              <div>
+                <Text strong className="dark:text-gray-200">
+                  Billing for Member:
+                </Text>
+                <Text className="text-blue-700 dark:text-blue-300 font-semibold underline decoration-2 underline-offset-4 decoration-blue-200 dark:decoration-blue-700 ml-2">
+                  {targetUserName}
+                </Text>
+              </div>
+              {(targetUserPhoneNumber || targetUserPhoneOwnerName) && (
+                <div className="text-sm">
+                  {targetUserPhoneNumber && (
+                    <div>
+                      <Text strong className="dark:text-gray-300">Phone:</Text>
+                      <Text className="dark:text-gray-400 ml-2">{targetUserPhoneNumber}</Text>
+                    </div>
+                  )}
+                  {targetUserPhoneOwnerName && (
+                    <div>
+                      <Text strong className="dark:text-gray-300">Phone Owner:</Text>
+                      <Text className="dark:text-gray-400 ml-2">{targetUserPhoneOwnerName}</Text>
+                    </div>
+                  )}
+                </div>
+              )}
             </Space>
           </div>
         )}

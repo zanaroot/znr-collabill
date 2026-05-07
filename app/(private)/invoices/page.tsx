@@ -13,6 +13,7 @@ import {
 } from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
+import { findUserById } from "@/http/repositories/user.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
 import { InvoiceDetailView } from "./_components/invoice-detail-view";
 import { InvoiceHistoryTable } from "./_components/invoice-history-table";
@@ -79,6 +80,11 @@ const InvoicesPage = async ({
       ? user.name
       : members.find((m) => m.id === targetUserId)?.name;
 
+  // Récupérer les informations de téléphone de l'utilisateur cible
+  const targetUser = await findUserById(targetUserId);
+  const targetUserPhoneNumber = targetUser?.phoneNumber || null;
+  const targetUserPhoneOwnerName = targetUser?.phoneOwnerName || null;
+
   const showHistory = !periodId && !memberId && history.length > 0;
 
   return (
@@ -114,6 +120,8 @@ const InvoicesPage = async ({
           user={user}
           targetUserName={targetUserName}
           targetUserId={targetUserId}
+          targetUserPhoneNumber={targetUserPhoneNumber}
+          targetUserPhoneOwnerName={targetUserPhoneOwnerName}
           selectedPeriod={selectedPeriod}
           existingInvoice={existingInvoice}
           isOwner={isOwner}
