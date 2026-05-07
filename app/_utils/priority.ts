@@ -64,7 +64,7 @@ export type BoardView = "ACTIVE" | "INACTIVE" | "ARCHIVED" | "ALL";
 
 export const BOARD_VIEW_STATUSES: Record<BoardView, TaskStatus[]> = {
   ACTIVE: ["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "VALIDATED"],
-  INACTIVE: ["BLOCKED", "TRASH"],
+  INACTIVE: ["TODO", "BLOCKED", "TRASH"],
   ARCHIVED: ["ARCHIVED"],
   ALL: [
     "BACKLOG",

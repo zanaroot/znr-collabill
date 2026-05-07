@@ -122,7 +122,14 @@ export const createTask = factory.createHandlers(
       return c.json({ error: "Unauthorized" }, 403);
     }
 
-    const task = await taskRepository.createTask(payload);
+    const taskData = {
+      ...payload,
+      ...(payload.status === "VALIDATED" && {
+        validatedAt: new Date().toISOString(),
+        validatedBy: user.id,
+      }),
+    };
+    const task = await taskRepository.createTask(taskData);
 
     if (user.organizationId) {
       await logAudit({

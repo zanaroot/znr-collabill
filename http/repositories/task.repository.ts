@@ -10,6 +10,7 @@ import {
   gte,
   inArray,
   isNotNull,
+  isNull,
   lte,
   ne,
   or,
@@ -184,8 +185,18 @@ export const getValidatedTaskSummaryByOrganization = async (
 
   if (startDate && endDate) {
     whereClauses.push(
-      gte(tasks.validatedAt, startDate),
-      lte(tasks.validatedAt, endOfDay(endDate)),
+      or(
+        and(
+          isNotNull(tasks.validatedAt),
+          gte(tasks.validatedAt, startDate),
+          lte(tasks.validatedAt, endOfDay(endDate)),
+        ),
+        and(
+          isNull(tasks.validatedAt),
+          gte(tasks.createdAt, startDate),
+          lte(tasks.createdAt, endOfDay(endDate)),
+        ),
+      ),
     );
   }
 
@@ -262,8 +273,18 @@ export const getValidatedTaskIdsByPeriodAndUser = async (
       and(
         eq(tasks.assignedTo, userId),
         eq(tasks.status, "VALIDATED"),
-        gte(tasks.validatedAt, startDate),
-        lte(tasks.validatedAt, endOfDay(endDate)),
+        or(
+          and(
+            isNotNull(tasks.validatedAt),
+            gte(tasks.validatedAt, startDate),
+            lte(tasks.validatedAt, endOfDay(endDate)),
+          ),
+          and(
+            isNull(tasks.validatedAt),
+            gte(tasks.createdAt, startDate),
+            lte(tasks.createdAt, endOfDay(endDate)),
+          ),
+        ),
       ),
     );
   return result.map((r) => r.id);
@@ -293,11 +314,6 @@ export const restoreArchivedTasksByIds = async (taskIds: string[]) => {
   return await db
     .update(tasks)
     .set({ status: "VALIDATED", archivedAt: null })
-    .where(
-      and(
-        inArray(tasks.id, taskIds),
-        eq(tasks.status, "ARCHIVED"), // sécurité: ne restaurer que les tâches ARCHIVED
-      ),
-    )
+    .where(and(inArray(tasks.id, taskIds), eq(tasks.status, "ARCHIVED")))
     .returning();
 };
