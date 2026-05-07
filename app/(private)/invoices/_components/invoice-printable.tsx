@@ -105,7 +105,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-          "Failed to validate invoice",
+            "Failed to validate invoice",
         );
       }
       return res.json();
@@ -336,14 +336,22 @@ export const InvoicePrintable = ({
                 <div className="text-sm">
                   {targetUserPhoneNumber && (
                     <div>
-                      <Text strong className="dark:text-gray-300">Phone:</Text>
-                      <Text className="dark:text-gray-400 ml-2">{targetUserPhoneNumber}</Text>
+                      <Text strong className="dark:text-gray-300">
+                        Phone:
+                      </Text>
+                      <Text className="dark:text-gray-400 ml-2">
+                        {targetUserPhoneNumber}
+                      </Text>
                     </div>
                   )}
                   {targetUserPhoneOwnerName && (
                     <div>
-                      <Text strong className="dark:text-gray-300">Phone Owner:</Text>
-                      <Text className="dark:text-gray-400 ml-2">{targetUserPhoneOwnerName}</Text>
+                      <Text strong className="dark:text-gray-300">
+                        Phone Owner:
+                      </Text>
+                      <Text className="dark:text-gray-400 ml-2">
+                        {targetUserPhoneOwnerName}
+                      </Text>
                     </div>
                   )}
                 </div>

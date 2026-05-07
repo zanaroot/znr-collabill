@@ -46,6 +46,8 @@ const createMockUser = (
   email: "test@example.com",
   name: "Test User",
   avatar: null,
+  phoneNumber: null,
+  phoneOwnerName: null,
   organizationId: "org-1",
   organizationName: "Test Org",
   organizationRole: role,

@@ -24,7 +24,12 @@ export const ProfileDrawer = ({
   onClose,
   currentUser,
 }: ProfileDrawerProps) => {
-  const [form] = Form.useForm<{ name: string; email: string; phoneNumber?: string; phoneOwnerName?: string }>();
+  const [form] = Form.useForm<{
+    name: string;
+    email: string;
+    phoneNumber?: string;
+    phoneOwnerName?: string;
+  }>();
   const [editing, setEditing] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
@@ -35,7 +40,7 @@ export const ProfileDrawer = ({
         name: currentUser.name,
         email: currentUser.email,
         phoneNumber: currentUser.phoneNumber || undefined,
-        phoneOwnerName: currentUser.phoneOwnerName || undefined
+        phoneOwnerName: currentUser.phoneOwnerName || undefined,
       });
       setAvatarFile(null);
     }
@@ -81,7 +86,12 @@ export const ProfileDrawer = ({
   });
 
   const { mutate: updateProfile, isPending } = useMutation({
-    mutationFn: async (values: { name: string; email: string; phoneNumber?: string; phoneOwnerName?: string }) => {
+    mutationFn: async (values: {
+      name: string;
+      email: string;
+      phoneNumber?: string;
+      phoneOwnerName?: string;
+    }) => {
       const res = await client.api.users.me.$patch({ json: values });
       if (!res.ok) throw new Error("Failed to update profile");
       return await res.json();
@@ -94,7 +104,12 @@ export const ProfileDrawer = ({
     onError: (error: Error) => message.error(error.message),
   });
 
-  const onFinish = (values: { name: string; email: string; phoneNumber?: string; phoneOwnerName?: string }) => {
+  const onFinish = (values: {
+    name: string;
+    email: string;
+    phoneNumber?: string;
+    phoneOwnerName?: string;
+  }) => {
     if (avatarFile) {
       uploadAvatar(avatarFile, { onSuccess: () => updateProfile(values) });
     } else updateProfile(values);
