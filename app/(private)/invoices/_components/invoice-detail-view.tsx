@@ -22,6 +22,8 @@ interface InvoiceDetailViewProps {
   user: AuthUser;
   targetUserName?: string;
   targetUserId: string;
+  targetUserPhoneNumber?: string | null;
+  targetUserPhoneOwnerName?: string | null;
   selectedPeriod: Period;
   existingInvoice: InvoiceWithLines | null;
   isOwner: boolean;
@@ -35,6 +37,8 @@ export const InvoiceDetailView = ({
   user,
   targetUserName,
   targetUserId,
+  targetUserPhoneNumber,
+  targetUserPhoneOwnerName,
   selectedPeriod,
   existingInvoice,
   isOwner,
@@ -87,6 +91,8 @@ export const InvoiceDetailView = ({
         user={user}
         targetUserName={targetUserName}
         targetUserId={targetUserId}
+        targetUserPhoneNumber={targetUserPhoneNumber}
+        targetUserPhoneOwnerName={targetUserPhoneOwnerName}
         selectedPeriod={selectedPeriod}
         existingInvoice={existingInvoice}
         isOwner={isOwner}

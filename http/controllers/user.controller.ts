@@ -66,17 +66,26 @@ export const updateMe = factory.createHandlers(
       name: z.string().min(1, "Name is required").optional(),
       email: z.string().email("Invalid email").optional(),
       avatar: z.string().optional().nullable(),
+      phoneNumber: z.string().optional().nullable(),
+      phoneOwnerName: z.string().optional().nullable(),
     }),
   ),
   async (c) => {
     const user = c.get("user");
-    const { name, email, avatar } = c.req.valid("json");
+    const { name, email, avatar, phoneNumber, phoneOwnerName } =
+      c.req.valid("json");
 
     if (avatar === null && user.avatar) {
       await deleteS3FileFromUrl(user.avatar);
     }
 
-    const updatedUser = await updateUser(user.id, { name, email, avatar });
+    const updatedUser = await updateUser(user.id, {
+      name,
+      email,
+      avatar,
+      phoneNumber,
+      phoneOwnerName,
+    });
 
     return c.json(updatedUser);
   },
