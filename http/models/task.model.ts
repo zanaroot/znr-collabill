@@ -49,6 +49,8 @@ export const createTaskSchema = z.object({
   dueDate: z.string().optional().nullable(),
   assignedTo: z.uuid().optional().nullable(),
   status: taskStatusEnum.optional(),
+  validatedAt: z.string().nullable().optional(),
+  validatedBy: z.uuid().nullable().optional(),
   gitRepo: z.url().optional().nullable().or(z.literal("")),
   gitBranch: z.string().optional().nullable(),
   gitPullRequest: z.string().optional().nullable(),

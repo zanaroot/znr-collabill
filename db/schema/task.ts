@@ -7,6 +7,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { invoices } from "@/db/schema/invoice";
 import { taskSizeEnum, taskStatusEnum } from "./enums";
 import { projects } from "./project";
 import { taskComments } from "./task-comment";
@@ -27,6 +28,7 @@ export const tasks = pgTable("tasks", {
   validatedAt: timestamp("validated_at"),
   validatedBy: uuid("validated_by").references(() => users.id),
   archivedAt: timestamp("archived_at"),
+  invoiceId: uuid("invoice_id").references(() => invoices.id),
   gitRepo: text("git_repo"),
   gitBranch: text("git_branch"),
   gitPullRequest: text("git_pull_request"),
@@ -47,6 +49,11 @@ export const tasksRelations = relations(tasks, ({ many, one }) => ({
     fields: [tasks.validatedBy],
     references: [users.id],
     relationName: "validatedTasks",
+  }),
+  invoice: one(invoices, {
+    fields: [tasks.invoiceId],
+    references: [invoices.id],
+    relationName: "invoiceTasks",
   }),
   comments: many(taskComments),
 }));

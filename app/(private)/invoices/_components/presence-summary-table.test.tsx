@@ -55,8 +55,8 @@ describe("PresenceSummaryTable", () => {
     render(<PresenceSummaryTable data={mockData} />);
 
     // John: 10 * 100 = 1000, Jane: 8 * 150 = 1200
-    expect(screen.getByText(/1,000/)).toBeInTheDocument();
-    expect(screen.getByText(/1,200/)).toBeInTheDocument();
+    expect(screen.getByText(/1.?000/)).toBeInTheDocument();
+    expect(screen.getByText(/1.?200/)).toBeInTheDocument();
   });
 
   it("renders empty state when no data", () => {

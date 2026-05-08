@@ -215,7 +215,7 @@ describe("task-workflow", () => {
         from: "VALIDATED",
         userRole: "COLLABORATOR",
       });
-      expect(result).toHaveLength(0);
+      expect(result).toContain("ARCHIVED");
     });
 
     it("returns IN_REVIEW transitions for owner", () => {
@@ -285,7 +285,7 @@ describe("task-workflow", () => {
         from: "ARCHIVED",
         userRole: "OWNER",
       });
-      expect(result).toHaveLength(0);
+      expect(result).toContain("VALIDATED");
     });
   });
 

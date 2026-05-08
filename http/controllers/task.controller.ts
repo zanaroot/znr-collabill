@@ -122,7 +122,14 @@ export const createTask = factory.createHandlers(
       return c.json({ error: "Unauthorized" }, 403);
     }
 
-    const task = await taskRepository.createTask(payload);
+    const taskData = {
+      ...payload,
+      ...(payload.status === "VALIDATED" && {
+        validatedAt: new Date().toISOString(),
+        validatedBy: user.id,
+      }),
+    };
+    const task = await taskRepository.createTask(taskData);
 
     if (user.organizationId) {
       await logAudit({
@@ -197,6 +204,7 @@ export const updateTask = factory.createHandlers(
       if (payload.status === "VALIDATED") {
         updates.validatedAt = new Date();
         updates.validatedBy = user.id;
+        updates.archivedAt = null;
 
         notifyTaskValidatedSlack(id).catch((err) => {
           console.error(
@@ -204,9 +212,12 @@ export const updateTask = factory.createHandlers(
             err,
           );
         });
+      } else if (payload.status === "ARCHIVED") {
+        updates.archivedAt = new Date();
       } else if (task.validatedAt) {
         updates.validatedAt = null;
         updates.validatedBy = null;
+        updates.archivedAt = null;
       }
 
       if (payload.status === "IN_REVIEW") {

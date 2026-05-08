@@ -1,5 +1,5 @@
 {
-  "id": "7146aaaf-90be-493c-b5b7-35ac26c0197d",
+  "id": "508cb327-3f0d-4b80-acb6-fa0d87fc172f",
   "prevId": "96109bab-9985-4803-beb5-d05c9551a4f6",
   "version": "7",
   "dialect": "postgresql",
@@ -1490,6 +1490,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "invoice_id": {
+          "name": "invoice_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "git_repo": {
           "name": "git_repo",
           "type": "text",
@@ -1550,6 +1556,19 @@
           "tableTo": "users",
           "columnsFrom": [
             "validated_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tasks_invoice_id_invoices_id_fk": {
+          "name": "tasks_invoice_id_invoices_id_fk",
+          "tableFrom": "tasks",
+          "tableTo": "invoices",
+          "columnsFrom": [
+            "invoice_id"
           ],
           "columnsTo": [
             "id"

@@ -13,10 +13,10 @@ const COMMON_TRANSITIONS: Record<
 > = {
   TODO: ["IN_PROGRESS", "BLOCKED", "TRASH"],
   IN_PROGRESS: ["BLOCKED", "TRASH", "TODO", "IN_REVIEW"],
-  VALIDATED: [],
+  VALIDATED: ["ARCHIVED"],
   BLOCKED: ["TODO", "TRASH"],
   TRASH: [],
-  ARCHIVED: [],
+  ARCHIVED: ["VALIDATED"],
 };
 
 export const canTransitionTaskStatus = ({
