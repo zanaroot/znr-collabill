@@ -94,6 +94,7 @@ export function useBoard({
           status: task.status,
           assigneeId: task.assignedTo ?? null,
           gitBranch: task.gitBranch ?? "",
+          previewLink: task.previewLink ?? "",
         });
         setDrawerOpen(true);
         setIsEditing(false);
@@ -143,6 +144,7 @@ export function useBoard({
       status: task.status,
       assigneeId: task.assignedTo ?? null,
       gitBranch: task.gitBranch ?? "",
+      previewLink: task.previewLink ?? "",
     });
     setDrawerOpen(true);
     setIsEditing(false);
@@ -178,6 +180,7 @@ export function useBoard({
       status: formValues.status,
       assignedTo: formValues.assigneeId,
       gitBranch: formValues.gitBranch || undefined,
+      previewLink: formValues.previewLink || undefined,
     };
 
     if (activeTask) {

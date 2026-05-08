@@ -45,6 +45,7 @@ const taskSelectFields = {
   gitRepo: tasks.gitRepo,
   gitBranch: tasks.gitBranch,
   gitPullRequest: tasks.gitPullRequest,
+  previewLink: tasks.previewLink,
   createdAt: tasks.createdAt,
 };
 
@@ -141,6 +142,7 @@ export const createTask = async (input: CreateTaskInput) => {
       gitRepo: input.gitRepo,
       gitBranch: input.gitBranch,
       gitPullRequest: input.gitPullRequest,
+      previewLink: input.previewLink ?? null,
     })
     .returning();
 
