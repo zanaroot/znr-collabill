@@ -219,7 +219,7 @@ export const TaskForm = ({
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
-                    display: "block"
+                    display: "block",
                   }}
                 >
                   {formValues.previewLink}
@@ -414,7 +414,6 @@ export const TaskForm = ({
 
         <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <Space vertical size={8} style={{ width: "100%" }}>
-
             <Text strong>Preview Link</Text>
             <Input
               value={formValues.previewLink || ""}
