@@ -124,6 +124,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate migration files are journaled
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          error=0
+          for f in db/migration/*.sql; do
+            tag="$(basename "$f" .sql)"
+            if ! jq -e --arg tag "$tag" '.entries[] | select(.tag == $tag) | any' db/migration/meta/_journal.json > /dev/null; then
+              echo "::error::Migration file $f is not registered in db/migration/meta/_journal.json"
+              error=1
+            fi
+          done
+          if [ "$error" -ne 0 ]; then
+            exit 1
+          fi
+
       - name: Run Biome Lint
         run: pnpm lint
 

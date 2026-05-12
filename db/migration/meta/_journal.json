@@ -36,6 +36,13 @@
       "when": 1778247218329,
       "tag": "0004_illegal_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778250000000,
+      "tag": "0005_amber_coral",
+      "breakpoints": true
     }
   ]
 }
