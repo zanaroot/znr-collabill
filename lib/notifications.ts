@@ -1,17 +1,10 @@
-import { eq } from "drizzle-orm";
 import { getTaskUrl } from "@/app/_utils/get-task-by-url";
-import { db } from "@/db";
-import { invoices } from "@/db/schema";
 import { getOrgSlackCredentialsDecrypted } from "@/http/actions/integrations.action";
 import { findInvoiceByIdWithOrganization } from "@/http/repositories/invitation.repository";
-import { getOrganizationMembers } from "@/http/repositories/organization.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import { sendEmail } from "@/packages/email";
 import {
-  buildInvoiceCommentMessage,
-  buildInvoicePaidMessage,
-  buildInvoiceValidatedMessage,
   buildTaskAssignedMessage,
   buildTaskCommentMessage,
   buildTaskReviewMessage,
@@ -137,162 +130,48 @@ export const notifyTaskAssignedSlack = async (taskId: string) => {
   await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
 };
 
-export const notifyInvoiceValidatedSlack = async (invoiceId: string) => {
-  const invoice = await db.query.invoices.findFirst({
-    where: eq(invoices.id, invoiceId),
-    with: {
-      organization: true,
-    },
-  });
-
-  if (!invoice) return;
-
-  const slackCreds = await getOrgSlackCredentialsDecrypted(
-    invoice.organizationId,
-  );
-  if (!slackCreds) return;
-
-  const channel = slackCreds.defaultChannel;
-  if (!channel) return;
-
-  const invoiceUrl = `${baseUrl}/invoices/${invoiceId}`;
-  const { blocks, text } = buildInvoiceValidatedMessage({
-    invoiceId: invoice.id,
-    organizationName: invoice.organization.name,
-    totalAmount: invoice.totalAmount,
-    invoiceUrl,
-  });
-
-  await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
-};
-
-export const notifyInvoicePaidSlack = async (invoiceId: string) => {
-  const invoice = await db.query.invoices.findFirst({
-    where: eq(invoices.id, invoiceId),
-    with: {
-      organization: true,
-    },
-  });
-
-  if (!invoice) return;
-
-  const slackCreds = await getOrgSlackCredentialsDecrypted(
-    invoice.organizationId,
-  );
-  if (!slackCreds) return;
-
-  const channel = slackCreds.defaultChannel;
-  if (!channel) return;
-
-  const invoiceUrl = `${baseUrl}/invoices/${invoiceId}`;
-  const { blocks, text } = buildInvoicePaidMessage({
-    invoiceId: invoice.id,
-    organizationName: invoice.organization.name,
-    totalAmount: invoice.totalAmount,
-    invoiceUrl,
-  });
-
-  await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
-};
-
-export const notifyInvoiceCommentSlack = async (
-  invoiceId: string,
-  commenterName: string,
-  content: string,
-) => {
-  const invoice = await db.query.invoices.findFirst({
-    where: eq(invoices.id, invoiceId),
-    with: {
-      organization: true,
-    },
-  });
-
-  if (!invoice) return;
-
-  const slackCreds = await getOrgSlackCredentialsDecrypted(
-    invoice.organizationId,
-  );
-  if (!slackCreds) return;
-
-  const channel = slackCreds.defaultChannel;
-  if (!channel) return;
-
-  const invoiceUrl = `${baseUrl}/invoices/${invoiceId}`;
-  const { blocks, text } = buildInvoiceCommentMessage({
-    invoiceId: invoice.id,
-    organizationName: invoice.organization.name,
-    commenterName,
-    content,
-    invoiceUrl,
-  });
-
-  await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
-};
-
 export const notifyInvoiceValidatedEmail = async (invoiceId: string) => {
   const invoice = await findInvoiceByIdWithOrganization(invoiceId);
-  if (!invoice) return;
-
-  const members = await getOrganizationMembers(invoice.organizationId);
-  if (members.length === 0) return;
+  if (!invoice || !invoice.ownerEmail) return;
 
   const subject = `Invoice validated`;
   const html = `
-    <p>Hello,</p>
-    <p>An invoice has been validated.</p>
+    <p>Hello ${invoice.ownerName},</p>
+    <p>Your invoice for <strong>${invoice.organizationName}</strong> has been validated.</p>
+    ${invoice.organizationOwnerName ? `<p>Validated by: <strong>${invoice.organizationOwnerName}</strong></p>` : ""}
     <p><a href="${baseUrl}/invoices/${invoiceId}">View invoice</a></p>
   `;
   const text = `
-Hello,
+Hello ${invoice.ownerName},
 
-Invoice validated.
+Your invoice for ${invoice.organizationName} has been validated.
+${invoice.organizationOwnerName ? `Validated by: ${invoice.organizationOwnerName}` : ""}
 
 View invoice: ${baseUrl}/invoices/${invoiceId}
   `;
 
-  await sendBulkEmail(members, subject, html, text);
+  await sendEmail({ to: invoice.ownerEmail, subject, html, text });
 };
 
 export const notifyInvoicePaidEmail = async (invoiceId: string) => {
   const invoice = await findInvoiceByIdWithOrganization(invoiceId);
-  if (!invoice) return;
-
-  const members = await getOrganizationMembers(invoice.organizationId);
-  if (members.length === 0) return;
+  if (!invoice || !invoice.ownerEmail) return;
 
   const subject = `Invoice marked as paid`;
   const html = `
-    <p>Hello,</p>
-    <p>An invoice has been marked as paid.</p>
+    <p>Hello ${invoice.ownerName},</p>
+    <p>Your invoice for <strong>${invoice.organizationName}</strong> has been marked as paid.</p>
+    ${invoice.organizationOwnerName ? `<p>Marked by: <strong>${invoice.organizationOwnerName}</strong></p>` : ""}
     <p><a href="${baseUrl}/invoices/${invoiceId}">View invoice</a></p>
   `;
   const text = `
-Hello,
+Hello ${invoice.ownerName},
 
-Invoice marked as paid.
+Your invoice for ${invoice.organizationName} has been marked as paid.
+${invoice.organizationOwnerName ? `Marked by: ${invoice.organizationOwnerName}` : ""}
 
 View invoice: ${baseUrl}/invoices/${invoiceId}
   `;
 
-  await sendBulkEmail(members, subject, html, text);
+  await sendEmail({ to: invoice.ownerEmail, subject, html, text });
 };
-
-async function sendBulkEmail(
-  members: { email: string }[],
-  subject: string,
-  html: string,
-  text: string,
-) {
-  const promises = members.map((member) =>
-    sendEmail({
-      to: member.email,
-      subject,
-      html,
-      text,
-    }).catch((error) => {
-      console.error(`Failed to send email to ${member.email}:`, error);
-    }),
-  );
-
-  await Promise.all(promises);
-}

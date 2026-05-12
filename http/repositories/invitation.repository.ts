@@ -1,15 +1,19 @@
 "server only";
 
 import { and, eq, gt } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
   invitations,
   invoices,
   organizationMembers,
+  organizations,
   userRoles,
   users,
 } from "@/db/schema";
 import type { Role } from "@/http/models/user.model";
+
+const invoiceUsers = alias(users, "invoice_users");
 
 export const findValidInvitationByToken = async (token: string) => {
   const [invitation] = await db
@@ -28,8 +32,22 @@ export const findInvoiceByIdWithOrganization = async (invoiceId: string) => {
     .select({
       id: invoices.id,
       organizationId: invoices.organizationId,
+      organizationName: organizations.name,
+      organizationOwnerName: users.name,
+      ownerName: invoiceUsers.name,
+      ownerEmail: invoiceUsers.email,
     })
     .from(invoices)
+    .leftJoin(organizations, eq(invoices.organizationId, organizations.id))
+    .leftJoin(
+      organizationMembers,
+      and(
+        eq(invoices.organizationId, organizationMembers.organizationId),
+        eq(organizationMembers.role, "OWNER"),
+      ),
+    )
+    .leftJoin(users, eq(organizationMembers.userId, users.id))
+    .leftJoin(invoiceUsers, eq(invoices.userId, invoiceUsers.id))
     .where(eq(invoices.id, invoiceId))
     .limit(1);
 
