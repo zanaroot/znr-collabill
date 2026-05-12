@@ -33,6 +33,7 @@ export const taskSchema = z.object({
   gitRepo: z.url().nullable().optional().or(z.literal("")),
   gitBranch: z.string().nullable().optional(),
   gitPullRequest: z.string().nullable().optional(),
+  previewLink: z.string().nullable().optional(),
   createdAt: z.string(),
 });
 
@@ -54,6 +55,7 @@ export const createTaskSchema = z.object({
   gitRepo: z.url().optional().nullable().or(z.literal("")),
   gitBranch: z.string().optional().nullable(),
   gitPullRequest: z.string().optional().nullable(),
+  previewLink: z.string().optional().nullable(),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
@@ -69,6 +71,7 @@ export const updateTaskSchema = z.object({
   gitRepo: z.url().optional().nullable().or(z.literal("")),
   gitBranch: z.string().optional().nullable(),
   gitPullRequest: z.string().optional().nullable(),
+  previewLink: z.string().optional().nullable(),
 });
 
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;

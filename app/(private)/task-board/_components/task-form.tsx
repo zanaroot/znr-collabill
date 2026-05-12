@@ -1,5 +1,6 @@
 "use client";
 
+import { LinkOutlined } from "@ant-design/icons";
 import {
   App,
   Button,
@@ -203,6 +204,30 @@ export const TaskForm = ({
                 {formValues.gitBranch || "—"}
               </Typography.Text>
             </InfoRow>
+
+            <InfoRow label="Preview Link">
+              {formValues.previewLink ? (
+                <Button
+                  type="link"
+                  href={formValues.previewLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    padding: 0,
+                    height: "auto",
+                    maxWidth: "60%",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    display: "block",
+                  }}
+                >
+                  {formValues.previewLink}
+                </Button>
+              ) : (
+                <Text type="secondary">No preview link</Text>
+              )}
+            </InfoRow>
           </Space>
         </Card>
       </Col>
@@ -384,6 +409,20 @@ export const TaskForm = ({
                 allowClear
               />
             )}
+          </Space>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <Space vertical size={8} style={{ width: "100%" }}>
+            <Text strong>Preview Link</Text>
+            <Input
+              value={formValues.previewLink || ""}
+              onChange={(e) => updateField("previewLink", e.target.value)}
+              placeholder="Enter preview link"
+              style={{ width: "100%" }}
+              prefix={<LinkOutlined />}
+              allowClear
+            />
           </Space>
         </div>
       </Space>

@@ -1,0 +1,1 @@
+ALTER TABLE "tasks" ADD COLUMN "preview_link" text;

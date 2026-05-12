@@ -32,6 +32,7 @@ export const tasks = pgTable("tasks", {
   gitRepo: text("git_repo"),
   gitBranch: text("git_branch"),
   gitPullRequest: text("git_pull_request"),
+  previewLink: text("preview_link"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
