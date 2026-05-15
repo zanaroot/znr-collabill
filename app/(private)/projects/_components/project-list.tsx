@@ -12,6 +12,7 @@ import { useState } from "react";
 import type { Project } from "@/http/models/project.model";
 import { useCurrentUser } from "../../team-management/_hooks/use-team";
 import { useDeleteProject, useProjects } from "../_hooks/use-projects";
+import { CreateProjectDrawer } from "./create-project-drawer";
 import { ProjectDetailsDrawer } from "./project-details-drawer";
 
 const { Title } = Typography;
@@ -19,6 +20,7 @@ const { Title } = Typography;
 export function ProjectList() {
   const [selectedProjectForDetails, setSelectedProjectForDetails] =
     useState<Project | null>(null);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const { modal, message } = App.useApp();
 
@@ -46,9 +48,7 @@ export function ProjectList() {
   };
 
   const onAdd = () => {
-    // This will be handled by a separate create project modal/drawer in the future
-    // For now, we'll keep the existing functionality but it needs to be implemented
-    message.info("Create project functionality will be implemented separately");
+    setIsCreateDrawerOpen(true);
   };
 
   const columns: ColumnsType<Project> = [
@@ -185,6 +185,10 @@ export function ProjectList() {
         </div>
       </Card>
 
+      <CreateProjectDrawer
+        open={isCreateDrawerOpen}
+        onClose={() => setIsCreateDrawerOpen(false)}
+      />
       <ProjectDetailsDrawer
         project={selectedProjectForDetails}
         open={!!selectedProjectForDetails}
