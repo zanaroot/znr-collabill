@@ -40,6 +40,10 @@ export type UseBoardReturn = {
   boardView: BoardView;
   setBoardView: (view: BoardView) => void;
   tasksByStatus: { status: TaskStatus; tasks: TaskModel[] }[];
+  archivedTasksByProject: {
+    projectId: string;
+    tasks: TaskModel[];
+  }[];
   drawerOpen: boolean;
   setDrawerOpen: (open: boolean) => void;
   isEditing: boolean;
@@ -113,13 +117,32 @@ export function useBoard({
     : false;
 
   const tasksByStatus = useMemo(() => {
-    return BOARD_VIEW_STATUSES[boardView].map((status) => {
+    const statuses = BOARD_VIEW_STATUSES[boardView].filter(
+      (s) => s !== "ARCHIVED",
+    );
+    return statuses.map((status) => {
       return {
         status,
         tasks: tasks.filter((task) => task.status === status),
       };
     });
   }, [boardView, tasks]);
+
+  const archivedTasksByProject = useMemo(() => {
+    const archivedTasks = tasks.filter((task) => task.status === "ARCHIVED");
+    const grouped: Record<string, TaskModel[]> = {};
+    for (const task of archivedTasks) {
+      const projectId = task.projectId;
+      if (!grouped[projectId]) {
+        grouped[projectId] = [];
+      }
+      grouped[projectId].push(task);
+    }
+    return Object.entries(grouped).map(([projectId, projectTasks]) => ({
+      projectId,
+      tasks: projectTasks,
+    }));
+  }, [tasks]);
 
   const hasPermission = Boolean(
     userRole || userRole === "ADMIN" || userRole === "OWNER",
@@ -253,6 +276,7 @@ export function useBoard({
     boardView,
     setBoardView,
     tasksByStatus,
+    archivedTasksByProject,
     drawerOpen,
     setDrawerOpen,
     isEditing,

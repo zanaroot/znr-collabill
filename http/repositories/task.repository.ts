@@ -53,7 +53,7 @@ export const findTasksByProjectId = async (projectId: string) => {
   return await db
     .select(taskSelectFields)
     .from(tasks)
-    .where(and(eq(tasks.projectId, projectId), ne(tasks.status, "ARCHIVED")))
+    .where(eq(tasks.projectId, projectId))
     .orderBy(asc(tasks.priority), desc(tasks.createdAt));
 };
 

@@ -32,10 +32,9 @@ export function useTasks(
           ? taskKeys.project(projectId)
           : taskKeys.all,
     queryFn: async () => {
-      if (projectId && startDate && endDate) {
-        const res = await client.api.tasks.project[":projectId"].period.$get({
+      if (projectId) {
+        const res = await client.api.tasks.project[":projectId"].$get({
           param: { projectId },
-          query: { startDate, endDate },
         });
         if (!res.ok) throw new Error("Failed to fetch tasks");
         return (await res.json()) as Task[];

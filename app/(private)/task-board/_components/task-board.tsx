@@ -31,7 +31,10 @@ export const TaskBoard = () => {
 
   const { data: projectMembers, isLoading: isLoadingMembers } =
     useProjectMembers(projectId ?? "");
-  const taskCount = tasks?.length ?? 0;
+  const taskCount =
+    tasks?.filter(
+      (task) => task.status !== "ARCHIVED" && task.status !== "TRASH",
+    ).length ?? 0;
 
   const selectedProject = useMemo(
     () => projects?.find((p) => p.id === projectId),
@@ -144,6 +147,7 @@ export const TaskBoard = () => {
             })) ?? []
           }
           taskId={taskId}
+          projects={projects ?? []}
         />
       )}
       {/* <TestSentry /> */}

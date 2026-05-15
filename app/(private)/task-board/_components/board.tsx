@@ -1,6 +1,8 @@
 "use client";
 
+import { LockOutlined } from "@ant-design/icons";
 import { Segmented } from "antd";
+import { useMemo } from "react";
 import {
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
@@ -8,8 +10,14 @@ import {
 import type { Task as TaskModel } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 import { useBoard } from "../_hooks/use-board";
+import { ArchivedSection } from "./archived-section";
 import { Column, type TaskMembers } from "./column";
 import { TaskDrawer } from "./task-drawer";
+
+type Project = {
+  id: string;
+  name: string;
+};
 
 type CreateBoardProps = {
   tasks: TaskModel[];
@@ -19,6 +27,7 @@ type CreateBoardProps = {
   members: TaskMembers;
   isAdmin: boolean;
   taskId?: string;
+  projects?: Project[];
 };
 
 export function CreateBoard({
@@ -29,6 +38,7 @@ export function CreateBoard({
   members,
   isAdmin,
   taskId,
+  projects = [],
 }: CreateBoardProps) {
   const board = useBoard({
     tasks,
@@ -39,6 +49,20 @@ export function CreateBoard({
 
   const hasPermission = isAdmin || userRole === "OWNER" || userRole === "ADMIN";
 
+  const projectMap = useMemo(
+    () => new Map(projects.map((p) => [p.id, p.name])),
+    [projects],
+  );
+
+  const archivedTasksWithNames = useMemo(
+    () =>
+      board.archivedTasksByProject.map((item) => ({
+        ...item,
+        projectName: projectMap.get(item.projectId) || "Unknown Project",
+      })),
+    [board.archivedTasksByProject, projectMap],
+  );
+
   return (
     <>
       <div className="mb-3 flex items-center justify-end kanban-view-toggle">
@@ -47,10 +71,13 @@ export function CreateBoard({
             { label: "All", value: "ALL" },
             { label: "Active view", value: "ACTIVE" },
             { label: "Inactive view", value: "INACTIVE" },
+            { label: "Archived", value: "ARCHIVED", icon: <LockOutlined /> },
           ]}
           value={board.boardView}
           onChange={(value) =>
-            board.setBoardView(value as "ACTIVE" | "INACTIVE" | "ALL")
+            board.setBoardView(
+              value as "ACTIVE" | "INACTIVE" | "ALL" | "ARCHIVED",
+            )
           }
           className="view-toggle"
         />
@@ -94,6 +121,13 @@ export function CreateBoard({
           ))}
         </div>
       </div>
+      {board.boardView === "ARCHIVED" && (
+        <ArchivedSection
+          archivedTasksByProject={archivedTasksWithNames}
+          members={members}
+          onEditTask={board.openEditDrawer}
+        />
+      )}
 
       <TaskDrawer
         open={board.drawerOpen}
