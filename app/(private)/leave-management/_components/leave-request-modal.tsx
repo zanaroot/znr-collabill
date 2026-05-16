@@ -29,11 +29,13 @@ interface LeaveRequestFormValues {
 interface LeaveRequestModalProps {
   open: boolean;
   onClose: () => void;
+  isLeaveDisabled?: boolean;
 }
 
 export const LeaveRequestModal = ({
   open,
   onClose,
+  isLeaveDisabled = false,
 }: LeaveRequestModalProps) => {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
@@ -83,6 +85,31 @@ export const LeaveRequestModal = ({
   const onFinish = (values: LeaveRequestFormValues) => {
     createRequest(values);
   };
+
+  if (isLeaveDisabled) {
+    return (
+      <Modal
+        title="Request Leave"
+        open={open}
+        onCancel={onClose}
+        footer={null}
+        destroyOnHidden
+      >
+        <div style={{ textAlign: "center", padding: "40px 0" }}>
+          <p style={{ marginBottom: 16, fontSize: 16 }}>
+            Leave requests are disabled for this organization.
+          </p>
+          <p style={{ color: "#888" }}>
+            The organization uses "Paid as Worked" policy. Unused leave will be
+            added to your invoice automatically.
+          </p>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <Button onClick={onClose}>Close</Button>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal

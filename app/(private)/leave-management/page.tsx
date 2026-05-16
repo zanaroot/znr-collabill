@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, Tabs, Typography } from "antd";
 import { useState } from "react";
+import type { OrganizationLeaveSettings } from "@/http/models/leave.model";
 import { client } from "@/packages/hono";
 import { LeaveAdminPanel } from "./_components/leave-admin-panel";
 import { LeaveCalendar } from "./_components/leave-calendar";
@@ -23,14 +24,32 @@ export default function LeaveManagementPage() {
     },
   });
 
+  const { data: orgSettings } = useQuery({
+    queryKey: ["current-organization-settings"],
+    queryFn: async () => {
+      const res = await client.api["leave-requests"].settings.$get();
+      const data = await res.json();
+      if ("error" in data) return null;
+      return data as OrganizationLeaveSettings;
+    },
+  });
+
   const isAdmin =
     user?.organizationRole === "ADMIN" || user?.organizationRole === "OWNER";
+
+  const isPaidAsWorked = orgSettings?.unusedLeavePolicy === "PAID_AS_WORKED";
 
   const items = [
     {
       key: "calendar",
-      label: "My Calendar",
-      children: <LeaveCalendar onRequestLeave={() => setIsModalOpen(true)} />,
+      label: isAdmin ? "Calendar" : "My Calendar",
+      children: (
+        <LeaveCalendar
+          onRequestLeave={() => setIsModalOpen(true)}
+          isAdmin={isAdmin}
+          isLeaveDisabled={isPaidAsWorked}
+        />
+      ),
     },
     {
       key: "requests",
@@ -42,7 +61,7 @@ export default function LeaveManagementPage() {
   if (isAdmin) {
     items.push({
       key: "admin",
-      label: "Admin Panel",
+      label: "Teams Requests",
       children: <LeaveAdminPanel mode="admin" />,
     });
     items.push({
@@ -53,7 +72,10 @@ export default function LeaveManagementPage() {
   }
 
   return (
-    <div className="p-6 overflow-y-auto">
+    <div
+      className="p-6"
+      style={{ height: "calc(100vh - 160px)", overflowY: "auto" }}
+    >
       <Title level={2}>Leave Management</Title>
 
       <Card>
@@ -63,6 +85,7 @@ export default function LeaveManagementPage() {
       <LeaveRequestModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        isLeaveDisabled={isPaidAsWorked}
       />
     </div>
   );

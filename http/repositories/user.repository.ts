@@ -114,6 +114,24 @@ export const getOrganizations = async (userId: string) => {
   return membership.map((m) => m.organizations);
 };
 
+export const findOrganizationMember = async (
+  organizationId: string,
+  userId: string,
+) => {
+  const [member] = await db
+    .select()
+    .from(organizationMembers)
+    .where(
+      and(
+        eq(organizationMembers.organizationId, organizationId),
+        eq(organizationMembers.userId, userId),
+      ),
+    )
+    .limit(1);
+
+  return member ?? null;
+};
+
 export const getCollaboratorRate = async (
   userId: string,
   organizationId: string,

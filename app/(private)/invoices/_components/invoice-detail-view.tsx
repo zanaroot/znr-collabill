@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AuthUser } from "@/http/models/auth.model";
 import type { Organization } from "@/http/models/organization.model";
 import type { Period } from "@/http/models/period.model";
@@ -49,7 +49,7 @@ export const InvoiceDetailView = ({
     Array<{ label: string; amount: string; key: string }>
   >([]);
 
-  useMemo(() => {
+  useEffect(() => {
     if (existingInvoice?.lines) {
       const custom = existingInvoice.lines
         .filter((l) => l.type === "CUSTOM")
@@ -59,10 +59,47 @@ export const InvoiceDetailView = ({
           key: l.id,
         }));
       setCustomLines(custom);
+    } else if (
+      !existingInvoice &&
+      organization?.unusedLeavePolicy === "PAID_AS_WORKED"
+    ) {
+      const member = members.find((m) => m.id === targetUserId);
+      const isAdmin = member?.role === "ADMIN";
+      const leaveQuota = Number(
+        isAdmin
+          ? organization.adminLeaveQuota
+          : organization.collaboratorLeaveQuota,
+      );
+      const userPresence = presenceSummary.find(
+        (p) => p.userId === targetUserId,
+      );
+      const dailyRate =
+        Number(userPresence?.dailyRate || 0) || leaveQuota * 100;
+      const amount = leaveQuota * dailyRate;
+
+      if (amount > 0) {
+        setCustomLines([
+          {
+            label: `Unused Leave (Paid as Worked) for ${member?.name || targetUserName}`,
+            amount: amount.toString(),
+            key: `paid-as-worked-${selectedPeriod.id}`,
+          },
+        ]);
+      } else {
+        setCustomLines([]);
+      }
     } else {
       setCustomLines([]);
     }
-  }, [existingInvoice]);
+  }, [
+    existingInvoice,
+    organization,
+    members,
+    targetUserId,
+    targetUserName,
+    selectedPeriod,
+    presenceSummary.find,
+  ]);
 
   return (
     <>

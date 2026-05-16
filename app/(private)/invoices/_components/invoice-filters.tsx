@@ -206,7 +206,11 @@ export const InvoiceFilters = ({
       }
     }
 
-    if (organization?.unusedLeavePolicy === "PAID_AS_WORKED" && leaveBalance) {
+    if (
+      organization?.unusedLeavePolicy === "PAID_AS_WORKED" &&
+      leaveBalance &&
+      existingInvoice
+    ) {
       const remaining = Number(leaveBalance.remaining || 0);
       const member = members.find((m) => m.id === targetUserId);
       const isAdmin = member?.role === "ADMIN";

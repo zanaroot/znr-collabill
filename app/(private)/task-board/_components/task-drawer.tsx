@@ -30,6 +30,10 @@ type TaskDrawerProps = {
   userRole?: Role;
 };
 
+const hideEditButtonByStatus = (status: string) => {
+  return status === "VALIDATED" || status === "ARCHIVED";
+};
+
 export function TaskDrawer({
   open,
   onClose,
@@ -55,7 +59,7 @@ export function TaskDrawer({
 
   const canEdit = hasPermission;
   const canShowEditButton =
-    activeTask && canEdit && activeTask.status !== "VALIDATED";
+    activeTask && canEdit && !hideEditButtonByStatus(activeTask.status);
 
   return (
     <Drawer

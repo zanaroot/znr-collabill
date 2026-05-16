@@ -41,6 +41,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "team-management": "Team Management",
   projects: "Projects",
   invoices: "Invoices",
+  "leave-management": "Leaves",
 };
 
 const DynamicBreadcrumb = ({ selectedKey }: { selectedKey: string }) => {

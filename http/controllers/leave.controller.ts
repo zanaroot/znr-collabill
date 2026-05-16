@@ -45,9 +45,27 @@ export const createLeaveRequest = factory.createHandlers(
     if (!user.organizationId)
       return c.json({ error: "No organization found" }, 404);
 
+    const { getOrganizationById } = await import(
+      "@/http/repositories/organization.repository"
+    );
+    const org = await getOrganizationById(user.organizationId);
+
+    if (!org) {
+      return c.json({ error: "Organization not found" }, 404);
+    }
+
+    if (org.unusedLeavePolicy === "PAID_AS_WORKED") {
+      return c.json(
+        {
+          error:
+            "Leave requests are disabled. Your organization uses Paid as Worked policy.",
+        },
+        400,
+      );
+    }
+
     const data = c.req.valid("json");
 
-    // Check overlaps
     const overlapping = await leaveRepository.checkOverlappingRequests(
       user.id,
       user.organizationId,
@@ -57,6 +75,18 @@ export const createLeaveRequest = factory.createHandlers(
 
     if (overlapping) {
       return c.json({ error: "Overlapping leave request already exists" }, 400);
+    }
+
+    const balanceCheck = await leaveRepository.validateLeaveBalance(
+      user.id,
+      user.organizationId,
+      data.startDate,
+      data.endDate,
+      data.type,
+    );
+
+    if (!balanceCheck.valid) {
+      return c.json({ error: balanceCheck.error }, 400);
     }
 
     const request = await leaveRepository.createLeaveRequest(
@@ -147,16 +177,51 @@ export const getMyBalance = factory.createHandlers(async (c) => {
   if (!user.organizationId)
     return c.json({ error: "No organization found" }, 404);
 
+  const { getOrganizationById } = await import(
+    "@/http/repositories/organization.repository"
+  );
+  const org = await getOrganizationById(user.organizationId);
+
+  if (!org) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const quotaInfo = await leaveRepository.getUserQuota(
+    user.id,
+    user.organizationId,
+  );
+
+  if (org.unusedLeavePolicy === "PAID_AS_WORKED") {
+    return c.json({
+      balance: quotaInfo?.quota.toString() || "0",
+      used: "0",
+      remaining: quotaInfo?.quota.toString() || "0",
+      policy: "PAID_AS_WORKED",
+    });
+  }
+
   const now = new Date();
   const month = monthStr ? Number(monthStr) : now.getMonth() + 1;
   const year = yearStr ? Number(yearStr) : now.getFullYear();
 
-  const balance = await leaveRepository.findLeaveBalance(
+  const balance = await leaveRepository.initializeOrGetBalance(
     user.id,
     user.organizationId,
     month,
     year,
   );
 
-  return c.json(balance || { balance: "0", used: "0", remaining: "0" });
+  if (balance) {
+    return c.json({
+      balance: balance.balance,
+      used: balance.used,
+      remaining: balance.remaining,
+    });
+  }
+
+  return c.json({
+    balance: quotaInfo?.quota.toString() || "0",
+    used: "0",
+    remaining: quotaInfo?.quota.toString() || "0",
+  });
 });

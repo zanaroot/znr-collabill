@@ -113,6 +113,34 @@ export const findPresencesByUserIdAndDateRange = async (
   });
 };
 
+export const findAllPresencesByOrganization = async (
+  organizationId: string,
+  startDate: string,
+  endDate: string,
+) => {
+  return await db
+    .select({
+      id: presences.id,
+      userId: presences.userId,
+      userName: users.name,
+      organizationId: presences.organizationId,
+      date: presences.date,
+      status: presences.status,
+      checkInAt: presences.checkInAt,
+      checkOutAt: presences.checkOutAt,
+    })
+    .from(presences)
+    .innerJoin(users, eq(presences.userId, users.id))
+    .where(
+      and(
+        eq(presences.organizationId, organizationId),
+        gte(presences.date, startDate),
+        lte(presences.date, endDate),
+      ),
+    )
+    .orderBy(presences.date, users.name);
+};
+
 export const getPresenceSummaryByOrganization = async (
   userId: string,
   organizationId: string,
