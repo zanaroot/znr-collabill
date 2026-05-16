@@ -103,7 +103,7 @@ export const LeaveCalendar = ({
       const dayPresences = teamPresencesByDate[dateStr] ?? [];
       return dayPresences.map((p, idx) => ({
         id: `${dateStr}-${idx}`,
-        type: "processing" as const,
+        type: "warning" as const,
         content: `${p.userName} (${toReadable(p.status)})`,
         color: STATUS_COLORS[p.status] ?? "#1890ff",
       }));

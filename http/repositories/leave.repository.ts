@@ -286,13 +286,13 @@ export const validateLeaveBalance = async (
         daysInRequest = new Date(year, month, 0).getDate();
       }
 
-      months.push({ month, year, daysInRequest });
+      months.push({ month, year, days: daysInRequest });
       current.setMonth(current.getMonth() + 1);
       current.setDate(1);
     }
 
     for (let i = 0; i < months.length; i++) {
-      const { month, year, daysInRequest } = months[i];
+      const { month, year, days } = months[i];
       const balance = await findLeaveBalance(
         userId,
         organizationId,
@@ -309,10 +309,10 @@ export const validateLeaveBalance = async (
 
       const requestDaysForMonth =
         i === 0 || i === months.length - 1
-          ? daysInRequest * (type === "FULL_DAY" ? 1 : 0.5)
+          ? days * (type === "FULL_DAY" ? 1 : 0.5)
           : type === "FULL_DAY"
-            ? daysInRequest
-            : daysInRequest * 0.5;
+            ? days
+            : days * 0.5;
 
       totalRemaining += monthQuota;
 

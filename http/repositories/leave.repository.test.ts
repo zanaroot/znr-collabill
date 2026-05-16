@@ -107,7 +107,7 @@ describe("Cross-month leave calculation", () => {
         daysInRequest = new Date(year, month, 0).getDate();
       }
 
-      months.push({ month, year, daysInRequest });
+      months.push({ month, year, days: daysInRequest });
       current.setMonth(current.getMonth() + 1);
       current.setDate(1);
     }
@@ -142,13 +142,13 @@ describe("Balance validation scenarios", () => {
 
 describe("PAID_AS_WORKED policy behavior", () => {
   it("should identify PAID_AS_WORKED policy correctly", () => {
-    const policy = "PAID_AS_WORKED";
+    const policy: string = "PAID_AS_WORKED";
     expect(policy === "PAID_AS_WORKED").toBe(true);
     expect(policy === "CARRY_OVER").toBe(false);
   });
 
   it("should identify CARRY_OVER policy correctly", () => {
-    const policy = "CARRY_OVER";
+    const policy: string = "CARRY_OVER";
     expect(policy === "PAID_AS_WORKED").toBe(false);
     expect(policy === "CARRY_OVER").toBe(true);
   });
@@ -172,7 +172,9 @@ describe("PAID_AS_WORKED policy behavior", () => {
   });
 
   it("should determine if leave can be requested based on policy", () => {
-    const canRequestLeaveWithCarryOver = "CARRY_OVER" !== "PAID_AS_WORKED";
+    const policy1: string = "CARRY_OVER";
+    const policy2: string = "PAID_AS_WORKED";
+    const canRequestLeaveWithCarryOver = policy1 !== policy2;
     expect(canRequestLeaveWithCarryOver).toBe(true);
   });
 });
