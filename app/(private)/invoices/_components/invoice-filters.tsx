@@ -22,7 +22,7 @@ const { Text } = Typography;
 
 import { getMonthlyPeriods } from "@/lib/periods";
 import type { PresenceSummary } from "./presence-summary-table";
-import type { RawTaskSummary } from "./task-summary-table";
+import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 
 type Member = {
   id: string;
@@ -42,6 +42,7 @@ type InvoiceFiltersProps = {
   isOwner?: boolean;
   presenceData: PresenceSummary[];
   taskData: RawTaskSummary[];
+  reviewerTaskData: ReviewerTaskSummary[];
   isDetailsPage?: boolean;
   customLines?: Array<{ label: string; amount: string; key: string }>;
   organization: Organization;
@@ -60,6 +61,7 @@ export const InvoiceFilters = ({
   isDetailsPage,
   presenceData,
   taskData,
+  reviewerTaskData,
   customLines = [],
   organization,
 }: InvoiceFiltersProps) => {
@@ -255,6 +257,23 @@ export const InvoiceFilters = ({
           label: `Tasks ${t.size} for ${t.userName} (${t.projectName})`,
           quantity: t.taskCount,
           unitPrice: totalRate.toString(),
+          total: amount.toString(),
+        });
+      }
+    }
+
+    for (const rt of reviewerTaskData) {
+      const reviewerRate = Number(rt.projectReviewerRate || 0);
+      const amount = rt.taskCount * reviewerRate;
+
+      if (amount > 0) {
+        totalAmount += amount;
+        linesInput.push({
+          type: "TASK",
+          referenceId: rt.userId,
+          label: `Reviewer tasks for ${rt.userName} (${rt.projectName})`,
+          quantity: rt.taskCount,
+          unitPrice: reviewerRate.toString(),
           total: amount.toString(),
         });
       }

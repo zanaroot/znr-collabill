@@ -133,6 +133,7 @@ export const TaskBoard = () => {
           projectId={projectId}
           projectName={selectedProject?.name}
           userRole={userRole}
+          userId={currentUser?.id}
           isAdmin={
             currentUser?.organizationRole === "ADMIN" ||
             currentUser?.organizationRole === "OWNER"

@@ -33,6 +33,15 @@ export interface RawTaskSummary {
   rateXl: string | null;
 }
 
+export interface ReviewerTaskSummary {
+  userId: string;
+  userName: string;
+  projectId: string;
+  projectName: string;
+  projectReviewerRate: string | null;
+  taskCount: number;
+}
+
 const getRateForSize = (
   size: string,
   rates: {

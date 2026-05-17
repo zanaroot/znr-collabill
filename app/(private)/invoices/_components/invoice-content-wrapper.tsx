@@ -8,7 +8,7 @@ import { InvoiceComments } from "./invoice-comments";
 import { InvoicePrintable } from "./invoice-printable";
 import type { PresenceSummary } from "./presence-summary-table";
 import { PresenceSummaryTable } from "./presence-summary-table";
-import type { RawTaskSummary } from "./task-summary-table";
+import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 import { TaskSummaryTable } from "./task-summary-table";
 
 const { useBreakpoint } = Grid;
@@ -16,6 +16,7 @@ const { useBreakpoint } = Grid;
 interface InvoiceContentWrapperProps {
   presenceSummary: PresenceSummary[];
   taskSummary: RawTaskSummary[];
+  reviewerTaskSummary: ReviewerTaskSummary[];
   user: AuthUser;
   targetUserName?: string;
   targetUserId: string;
@@ -33,6 +34,7 @@ interface InvoiceContentWrapperProps {
 export const InvoiceContentWrapper = ({
   presenceSummary,
   taskSummary,
+  reviewerTaskSummary,
   user,
   targetUserName,
   targetUserId,
@@ -79,12 +81,65 @@ export const InvoiceContentWrapper = ({
             </div>
           </div>
         )}
+
+        {reviewerTaskSummary.length > 0 && (
+          <div className="invoice-summary-item">
+            <h2 className="text-lg font-medium mb-4 dark:text-white">
+              Reviewer Tasks Summary
+            </h2>
+            <div className="table-responsive">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="border p-2 text-left dark:border-gray-700 dark:text-white">
+                      Project
+                    </th>
+                    <th className="border p-2 text-right dark:border-gray-700 dark:text-white">
+                      Tasks
+                    </th>
+                    <th className="border p-2 text-right dark:border-gray-700 dark:text-white">
+                      Rate
+                    </th>
+                    <th className="border p-2 text-right dark:border-gray-700 dark:text-white">
+                      Total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reviewerTaskSummary.map((rt) => (
+                    <tr
+                      key={`${rt.projectId}-${rt.userId}`}
+                      className="dark:border-gray-700"
+                    >
+                      <td className="border p-2 dark:border-gray-700 dark:text-white">
+                        {rt.projectName}
+                      </td>
+                      <td className="border p-2 text-right dark:border-gray-700 dark:text-white">
+                        {rt.taskCount}
+                      </td>
+                      <td className="border p-2 text-right dark:border-gray-700 dark:text-white">
+                        ${rt.projectReviewerRate || 0}
+                      </td>
+                      <td className="border p-2 text-right dark:border-gray-700 dark:text-white">
+                        $
+                        {(
+                          rt.taskCount * Number(rt.projectReviewerRate || 0)
+                        ).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </Space>
       <div style={{ width: isVertical ? "100%" : "50%" }}>
         <Space orientation="vertical" style={{ width: "100%" }} size="large">
           <InvoicePrintable
             presenceData={presenceSummary}
             taskData={taskSummary}
+            reviewerTaskData={reviewerTaskSummary}
             organizationName={user.organizationName || "Organization"}
             organizationId={user.organizationId || ""}
             targetUserName={targetUserName}

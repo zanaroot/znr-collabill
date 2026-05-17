@@ -41,6 +41,7 @@ const taskSelectFields = {
   status: sql`${tasks.status}::text`.as("status"),
   validatedAt: tasks.validatedAt,
   validatedBy: tasks.validatedBy,
+  reviewerId: tasks.reviewerId,
   archivedAt: tasks.archivedAt,
   gitRepo: tasks.gitRepo,
   gitBranch: tasks.gitBranch,
@@ -168,6 +169,54 @@ export const countTasksByProjectId = async (projectId: string) => {
   return await db.$count(tasks, eq(tasks.projectId, projectId));
 };
 
+export const getValidatedTaskSummaryByReviewer = async (
+  userId: string,
+  organizationId: string,
+  startDate?: Date,
+  endDate?: Date,
+) => {
+  const whereClauses = [
+    eq(tasks.reviewerId, userId),
+    eq(projects.organizationId, organizationId),
+    or(
+      and(eq(tasks.status, "VALIDATED"), ne(tasks.status, "ARCHIVED")),
+      and(eq(tasks.status, "ARCHIVED"), isNotNull(tasks.invoiceId)),
+    ),
+  ];
+
+  if (startDate && endDate) {
+    whereClauses.push(
+      or(
+        and(
+          isNotNull(tasks.validatedAt),
+          gte(tasks.validatedAt, startDate),
+          lte(tasks.validatedAt, endOfDay(endDate)),
+        ),
+        and(
+          isNull(tasks.validatedAt),
+          gte(tasks.createdAt, startDate),
+          lte(tasks.createdAt, endOfDay(endDate)),
+        ),
+      ),
+    );
+  }
+
+  return await db
+    .select({
+      userId: users.id,
+      userName: users.name,
+      projectId: projects.id,
+      projectName: projects.name,
+      projectReviewerRate: projects.reviewerRate,
+      taskCount: count(tasks.id),
+    })
+    .from(tasks)
+    .innerJoin(projects, eq(tasks.projectId, projects.id))
+    .innerJoin(users, eq(tasks.reviewerId, users.id))
+    .where(and(...whereClauses))
+    .groupBy(users.id, projects.id, projects.name, projects.reviewerRate);
+};
+
 export const getValidatedTaskSummaryByOrganization = async (
   userId: string,
   organizationId: string,
@@ -274,6 +323,35 @@ export const getValidatedTaskIdsByPeriodAndUser = async (
     .where(
       and(
         eq(tasks.assignedTo, userId),
+        eq(tasks.status, "VALIDATED"),
+        or(
+          and(
+            isNotNull(tasks.validatedAt),
+            gte(tasks.validatedAt, startDate),
+            lte(tasks.validatedAt, endOfDay(endDate)),
+          ),
+          and(
+            isNull(tasks.validatedAt),
+            gte(tasks.createdAt, startDate),
+            lte(tasks.createdAt, endOfDay(endDate)),
+          ),
+        ),
+      ),
+    );
+  return result.map((r) => r.id);
+};
+
+export const getValidatedTaskIdsByPeriodAndReviewer = async (
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) => {
+  const result = await db
+    .select({ id: tasks.id })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.reviewerId, userId),
         eq(tasks.status, "VALIDATED"),
         or(
           and(

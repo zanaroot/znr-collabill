@@ -27,6 +27,7 @@ export const tasks = pgTable("tasks", {
   status: taskStatusEnum("status").default("BACKLOG"),
   validatedAt: timestamp("validated_at"),
   validatedBy: uuid("validated_by").references(() => users.id),
+  reviewerId: uuid("reviewer_id").references(() => users.id),
   archivedAt: timestamp("archived_at"),
   invoiceId: uuid("invoice_id").references(() => invoices.id),
   gitRepo: text("git_repo"),
@@ -50,6 +51,11 @@ export const tasksRelations = relations(tasks, ({ many, one }) => ({
     fields: [tasks.validatedBy],
     references: [users.id],
     relationName: "validatedTasks",
+  }),
+  reviewer: one(users, {
+    fields: [tasks.reviewerId],
+    references: [users.id],
+    relationName: "reviewerTasks",
   }),
   invoice: one(invoices, {
     fields: [tasks.invoiceId],

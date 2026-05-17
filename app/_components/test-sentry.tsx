@@ -10,6 +10,7 @@ export default function TestSentry() {
         await createProjectAction({
           name: "Test Project",
           baseRate: 100,
+          reviewerRate: 0,
         });
       }}
     >

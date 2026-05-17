@@ -43,6 +43,13 @@
       "when": 1778250000000,
       "tag": "0005_amber_coral",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778961051759,
+      "tag": "0006_conscious_chat",
+      "breakpoints": true
     }
   ]
 }
