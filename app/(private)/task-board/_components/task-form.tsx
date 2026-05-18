@@ -16,7 +16,7 @@ import {
   Tag,
   Typography,
 } from "antd";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { RichTextEditor } from "@/app/_components/editor/rich-text-editor";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
@@ -36,6 +36,7 @@ import type { TaskSize, TaskStatus } from "@/http/models/task.model";
 import { TASK_SIZES } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 import { formatDueDate } from "@/lib/date";
+import { generateUniqueGitBranchFromTitle } from "@/lib/git-branch-name";
 import type { TaskMembers } from "./column";
 import { InfoRow } from "./info-row";
 
@@ -52,6 +53,8 @@ type TaskFormProps = {
   isEditing: boolean;
   members: TaskMembers;
   projectId?: string;
+  taskId?: string;
+  projectGitBranches?: string[];
   userRole?: Role;
 };
 
@@ -61,6 +64,8 @@ export const TaskForm = ({
   isEditing,
   members,
   projectId,
+  taskId,
+  projectGitBranches = [],
   userRole,
 }: TaskFormProps) => {
   const { message } = App.useApp();
@@ -79,6 +84,52 @@ export const TaskForm = ({
     value: TaskFormValues[K],
   ) => {
     onFormValuesChange({ ...formValues, [field]: value });
+  };
+
+  const existingBranchNames = useMemo(() => {
+    const names = new Set<string>();
+    for (const branch of branches ?? []) {
+      if (branch) names.add(branch);
+    }
+    for (const branch of projectGitBranches) {
+      if (branch) names.add(branch);
+    }
+    return [...names];
+  }, [branches, projectGitBranches]);
+
+  const generatedGitBranch = useMemo(
+    () =>
+      generateUniqueGitBranchFromTitle(
+        formValues.title,
+        existingBranchNames,
+      ),
+    [existingBranchNames, formValues.title],
+  );
+
+  const isNewTask = !taskId;
+
+  useEffect(() => {
+    if (!isNewTask || !generatedGitBranch) {
+      return;
+    }
+    if (formValues.gitBranch.trim()) {
+      return;
+    }
+    onFormValuesChange({ ...formValues, gitBranch: generatedGitBranch });
+  }, [
+    formValues,
+    generatedGitBranch,
+    isNewTask,
+    onFormValuesChange,
+  ]);
+
+  const applyGeneratedGitBranch = () => {
+    if (!generatedGitBranch) {
+      message.warning("Enter a task title to generate a branch name");
+      return;
+    }
+    updateField("gitBranch", generatedGitBranch);
+    message.success("Git branch name applied");
   };
 
   const handleCreateBranch = () => {
@@ -247,6 +298,37 @@ export const TaskForm = ({
             placeholder="What needs to be done?"
             size="large"
           />
+        </Space>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <Space vertical size={8} style={{ width: "100%" }}>
+          <div className="flex items-center justify-between gap-2">
+            <Typography.Text strong className="dark:text-white">
+              Generated Git branch
+            </Typography.Text>
+            <Button
+              type="link"
+              size="small"
+              onClick={applyGeneratedGitBranch}
+              disabled={!generatedGitBranch}
+            >
+              Apply to Git branch
+            </Button>
+          </div>
+          {generatedGitBranch ? (
+            <Typography.Text code className="block break-all dark:text-white">
+              {generatedGitBranch}
+            </Typography.Text>
+          ) : (
+            <Typography.Text type="secondary">
+              Enter a task title to generate a branch name
+            </Typography.Text>
+          )}
+          <Typography.Text type="secondary" className="text-xs">
+            Unique per project — a numeric suffix or task id is added if the
+            name already exists.
+          </Typography.Text>
         </Space>
       </div>
 
