@@ -1,49 +1,47 @@
-import { generateSlug } from "@/lib/text-to-slug";
-
-const BRANCH_PREFIX = "feature/";
-
 export const buildGitBranchNameFromTitle = (title: string): string => {
-  const slug = generateSlug(title.trim());
-  if (!slug) {
-    return "";
-  }
-  return `${BRANCH_PREFIX}${slug}`;
+  if (!title?.trim()) return "";
+
+  const slug = title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  // par défaut premier numéro
+  return `01-${slug}`;
 };
 
-const normalizeBranchName = (name: string): string => name.trim().toLowerCase();
+const extractNumber = (branch: string) => {
+  const match = branch.match(/^(\d+)-/);
+  return match ? parseInt(match[1], 10) : null;
+};
 
 export const ensureUniqueGitBranchName = (
   baseName: string,
   existingNames: readonly string[],
-  options?: { taskId?: string },
 ): string => {
-  if (!baseName) {
-    return "";
-  }
+  if (!baseName) return "";
 
-  const taken = new Set(
-    existingNames.filter(Boolean).map((name) => normalizeBranchName(name)),
-  );
+  const taken = new Set(existingNames.map((n) => n.trim()));
 
-  if (!taken.has(normalizeBranchName(baseName))) {
+  // 1. pas de conflit → on garde le baseName
+  if (!taken.has(baseName)) {
     return baseName;
   }
 
-  for (let counter = 2; counter < 1000; counter += 1) {
-    const candidate = `${baseName}-${counter}`;
-    if (!taken.has(normalizeBranchName(candidate))) {
-      return candidate;
-    }
-  }
+  // 2. conflit → on calcule le prochain numéro global
+  const numbers = existingNames
+    .map(extractNumber)
+    .filter((n): n is number => n !== null);
 
-  if (options?.taskId) {
-    const candidate = `${baseName}-${options.taskId.slice(0, 8)}`;
-    if (!taken.has(normalizeBranchName(candidate))) {
-      return candidate;
-    }
-  }
+  const max = numbers.length ? Math.max(...numbers) : 0;
 
-  return `${baseName}-${Date.now()}`;
+  const next = String(max + 1).padStart(2, "0");
+
+  const slugMatch = baseName.match(/^\d+-(.+)$/);
+  const slug = slugMatch ? slugMatch[1] : baseName;
+
+  return `${next}-${slug}`;
 };
 
 const extractBranchNumber = (branch: string) => {

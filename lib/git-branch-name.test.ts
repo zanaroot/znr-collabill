@@ -8,7 +8,7 @@ import {
 describe("buildGitBranchNameFromTitle", () => {
   it("slugifies title with numeric prefix", () => {
     expect(buildGitBranchNameFromTitle("Add preview link to task card")).toBe(
-      expect.stringMatching(/^\d{2}-add-preview-link-to-task-card$/),
+      "01-add-preview-link-to-task-card",
     );
   });
 
