@@ -70,7 +70,8 @@ export function CreateBoard({
     return tasks
       .filter(
         (task) =>
-          task.projectId === activeProjectId && task.id !== board.activeTask?.id,
+          task.projectId === activeProjectId &&
+          task.id !== board.activeTask?.id,
       )
       .map((task) => task.gitBranch)
       .filter((branch): branch is string => Boolean(branch?.trim()));

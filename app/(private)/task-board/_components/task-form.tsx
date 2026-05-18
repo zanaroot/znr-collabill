@@ -99,10 +99,7 @@ export const TaskForm = ({
 
   const generatedGitBranch = useMemo(
     () =>
-      generateUniqueGitBranchFromTitle(
-        formValues.title,
-        existingBranchNames,
-      ),
+      generateUniqueGitBranchFromTitle(formValues.title, existingBranchNames),
     [existingBranchNames, formValues.title],
   );
 
@@ -116,12 +113,7 @@ export const TaskForm = ({
       return;
     }
     onFormValuesChange({ ...formValues, gitBranch: generatedGitBranch });
-  }, [
-    formValues,
-    generatedGitBranch,
-    isNewTask,
-    onFormValuesChange,
-  ]);
+  }, [formValues, generatedGitBranch, isNewTask, onFormValuesChange]);
 
   const applyGeneratedGitBranch = () => {
     if (!generatedGitBranch) {
