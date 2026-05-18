@@ -9,7 +9,10 @@ import { InvoicePrintable } from "./invoice-printable";
 import type { PresenceSummary } from "./presence-summary-table";
 import { PresenceSummaryTable } from "./presence-summary-table";
 import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
-import { TaskSummaryTable } from "./task-summary-table";
+import {
+  ReviewerTaskSummaryTable,
+  TaskSummaryTable,
+} from "./task-summary-table";
 
 const { useBreakpoint } = Grid;
 
@@ -88,48 +91,7 @@ export const InvoiceContentWrapper = ({
               Reviewer Tasks Summary
             </h2>
             <div className="table-responsive">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800">
-                    <th className="border p-2 text-left dark:border-gray-700 dark:text-white">
-                      Project
-                    </th>
-                    <th className="border p-2 text-right dark:border-gray-700 dark:text-white">
-                      Tasks
-                    </th>
-                    <th className="border p-2 text-right dark:border-gray-700 dark:text-white">
-                      Rate
-                    </th>
-                    <th className="border p-2 text-right dark:border-gray-700 dark:text-white">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reviewerTaskSummary.map((rt) => (
-                    <tr
-                      key={`${rt.projectId}-${rt.userId}`}
-                      className="dark:border-gray-700"
-                    >
-                      <td className="border p-2 dark:border-gray-700 dark:text-white">
-                        {rt.projectName}
-                      </td>
-                      <td className="border p-2 text-right dark:border-gray-700 dark:text-white">
-                        {rt.taskCount}
-                      </td>
-                      <td className="border p-2 text-right dark:border-gray-700 dark:text-white">
-                        ${rt.projectReviewerRate || 0}
-                      </td>
-                      <td className="border p-2 text-right dark:border-gray-700 dark:text-white">
-                        $
-                        {(
-                          rt.taskCount * Number(rt.projectReviewerRate || 0)
-                        ).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <ReviewerTaskSummaryTable data={reviewerTaskSummary} />
             </div>
           </div>
         )}

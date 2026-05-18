@@ -177,6 +177,7 @@ export const getValidatedTaskSummaryByReviewer = async (
 ) => {
   const whereClauses = [
     eq(tasks.reviewerId, userId),
+    ne(tasks.assignedTo, tasks.reviewerId),
     eq(projects.organizationId, organizationId),
     or(
       and(eq(tasks.status, "VALIDATED"), ne(tasks.status, "ARCHIVED")),
@@ -208,13 +209,20 @@ export const getValidatedTaskSummaryByReviewer = async (
       projectId: projects.id,
       projectName: projects.name,
       projectReviewerRate: projects.reviewerRate,
+      size: tasks.size,
       taskCount: count(tasks.id),
     })
     .from(tasks)
     .innerJoin(projects, eq(tasks.projectId, projects.id))
     .innerJoin(users, eq(tasks.reviewerId, users.id))
     .where(and(...whereClauses))
-    .groupBy(users.id, projects.id, projects.name, projects.reviewerRate);
+    .groupBy(
+      users.id,
+      projects.id,
+      projects.name,
+      projects.reviewerRate,
+      tasks.size,
+    );
 };
 
 export const getValidatedTaskSummaryByOrganization = async (
@@ -352,6 +360,7 @@ export const getValidatedTaskIdsByPeriodAndReviewer = async (
     .where(
       and(
         eq(tasks.reviewerId, userId),
+        ne(tasks.assignedTo, tasks.reviewerId),
         eq(tasks.status, "VALIDATED"),
         or(
           and(

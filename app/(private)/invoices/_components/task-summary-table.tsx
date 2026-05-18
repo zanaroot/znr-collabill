@@ -39,6 +39,7 @@ export interface ReviewerTaskSummary {
   projectId: string;
   projectName: string;
   projectReviewerRate: string | null;
+  size: "XS" | "S" | "M" | "L" | "XL";
   taskCount: number;
 }
 
@@ -66,6 +67,126 @@ const getRateForSize = (
     default:
       return 0;
   }
+};
+
+export interface ReviewerTaskSummaryRow {
+  userId: string;
+  userName: string;
+  projectId: string;
+  projectName: string;
+  projectReviewerRate: number;
+  XS: number;
+  S: number;
+  M: number;
+  L: number;
+  XL: number;
+  total: number;
+}
+
+export const ReviewerTaskSummaryTable = ({
+  data,
+}: {
+  data: ReviewerTaskSummary[];
+}) => {
+  const rowsMap = new Map<string, ReviewerTaskSummaryRow>();
+
+  for (const item of data) {
+    const key = `${item.userId}-${item.projectId}`;
+    const reviewerRate = Number(item.projectReviewerRate || 0);
+
+    if (!rowsMap.has(key)) {
+      rowsMap.set(key, {
+        userId: item.userId,
+        userName: item.userName,
+        projectId: item.projectId,
+        projectName: item.projectName,
+        projectReviewerRate: reviewerRate,
+        XS: 0,
+        S: 0,
+        M: 0,
+        L: 0,
+        XL: 0,
+        total: 0,
+      });
+    }
+
+    const row = rowsMap.get(key);
+    if (!row) continue;
+
+    const count = Number(item.taskCount);
+    const sizeKey = item.size as keyof Pick<
+      ReviewerTaskSummaryRow,
+      "XS" | "S" | "M" | "L" | "XL"
+    >;
+    row[sizeKey] += count;
+    row.total += count * reviewerRate;
+  }
+
+  const dataSource = Array.from(rowsMap.values());
+
+  const columns = [
+    {
+      title: "User",
+      dataIndex: "userName",
+      key: "userName",
+    },
+    {
+      title: "Project",
+      dataIndex: "projectName",
+      key: "projectName",
+    },
+    {
+      title: "XS",
+      dataIndex: "XS",
+      key: "XS",
+      render: (count: number) => (count > 0 ? count : "-"),
+    },
+    {
+      title: "S",
+      dataIndex: "S",
+      key: "S",
+      render: (count: number) => (count > 0 ? count : "-"),
+    },
+    {
+      title: "M",
+      dataIndex: "M",
+      key: "M",
+      render: (count: number) => (count > 0 ? count : "-"),
+    },
+    {
+      title: "L",
+      dataIndex: "L",
+      key: "L",
+      render: (count: number) => (count > 0 ? count : "-"),
+    },
+    {
+      title: "XL",
+      dataIndex: "XL",
+      key: "XL",
+      render: (count: number) => (count > 0 ? count : "-"),
+    },
+    {
+      title: "Rate (€)",
+      dataIndex: "projectReviewerRate",
+      key: "projectReviewerRate",
+      render: (rate: number) => (rate > 0 ? `${rate.toLocaleString()} €` : "-"),
+    },
+    {
+      title: "Total (€)",
+      dataIndex: "total",
+      key: "total",
+      render: (total: number) => <Text strong>{total.toLocaleString()} €</Text>,
+    },
+  ];
+
+  return (
+    <Table
+      dataSource={dataSource}
+      columns={columns}
+      rowKey={(record) => `${record.userId}-${record.projectId}`}
+      pagination={false}
+    />
+  );
 };
 
 export const TaskSummaryTable = ({ data }: { data: RawTaskSummary[] }) => {

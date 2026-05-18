@@ -271,7 +271,7 @@ export const InvoiceFilters = ({
         linesInput.push({
           type: "TASK",
           referenceId: rt.userId,
-          label: `Reviewer tasks for ${rt.userName} (${rt.projectName})`,
+          label: `Reviewer tasks ${rt.size} for ${rt.userName} (${rt.projectName})`,
           quantity: rt.taskCount,
           unitPrice: reviewerRate.toString(),
           total: amount.toString(),
