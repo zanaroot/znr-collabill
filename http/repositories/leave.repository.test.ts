@@ -86,6 +86,8 @@ describe("Leave request validation logic", () => {
   });
 });
 
+// Compare month and year instead of exact dates
+// to correctly calculate days for the last month
 describe("Cross-month leave calculation", () => {
   it("should calculate days per month correctly for cross-month leave", () => {
     const startDate = new Date("2026-05-28");
@@ -93,21 +95,27 @@ describe("Cross-month leave calculation", () => {
 
     const months: { month: number; year: number; days: number }[] = [];
     const current = new Date(startDate);
+
     while (current <= endDate) {
       const month = current.getMonth() + 1;
       const year = current.getFullYear();
 
       let daysInRequest = 0;
+
       if (months.length === 0) {
         const lastDayOfMonth = new Date(year, month, 0).getDate();
         daysInRequest = lastDayOfMonth - startDate.getDate() + 1;
-      } else if (current.getTime() === endDate.getTime()) {
+      } else if (
+        current.getMonth() === endDate.getMonth() &&
+        current.getFullYear() === endDate.getFullYear()
+      ) {
         daysInRequest = endDate.getDate();
       } else {
         daysInRequest = new Date(year, month, 0).getDate();
       }
 
       months.push({ month, year, days: daysInRequest });
+
       current.setMonth(current.getMonth() + 1);
       current.setDate(1);
     }
