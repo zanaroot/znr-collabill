@@ -18,6 +18,13 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+vi.mock("next/script", () => ({
+  default: ({ children, ...props }: Record<string, unknown>) => {
+    const { id } = props;
+    return `<!-- next/script mock: ${id} -->`;
+  },
+}));
+
 class LocalStorageMock {
   private store: Record<string, string> = {};
   getItem(key: string) {

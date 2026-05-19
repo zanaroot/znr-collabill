@@ -280,7 +280,7 @@ export const validateLeaveBalance = async (
       if (months.length === 0) {
         const lastDayOfMonth = new Date(year, month, 0).getDate();
         daysInRequest = lastDayOfMonth - start.getDate() + 1;
-      } else if (current.getTime() === end.getTime()) {
+      } else if (month === end.getMonth() + 1 && year === end.getFullYear()) {
         daysInRequest = end.getDate();
       } else {
         daysInRequest = new Date(year, month, 0).getDate();

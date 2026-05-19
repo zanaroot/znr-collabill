@@ -66,6 +66,20 @@ export function CreateBoard({
     [board.archivedTasksByProject, projectMap],
   );
 
+  const projectGitBranches = useMemo(() => {
+    const activeProjectId = board.activeTask?.projectId ?? projectId;
+    if (!activeProjectId) return [];
+
+    return tasks
+      .filter(
+        (task) =>
+          task.projectId === activeProjectId &&
+          task.id !== board.activeTask?.id,
+      )
+      .map((task) => task.gitBranch)
+      .filter((branch): branch is string => Boolean(branch?.trim()));
+  }, [board.activeTask?.id, board.activeTask?.projectId, projectId, tasks]);
+
   return (
     <>
       <div className="mb-3 flex items-center justify-end kanban-view-toggle">
@@ -149,6 +163,7 @@ export function CreateBoard({
         projectName={projectName}
         projectId={projectId}
         activeTask={board.activeTask}
+        projectGitBranches={projectGitBranches}
         userRole={userRole}
       />
     </>

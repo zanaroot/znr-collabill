@@ -92,27 +92,21 @@ describe("Cross-month leave calculation", () => {
     const endDate = new Date(2026, 5, 3);
 
     const months: { month: number; year: number; days: number }[] = [];
-    let currentYear = startDate.getFullYear();
-    let currentMonth = startDate.getMonth();
+    const current = new Date(startDate);
 
-    while (
-      currentYear < endDate.getFullYear() ||
-      (currentYear === endDate.getFullYear() &&
-        currentMonth <= endDate.getMonth())
-    ) {
-      const month = currentMonth + 1;
-      const year = currentYear;
+    while (current <= endDate) {
+      const month = current.getMonth() + 1;
+      const year = current.getFullYear();
 
       let daysInRequest = 0;
-      const isFirstMonth = months.length === 0;
-      const isLastMonth =
-        currentYear === endDate.getFullYear() &&
-        currentMonth === endDate.getMonth();
 
-      if (isFirstMonth) {
+      if (months.length === 0) {
         const lastDayOfMonth = new Date(year, month, 0).getDate();
         daysInRequest = lastDayOfMonth - startDate.getDate() + 1;
-      } else if (isLastMonth) {
+      } else if (
+        month === endDate.getMonth() + 1 &&
+        year === endDate.getFullYear()
+      ) {
         daysInRequest = endDate.getDate();
       } else {
         daysInRequest = new Date(year, month, 0).getDate();
@@ -120,11 +114,8 @@ describe("Cross-month leave calculation", () => {
 
       months.push({ month, year, days: daysInRequest });
 
-      currentMonth++;
-      if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-      }
+      current.setMonth(current.getMonth() + 1);
+      current.setDate(1);
     }
 
     expect(months).toHaveLength(2);
