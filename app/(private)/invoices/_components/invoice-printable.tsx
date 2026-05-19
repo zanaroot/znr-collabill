@@ -20,7 +20,7 @@ import type {
 } from "@/http/models/invoice.model";
 import { client } from "@/packages/hono";
 import type { PresenceSummary } from "./presence-summary-table";
-import type { RawTaskSummary } from "./task-summary-table";
+import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -35,6 +35,7 @@ type InvoiceLineInput = {
 type InvoicePrintableProps = {
   presenceData: PresenceSummary[];
   taskData: RawTaskSummary[];
+  reviewerTaskData?: ReviewerTaskSummary[];
   organizationName: string;
   organizationId: string;
   targetUserName?: string;
@@ -56,6 +57,7 @@ type InvoicePrintableProps = {
 export const InvoicePrintable = ({
   presenceData,
   taskData,
+  reviewerTaskData = [],
   organizationName,
   organizationId,
   targetUserName,
@@ -188,6 +190,23 @@ export const InvoicePrintable = ({
           label: `Tasks ${t.size} for ${t.userName} (${t.projectName})`,
           quantity: t.taskCount,
           unitPrice: totalRate.toString(),
+          total: amount.toString(),
+        });
+      }
+    }
+
+    for (const rt of reviewerTaskData) {
+      const reviewerRate = Number(rt.projectReviewerRate || 0);
+      const amount = rt.taskCount * reviewerRate;
+
+      if (amount > 0) {
+        totalAmount += amount;
+        linesInput.push({
+          type: "TASK",
+          referenceId: rt.userId,
+          label: `Reviewer tasks ${rt.size} for ${rt.userName} (${rt.projectName})`,
+          quantity: rt.taskCount,
+          unitPrice: reviewerRate.toString(),
           total: amount.toString(),
         });
       }

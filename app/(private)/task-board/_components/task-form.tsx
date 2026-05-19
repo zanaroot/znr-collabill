@@ -162,6 +162,10 @@ export const TaskForm = ({
     ? members.find((m) => m.id === formValues.assigneeId)
     : null;
 
+  const reviewer = formValues.reviewerId
+    ? members.find((m) => m.id === formValues.reviewerId)
+    : null;
+
   const viewModeContent = (
     <Row gutter={[16, 16]} style={{ width: "100%" }}>
       <Col xs={24} lg={12}>
@@ -239,6 +243,22 @@ export const TaskForm = ({
                 </div>
               ) : (
                 <Text type="secondary">Unassigned</Text>
+              )}
+            </InfoRow>
+
+            <InfoRow label="Reviewer">
+              {reviewer ? (
+                <div className="flex items-center gap-2">
+                  <AvatarProfile
+                    size="small"
+                    src={reviewer.avatar}
+                    userName={reviewer.name}
+                    userEmail={reviewer.email}
+                  />
+                  <Text>{reviewer.name}</Text>
+                </div>
+              ) : (
+                <Text type="secondary">Auto-assigned</Text>
               )}
             </InfoRow>
 
@@ -437,6 +457,62 @@ export const TaskForm = ({
               style={{ width: "100%" }}
               allowClear
               onClear={() => updateField("assigneeId", null)}
+              showSearch={{
+                filterOption: (input, option) =>
+                  (option?.searchValue as string)
+                    ?.toLowerCase()
+                    .includes(input.toLowerCase()),
+              }}
+            />
+          </Space>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <Space vertical size={8} style={{ width: "100%" }}>
+            <Text strong>Reviewer (optional)</Text>
+            <Select
+              value={formValues.reviewerId}
+              onChange={(value) => updateField("reviewerId", value ?? null)}
+              placeholder="Select a reviewer"
+              options={members.map((m) => ({
+                label: (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      width: "100%",
+                    }}
+                  >
+                    <AvatarProfile
+                      size="small"
+                      src={m.avatar}
+                      userName={m.name}
+                      userEmail={m.email}
+                    />
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      <Text style={{ fontSize: 14 }}>{m.name}</Text>
+                      {m.role && (
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          {m.role}
+                        </Text>
+                      )}
+                    </div>
+                  </div>
+                ),
+                value: m.id,
+                searchValue: m.name,
+              }))}
+              optionLabelProp="label"
+              style={{ width: "100%" }}
+              allowClear
+              onClear={() => updateField("reviewerId", null)}
               showSearch={{
                 filterOption: (input, option) =>
                   (option?.searchValue as string)

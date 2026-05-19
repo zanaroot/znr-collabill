@@ -12,7 +12,10 @@ import {
   getOrganizationMembers,
 } from "@/http/repositories/organization.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
-import { getValidatedTaskSummaryByOrganization } from "@/http/repositories/task.repository";
+import {
+  getValidatedTaskSummaryByOrganization,
+  getValidatedTaskSummaryByReviewer,
+} from "@/http/repositories/task.repository";
 import { findUserById } from "@/http/repositories/user.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
 import { InvoiceDetailView } from "./_components/invoice-detail-view";
@@ -42,6 +45,7 @@ const InvoicesPage = async ({
   const [
     presenceSummary,
     taskSummary,
+    reviewerTaskSummary,
     members,
     existingInvoice,
     history,
@@ -58,6 +62,12 @@ const InvoicesPage = async ({
       user.id,
       user.organizationId,
       targetUserId,
+      selectedPeriod.startDate ? new Date(selectedPeriod.startDate) : undefined,
+      selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : undefined,
+    ),
+    getValidatedTaskSummaryByReviewer(
+      user.id,
+      user.organizationId,
       selectedPeriod.startDate ? new Date(selectedPeriod.startDate) : undefined,
       selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : undefined,
     ),
@@ -117,6 +127,9 @@ const InvoicesPage = async ({
         <InvoiceDetailView
           presenceSummary={presenceSummary as unknown as PresenceSummary[]}
           taskSummary={taskSummary as unknown as RawTaskSummary[]}
+          reviewerTaskSummary={
+            reviewerTaskSummary as unknown as import("./_components/task-summary-table").ReviewerTaskSummary[]
+          }
           user={user}
           targetUserName={targetUserName}
           targetUserId={targetUserId}

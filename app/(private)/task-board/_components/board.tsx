@@ -24,6 +24,7 @@ type CreateBoardProps = {
   projectId?: string;
   projectName?: string;
   userRole?: Role;
+  userId?: string;
   members: TaskMembers;
   isAdmin: boolean;
   taskId?: string;
@@ -35,6 +36,7 @@ export function CreateBoard({
   projectId,
   projectName,
   userRole,
+  userId,
   members,
   isAdmin,
   taskId,
@@ -44,6 +46,7 @@ export function CreateBoard({
     tasks,
     projectId,
     userRole,
+    userId,
     taskId,
   });
 

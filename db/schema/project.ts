@@ -17,6 +17,9 @@ export const projects = pgTable("projects", {
   description: text("description"),
   gitRepo: text("git_repo"),
   baseRate: numeric("base_rate", { precision: 10, scale: 2 }).default("1"),
+  reviewerRate: numeric("reviewer_rate", { precision: 10, scale: 2 }).default(
+    "0",
+  ),
   organizationId: uuid("organization_id")
     .notNull()
     .references(() => organizations.id, { onDelete: "cascade" }),

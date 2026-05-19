@@ -81,6 +81,7 @@ export function ProjectDetailsDrawer({
       description: "",
       gitRepo: "",
       baseRate: 1,
+      reviewerRate: 0,
     },
   });
 
@@ -91,6 +92,7 @@ export function ProjectDetailsDrawer({
         description: project.description || "",
         gitRepo: project.gitRepo || "",
         baseRate: project.baseRate || 1,
+        reviewerRate: project.reviewerRate ?? 0,
       });
     } else {
       reset({
@@ -98,6 +100,7 @@ export function ProjectDetailsDrawer({
         description: "",
         gitRepo: "",
         baseRate: 1,
+        reviewerRate: 0,
       });
     }
   }, [project, isEditing, reset]);
@@ -296,6 +299,36 @@ export function ProjectDetailsDrawer({
             ) : (
               <InputNumber
                 value={project?.baseRate || 1}
+                disabled
+                min={0}
+                step={0.01}
+                style={{ width: "100%" }}
+              />
+            )}
+          </Form.Item>
+
+          <Form.Item
+            label="Reviewer Rate"
+            validateStatus={errors.reviewerRate ? "error" : ""}
+            help={errors.reviewerRate?.message}
+          >
+            {currentUser?.organizationRole === "OWNER" ? (
+              <Controller
+                name="reviewerRate"
+                control={control}
+                render={({ field }) => (
+                  <InputNumber
+                    {...field}
+                    min={0}
+                    step={0.01}
+                    placeholder="Enter reviewer rate"
+                    style={{ width: "100%" }}
+                  />
+                )}
+              />
+            ) : (
+              <InputNumber
+                value={project?.reviewerRate ?? 0}
                 disabled
                 min={0}
                 step={0.01}

@@ -30,6 +30,7 @@ export const taskSchema = z.object({
   status: taskStatusEnum,
   validatedAt: z.string().nullable().optional(),
   validatedBy: z.uuid().nullable().optional(),
+  reviewerId: z.uuid().nullable().optional(),
   gitRepo: z.url().nullable().optional().or(z.literal("")),
   gitBranch: z.string().nullable().optional(),
   gitPullRequest: z.string().nullable().optional(),
@@ -52,6 +53,7 @@ export const createTaskSchema = z.object({
   status: taskStatusEnum.optional(),
   validatedAt: z.string().nullable().optional(),
   validatedBy: z.uuid().nullable().optional(),
+  reviewerId: z.uuid().nullable().optional(),
   gitRepo: z.url().optional().nullable().or(z.literal("")),
   gitBranch: z.string().optional().nullable(),
   gitPullRequest: z.string().optional().nullable(),
@@ -79,5 +81,6 @@ export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type UpdateTaskSystemInput = UpdateTaskInput & {
   validatedAt?: Date | null;
   validatedBy?: string | null;
+  reviewerId?: string | null;
   archivedAt?: Date | null;
 };

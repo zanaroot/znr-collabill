@@ -17,6 +17,7 @@ import type {
 const normalizeProject = <
   T extends {
     baseRate: string | null;
+    reviewerRate?: string | null;
     slackChannel?: string | null;
     slackNotificationsEnabled?: boolean | null;
   },
@@ -25,6 +26,7 @@ const normalizeProject = <
 ) => ({
   ...project,
   baseRate: Number(project.baseRate ?? "0"),
+  reviewerRate: Number(project.reviewerRate ?? "0"),
 });
 
 export const createProject = async (
@@ -38,6 +40,7 @@ export const createProject = async (
         description: input.description,
         gitRepo: input.gitRepo,
         baseRate: input.baseRate.toString(),
+        reviewerRate: (input.reviewerRate ?? 0).toString(),
         organizationId: input.organizationId,
         createdBy: input.createdBy,
       })
@@ -129,6 +132,10 @@ export const updateProject = async (
       ...input,
       baseRate:
         input.baseRate === undefined ? undefined : input.baseRate.toString(),
+      reviewerRate:
+        input.reviewerRate === undefined
+          ? undefined
+          : input.reviewerRate.toString(),
     })
     .where(eq(projects.id, id))
     .returning();

@@ -36,6 +36,7 @@ export function CreateProjectDrawer({
       description: "",
       gitRepo: "",
       baseRate: 1,
+      reviewerRate: undefined,
     },
   });
 
@@ -139,6 +140,26 @@ export function CreateProjectDrawer({
                 min={0}
                 step={0.01}
                 placeholder="Enter base rate"
+                style={{ width: "100%" }}
+              />
+            )}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label="Reviewer Rate"
+          validateStatus={errors.reviewerRate ? "error" : ""}
+          help={errors.reviewerRate?.message}
+        >
+          <Controller
+            name="reviewerRate"
+            control={control}
+            render={({ field }) => (
+              <InputNumber
+                {...field}
+                min={0}
+                step={0.01}
+                placeholder="Enter reviewer rate"
                 style={{ width: "100%" }}
               />
             )}
