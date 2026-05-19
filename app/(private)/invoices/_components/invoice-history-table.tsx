@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarOutlined } from "@ant-design/icons";
 import { Button, Table, Typography } from "antd";
 import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -27,6 +28,8 @@ export const InvoiceHistoryTable = ({
   isOwner,
 }: InvoiceHistoryTableProps) => {
   const router = useRouter();
+
+  const currentMonthId = format(new Date(), "yyyy-MM");
 
   const getDetailsUrl = (record: InvoiceHistoryItem) => {
     return `/invoices?periodId=${format(parseISO(record.periodStart), "yyyy-MM")}${
@@ -90,9 +93,20 @@ export const InvoiceHistoryTable = ({
 
   return (
     <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800">
-      <Title level={4} className="mb-6 dark:text-white">
-        Invoice History
-      </Title>
+      <div className="flex items-center justify-between mb-6">
+        <Title level={4} className="!mb-0 dark:text-white">
+          Invoice History
+        </Title>
+        <Button
+          type="primary"
+          icon={<CalendarOutlined />}
+          onClick={() => {
+            router.push(`/invoices?periodId=${currentMonthId}`);
+          }}
+        >
+          Show Current Month Invoice
+        </Button>
+      </div>
       <Table
         dataSource={data}
         columns={columns}
