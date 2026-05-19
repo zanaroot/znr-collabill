@@ -27,7 +27,10 @@ export const canTransitionTaskStatus = ({
   if (from === to) return true;
 
   if (from === "BACKLOG" || to === "BACKLOG") {
-    const canAccessBacklog = userRole === "OWNER" || userRole === "ADMIN";
+    const canAccessBacklog =
+      userRole === "OWNER" ||
+      userRole === "ADMIN" ||
+      userRole === "COLLABORATOR";
     if (!canAccessBacklog) return false;
 
     if (from === "BACKLOG") {
@@ -57,7 +60,8 @@ export const getAllowedTaskTransitions = ({
       : [];
   }
 
-  const canAccessBacklog = userRole === "OWNER" || userRole === "ADMIN";
+  const canAccessBacklog =
+    userRole === "OWNER" || userRole === "ADMIN" || userRole === "COLLABORATOR";
   const allowedToBacklog =
     canAccessBacklog && ["TODO", "IN_PROGRESS", "BLOCKED"].includes(from)
       ? ["BACKLOG"]
