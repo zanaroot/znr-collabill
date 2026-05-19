@@ -86,6 +86,7 @@ export interface TaskFormValues {
   dueDate: string;
   status: TaskStatus;
   assigneeId: string | null;
+  reviewerId: string | null;
   gitBranch: string;
   previewLink: string;
 }
@@ -99,6 +100,7 @@ export function defaultFormValues(status: TaskStatus): TaskFormValues {
     dueDate: "",
     status,
     assigneeId: null,
+    reviewerId: null,
     gitBranch: "",
     previewLink: "",
   };

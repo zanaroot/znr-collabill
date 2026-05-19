@@ -124,6 +124,7 @@ export const createTask = factory.createHandlers(
 
     const taskData = {
       ...payload,
+      reviewerId: payload.reviewerId ?? user.id,
       ...(payload.status === "VALIDATED" && {
         validatedAt: new Date().toISOString(),
         validatedBy: user.id,
@@ -182,11 +183,15 @@ export const updateTask = factory.createHandlers(
 
     const updates: UpdateTaskSystemInput = { ...payload };
 
+    const taskReviewerId = task.reviewerId ?? user.id;
+
     if (payload.status && payload.status !== task.status) {
       const canTransition = canTransitionTaskStatus({
         from: task.status,
         to: payload.status,
         userRole: user.organizationRole ?? undefined,
+        reviewerId: taskReviewerId,
+        userId: user.id,
       });
 
       if (!canTransition) {
@@ -234,6 +239,10 @@ export const updateTask = factory.createHandlers(
       notifyTaskAssignedSlack(id).catch((err) => {
         console.error("[Notification] Failed to send Slack notification:", err);
       });
+    }
+
+    if (!task.reviewerId) {
+      updates.reviewerId = user.id;
     }
 
     const updated = await taskRepository.updateTask(id, updates);

@@ -33,6 +33,7 @@ export type UseBoardOptions = {
   tasks: TaskModel[];
   projectId?: string;
   userRole?: Role;
+  userId?: string;
   taskId?: string;
 };
 
@@ -73,6 +74,7 @@ export function useBoard({
   tasks,
   projectId,
   userRole,
+  userId,
   taskId,
 }: UseBoardOptions): UseBoardReturn {
   const [boardView, setBoardView] = useState<BoardView>("ACTIVE");
@@ -97,6 +99,7 @@ export function useBoard({
           dueDate: task.dueDate ?? "",
           status: task.status,
           assigneeId: task.assignedTo ?? null,
+          reviewerId: task.reviewerId ?? null,
           gitBranch: task.gitBranch ?? "",
           previewLink: task.previewLink ?? "",
         });
@@ -166,6 +169,7 @@ export function useBoard({
       dueDate: task.dueDate ?? "",
       status: task.status,
       assigneeId: task.assignedTo ?? null,
+      reviewerId: task.reviewerId ?? null,
       gitBranch: task.gitBranch ?? "",
       previewLink: task.previewLink ?? "",
     });
@@ -182,6 +186,8 @@ export function useBoard({
   const handleSave = () => {
     if (!formValues.title.trim()) return;
 
+    const taskReviewerId = activeTask?.reviewerId ?? userId;
+
     if (
       activeTask &&
       activeTask.status !== formValues.status &&
@@ -189,6 +195,8 @@ export function useBoard({
         from: activeTask.status,
         to: formValues.status,
         userRole,
+        reviewerId: taskReviewerId,
+        userId,
       })
     ) {
       return;
@@ -202,6 +210,7 @@ export function useBoard({
       dueDate: formValues.dueDate || undefined,
       status: formValues.status,
       assignedTo: formValues.assigneeId,
+      reviewerId: formValues.reviewerId,
       gitBranch: formValues.gitBranch || undefined,
       previewLink: formValues.previewLink || undefined,
     };
@@ -248,10 +257,14 @@ export function useBoard({
       return;
     }
 
+    const taskReviewerId = task.reviewerId ?? userId;
+
     const canTransition = canTransitionTaskStatus({
       from: task.status,
       to: status,
       userRole,
+      reviewerId: taskReviewerId,
+      userId,
     });
 
     if (!canTransition) {

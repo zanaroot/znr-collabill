@@ -5,6 +5,8 @@ type TaskWorkflowContext = {
   from: TaskStatus;
   to: TaskStatus;
   userRole?: Role;
+  reviewerId?: string | null;
+  userId?: string;
 };
 
 const COMMON_TRANSITIONS: Record<
@@ -23,6 +25,8 @@ export const canTransitionTaskStatus = ({
   from,
   to,
   userRole,
+  reviewerId,
+  userId,
 }: TaskWorkflowContext) => {
   if (from === to) return true;
 
@@ -40,6 +44,10 @@ export const canTransitionTaskStatus = ({
   }
 
   if (from === "IN_REVIEW") {
+    const isReviewer = reviewerId && userId && reviewerId === userId;
+    if (isReviewer) {
+      return to === "TRASH" || to === "IN_PROGRESS" || to === "VALIDATED";
+    }
     if (!userRole || userRole === "COLLABORATOR") return false;
     return to === "TRASH" || to === "IN_PROGRESS" || to === "VALIDATED";
   }
@@ -50,6 +58,8 @@ export const canTransitionTaskStatus = ({
 export const getAllowedTaskTransitions = ({
   from,
   userRole,
+  reviewerId,
+  userId,
 }: Omit<TaskWorkflowContext, "to">): TaskStatus[] => {
   if (from === "BACKLOG") {
     return userRole === "OWNER" || userRole === "ADMIN"
@@ -64,6 +74,15 @@ export const getAllowedTaskTransitions = ({
       : [];
 
   if (from === "IN_REVIEW") {
+    const isReviewer = reviewerId && userId && reviewerId === userId;
+    if (isReviewer) {
+      return [
+        "TRASH",
+        "IN_PROGRESS",
+        "VALIDATED",
+        ...allowedToBacklog,
+      ] as TaskStatus[];
+    }
     return userRole && userRole !== "COLLABORATOR"
       ? ([
           "TRASH",

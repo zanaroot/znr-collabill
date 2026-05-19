@@ -8,7 +8,7 @@ import type { InvoiceWithLines } from "@/http/repositories/invoice.repository";
 import { InvoiceContentWrapper } from "./invoice-content-wrapper";
 import { InvoiceFilters } from "./invoice-filters";
 import type { PresenceSummary } from "./presence-summary-table";
-import type { RawTaskSummary } from "./task-summary-table";
+import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 
 interface Member {
   id: string;
@@ -19,6 +19,7 @@ interface Member {
 interface InvoiceDetailViewProps {
   presenceSummary: PresenceSummary[];
   taskSummary: RawTaskSummary[];
+  reviewerTaskSummary: ReviewerTaskSummary[];
   user: AuthUser;
   targetUserName?: string;
   targetUserId: string;
@@ -34,6 +35,7 @@ interface InvoiceDetailViewProps {
 export const InvoiceDetailView = ({
   presenceSummary,
   taskSummary,
+  reviewerTaskSummary,
   user,
   targetUserName,
   targetUserId,
@@ -116,6 +118,7 @@ export const InvoiceDetailView = ({
           isOwner={isOwner}
           presenceData={presenceSummary}
           taskData={taskSummary}
+          reviewerTaskData={reviewerTaskSummary}
           isDetailsPage={true}
           customLines={customLines}
           organization={organization}
@@ -125,6 +128,7 @@ export const InvoiceDetailView = ({
       <InvoiceContentWrapper
         presenceSummary={presenceSummary}
         taskSummary={taskSummary}
+        reviewerTaskSummary={reviewerTaskSummary}
         user={user}
         targetUserName={targetUserName}
         targetUserId={targetUserId}
