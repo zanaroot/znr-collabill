@@ -59,11 +59,8 @@ export const adminMiddleware = createMiddleware<AuthEnv>(
   async (c: Context, next: Next) => {
     const user = c.get("user");
 
-    if (
-      !user ||
-      (user.organizationRole !== "OWNER" && user.organizationRole !== "ADMIN")
-    ) {
-      return c.json({ error: "Forbidden: Admin or Owner role required" }, 403);
+    if (!user) {
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
     await next();

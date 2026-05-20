@@ -55,7 +55,9 @@ export const getAllowedTaskTransitions = ({
   userRole,
 }: Omit<TaskWorkflowContext, "to">): TaskStatus[] => {
   if (from === "BACKLOG") {
-    return userRole === "OWNER" || userRole === "ADMIN"
+    return userRole === "OWNER" ||
+      userRole === "ADMIN" ||
+      userRole === "COLLABORATOR"
       ? ["TODO", "TRASH"]
       : [];
   }
