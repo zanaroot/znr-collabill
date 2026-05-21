@@ -59,8 +59,11 @@ export const adminMiddleware = createMiddleware<AuthEnv>(
   async (c: Context, next: Next) => {
     const user = c.get("user");
 
-    if (!user) {
-      return c.json({ error: "Unauthorized" }, 401);
+    if (
+      !user ||
+      (user.organizationRole !== "OWNER" && user.organizationRole !== "ADMIN")
+    ) {
+      return c.json({ error: "Forbidden: Admin or Owner role required" }, 403);
     }
 
     await next();
@@ -86,3 +89,18 @@ const getCookieValue = (c: Context, name: string): string | undefined => {
   const match = cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
   return match?.[1];
 };
+
+export const memberMiddleware = createMiddleware<AuthEnv>(
+  async (c: Context, next: Next) => {
+    const user = c.get("user");
+
+    if (
+      !user ||
+      !["OWNER", "ADMIN", "COLLABORATOR"].includes(user.organizationRole)
+    ) {
+      return c.json({ error: "Forbidden: Member role required" }, 403);
+    }
+
+    await next();
+  },
+);
