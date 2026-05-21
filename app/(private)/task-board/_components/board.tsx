@@ -47,7 +47,11 @@ export function CreateBoard({
     taskId,
   });
 
-  const hasPermission = isAdmin || userRole === "OWNER" || userRole === "ADMIN" || userRole === "COLLABORATOR";
+  const hasPermission =
+    isAdmin ||
+    userRole === "OWNER" ||
+    userRole === "ADMIN" ||
+    userRole === "COLLABORATOR";
 
   const projectMap = useMemo(
     () => new Map(projects.map((p) => [p.id, p.name])),
