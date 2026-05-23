@@ -268,6 +268,7 @@ describe("task model schemas", () => {
         "TODO",
         "IN_PROGRESS",
         "IN_REVIEW",
+        "APPROVED",
         "VALIDATED",
         "BLOCKED",
         "TRASH",
