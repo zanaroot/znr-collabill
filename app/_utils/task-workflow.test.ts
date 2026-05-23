@@ -82,7 +82,7 @@ describe("task-workflow", () => {
     it("IN_REVIEW cannot transition without owner/admin", () => {
       const result = canTransitionTaskStatus({
         from: "IN_REVIEW",
-        to: "VALIDATED",
+        to: "APPROVED",
         userRole: "COLLABORATOR",
       });
       expect(result).toBe(false);
@@ -115,10 +115,10 @@ describe("task-workflow", () => {
       expect(result).toBe(true);
     });
 
-    it("IN_REVIEW can transition to VALIDATED as owner", () => {
+    it("IN_REVIEW can transition to APPROVED as owner", () => {
       const result = canTransitionTaskStatus({
         from: "IN_REVIEW",
-        to: "VALIDATED",
+        to: "APPROVED",
         userRole: "OWNER",
       });
       expect(result).toBe(true);
@@ -158,6 +158,109 @@ describe("task-workflow", () => {
         userRole: "OWNER",
       });
       expect(result).toBe(true);
+    });
+
+    it("APPROVED to IN_REVIEW is allowed for reviewer", () => {
+      const result = canTransitionTaskStatus({
+        from: "APPROVED",
+        to: "IN_REVIEW",
+        userRole: "COLLABORATOR",
+        reviewerId: "user-1",
+        userId: "user-1",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("APPROVED to IN_REVIEW is allowed for owner", () => {
+      const result = canTransitionTaskStatus({
+        from: "APPROVED",
+        to: "IN_REVIEW",
+        userRole: "OWNER",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("APPROVED to IN_REVIEW is allowed for admin", () => {
+      const result = canTransitionTaskStatus({
+        from: "APPROVED",
+        to: "IN_REVIEW",
+        userRole: "ADMIN",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("APPROVED to IN_REVIEW is denied for collaborator non-reviewer", () => {
+      const result = canTransitionTaskStatus({
+        from: "APPROVED",
+        to: "IN_REVIEW",
+        userRole: "COLLABORATOR",
+        reviewerId: "other-user",
+        userId: "user-1",
+      });
+      expect(result).toBe(false);
+    });
+
+    it("APPROVED to VALIDATED is allowed for owner", () => {
+      const result = canTransitionTaskStatus({
+        from: "APPROVED",
+        to: "VALIDATED",
+        userRole: "OWNER",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("APPROVED to VALIDATED is allowed for admin", () => {
+      const result = canTransitionTaskStatus({
+        from: "APPROVED",
+        to: "VALIDATED",
+        userRole: "ADMIN",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("APPROVED to VALIDATED is denied for collaborator", () => {
+      const result = canTransitionTaskStatus({
+        from: "APPROVED",
+        to: "VALIDATED",
+        userRole: "COLLABORATOR",
+      });
+      expect(result).toBe(false);
+    });
+
+    it("APPROVED cannot transition to TODO", () => {
+      const result = canTransitionTaskStatus({
+        from: "APPROVED",
+        to: "TODO",
+        userRole: "OWNER",
+      });
+      expect(result).toBe(false);
+    });
+
+    it("VALIDATED to APPROVED is allowed for owner", () => {
+      const result = canTransitionTaskStatus({
+        from: "VALIDATED",
+        to: "APPROVED",
+        userRole: "OWNER",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("VALIDATED to APPROVED is allowed for admin", () => {
+      const result = canTransitionTaskStatus({
+        from: "VALIDATED",
+        to: "APPROVED",
+        userRole: "ADMIN",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("VALIDATED to APPROVED is denied for collaborator", () => {
+      const result = canTransitionTaskStatus({
+        from: "VALIDATED",
+        to: "APPROVED",
+        userRole: "COLLABORATOR",
+      });
+      expect(result).toBe(false);
     });
 
     it("VALIDATED cannot transition to any status", () => {
@@ -210,12 +313,22 @@ describe("task-workflow", () => {
       expect(result).toContain("IN_REVIEW");
     });
 
-    it("returns empty array from VALIDATED", () => {
+    it("returns ARCHIVED from VALIDATED for collaborator", () => {
       const result = getAllowedTaskTransitions({
         from: "VALIDATED",
         userRole: "COLLABORATOR",
       });
       expect(result).toContain("ARCHIVED");
+      expect(result).not.toContain("APPROVED");
+    });
+
+    it("returns ARCHIVED and APPROVED from VALIDATED for owner", () => {
+      const result = getAllowedTaskTransitions({
+        from: "VALIDATED",
+        userRole: "OWNER",
+      });
+      expect(result).toContain("ARCHIVED");
+      expect(result).toContain("APPROVED");
     });
 
     it("returns IN_REVIEW transitions for owner", () => {
@@ -225,7 +338,7 @@ describe("task-workflow", () => {
       });
       expect(result).toContain("TRASH");
       expect(result).toContain("IN_PROGRESS");
-      expect(result).toContain("VALIDATED");
+      expect(result).toContain("APPROVED");
     });
 
     it("returns IN_REVIEW transitions for admin", () => {
@@ -235,7 +348,7 @@ describe("task-workflow", () => {
       });
       expect(result).toContain("TRASH");
       expect(result).toContain("IN_PROGRESS");
-      expect(result).toContain("VALIDATED");
+      expect(result).toContain("APPROVED");
     });
 
     it("returns empty array from IN_REVIEW for collaborator", () => {
@@ -280,6 +393,45 @@ describe("task-workflow", () => {
       expect(result).toHaveLength(0);
     });
 
+    it("returns IN_REVIEW from APPROVED for reviewer", () => {
+      const result = getAllowedTaskTransitions({
+        from: "APPROVED",
+        userRole: "COLLABORATOR",
+        reviewerId: "user-1",
+        userId: "user-1",
+      });
+      expect(result).toContain("IN_REVIEW");
+      expect(result).not.toContain("VALIDATED");
+    });
+
+    it("returns IN_REVIEW and VALIDATED from APPROVED for owner", () => {
+      const result = getAllowedTaskTransitions({
+        from: "APPROVED",
+        userRole: "OWNER",
+      });
+      expect(result).toContain("IN_REVIEW");
+      expect(result).toContain("VALIDATED");
+    });
+
+    it("returns IN_REVIEW and VALIDATED from APPROVED for admin", () => {
+      const result = getAllowedTaskTransitions({
+        from: "APPROVED",
+        userRole: "ADMIN",
+      });
+      expect(result).toContain("IN_REVIEW");
+      expect(result).toContain("VALIDATED");
+    });
+
+    it("returns empty array from APPROVED for non-reviewer collaborator", () => {
+      const result = getAllowedTaskTransitions({
+        from: "APPROVED",
+        userRole: "COLLABORATOR",
+        reviewerId: "other-user",
+        userId: "user-1",
+      });
+      expect(result).toHaveLength(0);
+    });
+
     it("returns empty array from ARCHIVED", () => {
       const result = getAllowedTaskTransitions({
         from: "ARCHIVED",
@@ -312,6 +464,10 @@ describe("task-workflow", () => {
 
     it("returns false for IN_REVIEW", () => {
       expect(canDeleteTaskByStatus("IN_REVIEW")).toBe(false);
+    });
+
+    it("returns false for APPROVED", () => {
+      expect(canDeleteTaskByStatus("APPROVED")).toBe(false);
     });
 
     it("returns false for VALIDATED", () => {

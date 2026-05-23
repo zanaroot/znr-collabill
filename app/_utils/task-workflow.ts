@@ -10,7 +10,7 @@ type TaskWorkflowContext = {
 };
 
 const COMMON_TRANSITIONS: Record<
-  Exclude<TaskStatus, "IN_REVIEW" | "BACKLOG">,
+  Exclude<TaskStatus, "IN_REVIEW" | "BACKLOG" | "APPROVED">,
   readonly TaskStatus[]
 > = {
   TODO: ["IN_PROGRESS", "BLOCKED", "TRASH"],
@@ -46,10 +46,29 @@ export const canTransitionTaskStatus = ({
   if (from === "IN_REVIEW") {
     const isReviewer = reviewerId && userId && reviewerId === userId;
     if (isReviewer) {
-      return to === "TRASH" || to === "IN_PROGRESS" || to === "VALIDATED";
+      return to === "TRASH" || to === "IN_PROGRESS" || to === "APPROVED";
     }
     if (!userRole || userRole === "COLLABORATOR") return false;
-    return to === "TRASH" || to === "IN_PROGRESS" || to === "VALIDATED";
+    return to === "TRASH" || to === "IN_PROGRESS" || to === "APPROVED";
+  }
+
+  if (from === "APPROVED") {
+    if (to === "IN_REVIEW") {
+      const isReviewer = reviewerId && userId && reviewerId === userId;
+      if (isReviewer) return true;
+      if (!userRole || userRole === "COLLABORATOR") return false;
+      return true;
+    }
+    if (to === "VALIDATED") {
+      if (!userRole || userRole === "COLLABORATOR") return false;
+      return true;
+    }
+    return false;
+  }
+
+  if (from === "VALIDATED" && to === "APPROVED") {
+    if (!userRole || userRole === "COLLABORATOR") return false;
+    return true;
   }
 
   return COMMON_TRANSITIONS[from].includes(to);
@@ -79,7 +98,7 @@ export const getAllowedTaskTransitions = ({
       return [
         "TRASH",
         "IN_PROGRESS",
-        "VALIDATED",
+        "APPROVED",
         ...allowedToBacklog,
       ] as TaskStatus[];
     }
@@ -87,10 +106,34 @@ export const getAllowedTaskTransitions = ({
       ? ([
           "TRASH",
           "IN_PROGRESS",
-          "VALIDATED",
+          "APPROVED",
           ...allowedToBacklog,
         ] as TaskStatus[])
       : [];
+  }
+
+  if (from === "APPROVED") {
+    const isReviewer = reviewerId && userId && reviewerId === userId;
+    const allowed: TaskStatus[] = [];
+
+    if (isReviewer || (userRole && userRole !== "COLLABORATOR")) {
+      allowed.push("IN_REVIEW");
+    }
+
+    if (userRole && userRole !== "COLLABORATOR") {
+      allowed.push("VALIDATED");
+      allowed.push(...(allowedToBacklog as TaskStatus[]));
+    }
+
+    return allowed;
+  }
+
+  if (from === "VALIDATED") {
+    const allowed: TaskStatus[] = [...COMMON_TRANSITIONS.VALIDATED];
+    if (userRole && userRole !== "COLLABORATOR") {
+      allowed.push("APPROVED");
+    }
+    return allowed;
   }
 
   return [...COMMON_TRANSITIONS[from], ...allowedToBacklog] as TaskStatus[];

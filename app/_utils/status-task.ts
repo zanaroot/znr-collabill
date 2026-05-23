@@ -8,6 +8,8 @@ export const statusTagColor = (status: TaskStatus) => {
       return "blue";
     case "IN_REVIEW":
       return "purple";
+    case "APPROVED":
+      return "cyan";
     case "VALIDATED":
       return "green";
     case "BLOCKED":
@@ -29,6 +31,8 @@ export const formatStatus = (status: TaskStatus) => {
       return "In progress";
     case "IN_REVIEW":
       return "In review";
+    case "APPROVED":
+      return "Approved";
     case "VALIDATED":
       return "Validated";
     case "BLOCKED":

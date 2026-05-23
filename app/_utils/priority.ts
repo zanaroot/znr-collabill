@@ -63,7 +63,14 @@ export function getPriorityOptions() {
 export type BoardView = "ACTIVE" | "INACTIVE" | "ARCHIVED" | "ALL";
 
 export const BOARD_VIEW_STATUSES: Record<BoardView, TaskStatus[]> = {
-  ACTIVE: ["BACKLOG", "TODO", "IN_PROGRESS", "IN_REVIEW", "VALIDATED"],
+  ACTIVE: [
+    "BACKLOG",
+    "TODO",
+    "IN_PROGRESS",
+    "IN_REVIEW",
+    "APPROVED",
+    "VALIDATED",
+  ],
   INACTIVE: ["TODO", "BLOCKED", "TRASH"],
   ARCHIVED: ["ARCHIVED"],
   ALL: [
@@ -71,6 +78,7 @@ export const BOARD_VIEW_STATUSES: Record<BoardView, TaskStatus[]> = {
     "TODO",
     "IN_PROGRESS",
     "IN_REVIEW",
+    "APPROVED",
     "VALIDATED",
     "BLOCKED",
     "TRASH",
