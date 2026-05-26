@@ -1,5 +1,5 @@
-import type { TaskStatus } from "@/http/models/task.model";
 import type { ProjectMemberRole } from "@/http/models/project.model";
+import type { TaskStatus } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 
 type TaskWorkflowContext = {
@@ -11,10 +11,7 @@ type TaskWorkflowContext = {
   projectRole?: ProjectMemberRole;
 };
 
-const isAdminLike = (
-  userRole?: Role,
-  projectRole?: ProjectMemberRole,
-) =>
+const isAdminLike = (userRole?: Role, projectRole?: ProjectMemberRole) =>
   userRole === "OWNER" ||
   userRole === "ADMIN" ||
   projectRole === "PRODUCT_OWNER";

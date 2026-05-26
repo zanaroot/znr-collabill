@@ -124,7 +124,10 @@ export const removeProjectMember = factory.createHandlers(async (c) => {
   );
   if (!hasAdminAccess) {
     return c.json(
-      { error: "Forbidden: Only admin, owner, or product owner can remove project members" },
+      {
+        error:
+          "Forbidden: Only admin, owner, or product owner can remove project members",
+      },
       403,
     );
   }
@@ -317,7 +320,10 @@ export const deleteProject = factory.createHandlers(async (c) => {
     id,
   );
   if (!hasAdminAccess && project.createdBy !== user.id) {
-    return c.json({ error: "Only the creator or project admins can delete the project" }, 403);
+    return c.json(
+      { error: "Only the creator or project admins can delete the project" },
+      403,
+    );
   }
 
   await projectRepository.deleteProject(id);
@@ -459,10 +465,7 @@ export const updateProjectMemberRole = factory.createHandlers(
 
     const isMember = await projectRepository.isProjectMember(id, userId);
     if (!isMember) {
-      return c.json(
-        { error: "User is not a member of this project" },
-        404,
-      );
+      return c.json({ error: "User is not a member of this project" }, 404);
     }
 
     const member = await projectRepository.updateProjectMemberRole(

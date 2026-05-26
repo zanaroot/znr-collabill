@@ -33,7 +33,11 @@ export const projectRoutes = new Hono()
     projectAdminMiddleware,
     ...removeProjectMember,
   )
-  .put("/:id/slack-settings", projectAdminMiddleware, ...updateProjectSlackSettings)
+  .put(
+    "/:id/slack-settings",
+    projectAdminMiddleware,
+    ...updateProjectSlackSettings,
+  )
   .put(
     "/:id/members/:userId/role",
     projectAdminMiddleware,

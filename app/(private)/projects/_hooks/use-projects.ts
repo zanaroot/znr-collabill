@@ -122,9 +122,9 @@ export function useAddProjectMember() {
         );
       }
       return (await res.json()) as {
-        id: string;
         projectId: string;
         userId: string;
+        role: ProjectMemberRole;
       };
     },
     onSuccess: (_, variables) => {
@@ -257,11 +257,12 @@ export function useUpdateProjectMemberRole() {
       userId: string;
       role: ProjectMemberRole;
     }) => {
-      const res =
-        await client.api.projects[":id"].members[":userId"].role.$put({
+      const res = await client.api.projects[":id"].members[":userId"].role.$put(
+        {
           param: { id: projectId, userId },
           json: { role },
-        });
+        },
+      );
       if (!res.ok) {
         const error = (await res.json()) as ErrorResponse;
         throw new Error(

@@ -32,9 +32,9 @@ import {
   useCreateProjectBranch,
   useProjectBranches,
 } from "@/app/(private)/projects/_hooks/use-projects";
+import type { ProjectMemberRole } from "@/http/models/project.model";
 import type { TaskSize, TaskStatus } from "@/http/models/task.model";
 import { TASK_SIZES } from "@/http/models/task.model";
-import type { ProjectMemberRole } from "@/http/models/project.model";
 import type { Role } from "@/http/models/user.model";
 import { formatDueDate } from "@/lib/date";
 import { generateUniqueGitBranchFromTitle } from "@/lib/git-branch-name";

@@ -1,6 +1,6 @@
 "use client";
 
-import { DeleteOutlined, PlusOutlined, CrownOutlined } from "@ant-design/icons";
+import { CrownOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   App,
@@ -33,7 +33,6 @@ import {
   createProjectSchema,
   type Project,
 } from "@/http/models/project.model";
-import type { ProjectMemberRole } from "@/http/models/project.model";
 import {
   useAddProjectMember,
   useProjectMembers,
@@ -143,8 +142,7 @@ export function ProjectDetailsDrawer({
     currentUser?.organizationRole === "OWNER" ||
     currentUser?.organizationRole === "ADMIN" ||
     members?.some(
-      (m) =>
-        m.id === currentUser?.id && m.projectRole === "PRODUCT_OWNER",
+      (m) => m.id === currentUser?.id && m.projectRole === "PRODUCT_OWNER",
     );
 
   const canRemoveUser = (userId: string) => {

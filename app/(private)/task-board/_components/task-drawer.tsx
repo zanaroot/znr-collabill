@@ -2,8 +2,8 @@
 
 import { Button, Drawer, Flex, Typography } from "antd";
 import type { TaskFormValues } from "@/app/_utils/priority";
-import type { Task as TaskModel } from "@/http/models/task.model";
 import type { ProjectMemberRole } from "@/http/models/project.model";
+import type { Task as TaskModel } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 import type { TaskMembers } from "./column";
 import { TaskComments } from "./task-comments";

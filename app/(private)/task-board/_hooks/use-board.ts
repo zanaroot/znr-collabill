@@ -14,8 +14,8 @@ import {
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
 } from "@/app/_utils/task-workflow";
-import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
 import type { ProjectMemberRole } from "@/http/models/project.model";
+import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 import {
   useCreateTask,
@@ -151,7 +151,10 @@ export function useBoard({
   }, [tasks]);
 
   const hasPermission = Boolean(
-    userRole || userRole === "ADMIN" || userRole === "OWNER" || projectRole === "PRODUCT_OWNER",
+    userRole ||
+      userRole === "ADMIN" ||
+      userRole === "OWNER" ||
+      projectRole === "PRODUCT_OWNER",
   );
   const canCreateTask = Boolean(userRole) || projectRole === "PRODUCT_OWNER";
 

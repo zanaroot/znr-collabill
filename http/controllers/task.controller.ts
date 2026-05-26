@@ -129,7 +129,10 @@ export const createTask = factory.createHandlers(
       payload.projectId,
     );
     if (!hasAdminAccess) {
-      return c.json({ error: "Forbidden: Admin or Product Owner role required" }, 403);
+      return c.json(
+        { error: "Forbidden: Admin or Product Owner role required" },
+        403,
+      );
     }
 
     const taskData = {
@@ -305,7 +308,10 @@ export const deleteTask = factory.createHandlers(async (c) => {
     task.projectId,
   );
   if (!hasAdminAccess) {
-    return c.json({ error: "Forbidden: Admin or Product Owner role required" }, 403);
+    return c.json(
+      { error: "Forbidden: Admin or Product Owner role required" },
+      403,
+    );
   }
 
   if (!task.status) {

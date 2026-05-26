@@ -11,10 +11,9 @@ import {
 import type {
   CreateProjectInput,
   Project,
+  ProjectMemberRole,
   UpdateProjectInput,
 } from "@/http/models/project.model";
-import { isProjectAdminOrOwner } from "@/http/models/project.model";
-import type { ProjectMemberRole } from "@/http/models/project.model";
 
 const normalizeProject = <
   T extends {

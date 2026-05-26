@@ -7,8 +7,8 @@ import {
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
 } from "@/app/_utils/task-workflow";
-import type { Task as TaskModel } from "@/http/models/task.model";
 import type { ProjectMemberRole } from "@/http/models/project.model";
+import type { Task as TaskModel } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 import { useBoard } from "../_hooks/use-board";
 import { ArchivedSection } from "./archived-section";
@@ -59,7 +59,6 @@ export function CreateBoard({
     userRole === "OWNER" ||
     userRole === "ADMIN" ||
     projectRole === "PRODUCT_OWNER";
-    userRole === "COLLABORATOR";
 
   const projectMap = useMemo(
     () => new Map(projects.map((p) => [p.id, p.name])),
