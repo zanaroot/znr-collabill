@@ -50,7 +50,11 @@ export function CreateBoard({
     taskId,
   });
 
-  const hasPermission = isAdmin || userRole === "OWNER" || userRole === "ADMIN";
+  const hasPermission =
+    isAdmin ||
+    userRole === "OWNER" ||
+    userRole === "ADMIN" ||
+    userRole === "COLLABORATOR";
 
   const projectMap = useMemo(
     () => new Map(projects.map((p) => [p.id, p.name])),
@@ -132,7 +136,12 @@ export function CreateBoard({
                 onDragEndTask={board.handleDragEndTask}
                 onDropTask={board.handleDropTask}
                 members={members}
-                canCreateTask={hasPermission}
+                canCreateTask={
+                  isAdmin ||
+                  userRole === "OWNER" ||
+                  userRole === "ADMIN" ||
+                  (userRole === "COLLABORATOR" && status === "BACKLOG")
+                }
               />
             </div>
           ))}
