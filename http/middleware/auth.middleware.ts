@@ -136,3 +136,18 @@ const getCookieValue = (c: Context, name: string): string | undefined => {
   const match = cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
   return match?.[1];
 };
+
+export const memberMiddleware = createMiddleware<AuthEnv>(
+  async (c: Context, next: Next) => {
+    const user = c.get("user");
+
+    if (
+      !user ||
+      !["OWNER", "ADMIN", "COLLABORATOR"].includes(user.organizationRole)
+    ) {
+      return c.json({ error: "Forbidden: Member role required" }, 403);
+    }
+
+    await next();
+  },
+);
