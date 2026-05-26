@@ -1,3 +1,4 @@
+import type { ProjectMemberRole } from "@/http/models/project.model";
 import type { TaskStatus } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 
@@ -7,7 +8,13 @@ type TaskWorkflowContext = {
   userRole?: Role;
   reviewerId?: string | null;
   userId?: string;
+  projectRole?: ProjectMemberRole;
 };
+
+const isAdminLike = (userRole?: Role, projectRole?: ProjectMemberRole) =>
+  userRole === "OWNER" ||
+  userRole === "ADMIN" ||
+  projectRole === "PRODUCT_OWNER";
 
 const COMMON_TRANSITIONS: Record<
   Exclude<TaskStatus, "IN_REVIEW" | "BACKLOG" | "APPROVED">,
@@ -27,11 +34,12 @@ export const canTransitionTaskStatus = ({
   userRole,
   reviewerId,
   userId,
+  projectRole,
 }: TaskWorkflowContext) => {
   if (from === to) return true;
 
   if (from === "BACKLOG" || to === "BACKLOG") {
-    const canAccessBacklog = userRole === "OWNER" || userRole === "ADMIN";
+    const canAccessBacklog = isAdminLike(userRole, projectRole);
     if (!canAccessBacklog) return false;
 
     if (from === "BACKLOG") {
@@ -48,7 +56,7 @@ export const canTransitionTaskStatus = ({
     if (isReviewer) {
       return to === "TRASH" || to === "IN_PROGRESS" || to === "APPROVED";
     }
-    if (!userRole || userRole === "COLLABORATOR") return false;
+    if (!isAdminLike(userRole, projectRole)) return false;
     return to === "TRASH" || to === "IN_PROGRESS" || to === "APPROVED";
   }
 
@@ -56,18 +64,18 @@ export const canTransitionTaskStatus = ({
     if (to === "IN_REVIEW") {
       const isReviewer = reviewerId && userId && reviewerId === userId;
       if (isReviewer) return true;
-      if (!userRole || userRole === "COLLABORATOR") return false;
+      if (!isAdminLike(userRole, projectRole)) return false;
       return true;
     }
     if (to === "VALIDATED") {
-      if (!userRole || userRole === "COLLABORATOR") return false;
+      if (!isAdminLike(userRole, projectRole)) return false;
       return true;
     }
     return false;
   }
 
   if (from === "VALIDATED" && to === "APPROVED") {
-    if (!userRole || userRole === "COLLABORATOR") return false;
+    if (!isAdminLike(userRole, projectRole)) return false;
     return true;
   }
 
@@ -79,14 +87,13 @@ export const getAllowedTaskTransitions = ({
   userRole,
   reviewerId,
   userId,
+  projectRole,
 }: Omit<TaskWorkflowContext, "to">): TaskStatus[] => {
   if (from === "BACKLOG") {
-    return userRole === "OWNER" || userRole === "ADMIN"
-      ? ["TODO", "TRASH"]
-      : [];
+    return isAdminLike(userRole, projectRole) ? ["TODO", "TRASH"] : [];
   }
 
-  const canAccessBacklog = userRole === "OWNER" || userRole === "ADMIN";
+  const canAccessBacklog = isAdminLike(userRole, projectRole);
   const allowedToBacklog =
     canAccessBacklog && ["TODO", "IN_PROGRESS", "BLOCKED"].includes(from)
       ? ["BACKLOG"]
@@ -102,7 +109,7 @@ export const getAllowedTaskTransitions = ({
         ...allowedToBacklog,
       ] as TaskStatus[];
     }
-    return userRole && userRole !== "COLLABORATOR"
+    return isAdminLike(userRole, projectRole)
       ? ([
           "TRASH",
           "IN_PROGRESS",
@@ -116,11 +123,11 @@ export const getAllowedTaskTransitions = ({
     const isReviewer = reviewerId && userId && reviewerId === userId;
     const allowed: TaskStatus[] = [];
 
-    if (isReviewer || (userRole && userRole !== "COLLABORATOR")) {
+    if (isReviewer || isAdminLike(userRole, projectRole)) {
       allowed.push("IN_REVIEW");
     }
 
-    if (userRole && userRole !== "COLLABORATOR") {
+    if (isAdminLike(userRole, projectRole)) {
       allowed.push("VALIDATED");
       allowed.push(...(allowedToBacklog as TaskStatus[]));
     }
@@ -130,7 +137,7 @@ export const getAllowedTaskTransitions = ({
 
   if (from === "VALIDATED") {
     const allowed: TaskStatus[] = [...COMMON_TRANSITIONS.VALIDATED];
-    if (userRole && userRole !== "COLLABORATOR") {
+    if (isAdminLike(userRole, projectRole)) {
       allowed.push("APPROVED");
     }
     return allowed;

@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import { createMiddleware } from "hono/factory";
 import { db } from "@/db";
-import { organizationMembers } from "@/db/schema";
+import { organizationMembers, projectMembers } from "@/db/schema";
 import type { AuthEnv } from "@/http/models/auth.model";
 import type { Role } from "@/http/models/user.model";
 import { findValidSessionByToken } from "@/http/repositories/session.repository";
@@ -76,6 +76,53 @@ export const ownerMiddleware = createMiddleware<AuthEnv>(
 
     if (!user || user.organizationRole !== "OWNER") {
       return c.json({ error: "Forbidden: Owner role required" }, 403);
+    }
+
+    await next();
+  },
+);
+
+export const projectAdminMiddleware = createMiddleware<AuthEnv>(
+  async (c: Context, next: Next) => {
+    const user = c.get("user");
+
+    if (!user) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    if (
+      user.organizationRole === "OWNER" ||
+      user.organizationRole === "ADMIN"
+    ) {
+      await next();
+      return;
+    }
+
+    const projectId = c.req.param("id");
+    if (!projectId) {
+      return c.json({ error: "Forbidden: Project ID required" }, 403);
+    }
+
+    if (!user.organizationId) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    const [member] = await db
+      .select({ role: projectMembers.role })
+      .from(projectMembers)
+      .where(
+        and(
+          eq(projectMembers.projectId, projectId),
+          eq(projectMembers.userId, user.id),
+        ),
+      )
+      .limit(1);
+
+    if (member?.role !== "PRODUCT_OWNER") {
+      return c.json(
+        { error: "Forbidden: Admin or Product Owner role required" },
+        403,
+      );
     }
 
     await next();

@@ -1,6 +1,6 @@
 "use client";
 
-import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { CrownOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   App,
@@ -17,6 +17,7 @@ import {
   Select,
   Space,
   Spin,
+  Tag,
   Typography,
 } from "antd";
 import { useEffect, useState } from "react";
@@ -37,6 +38,7 @@ import {
   useProjectMembers,
   useRemoveProjectMember,
   useUpdateProject,
+  useUpdateProjectMemberRole,
 } from "../_hooks/use-projects";
 
 const { Title, Text, Paragraph } = Typography;
@@ -66,6 +68,7 @@ export function ProjectDetailsDrawer({
   const addMemberMutation = useAddProjectMember();
   const removeMemberMutation = useRemoveProjectMember();
   const updateProjectMutation = useUpdateProject();
+  const updateMemberRoleMutation = useUpdateProjectMemberRole();
 
   const [form] = Form.useForm();
 
@@ -137,7 +140,10 @@ export function ProjectDetailsDrawer({
 
   const isAdminOrOwner =
     currentUser?.organizationRole === "OWNER" ||
-    currentUser?.organizationRole === "ADMIN";
+    currentUser?.organizationRole === "ADMIN" ||
+    members?.some(
+      (m) => m.id === currentUser?.id && m.projectRole === "PRODUCT_OWNER",
+    );
 
   const canRemoveUser = (userId: string) => {
     if (!isAdminOrOwner) return false;
@@ -441,18 +447,75 @@ export function ProjectDetailsDrawer({
                 renderItem={(item) => (
                   <List.Item
                     actions={
-                      isAdminOrOwner && canRemoveUser(item.id)
+                      isAdminOrOwner
                         ? [
-                            <Button
-                              key="remove"
-                              type="text"
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() =>
-                                handleRemoveAccess(item.id, item.name)
-                              }
-                            />,
-                          ]
+                            item.projectRole !== "PRODUCT_OWNER" && (
+                              <Button
+                                key="make-po"
+                                type="text"
+                                icon={<CrownOutlined />}
+                                onClick={() =>
+                                  updateMemberRoleMutation.mutate(
+                                    {
+                                      projectId: project.id,
+                                      userId: item.id,
+                                      role: "PRODUCT_OWNER",
+                                    },
+                                    {
+                                      onSuccess: () =>
+                                        message.success(
+                                          `${item.name} is now Product Owner`,
+                                        ),
+                                      onError: (error) =>
+                                        message.error(
+                                          (error as Error).message ||
+                                            "Failed to update role",
+                                        ),
+                                    },
+                                  )
+                                }
+                              />
+                            ),
+                            item.projectRole === "PRODUCT_OWNER" && (
+                              <Button
+                                key="remove-po"
+                                type="text"
+                                onClick={() =>
+                                  updateMemberRoleMutation.mutate(
+                                    {
+                                      projectId: project.id,
+                                      userId: item.id,
+                                      role: "MEMBER",
+                                    },
+                                    {
+                                      onSuccess: () =>
+                                        message.success(
+                                          `Removed Product Owner from ${item.name}`,
+                                        ),
+                                      onError: (error) =>
+                                        message.error(
+                                          (error as Error).message ||
+                                            "Failed to update role",
+                                        ),
+                                    },
+                                  )
+                                }
+                              >
+                                Remove PO
+                              </Button>
+                            ),
+                            canRemoveUser(item.id) && (
+                              <Button
+                                key="remove"
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={() =>
+                                  handleRemoveAccess(item.id, item.name)
+                                }
+                              />
+                            ),
+                          ].filter(Boolean)
                         : undefined
                     }
                   >
@@ -464,7 +527,14 @@ export function ProjectDetailsDrawer({
                           userEmail={item.email}
                         />
                       }
-                      title={item.name}
+                      title={
+                        <Space>
+                          {item.name}
+                          {item.projectRole === "PRODUCT_OWNER" && (
+                            <Tag color="gold">Product Owner</Tag>
+                          )}
+                        </Space>
+                      }
                       description={item.email}
                     />
                   </List.Item>

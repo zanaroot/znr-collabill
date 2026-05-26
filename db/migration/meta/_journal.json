@@ -57,6 +57,13 @@
       "when": 1779541434657,
       "tag": "0007_magical_thor_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779793106818,
+      "tag": "0008_complex_fantastic_four",
+      "breakpoints": true
     }
   ]
 }

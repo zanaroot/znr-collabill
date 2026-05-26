@@ -10,11 +10,12 @@ import {
   getProjects,
   removeProjectMember,
   updateProject,
+  updateProjectMemberRole,
   updateProjectSlackSettings,
 } from "@/http/controllers/project.controller";
 import {
-  adminMiddleware,
   ownerMiddleware,
+  projectAdminMiddleware,
 } from "@/http/middleware/auth.middleware";
 
 export const projectRoutes = new Hono()
@@ -23,9 +24,22 @@ export const projectRoutes = new Hono()
   .get("/:id/branches", ...getProjectBranches)
   .post("/:id/branches", ...createProjectBranch)
   .post("/", ownerMiddleware, ...createProject)
-  .put("/:id", adminMiddleware, ...updateProject)
-  .delete("/:id", adminMiddleware, ...deleteProject)
+  .put("/:id", projectAdminMiddleware, ...updateProject)
+  .delete("/:id", projectAdminMiddleware, ...deleteProject)
   .get("/:id/members", ...getProjectMembers)
-  .post("/:id/members", adminMiddleware, ...addProjectMember)
-  .delete("/:id/members/:userId", adminMiddleware, ...removeProjectMember)
-  .put("/:id/slack-settings", adminMiddleware, ...updateProjectSlackSettings);
+  .post("/:id/members", projectAdminMiddleware, ...addProjectMember)
+  .delete(
+    "/:id/members/:userId",
+    projectAdminMiddleware,
+    ...removeProjectMember,
+  )
+  .put(
+    "/:id/slack-settings",
+    projectAdminMiddleware,
+    ...updateProjectSlackSettings,
+  )
+  .put(
+    "/:id/members/:userId/role",
+    projectAdminMiddleware,
+    ...updateProjectMemberRole,
+  );

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   CreateProjectInput,
   Project,
+  ProjectMemberRole,
   UpdateProjectInput,
 } from "@/http/models/project.model";
 import type { Role } from "@/http/models/user.model";
@@ -92,6 +93,7 @@ export function useProjectMembers(projectId: string) {
         email: string;
         avatar: string | null;
         role: Role;
+        projectRole?: ProjectMemberRole;
       }[];
     },
     enabled: !!projectId,
@@ -120,9 +122,9 @@ export function useAddProjectMember() {
         );
       }
       return (await res.json()) as {
-        id: string;
         projectId: string;
         userId: string;
+        role: ProjectMemberRole;
       };
     },
     onSuccess: (_, variables) => {
@@ -238,6 +240,41 @@ export function useUpdateProject() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
+    },
+  });
+}
+
+export function useUpdateProjectMemberRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      userId,
+      role,
+    }: {
+      projectId: string;
+      userId: string;
+      role: ProjectMemberRole;
+    }) => {
+      const res = await client.api.projects[":id"].members[":userId"].role.$put(
+        {
+          param: { id: projectId, userId },
+          json: { role },
+        },
+      );
+      if (!res.ok) {
+        const error = (await res.json()) as ErrorResponse;
+        throw new Error(
+          error.error || error.message || "Failed to update member role",
+        );
+      }
+      return (await res.json()) as { message: string };
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.members(variables.projectId),
+      });
     },
   });
 }

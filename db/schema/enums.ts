@@ -2,6 +2,11 @@ import { pgEnum } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["OWNER", "ADMIN", "COLLABORATOR"]);
 
+export const projectRoleEnum = pgEnum("project_role", [
+  "MEMBER",
+  "PRODUCT_OWNER",
+]);
+
 export const taskStatusEnum = pgEnum("task_status", [
   "BACKLOG",
   "TODO",

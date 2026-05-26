@@ -6,11 +6,10 @@ import {
   getTasksByProject,
   updateTask,
 } from "@/http/controllers/task.controller";
-import { memberMiddleware } from "@/http/middleware/auth.middleware";
 
 export const taskRoutes = new Hono()
   .get("/project/:projectId", ...getTasksByProject)
   .get("/project/:projectId/period", ...getTasksByPeriod)
-  .post("/", memberMiddleware, ...createTask)
+  .post("/", ...createTask)
   .put("/:id", ...updateTask)
-  .delete("/:id", memberMiddleware, ...deleteTask);
+  .delete("/:id", ...deleteTask);

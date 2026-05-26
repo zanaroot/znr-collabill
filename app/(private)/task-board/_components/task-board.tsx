@@ -43,6 +43,11 @@ export const TaskBoard = () => {
 
   const userRole = currentUser?.organizationRole ?? undefined;
 
+  const userProjectRole = useMemo(() => {
+    if (!currentUser?.id || !projectMembers) return undefined;
+    return projectMembers.find((m) => m.id === currentUser.id)?.projectRole;
+  }, [currentUser?.id, projectMembers]);
+
   const validProjectId = useMemo(() => {
     if (!projects?.length) return undefined;
     const exists = projects.some((p) => p.id === projectId);
@@ -138,6 +143,7 @@ export const TaskBoard = () => {
             currentUser?.organizationRole === "ADMIN" ||
             currentUser?.organizationRole === "OWNER"
           }
+          projectRole={userProjectRole}
           members={
             projectMembers?.map((user) => ({
               id: user.id,

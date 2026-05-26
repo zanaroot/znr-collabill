@@ -7,6 +7,7 @@ import {
   canTransitionTaskStatus,
   getAllowedTaskTransitions,
 } from "@/app/_utils/task-workflow";
+import type { ProjectMemberRole } from "@/http/models/project.model";
 import type { Task as TaskModel } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 import { useBoard } from "../_hooks/use-board";
@@ -27,6 +28,7 @@ type CreateBoardProps = {
   userId?: string;
   members: TaskMembers;
   isAdmin: boolean;
+  projectRole?: ProjectMemberRole;
   taskId?: string;
   projects?: Project[];
 };
@@ -39,6 +41,7 @@ export function CreateBoard({
   userId,
   members,
   isAdmin,
+  projectRole,
   taskId,
   projects = [],
 }: CreateBoardProps) {
@@ -48,13 +51,14 @@ export function CreateBoard({
     userRole,
     userId,
     taskId,
+    projectRole,
   });
 
   const hasPermission =
     isAdmin ||
     userRole === "OWNER" ||
     userRole === "ADMIN" ||
-    userRole === "COLLABORATOR";
+    projectRole === "PRODUCT_OWNER";
 
   const projectMap = useMemo(
     () => new Map(projects.map((p) => [p.id, p.name])),
@@ -124,12 +128,14 @@ export function CreateBoard({
                     from,
                     to,
                     userRole,
+                    projectRole,
                   })
                 }
                 canDragFromStatus={(status) =>
                   getAllowedTaskTransitions({
                     from: status,
                     userRole,
+                    projectRole,
                   }).length > 0
                 }
                 onDragStartTask={board.handleDragStartTask}
@@ -174,6 +180,7 @@ export function CreateBoard({
         activeTask={board.activeTask}
         projectGitBranches={projectGitBranches}
         userRole={userRole}
+        projectRole={projectRole}
       />
     </>
   );

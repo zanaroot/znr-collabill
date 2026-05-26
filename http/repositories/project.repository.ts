@@ -11,6 +11,7 @@ import {
 import type {
   CreateProjectInput,
   Project,
+  ProjectMemberRole,
   UpdateProjectInput,
 } from "@/http/models/project.model";
 
@@ -220,6 +221,7 @@ export const findProjectMembers = async (projectId: string) => {
       email: users.email,
       avatar: users.avatar,
       role: organizationMembers.role,
+      projectRole: projectMembers.role,
     })
     .from(users)
     .innerJoin(projectMembers, eq(users.id, projectMembers.userId))
@@ -284,4 +286,53 @@ export const updateProjectSlackSettings = async (
     .returning();
 
   return project ? normalizeProject(project) : null;
+};
+
+export const getProjectMemberRole = async (
+  projectId: string,
+  userId: string,
+): Promise<ProjectMemberRole | null> => {
+  const [member] = await db
+    .select({ role: projectMembers.role })
+    .from(projectMembers)
+    .where(
+      and(
+        eq(projectMembers.projectId, projectId),
+        eq(projectMembers.userId, userId),
+      ),
+    )
+    .limit(1);
+  return member?.role ?? null;
+};
+
+export const updateProjectMemberRole = async (
+  projectId: string,
+  userId: string,
+  role: ProjectMemberRole,
+) => {
+  const [member] = await db
+    .update(projectMembers)
+    .set({ role })
+    .where(
+      and(
+        eq(projectMembers.projectId, projectId),
+        eq(projectMembers.userId, userId),
+      ),
+    )
+    .returning();
+  return member ?? null;
+};
+
+export const hasProjectAdminAccess = async (
+  userId: string,
+  projectId: string,
+): Promise<boolean> => {
+  const project = await findProjectById(projectId);
+  if (!project) return false;
+
+  const orgRole = await getOrganizationRole(userId, project.organizationId);
+  if (orgRole === "OWNER" || orgRole === "ADMIN") return true;
+
+  const projectRole = await getProjectMemberRole(projectId, userId);
+  return projectRole === "PRODUCT_OWNER";
 };

@@ -32,6 +32,7 @@ import {
   useCreateProjectBranch,
   useProjectBranches,
 } from "@/app/(private)/projects/_hooks/use-projects";
+import type { ProjectMemberRole } from "@/http/models/project.model";
 import type { TaskSize, TaskStatus } from "@/http/models/task.model";
 import { TASK_SIZES } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
@@ -56,6 +57,7 @@ type TaskFormProps = {
   taskId?: string;
   projectGitBranches?: string[];
   userRole?: Role;
+  projectRole?: ProjectMemberRole;
 };
 
 export const TaskForm = ({
@@ -67,6 +69,7 @@ export const TaskForm = ({
   taskId,
   projectGitBranches = [],
   userRole,
+  projectRole,
 }: TaskFormProps) => {
   const { message } = App.useApp();
   const { data: branches, isLoading: isLoadingBranches } =
@@ -373,6 +376,7 @@ export const TaskForm = ({
                 options={getAllowedTaskTransitions({
                   from: formValues.status,
                   userRole,
+                  projectRole,
                 }).map((status) => ({
                   label: <span>{formatStatus(status)}</span>,
                   value: status,

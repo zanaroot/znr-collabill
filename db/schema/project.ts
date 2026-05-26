@@ -8,6 +8,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { projectRoleEnum } from "./enums";
 import { organizations } from "./organization";
 import { users } from "./user";
 
@@ -40,6 +41,7 @@ export const projectMembers = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id),
+    role: projectRoleEnum("role").notNull().default("MEMBER"),
   },
   (t) => [primaryKey({ columns: [t.projectId, t.userId] })],
 );

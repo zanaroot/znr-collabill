@@ -6,6 +6,7 @@ import { createBranch, fetchBranches } from "@/http/actions/github";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   createProjectSchema,
+  projectRoleEnum,
   updateProjectSchema,
 } from "@/http/models/project.model";
 import * as projectRepository from "@/http/repositories/project.repository";
@@ -117,16 +118,23 @@ export const removeProjectMember = factory.createHandlers(async (c) => {
     return c.json({ error: "No organization role found" }, 403);
   }
 
-  if (user.organizationRole !== "OWNER" && user.organizationRole !== "ADMIN") {
+  const hasAdminAccess = await projectRepository.hasProjectAdminAccess(
+    user.id,
+    id,
+  );
+  if (!hasAdminAccess) {
     return c.json(
-      { error: "Forbidden: Only admin and owner can remove project members" },
+      {
+        error:
+          "Forbidden: Only admin, owner, or product owner can remove project members",
+      },
       403,
     );
   }
 
   const projectCreator = await projectRepository.findProjectCreator(id);
 
-  if (user.organizationRole === "ADMIN") {
+  if (user.organizationRole !== "OWNER") {
     if (projectCreator === userIdToRemove) {
       return c.json(
         { error: "Cannot remove the project owner. Transfer ownership first." },
@@ -135,13 +143,11 @@ export const removeProjectMember = factory.createHandlers(async (c) => {
     }
   }
 
-  if (user.organizationRole === "OWNER") {
-    if (userIdToRemove === user.id) {
-      return c.json(
-        { error: "You cannot remove yourself from the project" },
-        400,
-      );
-    }
+  if (userIdToRemove === user.id) {
+    return c.json(
+      { error: "You cannot remove yourself from the project" },
+      400,
+    );
   }
 
   const isMember = await projectRepository.isProjectMember(id, userIdToRemove);
@@ -309,8 +315,15 @@ export const deleteProject = factory.createHandlers(async (c) => {
     return c.json({ error: "Project not found" }, 404);
   }
 
-  if (project.createdBy !== user.id) {
-    return c.json({ error: "Only the creator can delete the project" }, 403);
+  const hasAdminAccess = await projectRepository.hasProjectAdminAccess(
+    user.id,
+    id,
+  );
+  if (!hasAdminAccess && project.createdBy !== user.id) {
+    return c.json(
+      { error: "Only the creator or project admins can delete the project" },
+      403,
+    );
   }
 
   await projectRepository.deleteProject(id);
@@ -421,5 +434,60 @@ export const updateProjectSlackSettings = factory.createHandlers(
     });
 
     return c.json({ message: "Slack settings updated", success: true });
+  },
+);
+
+export const updateProjectMemberRole = factory.createHandlers(
+  zValidator(
+    "json",
+    z.object({
+      role: projectRoleEnum,
+    }),
+  ),
+  async (c) => {
+    const id = c.req.param("id");
+    const userId = c.req.param("userId");
+    const user = c.get("user");
+    const { role } = c.req.valid("json");
+
+    if (!id || !userId) {
+      return c.json({ error: "Project ID and User ID are required" }, 400);
+    }
+
+    const project = await projectRepository.findProjectById(id);
+    if (!project) {
+      return c.json({ error: "Project not found" }, 404);
+    }
+
+    if (project.organizationId !== user.organizationId) {
+      return c.json({ error: "Unauthorized" }, 403);
+    }
+
+    const isMember = await projectRepository.isProjectMember(id, userId);
+    if (!isMember) {
+      return c.json({ error: "User is not a member of this project" }, 404);
+    }
+
+    const member = await projectRepository.updateProjectMemberRole(
+      id,
+      userId,
+      role,
+    );
+    if (!member) {
+      return c.json({ error: "Failed to update member role" }, 500);
+    }
+
+    if (user.organizationId) {
+      await logAudit({
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "UPDATE",
+        entity: "PROJECT",
+        entityId: id,
+        metadata: { targetUserId: userId, newRole: role },
+      });
+    }
+
+    return c.json({ message: "Member role updated successfully" });
   },
 );
