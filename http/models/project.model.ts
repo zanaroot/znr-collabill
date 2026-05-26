@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const projectRoleEnum = z.enum(["MEMBER", "PRODUCT_OWNER"]);
+export type ProjectMemberRole = z.infer<typeof projectRoleEnum>;
+
 export const projectSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255),
@@ -40,3 +43,11 @@ export const updateProjectSchema = z.object({
 });
 
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
+
+export const isProjectAdminOrOwner = (
+  organizationRole: string | null | undefined,
+  projectRole: string | null | undefined,
+) => {
+  if (organizationRole === "OWNER" || organizationRole === "ADMIN") return true;
+  return projectRole === "PRODUCT_OWNER";
+};

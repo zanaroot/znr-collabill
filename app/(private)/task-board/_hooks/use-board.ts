@@ -15,6 +15,7 @@ import {
   getAllowedTaskTransitions,
 } from "@/app/_utils/task-workflow";
 import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
+import type { ProjectMemberRole } from "@/http/models/project.model";
 import type { Role } from "@/http/models/user.model";
 import {
   useCreateTask,
@@ -35,6 +36,7 @@ export type UseBoardOptions = {
   userRole?: Role;
   userId?: string;
   taskId?: string;
+  projectRole?: ProjectMemberRole;
 };
 
 export type UseBoardReturn = {
@@ -76,6 +78,7 @@ export function useBoard({
   userRole,
   userId,
   taskId,
+  projectRole,
 }: UseBoardOptions): UseBoardReturn {
   const [boardView, setBoardView] = useState<BoardView>("ACTIVE");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -148,9 +151,9 @@ export function useBoard({
   }, [tasks]);
 
   const hasPermission = Boolean(
-    userRole || userRole === "ADMIN" || userRole === "OWNER",
+    userRole || userRole === "ADMIN" || userRole === "OWNER" || projectRole === "PRODUCT_OWNER",
   );
-  const canCreateTask = Boolean(userRole);
+  const canCreateTask = Boolean(userRole) || projectRole === "PRODUCT_OWNER";
 
   const openCreateDrawer = (status: TaskStatus) => {
     setActiveTask(null);
@@ -197,6 +200,7 @@ export function useBoard({
         userRole,
         reviewerId: taskReviewerId,
         userId,
+        projectRole,
       })
     ) {
       return;
@@ -265,6 +269,7 @@ export function useBoard({
       userRole,
       reviewerId: taskReviewerId,
       userId,
+      projectRole,
     });
 
     if (!canTransition) {
@@ -316,12 +321,19 @@ export function useBoard({
   };
 }
 
-export function useCanMoveToStatus(userRole?: Role) {
+export function useCanMoveToStatus(
+  userRole?: Role,
+  projectRole?: ProjectMemberRole,
+) {
   return (from: TaskStatus, to: TaskStatus) =>
-    canTransitionTaskStatus({ from, to, userRole });
+    canTransitionTaskStatus({ from, to, userRole, projectRole });
 }
 
-export function useCanDragFromStatus(userRole?: Role) {
+export function useCanDragFromStatus(
+  userRole?: Role,
+  projectRole?: ProjectMemberRole,
+) {
   return (status: TaskStatus) =>
-    getAllowedTaskTransitions({ from: status, userRole }).length > 0;
+    getAllowedTaskTransitions({ from: status, userRole, projectRole }).length >
+    0;
 }

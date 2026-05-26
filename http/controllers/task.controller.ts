@@ -7,6 +7,7 @@ import {
 } from "@/app/_utils/task-workflow";
 import { logAudit } from "@/http/actions/audit.action";
 import type { AuthEnv } from "@/http/models/auth.model";
+import type { ProjectMemberRole } from "@/http/models/project.model";
 import type { UpdateTaskSystemInput } from "@/http/models/task.model";
 import { createTaskSchema, updateTaskSchema } from "@/http/models/task.model";
 import * as projectRepository from "@/http/repositories/project.repository";
@@ -35,20 +36,21 @@ const ensureMembership = async (
   );
   if (isProjectMember) return true;
 
-  const isOrgMember = await projectRepository.isOrganizationMember(
-    project.organizationId,
-    userId,
-  );
-  if (!isOrgMember) return false;
-
   const orgRole = await projectRepository.getOrganizationRole(
     userId,
     project.organizationId,
   );
 
-  if (orgRole === "OWNER") return true;
+  if (orgRole === "OWNER" || orgRole === "ADMIN") return true;
 
   return false;
+};
+
+const getProjectRole = async (
+  userId: string,
+  projectId: string,
+): Promise<ProjectMemberRole | null> => {
+  return projectRepository.getProjectMemberRole(projectId, userId);
 };
 
 export const getTasksByProject = factory.createHandlers(async (c) => {
@@ -122,6 +124,14 @@ export const createTask = factory.createHandlers(
       return c.json({ error: "Unauthorized" }, 403);
     }
 
+    const hasAdminAccess = await projectRepository.hasProjectAdminAccess(
+      user.id,
+      payload.projectId,
+    );
+    if (!hasAdminAccess) {
+      return c.json({ error: "Forbidden: Admin or Product Owner role required" }, 403);
+    }
+
     const taskData = {
       ...payload,
       reviewerId: payload.reviewerId ?? user.id,
@@ -186,12 +196,15 @@ export const updateTask = factory.createHandlers(
     const taskReviewerId = task.reviewerId ?? user.id;
 
     if (payload.status && payload.status !== task.status) {
+      const projectRole = await getProjectRole(user.id, task.projectId);
+
       const canTransition = canTransitionTaskStatus({
         from: task.status,
         to: payload.status,
         userRole: user.organizationRole ?? undefined,
         reviewerId: taskReviewerId,
         userId: user.id,
+        projectRole: projectRole ?? undefined,
       });
 
       if (!canTransition) {
@@ -285,6 +298,14 @@ export const deleteTask = factory.createHandlers(async (c) => {
   );
   if (!isMember) {
     return c.json({ error: "Unauthorized" }, 403);
+  }
+
+  const hasAdminAccess = await projectRepository.hasProjectAdminAccess(
+    user.id,
+    task.projectId,
+  );
+  if (!hasAdminAccess) {
+    return c.json({ error: "Forbidden: Admin or Product Owner role required" }, 403);
   }
 
   if (!task.status) {
