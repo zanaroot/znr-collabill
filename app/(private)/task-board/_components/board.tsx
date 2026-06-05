@@ -110,47 +110,54 @@ export function CreateBoard({
 
       <div className="overflow-x-auto pb-2 kanban-board">
         <div className="flex min-w-max gap-4 kanban-columns">
-          {board.tasksByStatus.map(({ status, tasks: columnTasks }) => (
-            <div key={status} className="w-[320px] shrink-0 kanban-column">
-              <Column
-                status={status}
-                tasks={columnTasks}
-                onAdd={() => board.openCreateDrawer(status)}
-                onEdit={board.openEditDrawer}
-                projectId={projectId}
-                draggingTaskId={board.draggingTaskId}
-                isDropDisabled={!projectId || board.isSaving}
-                draggingTask={tasks.find(
-                  (task) => task.id === board.draggingTaskId,
-                )}
-                canMoveToStatus={(from, to) =>
-                  canTransitionTaskStatus({
-                    from,
-                    to,
-                    userRole,
-                    projectRole,
-                  })
-                }
-                canDragFromStatus={(status) =>
-                  getAllowedTaskTransitions({
-                    from: status,
-                    userRole,
-                    projectRole,
-                  }).length > 0
-                }
-                onDragStartTask={board.handleDragStartTask}
-                onDragEndTask={board.handleDragEndTask}
-                onDropTask={board.handleDropTask}
-                members={members}
-                canCreateTask={
-                  isAdmin ||
-                  userRole === "OWNER" ||
-                  userRole === "ADMIN" ||
-                  (userRole === "COLLABORATOR" && status === "BACKLOG")
-                }
-              />
-            </div>
-          ))}
+          {board.tasksByStatus.map(({ status, tasks: columnTasks }) => {
+            const draggingTask = tasks.find(
+              (task) => task.id === board.draggingTaskId,
+            );
+            return (
+              <div key={status} className="w-[320px] shrink-0 kanban-column">
+                <Column
+                  status={status}
+                  tasks={columnTasks}
+                  onAdd={() => board.openCreateDrawer(status)}
+                  onEdit={board.openEditDrawer}
+                  projectId={projectId}
+                  draggingTaskId={board.draggingTaskId}
+                  isDropDisabled={!projectId || board.isSaving}
+                  draggingTask={draggingTask}
+                  canMoveToStatus={(from, to) =>
+                    canTransitionTaskStatus({
+                      from,
+                      to,
+                      userRole,
+                      projectRole,
+                      reviewerId: draggingTask?.reviewerId ?? null,
+                      userId,
+                    })
+                  }
+                  canDragFromStatus={(status) =>
+                    getAllowedTaskTransitions({
+                      from: status,
+                      userRole,
+                      projectRole,
+                      reviewerId: draggingTask?.reviewerId ?? null,
+                      userId,
+                    }).length > 0
+                  }
+                  onDragStartTask={board.handleDragStartTask}
+                  onDragEndTask={board.handleDragEndTask}
+                  onDropTask={board.handleDropTask}
+                  members={members}
+                  canCreateTask={
+                    isAdmin ||
+                    userRole === "OWNER" ||
+                    userRole === "ADMIN" ||
+                    (userRole === "COLLABORATOR" && status === "BACKLOG")
+                  }
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
       {board.boardView === "ARCHIVED" && (
@@ -180,6 +187,7 @@ export function CreateBoard({
         activeTask={board.activeTask}
         projectGitBranches={projectGitBranches}
         userRole={userRole}
+        userId={userId}
         projectRole={projectRole}
       />
     </>

@@ -67,7 +67,10 @@ export const updateProjectAction = async (
       return { error: "Invalid data", success: false };
     }
 
-    if ("baseRate" in parsed.data && user.organizationRole !== "OWNER") {
+    if (
+      ("baseRate" in parsed.data || "reviewerRate" in parsed.data) &&
+      user.organizationRole !== "OWNER"
+    ) {
       return {
         error: "Only the owner can modify the project rate",
         success: false,

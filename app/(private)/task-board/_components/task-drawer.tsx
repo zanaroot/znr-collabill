@@ -30,6 +30,7 @@ type TaskDrawerProps = {
   activeTask: TaskModel | null;
   projectGitBranches?: string[];
   userRole?: Role;
+  userId?: string;
   projectRole?: ProjectMemberRole;
 };
 
@@ -56,6 +57,7 @@ export function TaskDrawer({
   activeTask,
   projectGitBranches = [],
   userRole,
+  userId,
   projectRole,
 }: TaskDrawerProps) {
   const handleClose = () => {
@@ -139,6 +141,7 @@ export function TaskDrawer({
           taskId={activeTask?.id}
           projectGitBranches={projectGitBranches}
           userRole={userRole}
+          userId={userId}
           projectRole={projectRole}
         />
 

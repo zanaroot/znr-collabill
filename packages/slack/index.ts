@@ -99,6 +99,8 @@ export const buildTaskReviewMessage = (params: {
   taskTitle: string;
   projectName: string;
   assigneeName: string | null;
+  reviewerName?: string | null;
+  reviewerSlackId?: string | null;
   taskUrl: string;
   previousStatus?: string;
 }) => {
@@ -107,6 +109,8 @@ export const buildTaskReviewMessage = (params: {
     taskTitle,
     projectName,
     assigneeName,
+    reviewerName,
+    reviewerSlackId,
     taskUrl,
     previousStatus,
   } = params;
@@ -118,6 +122,12 @@ export const buildTaskReviewMessage = (params: {
   const fields = [];
   if (assigneeName) {
     fields.push({ type: "mrkdwn", text: `*Assignee:*\n${assigneeName}` });
+  }
+  if (reviewerName) {
+    const reviewerDisplay = reviewerSlackId
+      ? `<@${reviewerSlackId}>`
+      : reviewerName;
+    fields.push({ type: "mrkdwn", text: `*Reviewer:*\n${reviewerDisplay}` });
   }
   fields.push({ type: "mrkdwn", text: `*Status:*\nIn Review` });
   fields.push({ type: "mrkdwn", text: `*Project:*\n${projectName}` });
@@ -171,8 +181,8 @@ export const buildTaskReviewMessage = (params: {
   ];
 
   const fallbackText = previousStatus
-    ? `[${taskId}] ${taskTitle} moved from ${previousStatus} to In Review (Assigned: ${assigneeName ?? "Unassigned"})`
-    : `[${taskId}] ${taskTitle} is now In Review (Assigned: ${assigneeName ?? "Unassigned"})`;
+    ? `[${taskId}] ${taskTitle} moved from ${previousStatus} to In Review (Assigned: ${assigneeName ?? "Unassigned"}, Reviewer: ${reviewerName ?? "Unassigned"})`
+    : `[${taskId}] ${taskTitle} is now In Review (Assigned: ${assigneeName ?? "Unassigned"}, Reviewer: ${reviewerName ?? "Unassigned"})`;
 
   return { blocks, text: fallbackText };
 };

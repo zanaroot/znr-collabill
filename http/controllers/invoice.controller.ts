@@ -10,6 +10,7 @@ import {
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
 import {
   archiveTasksByIds,
+  getValidatedTaskIdsByPeriodAndReviewer,
   getValidatedTaskIdsByPeriodAndUser,
   unarchiveTasksByInvoice,
 } from "@/http/repositories/task.repository";
@@ -150,13 +151,22 @@ export const createInvoice = factory.createHandlers(
       new Date(invoiceData.periodStart),
       new Date(invoiceData.periodEnd),
     );
-    console.log(
-      `Found ${validatedTaskIds.length} validated tasks to archive for invoice ${invoice.id}:`,
-      validatedTaskIds,
+    const validatedReviewerTaskIds =
+      await getValidatedTaskIdsByPeriodAndReviewer(
+        invoiceData.userId,
+        new Date(invoiceData.periodStart),
+        new Date(invoiceData.periodEnd),
+      );
+    const taskIdsToArchive = Array.from(
+      new Set([...validatedTaskIds, ...validatedReviewerTaskIds]),
     );
-    if (validatedTaskIds.length > 0) {
+    console.log(
+      `Found ${validatedTaskIds.length} validated tasks and ${validatedReviewerTaskIds.length} validated reviewer tasks to archive for invoice ${invoice.id}:`,
+      taskIdsToArchive,
+    );
+    if (taskIdsToArchive.length > 0) {
       const archivedTasks = await archiveTasksByIds(
-        validatedTaskIds,
+        taskIdsToArchive,
         invoice.id,
       );
       console.log(

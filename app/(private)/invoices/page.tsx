@@ -66,7 +66,7 @@ const InvoicesPage = async ({
       selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : undefined,
     ),
     getValidatedTaskSummaryByReviewer(
-      user.id,
+      targetUserId,
       user.organizationId,
       selectedPeriod.startDate ? new Date(selectedPeriod.startDate) : undefined,
       selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : undefined,

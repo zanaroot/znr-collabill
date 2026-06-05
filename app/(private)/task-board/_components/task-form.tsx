@@ -57,6 +57,7 @@ type TaskFormProps = {
   taskId?: string;
   projectGitBranches?: string[];
   userRole?: Role;
+  userId?: string;
   projectRole?: ProjectMemberRole;
 };
 
@@ -69,6 +70,7 @@ export const TaskForm = ({
   taskId,
   projectGitBranches = [],
   userRole,
+  userId,
   projectRole,
 }: TaskFormProps) => {
   const { message } = App.useApp();
@@ -377,6 +379,8 @@ export const TaskForm = ({
                   from: formValues.status,
                   userRole,
                   projectRole,
+                  reviewerId: formValues.reviewerId,
+                  userId,
                 }).map((status) => ({
                   label: <span>{formatStatus(status)}</span>,
                   value: status,

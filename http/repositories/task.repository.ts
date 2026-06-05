@@ -119,6 +119,7 @@ export const findTaskWithAssigneeById = async (id: string) => {
       status: sql`${tasks.status}::text`.as("status"),
       assignedTo: tasks.assignedTo,
       assigneeName: users.name,
+      reviewerId: tasks.reviewerId,
     })
     .from(tasks)
     .leftJoin(users, eq(tasks.assignedTo, users.id))
