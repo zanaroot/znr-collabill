@@ -121,7 +121,9 @@ export function ProjectDetailsDrawer({
     if (!project) return;
 
     const isOwner = currentUser?.organizationRole === "OWNER";
-    const payload = isOwner ? data : { ...data, baseRate: undefined };
+    const payload = isOwner
+      ? data
+      : { ...data, baseRate: undefined, reviewerRate: undefined };
 
     updateProjectMutation.mutate(
       { id: project.id, data: payload },

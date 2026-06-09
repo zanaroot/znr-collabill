@@ -3,6 +3,7 @@ import { getOrgSlackCredentialsDecrypted } from "@/http/actions/integrations.act
 import { findInvoiceByIdWithOrganization } from "@/http/repositories/invitation.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
+import { findUserById } from "@/http/repositories/user.repository";
 import { sendEmail } from "@/packages/email";
 import {
   buildTaskAssignedMessage,
@@ -60,11 +61,14 @@ export const notifyTaskInReviewSlack = async (taskId: string) => {
   const channel = project.slackChannel ?? slackCreds.defaultChannel;
   if (!channel) return;
 
+  const reviewer = task.reviewerId ? await findUserById(task.reviewerId) : null;
+
   const taskUrl = getTaskUrl(taskId, project.id);
   const { blocks, text } = buildTaskReviewMessage({
     taskId: task.id,
     taskTitle: task.title,
     assigneeName: task.assigneeName,
+    reviewerName: reviewer?.name ?? null,
     projectName: project.name,
     taskUrl,
   });

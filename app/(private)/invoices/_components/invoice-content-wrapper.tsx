@@ -1,6 +1,7 @@
 "use client";
 
-import { Flex, Grid, Space } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
+import { Flex, Grid, Space, Tooltip, Typography } from "antd";
 import type { AuthUser } from "@/http/models/auth.model";
 import type { Period } from "@/http/models/period.model";
 import type { InvoiceWithLines } from "@/http/repositories/invoice.repository";
@@ -13,6 +14,8 @@ import {
   ReviewerTaskSummaryTable,
   TaskSummaryTable,
 } from "./task-summary-table";
+
+const { Text } = Typography;
 
 const { useBreakpoint } = Grid;
 
@@ -87,9 +90,18 @@ export const InvoiceContentWrapper = ({
 
         {reviewerTaskSummary.length > 0 && (
           <div className="invoice-summary-item">
-            <h2 className="text-lg font-medium mb-4 dark:text-white">
+            <h2 className="text-lg font-medium mb-2 dark:text-white flex items-center gap-2">
               Reviewer Tasks Summary
+              <Tooltip title="Only tasks where the reviewer differs from the assignee are billed as reviewer work. Self-reviewed tasks still count toward assignee pay.">
+                <InfoCircleOutlined className="text-gray-400 dark:text-gray-500 cursor-help" />
+              </Tooltip>
             </h2>
+            <Text
+              type="secondary"
+              className="block mb-4 text-xs dark:text-gray-400"
+            >
+              Self-reviewed tasks are excluded from this summary.
+            </Text>
             <div className="table-responsive">
               <ReviewerTaskSummaryTable data={reviewerTaskSummary} />
             </div>

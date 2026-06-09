@@ -139,13 +139,20 @@ export const InvoicePrintable = ({
     }, 0);
   }, [taskData]);
 
+  const reviewerTotal = useMemo(() => {
+    return reviewerTaskData.reduce((acc, item) => {
+      const rate = Number(item.projectReviewerRate || 0);
+      return acc + Number(item.taskCount) * rate;
+    }, 0);
+  }, [reviewerTaskData]);
+
   const customTotal = useMemo(() => {
     return customLines.reduce((acc, item) => {
       return acc + Number(item.amount || 0);
     }, 0);
   }, [customLines]);
 
-  const grandTotal = presenceTotal + taskTotal + customTotal;
+  const grandTotal = presenceTotal + taskTotal + reviewerTotal + customTotal;
   const invoiceDate = clientInvoiceDate;
   const invoiceNumber = clientInvoiceNumber;
   const [newFieldLabel, setNewFieldLabel] = useState("");
@@ -526,6 +533,72 @@ export const InvoicePrintable = ({
           </div>
         </div>
 
+        {reviewerTaskData.length > 0 && (
+          <div className="mb-12">
+            <Title
+              level={4}
+              className="flex items-center gap-2 mb-6 text-gray-700 dark:text-gray-200"
+            >
+              <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+              Reviewer Tasks
+            </Title>
+            <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/50 dark:bg-gray-800/50">
+                    <th className="text-left p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Project
+                    </th>
+                    <th className="text-left p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Task Size
+                    </th>
+                    <th className="text-center p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Count
+                    </th>
+                    <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Rate
+                    </th>
+                    <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Amount
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {reviewerTaskData.map((item, index) => {
+                    const rate = Number(item.projectReviewerRate || 0);
+                    const amount = Number(item.taskCount) * rate;
+                    if (amount === 0) return null;
+                    return (
+                      <tr
+                        key={`${item.userId}-${item.projectId}-${item.size}-${index}`}
+                        className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors"
+                      >
+                        <td className="p-4">
+                          <Text strong className="dark:text-gray-200">
+                            {item.projectName}
+                          </Text>
+                        </td>
+                        <td className="p-4">
+                          <TaskSizeTag size={item.size} />
+                        </td>
+                        <td className="text-center p-4 dark:text-gray-300">
+                          <Text>{item.taskCount} tasks</Text>
+                        </td>
+                        <td className="text-right p-4 font-mono dark:text-gray-300">
+                          {rate.toLocaleString()} €
+                        </td>
+                        <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
+                          {amount.toLocaleString()} €
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         <div className="mb-12">
           <Title
             level={4}
@@ -677,6 +750,14 @@ export const InvoicePrintable = ({
                   {taskTotal.toLocaleString()} €
                 </Text>
               </div>
+              {reviewerTotal !== 0 && (
+                <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
+                  <Text className="dark:text-gray-300">Reviewer Subtotal</Text>
+                  <Text className="font-mono dark:text-gray-200">
+                    {reviewerTotal.toLocaleString()} €
+                  </Text>
+                </div>
+              )}
               {customTotal !== 0 && (
                 <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
                   <Text className="dark:text-gray-300">Custom Fields</Text>

@@ -269,7 +269,10 @@ export const updateProject = factory.createHandlers(
       return c.json({ error: "Unauthorized" }, 403);
     }
 
-    if ("baseRate" in data && user.organizationRole !== "OWNER") {
+    if (
+      ("baseRate" in data || "reviewerRate" in data) &&
+      user.organizationRole !== "OWNER"
+    ) {
       return c.json(
         { error: "Only the owner can modify the project rate" },
         403,

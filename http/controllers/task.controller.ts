@@ -135,9 +135,23 @@ export const createTask = factory.createHandlers(
       );
     }
 
+    const reviewerId = payload.reviewerId ?? user.id;
+    if (reviewerId !== user.id) {
+      const reviewerIsMember = await projectRepository.isProjectMember(
+        payload.projectId,
+        reviewerId,
+      );
+      if (!reviewerIsMember) {
+        return c.json(
+          { error: "Reviewer must be a member of the project" },
+          400,
+        );
+      }
+    }
+
     const taskData = {
       ...payload,
-      reviewerId: payload.reviewerId ?? user.id,
+      reviewerId,
       ...(payload.status === "VALIDATED" && {
         validatedAt: new Date().toISOString(),
         validatedBy: user.id,
@@ -257,7 +271,7 @@ export const updateTask = factory.createHandlers(
       });
     }
 
-    if (!task.reviewerId) {
+    if (payload.status === "IN_REVIEW" && !task.reviewerId) {
       updates.reviewerId = user.id;
     }
 
@@ -273,7 +287,11 @@ export const updateTask = factory.createHandlers(
         action: "UPDATE",
         entity: "TASK",
         entityId: id,
-        metadata: { changes: payload },
+        metadata: {
+          changes: payload,
+          previousStatus: task.status,
+          previousReviewerId: task.reviewerId,
+        },
       });
     }
 
