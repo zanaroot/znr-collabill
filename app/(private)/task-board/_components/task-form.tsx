@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   Col,
-  Flex,
   Input,
   Modal,
   Row,
@@ -20,6 +19,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { RichTextEditor } from "@/app/_components/editor/rich-text-editor";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
+import { cn } from "@/app/_utils/class-name";
 import {
   getPriorityTagColor,
   PRIORITY_LABELS,
@@ -171,9 +171,20 @@ export const TaskForm = ({
     ? members.find((m) => m.id === formValues.reviewerId)
     : null;
 
+  const descriptionImages = useMemo(() => {
+    if (typeof window === "undefined" || !formValues.description) return [];
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(formValues.description, "text/html");
+      return Array.from(doc.querySelectorAll("img")).map((img) => img.src);
+    } catch (_e) {
+      return [];
+    }
+  }, [formValues.description]);
+
   const viewModeContent = (
     <Row gutter={[16, 16]} style={{ width: "100%" }}>
-      <Col xs={24} lg={12}>
+      <Col xs={24} lg={14}>
         <Card
           title="Description"
           className="h-full shadow-sm border-slate-200 dark:border-gray-700"
@@ -185,28 +196,39 @@ export const TaskForm = ({
                 className="prose prose-sm dark:prose-invert max-w-none text-zinc-900 dark:text-zinc-100 prose-pre:text-zinc-900 dark:prose-pre:text-zinc-100"
                 dangerouslySetInnerHTML={{ __html: formValues.description }}
               />
-              <Flex className="mt-3" gap={8} wrap>
-                {Array.from(
-                  new DOMParser()
-                    .parseFromString(formValues.description, "text/html")
-                    .querySelectorAll("img"),
-                ).map((img) => (
-                  <Button
-                    key={img.src}
-                    type="link"
-                    onClick={() => setImageModalUrl(img.src)}
-                  >
-                    View Image
-                  </Button>
-                ))}
-              </Flex>
+              {descriptionImages.length > 0 && (
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {descriptionImages.map((src, idx) => (
+                    <button
+                      key={src}
+                      type="button"
+                      className="group relative cursor-pointer overflow-hidden rounded-lg border border-slate-200 transition-all hover:border-blue-400 p-0"
+                      onClick={() => setImageModalUrl(src)}
+                    >
+                      {/* biome-ignore lint/performance/noImgElement: External dynamic image */}
+                      <img
+                        src={src}
+                        alt={`Attachment ${idx + 1}`}
+                        className="h-20 w-20 object-cover transition-transform group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 transition-opacity group-hover:opacity-100">
+                        <Typography.Text className="text-[10px] text-white font-bold drop-shadow-md">
+                          VIEW
+                        </Typography.Text>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </>
           ) : (
-            <Typography.Text type="secondary">No description</Typography.Text>
+            <Typography.Text type="secondary">
+              No description provided
+            </Typography.Text>
           )}
         </Card>
       </Col>
-      <Col xs={24} lg={12}>
+      <Col xs={24} lg={10}>
         <Card
           title="Details"
           className="h-full shadow-sm border-slate-200 dark:border-gray-700"
@@ -628,19 +650,42 @@ export const TaskForm = ({
         open={!!imageModalUrl}
         onCancel={() => setImageModalUrl("")}
         footer={null}
-        width="90vw"
+        width={800}
         centered
+        destroyOnClose
       >
-        <div
-          style={{
-            width: "100%",
-            height: "80vh",
-            backgroundImage: `url(${imageModalUrl})`,
-            backgroundSize: "contain",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-          }}
-        />
+        <div className="mt-4 flex flex-col gap-4">
+          {/* biome-ignore lint/performance/noImgElement: External dynamic image */}
+          <img
+            src={imageModalUrl}
+            alt="Task description preview"
+            className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
+          />
+          {descriptionImages.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {descriptionImages.map((src, idx) => (
+                <button
+                  key={src}
+                  type="button"
+                  className={cn(
+                    "w-16 h-16 shrink-0 overflow-hidden rounded-md cursor-pointer border-2 transition-all p-0",
+                    imageModalUrl === src
+                      ? "border-blue-500 scale-105"
+                      : "border-transparent opacity-70 hover:opacity-100",
+                  )}
+                  onClick={() => setImageModalUrl(src)}
+                >
+                  {/* biome-ignore lint/performance/noImgElement: External dynamic image */}
+                  <img
+                    src={src}
+                    alt={`Gallery ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </Modal>
     </>
   );

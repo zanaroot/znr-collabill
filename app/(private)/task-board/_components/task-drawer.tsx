@@ -72,16 +72,18 @@ export function TaskDrawer({
     <Drawer
       title={
         activeTask ? (
-          <Flex vertical>
-            <Typography.Title level={2} className="m-0!">
+          <div className="flex flex-col gap-0.5">
+            <Typography.Title level={4} className="m-0 leading-tight">
               {activeTask.title}
             </Typography.Title>
-            <Text strong type="secondary">
-              {projectName ?? "Select a project"}
+            <Text type="secondary" className="text-xs font-medium">
+              {projectName ?? "Task Details"}
             </Text>
-          </Flex>
+          </div>
         ) : (
-          "Create task"
+          <Typography.Title level={4} className="m-0">
+            Create task
+          </Typography.Title>
         )
       }
       closable={{ placement: "end" }}

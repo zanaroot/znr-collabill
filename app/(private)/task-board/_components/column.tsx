@@ -4,6 +4,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Button, Card, Empty, Tag, Typography } from "antd";
 import type { DragEvent, MouseEvent } from "react";
 import { useState } from "react";
+import { cn } from "@/app/_utils/class-name";
 import { formatStatus, statusTagColor } from "@/app/_utils/status-task";
 import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
 import { TaskCard } from "./task-card";
@@ -94,81 +95,97 @@ export function Column({
   };
 
   return (
-    <div>
-      <Card
-        title={
-          <div className="flex items-center justify-between gap-2">
-            <Text strong>{formatStatus(status)}</Text>
-            <Tag color={statusColor}>{tasks.length}</Tag>
+    <Card
+      title={
+        <div className="flex items-center justify-between gap-2 py-1">
+          <div className="flex items-center gap-2">
+            <Text
+              strong
+              className="text-[14px] tracking-wide text-slate-600 dark:text-slate-300"
+            >
+              {formatStatus(status)}
+            </Text>
+            <Tag
+              color={statusColor}
+              className="m-0 border-none px-1.5 py-0 text-[11px] font-bold"
+              style={{ borderRadius: "6px" }}
+            >
+              {tasks.length}
+            </Tag>
           </div>
-        }
-        styles={{
-          body: {
-            display: "flex",
-            flexDirection: "column",
-            flex: 1,
-            minHeight: 0,
-          },
-        }}
-        extra={
           <Button
             type="text"
             size="small"
-            icon={<PlusOutlined />}
+            className="flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"
+            icon={<PlusOutlined className="text-[12px]" />}
             onClick={handlePlusClick}
             disabled={!projectId || !canCreateTask}
           />
-        }
-        style={{
-          height: "calc(100vh - 350px)",
-          minHeight: 300,
-          borderColor: isDragOver ? "#1677ff" : undefined,
-          background: isDragOver ? "#f0f7ff" : undefined,
-          transition: "border-color 0.2s ease, background-color 0.2s ease",
-          boxShadow: "0 8px 20px rgba(15, 23, 42, 0.06)",
+        </div>
+      }
+      styles={{
+        header: {
+          padding: "0 16px",
+          minHeight: "48px",
+          borderBottom: "1px solid rgba(0,0,0,0.04)",
+        },
+        body: {
           display: "flex",
           flexDirection: "column",
-        }}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+          flex: 1,
+          padding: "12px 8px",
+          overflowY: "hidden",
+          background: "transparent",
+        },
+      }}
+      className={cn(
+        "flex flex-col border-none shadow-sm transition-all duration-300",
+        isDragOver
+          ? "bg-blue-50/50 ring-2 ring-blue-200 dark:bg-blue-900/10 dark:ring-blue-800/50"
+          : "bg-slate-50/50 dark:bg-slate-900/20",
+      )}
+      style={{
+        height: "100%",
+        minHeight: 300,
+        borderRadius: 16,
+      }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div
+        className="flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden px-2 custom-scrollbar pb-2"
+        style={{ minHeight: 0 }}
       >
         {tasks.length > 0 ? (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-              flex: 1,
-              overflowY: "auto",
-              paddingRight: 4,
-              minHeight: 0,
-            }}
-          >
-            {tasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                members={members}
-                canDrag={Boolean(projectId) && canDragFromStatus(task.status)}
-                isDragging={draggingTaskId === task.id}
-                onClick={() => onEdit(task)}
-                onDragStart={onDragStartTask}
-                onDragEnd={() => {
-                  setIsDragOver(false);
-                  onDragEndTask();
-                }}
-              />
-            ))}
-          </div>
+          tasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              members={members}
+              canDrag={Boolean(projectId) && canDragFromStatus(task.status)}
+              isDragging={draggingTaskId === task.id}
+              onClick={() => onEdit(task)}
+              onDragStart={onDragStartTask}
+              onDragEnd={() => {
+                setIsDragOver(false);
+                onDragEndTask();
+              }}
+            />
+          ))
         ) : (
-          <Empty
-            description={
-              isDragOver ? "Drop task here" : "No tasks in this stage"
-            }
-          />
+          <div className="flex flex-col items-center justify-center h-full opacity-40">
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={
+                <Text type="secondary" className="text-xs italic">
+                  {isDragOver ? "Drop task here" : "No tasks here"}
+                </Text>
+              }
+            />
+          </div>
         )}
-      </Card>
-    </div>
+      </div>
+    </Card>
   );
 }

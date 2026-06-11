@@ -1,10 +1,17 @@
+import { Spin } from "antd";
 import { Suspense } from "react";
 import { TaskBoard } from "@/app/(private)/task-board/_components/task-board";
 
 const TaskBoardPage = async () => {
   return (
-    <div className="p-6">
-      <Suspense fallback={<div />}>
+    <div className="h-full flex flex-col">
+      <Suspense
+        fallback={
+          <div className="flex-1 flex items-center justify-center">
+            <Spin size="large" />
+          </div>
+        }
+      >
         <TaskBoard />
       </Suspense>
     </div>
