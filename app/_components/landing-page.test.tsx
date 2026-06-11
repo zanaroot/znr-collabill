@@ -1,16 +1,21 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import type { ReactNode } from "react";
 import LandingPage from "@/app/_components/landing-page";
+import { ThemeProvider } from "@/app/_components/theme-provider";
+
+const renderWithProviders = (ui: ReactNode) =>
+  render(<ThemeProvider>{ui}</ThemeProvider>);
 
 describe("LandingPage", () => {
   it("renders main title", () => {
-    render(<LandingPage />);
+    renderWithProviders(<LandingPage />);
 
     expect(screen.getByText(/Manage Projects/)).toBeInTheDocument();
   });
 
   it("renders Get Started button", () => {
-    render(<LandingPage />);
+    renderWithProviders(<LandingPage />);
 
     expect(
       screen.getByRole("link", { name: /Get Started/i }),
@@ -18,45 +23,45 @@ describe("LandingPage", () => {
   });
 
   it("renders Sign In button", () => {
-    render(<LandingPage />);
+    renderWithProviders(<LandingPage />);
 
     expect(screen.getByRole("link", { name: /Sign In/i })).toBeInTheDocument();
   });
 
   it("renders Kanban card", () => {
-    render(<LandingPage />);
+    renderWithProviders(<LandingPage />);
 
     expect(screen.getByText("Kanban Project Management")).toBeInTheDocument();
   });
 
   it("renders Collaborator Control card", () => {
-    render(<LandingPage />);
+    renderWithProviders(<LandingPage />);
 
     expect(screen.getByText("Collaborator Control")).toBeInTheDocument();
   });
 
   it("renders Automatic Billing card", () => {
-    render(<LandingPage />);
+    renderWithProviders(<LandingPage />);
 
     expect(screen.getByText("Automatic Billing")).toBeInTheDocument();
   });
 
   it("renders How CollaBill Works section", () => {
-    render(<LandingPage />);
+    renderWithProviders(<LandingPage />);
 
-    expect(screen.getByText("How CollaBill Works")).toBeInTheDocument();
+    expect(screen.getByText(/How CollaBill works/i)).toBeInTheDocument();
   });
 
   it("renders Create your account button", () => {
-    render(<LandingPage />);
+    renderWithProviders(<LandingPage />);
 
     expect(
-      screen.getByRole("link", { name: /Create your account/i }),
+      screen.getByRole("button", { name: /Create your account/i }),
     ).toBeInTheDocument();
   });
 
   it("renders footer with current year", () => {
-    render(<LandingPage />);
+    renderWithProviders(<LandingPage />);
 
     const year = new Date().getFullYear();
     expect(
