@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
 import type { ReactNode } from "react";
+import { describe, expect, it } from "vitest";
 import LandingPage from "@/app/_components/landing-page";
 import { ThemeProvider } from "@/app/_components/theme-provider";
 

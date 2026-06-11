@@ -1,6 +1,7 @@
 import { App } from "antd";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import type { ReactNode } from "react";
 import { AntProvider } from "@/packages/antd";
 import { ReactQueryProvider } from "@/packages/react-query";
@@ -106,7 +107,22 @@ const RootLayout = ({
             </AntProvider>
           </ThemeProvider>
         </SentryProvider>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-ZBL7KR79SS"
+          strategy="afterInteractive"
+        />
+
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZBL7KR79SS');
+          `}
+        </Script>
       </body>
+
     </html>
   );
 };
