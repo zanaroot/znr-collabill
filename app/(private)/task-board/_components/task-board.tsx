@@ -89,8 +89,8 @@ export const TaskBoard = () => {
   };
 
   return (
-    <div className="responsive-task-board">
-      <div className="task-board-header">
+    <div className="responsive-task-board h-full min-h-0">
+      <div className="task-board-header shrink-0">
         <div className="task-board-title-section">
           <Title level={3} style={{ margin: 0 }} className="dark:text-white">
             Task Board
@@ -131,7 +131,9 @@ export const TaskBoard = () => {
       </div>
 
       {isLoadingTasks || isLoadingMembers ? (
-        <Spin />
+        <div className="flex-1 flex items-center justify-center">
+          <Spin size="large" />
+        </div>
       ) : (
         <CreateBoard
           tasks={tasks ?? []}

@@ -89,8 +89,8 @@ export function CreateBoard({
   }, [board.activeTask?.id, board.activeTask?.projectId, projectId, tasks]);
 
   return (
-    <>
-      <div className="mb-3 flex items-center justify-end kanban-view-toggle">
+    <div className="flex flex-1 flex-col min-h-0">
+      <div className="mb-3 flex items-center justify-end kanban-view-toggle shrink-0">
         <Segmented
           options={[
             { label: "All", value: "ALL" },
@@ -108,64 +108,70 @@ export function CreateBoard({
         />
       </div>
 
-      <div className="overflow-x-auto pb-2 kanban-board">
-        <div className="flex min-w-max gap-4 kanban-columns">
-          {board.tasksByStatus.map(({ status, tasks: columnTasks }) => {
-            const draggingTask = tasks.find(
-              (task) => task.id === board.draggingTaskId,
-            );
-            return (
-              <div key={status} className="w-[320px] shrink-0 kanban-column">
-                <Column
-                  status={status}
-                  tasks={columnTasks}
-                  onAdd={() => board.openCreateDrawer(status)}
-                  onEdit={board.openEditDrawer}
-                  projectId={projectId}
-                  draggingTaskId={board.draggingTaskId}
-                  isDropDisabled={!projectId || board.isSaving}
-                  draggingTask={draggingTask}
-                  canMoveToStatus={(from, to) =>
-                    canTransitionTaskStatus({
-                      from,
-                      to,
-                      userRole,
-                      projectRole,
-                      reviewerId: draggingTask?.reviewerId ?? null,
-                      userId,
-                    })
-                  }
-                  canDragFromStatus={(status) =>
-                    getAllowedTaskTransitions({
-                      from: status,
-                      userRole,
-                      projectRole,
-                      reviewerId: draggingTask?.reviewerId ?? null,
-                      userId,
-                    }).length > 0
-                  }
-                  onDragStartTask={board.handleDragStartTask}
-                  onDragEndTask={board.handleDragEndTask}
-                  onDropTask={board.handleDropTask}
-                  members={members}
-                  canCreateTask={
-                    isAdmin ||
-                    userRole === "OWNER" ||
-                    userRole === "ADMIN" ||
-                    (userRole === "COLLABORATOR" && status === "BACKLOG")
-                  }
-                />
-              </div>
-            );
-          })}
+      {board.boardView !== "ARCHIVED" ? (
+        <div className="flex-1 overflow-x-auto pb-4 kanban-board scrollbar-hide min-h-0">
+          <div className="flex h-full min-w-max gap-6 kanban-columns px-1">
+            {board.tasksByStatus.map(({ status, tasks: columnTasks }) => {
+              const draggingTask = tasks.find(
+                (task) => task.id === board.draggingTaskId,
+              );
+              return (
+                <div
+                  key={status}
+                  className="h-full w-[320px] shrink-0 kanban-column"
+                >
+                  <Column
+                    status={status}
+                    tasks={columnTasks}
+                    onAdd={() => board.openCreateDrawer(status)}
+                    onEdit={board.openEditDrawer}
+                    projectId={projectId}
+                    draggingTaskId={board.draggingTaskId}
+                    isDropDisabled={!projectId || board.isSaving}
+                    draggingTask={draggingTask}
+                    canMoveToStatus={(from, to) =>
+                      canTransitionTaskStatus({
+                        from,
+                        to,
+                        userRole,
+                        projectRole,
+                        reviewerId: draggingTask?.reviewerId ?? null,
+                        userId,
+                      })
+                    }
+                    canDragFromStatus={(status) =>
+                      getAllowedTaskTransitions({
+                        from: status,
+                        userRole,
+                        projectRole,
+                        reviewerId: draggingTask?.reviewerId ?? null,
+                        userId,
+                      }).length > 0
+                    }
+                    onDragStartTask={board.handleDragStartTask}
+                    onDragEndTask={board.handleDragEndTask}
+                    onDropTask={board.handleDropTask}
+                    members={members}
+                    canCreateTask={
+                      isAdmin ||
+                      userRole === "OWNER" ||
+                      userRole === "ADMIN" ||
+                      (userRole === "COLLABORATOR" && status === "BACKLOG")
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
-      {board.boardView === "ARCHIVED" && (
-        <ArchivedSection
-          archivedTasksByProject={archivedTasksWithNames}
-          members={members}
-          onEditTask={board.openEditDrawer}
-        />
+      ) : (
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <ArchivedSection
+            archivedTasksByProject={archivedTasksWithNames}
+            members={members}
+            onEditTask={board.openEditDrawer}
+          />
+        </div>
       )}
 
       <TaskDrawer
@@ -190,6 +196,6 @@ export function CreateBoard({
         userId={userId}
         projectRole={projectRole}
       />
-    </>
+    </div>
   );
 }
