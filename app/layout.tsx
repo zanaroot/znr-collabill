@@ -122,7 +122,6 @@ const RootLayout = ({
           `}
         </Script>
       </body>
-
     </html>
   );
 };
