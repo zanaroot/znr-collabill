@@ -4,6 +4,7 @@ import {
   ApartmentOutlined,
   DeleteOutlined,
   GithubOutlined,
+  InfoCircleOutlined,
   SlackOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
@@ -21,11 +22,13 @@ import {
   Typography,
 } from "antd";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import type {
   Integration,
   IntegrationFormValues,
 } from "@/app/(private)/type-organization/_components/integration-card-form";
 import { IntegrationCard } from "@/app/(private)/type-organization/_components/integration-card-form";
+import { IntegrationHelpModal } from "@/app/(private)/type-organization/_components/integration-help-modal";
 import type { IntegrationType } from "@/http/models/integration.model";
 import type { Role } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
@@ -53,6 +56,9 @@ export const OrganizationType = () => {
   const canView =
     currentUser?.organizationRole === "OWNER" ||
     currentUser?.organizationRole === "ADMIN";
+  const [helpProvider, setHelpProvider] = useState<IntegrationType | null>(
+    null,
+  );
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ["organizations", "all"],
@@ -337,6 +343,16 @@ export const OrganizationType = () => {
                     }
                     renderForm={(_form, disabled) => (
                       <>
+                        <div style={{ marginBottom: 16 }}>
+                          <Button
+                            type="link"
+                            icon={<InfoCircleOutlined />}
+                            onClick={() => setHelpProvider("SLACK")}
+                            style={{ padding: 0 }}
+                          >
+                            How do I get these credentials?
+                          </Button>
+                        </div>
                         <Form.Item
                           name="botToken"
                           label="Slack Bot Token (xoxb-...)"
@@ -378,16 +394,28 @@ export const OrganizationType = () => {
                       handleToggleIntegration("GITHUB", isActive)
                     }
                     renderForm={(_form, disabled) => (
-                      <Form.Item
-                        name="token"
-                        label="GitHub Personal Access Token"
-                        help="Enter your GitHub Personal Access Token with repo scope"
-                      >
-                        <Input.Password
-                          placeholder="ghp_..."
-                          disabled={disabled}
-                        />
-                      </Form.Item>
+                      <>
+                        <div style={{ marginBottom: 16 }}>
+                          <Button
+                            type="link"
+                            icon={<InfoCircleOutlined />}
+                            onClick={() => setHelpProvider("GITHUB")}
+                            style={{ padding: 0 }}
+                          >
+                            How do I get this token?
+                          </Button>
+                        </div>
+                        <Form.Item
+                          name="token"
+                          label="GitHub Personal Access Token"
+                          help="Enter your GitHub Personal Access Token with repo scope"
+                        >
+                          <Input.Password
+                            placeholder="ghp_..."
+                            disabled={disabled}
+                          />
+                        </Form.Item>
+                      </>
                     )}
                   />
                 ),
@@ -415,6 +443,12 @@ export const OrganizationType = () => {
       </div>
 
       <Tabs items={tabItems} />
+
+      <IntegrationHelpModal
+        open={helpProvider !== null}
+        provider={helpProvider ?? "SLACK"}
+        onClose={() => setHelpProvider(null)}
+      />
     </div>
   );
 };
