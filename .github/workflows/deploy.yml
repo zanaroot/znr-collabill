@@ -157,3 +157,62 @@ jobs:
               up -d --remove-orphans
 
             docker image prune -af --filter "until=168h" || true
+
+  release-tag:
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Generate release tag
+        id: tag
+        env:
+          SHORT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          TIMESTAMP="$(date -u +'%Y%m%d-%H%M%S')"
+          SHORT="$(printf '%s' "$SHORT_SHA" | cut -c1-7)"
+          TAG="release-${TIMESTAMP}-${SHORT}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Deploying commit ${SHORT_SHA} as tag ${TAG}"
+
+      - name: Check if tag already exists
+        id: check
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q "refs/tags/${TAG}$"; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag ${TAG} already exists on origin. Skipping creation."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Tag ${TAG} does not exist. It will be created."
+          fi
+
+      - name: Create and push release tag
+        if: steps.check.outputs.exists == 'false'
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "Release ${TAG} (commit ${{ github.sha }})"
+          git push origin "refs/tags/${TAG}"
+          echo "Created and pushed tag: ${TAG}"
+          echo "::notice title=Release tag created::${TAG} (commit ${{ github.sha }})"
+
+      - name: Tag was already present
+        if: steps.check.outputs.exists == 'true'
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          echo "No new tag created; ${TAG} already points to this deployment on the remote."
