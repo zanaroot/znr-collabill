@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Drawer, Flex, Typography } from "antd";
+import { Button, Drawer, Space, Typography } from "antd";
 import type { TaskFormValues } from "@/app/_utils/priority";
 import type { ProjectMemberRole } from "@/http/models/project.model";
 import type { Task as TaskModel } from "@/http/models/task.model";
@@ -81,32 +81,30 @@ export function TaskDrawer({
             </Text>
           </div>
         ) : (
-          <Typography.Title level={4} className="m-0">
-            Create task
-          </Typography.Title>
+          <div className="flex flex-col gap-0.5">
+            <Typography.Title level={4} className="m-0 leading-tight">
+              Create Task
+            </Typography.Title>
+            <Text type="secondary" className="text-xs font-medium">
+              {projectName ?? "New Task"}
+            </Text>
+          </div>
         )
       }
       closable={{ placement: "end" }}
       open={open}
       onClose={handleClose}
-      size={!isEditing ? "70%" : "32%"}
+      size="70%"
       extra={
-        <div className="task-drawer-footer">
+        <Space size={12}>
           {!isEditing && canShowEditButton && (
             <Button type="primary" onClick={() => setIsEditing(true)}>
-              Edit
+              Edit Task
             </Button>
           )}
 
           {isEditing && (
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-                justifyContent: "flex-end",
-              }}
-            >
+            <Space size={8}>
               {activeTask && canDelete && (
                 <Button danger onClick={onDelete} loading={isDeleting}>
                   Delete
@@ -121,19 +119,19 @@ export function TaskDrawer({
                 loading={isSaving}
                 disabled={!formValues.title.trim()}
               >
-                {activeTask ? "Save" : "Create"}
+                {activeTask ? "Save Changes" : "Create Task"}
               </Button>
-            </div>
+            </Space>
           )}
-        </div>
+        </Space>
       }
       className="task-drawer"
       styles={{
-        body: { padding: 16 },
-        header: { padding: "12px 16px" },
+        body: { padding: "24px" },
+        header: { padding: "16px 24px" },
       }}
     >
-      <Flex vertical justify="space-between" gap={20} className="min-h-full">
+      <div className="flex flex-col gap-8 min-h-full">
         <TaskForm
           formValues={formValues}
           onFormValuesChange={onFormValuesChange}
@@ -147,8 +145,12 @@ export function TaskDrawer({
           projectRole={projectRole}
         />
 
-        {activeTask && <TaskComments taskId={activeTask.id} />}
-      </Flex>
+        {activeTask && (
+          <div className="mt-4">
+            <TaskComments taskId={activeTask.id} />
+          </div>
+        )}
+      </div>
     </Drawer>
   );
 }
