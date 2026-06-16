@@ -221,11 +221,10 @@ export const InvoiceFilters = ({
           ? organization.adminLeaveQuota
           : organization.collaboratorLeaveQuota,
       );
-      const memberRate =
-        Number(
-          presenceData.find((p) => p.userId === targetUserId)?.dailyRate || 0,
-        ) || leaveQuota * 100;
-      const amount = remaining * memberRate;
+      const memberRate = Number(
+        presenceData.find((p) => p.userId === targetUserId)?.dailyRate || 0,
+      );
+      const amount = memberRate * leaveQuota;
 
       if (amount > 0) {
         totalAmount += amount;

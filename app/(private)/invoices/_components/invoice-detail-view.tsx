@@ -75,9 +75,8 @@ export const InvoiceDetailView = ({
       const userPresence = presenceSummary.find(
         (p) => p.userId === targetUserId,
       );
-      const dailyRate =
-        Number(userPresence?.dailyRate || 0) || leaveQuota * 100;
-      const amount = leaveQuota * dailyRate;
+      const dailyRate = Number(userPresence?.dailyRate || 0);
+      const amount = dailyRate * leaveQuota;
 
       if (amount > 0) {
         setCustomLines([
