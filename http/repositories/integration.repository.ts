@@ -31,7 +31,7 @@ export const saveIntegration = async (
   credentials: IntegrationCredentials,
   config?: IntegrationConfig,
 ) => {
-  const credentialsEncrypted = encrypt(JSON.stringify(credentials));
+  const credentialsEncrypted = await encrypt(JSON.stringify(credentials));
   const configStr = config ? JSON.stringify(config) : null;
 
   const [existing] = await db
@@ -91,7 +91,7 @@ export const getIntegration = async (
 
   let credentials: IntegrationCredentials;
   try {
-    credentials = JSON.parse(decrypt(integration.credentialsEncrypted));
+    credentials = JSON.parse(await decrypt(integration.credentialsEncrypted));
   } catch {
     credentials = {};
   }

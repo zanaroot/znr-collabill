@@ -193,7 +193,7 @@ export const updateOrganizationSlackSettings = factory.createHandlers(
     const { encryptSlackToken } = await import("@/packages/slack");
 
     const encryptedToken = payload.slackBotToken
-      ? encryptSlackToken(payload.slackBotToken)
+      ? await encryptSlackToken(payload.slackBotToken)
       : null;
 
     await updateOrganizationSlackSettings(currentUser.organizationId, {

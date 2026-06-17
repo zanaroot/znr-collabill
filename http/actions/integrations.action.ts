@@ -30,7 +30,7 @@ const _getOrgSlackCredentials = async (organizationId: string) => {
   if (org?.slackBotTokenEncrypted) {
     try {
       return {
-        botToken: decrypt(org.slackBotTokenEncrypted),
+        botToken: await decrypt(org.slackBotTokenEncrypted),
         defaultChannel: org.slackDefaultChannel || undefined,
       };
     } catch {
@@ -76,7 +76,7 @@ export const getOrgSlackCredentialsDecrypted = async (
   if (org?.slackBotTokenEncrypted) {
     try {
       return {
-        botToken: decrypt(org.slackBotTokenEncrypted),
+        botToken: await decrypt(org.slackBotTokenEncrypted),
         defaultChannel: org.slackDefaultChannel || undefined,
       };
     } catch (error) {

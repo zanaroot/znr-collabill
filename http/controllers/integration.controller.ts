@@ -148,7 +148,7 @@ export const getIntegrationCredentials = factory.createHandlers(
 
     let credentials: Record<string, unknown> = {};
     try {
-      credentials = JSON.parse(decrypt(integration.credentialsEncrypted));
+      credentials = JSON.parse(await decrypt(integration.credentialsEncrypted));
     } catch {
       credentials = {};
     }

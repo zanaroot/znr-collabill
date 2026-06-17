@@ -66,7 +66,7 @@ const _sendSlackMessageWithToken = async (
 
   let token: string;
   try {
-    token = decrypt(encryptedToken);
+    token = await decrypt(encryptedToken);
   } catch (error) {
     console.error("[Slack] Failed to decrypt token:", error);
     return false;
@@ -574,10 +574,10 @@ const _buildInvoiceCommentMessage = (params: {
   return { blocks, text: fallbackText };
 };
 
-export const encryptSlackToken = (token: string): string => {
+export const encryptSlackToken = async (token: string): Promise<string> => {
   return encrypt(token);
 };
 
-const _decryptSlackToken = (encryptedToken: string): string => {
+const _decryptSlackToken = async (encryptedToken: string): Promise<string> => {
   return decrypt(encryptedToken);
 };
