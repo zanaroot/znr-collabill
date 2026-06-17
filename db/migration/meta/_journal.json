@@ -64,6 +64,13 @@
       "when": 1779793106818,
       "tag": "0008_complex_fantastic_four",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1781679510184,
+      "tag": "0009_archive_tasks_for_validated_invoices",
+      "breakpoints": true
     }
   ]
 }
