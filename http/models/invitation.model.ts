@@ -16,7 +16,7 @@ export const createPasswordSchema = z.object({
 
 export type CreatePasswordInput = z.infer<typeof createPasswordSchema>;
 
-export const invitationContentSchema = z.object({
+const invitationContentSchema = z.object({
   currentUserName: z.string(),
   organizationName: z.string(),
   role: roleEnum,

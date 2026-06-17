@@ -8,7 +8,7 @@ import type {
 import type { Role } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 
-export const projectKeys = {
+const projectKeys = {
   all: ["projects"] as const,
   lists: () => [...projectKeys.all, "list"] as const,
   branches: (id: string) => [...projectKeys.all, id, "branches"] as const,

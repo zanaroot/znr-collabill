@@ -380,7 +380,7 @@ export const getValidatedTaskIdsByPeriodAndReviewer = async (
   return result.map((r) => r.id);
 };
 
-export const getArchivedTaskIdsByPeriodAndUser = async (
+const _getArchivedTaskIdsByPeriodAndUser = async (
   userId: string,
   startDate: Date,
   endDate: Date,
@@ -399,7 +399,7 @@ export const getArchivedTaskIdsByPeriodAndUser = async (
   return result.map((r) => r.id);
 };
 
-export const restoreArchivedTasksByIds = async (taskIds: string[]) => {
+const _restoreArchivedTasksByIds = async (taskIds: string[]) => {
   if (taskIds.length === 0) return [];
   return await db
     .update(tasks)

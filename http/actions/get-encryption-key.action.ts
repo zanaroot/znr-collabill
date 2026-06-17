@@ -1,3 +1,5 @@
+"use server";
+
 import { serverEnv } from "@/packages/env/server";
 
 export const getKey = (): Buffer => {

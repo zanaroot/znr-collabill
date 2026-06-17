@@ -122,7 +122,7 @@ export const inviteUserAction = async (
   }
 };
 
-export const createPasswordAction = async (
+const _createPasswordAction = async (
   input: CreatePasswordInput,
 ): Promise<ActionResponse> => {
   try {
@@ -171,7 +171,7 @@ export const createPasswordAction = async (
   }
 };
 
-export const getInvitationByToken = async (token: string) => {
+const _getInvitationByToken = async (token: string) => {
   try {
     const invitation = await findValidInvitationByToken(token);
     if (!invitation) return null;
@@ -188,7 +188,7 @@ export const getInvitationByToken = async (token: string) => {
   }
 };
 
-export const acceptInvitationAction = async (
+const _acceptInvitationAction = async (
   token: string,
 ): Promise<ActionResponse> => {
   try {
@@ -227,7 +227,7 @@ export const acceptInvitationAction = async (
   }
 };
 
-export const declineInvitationAction = async (
+const _declineInvitationAction = async (
   token: string,
 ): Promise<ActionResponse> => {
   try {

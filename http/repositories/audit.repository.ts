@@ -45,7 +45,7 @@ export const createAuditLog = async (data: {
   return log;
 };
 
-export const getAuditLogs = async (
+const _getAuditLogs = async (
   organizationId: string,
   options?: {
     action?: AuditAction;
@@ -91,7 +91,7 @@ export const getAuditLogs = async (
   return query;
 };
 
-export const countAuditLogs = async (
+const _countAuditLogs = async (
   organizationId: string,
   options?: {
     action?: AuditAction;
@@ -119,7 +119,7 @@ export const countAuditLogs = async (
   return result?.count ?? 0;
 };
 
-export const getAuditLogById = async (id: string, organizationId: string) => {
+const _getAuditLogById = async (id: string, organizationId: string) => {
   const [log] = await db
     .select()
     .from(auditLogs)
@@ -131,9 +131,7 @@ export const getAuditLogById = async (id: string, organizationId: string) => {
   return log ?? null;
 };
 
-export const deleteAuditLogsByOrganizationId = async (
-  organizationId: string,
-) => {
+const _deleteAuditLogsByOrganizationId = async (organizationId: string) => {
   await db
     .delete(auditLogs)
     .where(eq(auditLogs.organizationId, organizationId));

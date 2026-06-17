@@ -16,7 +16,7 @@ export type SlackCredentials = {
   defaultChannel?: string;
 };
 
-export const createSlackClient = (credentials: SlackCredentials) => {
+const createSlackClient = (credentials: SlackCredentials) => {
   return new WebClient(credentials.botToken);
 };
 
@@ -53,7 +53,7 @@ export const sendSlackMessageWithCredentials = async (
   }
 };
 
-export const sendSlackMessageWithToken = async (
+const _sendSlackMessageWithToken = async (
   encryptedToken: string,
   channel: string,
   text: string,
@@ -393,7 +393,7 @@ export const buildTaskAssignedMessage = (params: {
   return { blocks, text: fallbackText };
 };
 
-export const buildInvoiceValidatedMessage = (params: {
+const _buildInvoiceValidatedMessage = (params: {
   invoiceId: string;
   organizationName: string;
   totalAmount: string | null;
@@ -454,7 +454,7 @@ export const buildInvoiceValidatedMessage = (params: {
   return { blocks, text: fallbackText };
 };
 
-export const buildInvoicePaidMessage = (params: {
+const _buildInvoicePaidMessage = (params: {
   invoiceId: string;
   organizationName: string;
   totalAmount: string | null;
@@ -515,7 +515,7 @@ export const buildInvoicePaidMessage = (params: {
   return { blocks, text: fallbackText };
 };
 
-export const buildInvoiceCommentMessage = (params: {
+const _buildInvoiceCommentMessage = (params: {
   invoiceId: string;
   organizationName: string;
   commenterName: string;
@@ -578,6 +578,6 @@ export const encryptSlackToken = (token: string): string => {
   return encrypt(token);
 };
 
-export const decryptSlackToken = (encryptedToken: string): string => {
+const _decryptSlackToken = (encryptedToken: string): string => {
   return decrypt(encryptedToken);
 };

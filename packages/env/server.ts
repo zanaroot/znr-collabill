@@ -31,7 +31,7 @@ const readServerEnv = (): ParsedServerEnv => {
 
 let cachedServerEnv: ReturnType<typeof readServerEnv> | null = null;
 
-export const getServerEnv = () => {
+const getServerEnv = () => {
   if (cachedServerEnv) {
     return cachedServerEnv;
   }
@@ -46,5 +46,3 @@ export const serverEnv = new Proxy({} as ReturnType<typeof readServerEnv>, {
     return Reflect.get(env, property);
   },
 });
-
-export type ServerEnv = typeof serverEnv;

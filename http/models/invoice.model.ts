@@ -27,7 +27,4 @@ export const updateInvoiceStatusSchema = z.object({
 });
 
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
-export type UpdateInvoiceStatusInput = z.infer<
-  typeof updateInvoiceStatusSchema
->;
 export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;

@@ -6,7 +6,7 @@ import { TaskCard } from "./task-card";
 
 const { Text } = Typography;
 
-export type ArchivedTasksByProject = {
+type ArchivedTasksByProject = {
   projectId: string;
   projectName: string;
   tasks: TaskModel[];

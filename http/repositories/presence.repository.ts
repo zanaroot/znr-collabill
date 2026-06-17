@@ -58,7 +58,7 @@ export const markPresence = async (
   return presence;
 };
 
-export const checkOut = async (
+const _checkOut = async (
   userId: string,
   organizationId: string,
   date: string = getISODate(),
@@ -81,7 +81,7 @@ export const checkOut = async (
   return presence ?? null;
 };
 
-export const findRecentPresences = async (
+const _findRecentPresences = async (
   userId: string,
   organizationId: string,
   limit = 5,

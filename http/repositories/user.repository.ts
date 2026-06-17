@@ -27,7 +27,7 @@ export const findUserById = async (id: string) => {
   return user ?? null;
 };
 
-export const hasUserRole = async (
+const _hasUserRole = async (
   userId: string,
   organizationId: string,
   role: Role,
@@ -47,7 +47,7 @@ export const hasUserRole = async (
   return !!record;
 };
 
-export const getAllUsersWithRoles = async () => {
+const _getAllUsersWithRoles = async () => {
   const allUsers = await db.query.users.findMany({
     with: {
       roles: true,
@@ -58,14 +58,14 @@ export const getAllUsersWithRoles = async () => {
   return allUsers;
 };
 
-export const deleteUser = async (id: string) => {
+const _deleteUser = async (id: string) => {
   return db.transaction(async (tx) => {
     await tx.delete(userRoles).where(eq(userRoles.userId, id));
     await tx.delete(users).where(eq(users.id, id));
   });
 };
 
-export const updateUserRole = async (
+const _updateUserRole = async (
   userId: string,
   organizationId: string,
   role: Role,
@@ -101,7 +101,7 @@ export const updateUser = async (
   return user;
 };
 
-export const getOrganizations = async (userId: string) => {
+const _getOrganizations = async (userId: string) => {
   const membership = await db
     .select()
     .from(organizationMembers)

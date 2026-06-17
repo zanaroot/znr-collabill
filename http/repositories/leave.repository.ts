@@ -118,7 +118,7 @@ export const updateLeaveRequestStatus = async (
   });
 };
 
-export const findLeaveBalance = async (
+const findLeaveBalance = async (
   userId: string,
   organizationId: string,
   month: number,
@@ -329,7 +329,7 @@ export const validateLeaveBalance = async (
   return { valid: true };
 };
 
-export const initializeMonthlyBalance = async (
+const initializeMonthlyBalance = async (
   userId: string,
   organizationId: string,
   month: number,
@@ -368,7 +368,7 @@ export const initializeOrGetBalance = async (
   return balance;
 };
 
-export const updateLeaveBalanceOnApproval = async (
+const updateLeaveBalanceOnApproval = async (
   userId: string,
   organizationId: string,
   startDate: string,
@@ -461,7 +461,7 @@ export const updateLeaveBalanceOnApproval = async (
   }
 };
 
-export const getUnusedLeaveForPeriod = async (
+const _getUnusedLeaveForPeriod = async (
   organizationId: string,
   userId: string,
   year: number,

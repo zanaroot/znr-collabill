@@ -10,9 +10,9 @@ export const leaveTypeSchema = z.enum([
   "HALF_DAY_AM",
   "HALF_DAY_PM",
 ]);
-export const unusedLeavePolicySchema = z.enum(["CARRY_OVER", "PAID_AS_WORKED"]);
+const unusedLeavePolicySchema = z.enum(["CARRY_OVER", "PAID_AS_WORKED"]);
 
-export const leaveRequestSchema = z.object({
+const leaveRequestSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
   organizationId: z.string().uuid(),
@@ -56,7 +56,7 @@ export const updateLeaveRequestStatusSchema = z.object({
   status: leaveRequestStatusSchema,
 });
 
-export const leaveBalanceSchema = z.object({
+const leaveBalanceSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
   organizationId: z.string().uuid(),
@@ -79,5 +79,4 @@ export type LeaveBalance = z.infer<typeof leaveBalanceSchema>;
 export type OrganizationLeaveSettings = z.infer<
   typeof organizationLeaveSettingsSchema
 >;
-export type LeaveType = z.infer<typeof leaveTypeSchema>;
 export type LeaveRequestStatus = z.infer<typeof leaveRequestStatusSchema>;

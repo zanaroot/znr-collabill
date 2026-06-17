@@ -1,5 +1,3 @@
-export { s3 } from "./s3-client";
-
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { serverEnv } from "../env/server";
 import { s3 } from "./s3-client";
@@ -29,11 +27,4 @@ export const deleteFile = async (key: string) => {
   });
 
   await s3.send(command);
-};
-
-export const getFileUrl = (path: string) => {
-  if (path.startsWith("http")) return path;
-  const endpoint = serverEnv.S3_ENDPOINT.replace(/\/$/, "");
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${endpoint}${normalizedPath}`;
 };

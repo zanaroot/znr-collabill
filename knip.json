@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "next-sitemap.config.js",
+    "http/routes/index.ts",
+    "http/routes/*.route.ts"
+  ],
+  "project": [
+    "**/*.{ts,tsx,js,mjs,cjs}",
+    "!node_modules/**",
+    "!.next/**",
+    "!.git/**",
+    "!.ai/**",
+    "!.agents/**",
+    "!.vscode/**",
+    "!coverage/**",
+    "!public/**",
+    "!db/migration/**"
+  ],
+  "ignoreFiles": ["app/(auth)/forgot-password/_components/succes-form.tsx"],
+  "ignoreDependencies": ["tailwindcss", "@vitest/coverage-v8"]
+}

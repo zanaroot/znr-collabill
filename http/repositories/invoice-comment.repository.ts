@@ -43,7 +43,7 @@ export const createComment = async (input: CreateCommentInput) => {
   return comment;
 };
 
-export const findInvoiceWithOrganization = async (invoiceId: string) => {
+const _findInvoiceWithOrganization = async (invoiceId: string) => {
   const [invoice] = await db
     .select({
       id: invoices.id,
@@ -57,7 +57,7 @@ export const findInvoiceWithOrganization = async (invoiceId: string) => {
   return invoice ?? null;
 };
 
-export const findOrganizationMembersToNotify = async (
+const _findOrganizationMembersToNotify = async (
   invoiceId: string,
   excludeUserId: string,
   organizationId: string,

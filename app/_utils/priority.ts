@@ -13,7 +13,7 @@ export const PRIORITY_LABELS: PriorityLabel[] = [
   "Low priority",
 ];
 
-export const PRIORITY_VALUE: Record<PriorityLabel, number> = {
+const PRIORITY_VALUE: Record<PriorityLabel, number> = {
   "Urgent & Important": 1,
   Urgent: 2,
   Important: 3,
@@ -53,7 +53,7 @@ export function getPriorityTagColor(label: PriorityLabel): string {
   return "default";
 }
 
-export function getPriorityOptions() {
+function _getPriorityOptions() {
   return PRIORITY_LABELS.map((label) => ({
     label,
     value: label,

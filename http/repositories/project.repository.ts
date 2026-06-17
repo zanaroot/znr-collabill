@@ -105,7 +105,7 @@ export const findProjectsForCollaborator = async (
   return result.map(normalizeProject);
 };
 
-export const findProjectsByUserId = async (userId: string) => {
+const _findProjectsByUserId = async (userId: string) => {
   const result = await db
     .select({
       id: projects.id,

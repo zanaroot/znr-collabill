@@ -63,7 +63,7 @@ export const findCommentById = async (id: string) => {
   return comment ?? null;
 };
 
-export const findTaskWithProject = async (taskId: string) => {
+const _findTaskWithProject = async (taskId: string) => {
   const [task] = await db
     .select({
       id: tasks.id,

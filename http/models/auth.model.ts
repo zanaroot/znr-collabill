@@ -6,8 +6,6 @@ export const signInSchema = z.object({
   password: z.string().min(8),
 });
 
-export type SignInInput = z.infer<typeof signInSchema>;
-
 export const registerSchema = z.object({
   organizationName: z.string().min(2),
   name: z.string().min(2),

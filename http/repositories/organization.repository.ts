@@ -140,7 +140,7 @@ export const createOrganization = async (name: string, ownerId: string) => {
   });
 };
 
-export const findOrganizationBySlug = async (slug: string) => {
+const _findOrganizationBySlug = async (slug: string) => {
   const [org] = await db
     .select()
     .from(organizations)
@@ -376,7 +376,7 @@ export type OwnedOrganization = {
   members: OrganizationMemberSummary[];
 };
 
-export const getOrganizationsOwnedByUser = async (
+const _getOrganizationsOwnedByUser = async (
   userId: string,
 ): Promise<OwnedOrganization[]> => {
   const ownedOrgs = await db
@@ -487,10 +487,7 @@ export const getUserOrganizationsWithMembers = async (
   }));
 };
 
-export const isOrganizationOwner = async (
-  organizationId: string,
-  userId: string,
-) => {
+const _isOrganizationOwner = async (organizationId: string, userId: string) => {
   const [record] = await db
     .select({ userId: organizationMembers.userId })
     .from(organizationMembers)
@@ -606,7 +603,7 @@ export const deleteOrganizationById = async (
   });
 };
 
-export const permanentlyDeleteOrganization = async (organizationId: string) => {
+const _permanentlyDeleteOrganization = async (organizationId: string) => {
   await db.transaction(async (tx) => {
     const orgProjects = await tx
       .select({ id: projects.id })

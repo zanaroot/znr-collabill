@@ -44,7 +44,7 @@ export const updateProjectSchema = z.object({
 
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
-export const isProjectAdminOrOwner = (
+const _isProjectAdminOrOwner = (
   organizationRole: string | null | undefined,
   projectRole: string | null | undefined,
 ) => {

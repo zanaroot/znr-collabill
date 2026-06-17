@@ -8,5 +8,3 @@ export const publicEnv = parseEnv(
   },
   "public",
 );
-
-export type PublicEnv = typeof publicEnv;

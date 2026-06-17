@@ -40,8 +40,6 @@ export const taskSchema = z.object({
 });
 
 export type Task = z.infer<typeof taskSchema>;
-export type TaskStatusValue = TaskStatus;
-export type TaskSizeValue = TaskSize;
 
 export const createTaskSchema = z.object({
   projectId: z.uuid(),

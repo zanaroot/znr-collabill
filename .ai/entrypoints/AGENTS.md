@@ -52,6 +52,8 @@ pnpm lint:fix
 pnpm format
 pnpm format:fix
 pnpm typecheck
+pnpm knip        # find unused files, dependencies, and exports
+pnpm knip:fix    # auto-fix what knip can
 ```
 
 ### Database
@@ -97,7 +99,7 @@ pnpm test:unit:interactive
   - `packages/env`, `packages/email`, `packages/minio`, `packages/slack`
 - `lib/`: shared utilities and pure helpers.
 - `.github/workflows/`: CI/CD.
-  - `validation.yml`: runs `pnpm lint`, `pnpm typecheck`, and `pnpm test:unit`.
+  - `validation.yml`: runs `pnpm lint`, `pnpm typecheck`, `pnpm knip`, and `pnpm test:unit`.
   - `build-images.yml`: builds GHCR image after successful validation on `main`.
   - `deploy.yml`: manual deploy to the Docker host.
 

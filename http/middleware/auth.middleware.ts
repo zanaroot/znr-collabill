@@ -137,7 +137,7 @@ const getCookieValue = (c: Context, name: string): string | undefined => {
   return match?.[1];
 };
 
-export const memberMiddleware = createMiddleware<AuthEnv>(
+const _memberMiddleware = createMiddleware<AuthEnv>(
   async (c: Context, next: Next) => {
     const user = c.get("user");
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const periodSchema = z.object({
+const periodSchema = z.object({
   id: z.string(),
   name: z.string(),
   startDate: z.string(),

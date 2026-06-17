@@ -5,7 +5,7 @@ import { getIntegration } from "@/http/repositories/integration.repository";
 import { getOrganizationById } from "@/http/repositories/organization.repository";
 import { decrypt } from "@/lib/crypto";
 
-export const getOrgIntegrationCredentials = async (
+const getOrgIntegrationCredentials = async (
   organizationId: string,
   type: IntegrationType,
 ) => {
@@ -18,7 +18,7 @@ export const getOrgIntegrationCredentials = async (
   return integration.credentials;
 };
 
-export const getOrgSlackCredentials = async (organizationId: string) => {
+const _getOrgSlackCredentials = async (organizationId: string) => {
   const creds = await getOrgIntegrationCredentials(organizationId, "SLACK");
 
   if (creds?.slack) {
@@ -41,12 +41,12 @@ export const getOrgSlackCredentials = async (organizationId: string) => {
   return null;
 };
 
-export const getOrgGithubCredentials = async (organizationId: string) => {
+const _getOrgGithubCredentials = async (organizationId: string) => {
   const creds = await getOrgIntegrationCredentials(organizationId, "GITHUB");
   return creds?.github ?? null;
 };
 
-export const getOrgIntegrationConfig = async (
+const _getOrgIntegrationConfig = async (
   organizationId: string,
   type: IntegrationType,
 ) => {

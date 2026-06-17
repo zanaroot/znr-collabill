@@ -23,13 +23,6 @@ import {
   useUpdateTask,
 } from "../_hooks/use-tasks";
 
-export type TaskMembers = {
-  id: string;
-  name: string;
-  avatar: string | null;
-  role?: string;
-}[];
-
 export type UseBoardOptions = {
   tasks: TaskModel[];
   projectId?: string;
@@ -324,15 +317,12 @@ export function useBoard({
   };
 }
 
-export function useCanMoveToStatus(
-  userRole?: Role,
-  projectRole?: ProjectMemberRole,
-) {
+function _useCanMoveToStatus(userRole?: Role, projectRole?: ProjectMemberRole) {
   return (from: TaskStatus, to: TaskStatus) =>
     canTransitionTaskStatus({ from, to, userRole, projectRole });
 }
 
-export function useCanDragFromStatus(
+function _useCanDragFromStatus(
   userRole?: Role,
   projectRole?: ProjectMemberRole,
 ) {

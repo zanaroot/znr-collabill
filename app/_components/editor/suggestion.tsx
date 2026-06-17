@@ -34,7 +34,7 @@ interface SlashCommandListProps {
   command: (item: CommandItem) => void;
 }
 
-export interface SlashCommandListRef {
+interface SlashCommandListRef {
   onKeyDown: (props: SuggestionKeyDownProps) => boolean;
 }
 

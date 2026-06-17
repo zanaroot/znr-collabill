@@ -15,22 +15,6 @@ export const collaboratorRateSchema = z.object({
 
 export type CollaboratorRate = z.infer<typeof collaboratorRateSchema>;
 
-export type UserWithCollaboratorRate = {
-  id: string;
-  email: string;
-  name: string;
-  avatar: string | null;
-  createdAt: string | Date | null;
-  role: Role;
-  joinedAt: string | Date | null;
-  collaboratorRate?: CollaboratorRate;
-};
-
-export type UserRole = {
-  userId: string;
-  role: Role;
-};
-
 export type UserWithRoles = {
   id: string;
   email: string;
