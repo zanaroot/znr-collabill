@@ -154,7 +154,7 @@ jobs:
               -p collabill-prod \
               -f docker-compose.prod.yml \
               --env-file .env \
-              up -d --remove-orphans
+              up -d --force-recreate --remove-orphans
 
             docker image prune -af --filter "until=168h" || true
 
