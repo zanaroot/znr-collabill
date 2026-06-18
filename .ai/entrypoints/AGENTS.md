@@ -99,9 +99,8 @@ pnpm test:unit:interactive
   - `packages/env`, `packages/email`, `packages/minio`, `packages/slack`
 - `lib/`: shared utilities and pure helpers.
 - `.github/workflows/`: CI/CD.
-  - `validation.yml`: runs `pnpm lint`, `pnpm typecheck`, `pnpm knip`, and `pnpm test:unit`.
-  - `build-images.yml`: builds GHCR image after successful validation on `main`.
-  - `deploy.yml`: manual deploy to the Docker host.
+  - `validation.yml`: runs `pnpm lint`, `pnpm typecheck`, `pnpm knip`, and `pnpm test:unit` on push/PR to `main`, and verifies GitHub Environment vars/secrets are configured.
+  - `deploy.yml`: manual SSH-based deploy. SSHs into the VPS, pulls the latest code from Git, writes `.env` from GitHub Environment secrets/vars, then runs `docker compose down` → `build --no-cache` → `up -d`.
 
 ## Code Style Guidelines
 

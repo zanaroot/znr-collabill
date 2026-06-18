@@ -35,8 +35,6 @@ jobs:
       S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-      GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
       DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
       DROPLET_USER: ${{ secrets.DROPLET_USER }}
       DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
@@ -80,8 +78,6 @@ jobs:
           check_required "secret" "S3_SECRET_KEY" "$S3_SECRET_KEY"
           check_required "secret" "ENCRYPTION_KEY" "$ENCRYPTION_KEY"
           check_required "secret" "BREVO_API_KEY" "$BREVO_API_KEY"
-          check_required "secret" "GHCR_USERNAME" "$GHCR_USERNAME"
-          check_required "secret" "GHCR_READ_TOKEN" "$GHCR_READ_TOKEN"
           check_required "secret" "DROPLET_HOST" "$DROPLET_HOST"
           check_required "secret" "DROPLET_USER" "$DROPLET_USER"
           check_required "secret" "DROPLET_SSH_KEY" "$DROPLET_SSH_KEY"
