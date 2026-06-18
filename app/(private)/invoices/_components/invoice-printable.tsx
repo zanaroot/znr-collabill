@@ -107,7 +107,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+          "Failed to validate invoice",
         );
       }
       return res.json();
@@ -210,8 +210,8 @@ export const InvoicePrintable = ({
         totalAmount += amount;
         linesInput.push({
           type: "TASK",
-          referenceId: rt.userId,
-          label: `Reviewer tasks ${rt.size} for ${rt.userName} (${rt.projectName})`,
+          referenceId: rt.assignedTo,
+          label: `Reviewer tasks ${rt.size} for ${rt.assigneeName} (${rt.projectName})`,
           quantity: rt.taskCount,
           unitPrice: reviewerRate.toString(),
           total: amount.toString(),
@@ -570,7 +570,7 @@ export const InvoicePrintable = ({
                     if (amount === 0) return null;
                     return (
                       <tr
-                        key={`${item.userId}-${item.projectId}-${item.size}-${index}`}
+                        key={`${item.assignedTo}-${item.projectId}-${item.size}-${index}`}
                         className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors"
                       >
                         <td className="p-4">

@@ -2,6 +2,7 @@
 
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { Flex, Grid, Space, Tooltip, Typography } from "antd";
+import { useEffect } from "react";
 import type { AuthUser } from "@/http/models/auth.model";
 import type { Period } from "@/http/models/period.model";
 import type { InvoiceWithLines } from "@/http/repositories/invoice.repository";
@@ -55,6 +56,10 @@ export const InvoiceContentWrapper = ({
   const screens = useBreakpoint();
 
   const isVertical = !screens.xl;
+
+  useEffect(() => {
+    console.log("reviewerTaskSummary", reviewerTaskSummary);
+  }, [reviewerTaskSummary]);
 
   return (
     <Flex
