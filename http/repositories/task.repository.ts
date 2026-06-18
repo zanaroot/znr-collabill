@@ -16,6 +16,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
   collaboratorRates,
@@ -203,25 +204,42 @@ export const getValidatedTaskSummaryByReviewer = async (
     );
   }
 
+  const assignee = alias(users, "assignee");
+  const reviewer = alias(users, "reviewer");
+
   return await db
     .select({
-      userId: users.id,
-      userName: users.name,
+      assignedTo: assignee.id,
+      assigneeName: assignee.name,
       projectId: projects.id,
       projectName: projects.name,
       projectReviewerRate: projects.reviewerRate,
+      rateXs: collaboratorRates.rateXs,
+      rateS: collaboratorRates.rateS,
+      rateM: collaboratorRates.rateM,
+      rateL: collaboratorRates.rateL,
+      rateXl: collaboratorRates.rateXl,
       size: tasks.size,
       taskCount: count(tasks.id),
     })
     .from(tasks)
+    .innerJoin(assignee, eq(tasks.assignedTo, assignee.id))
+    .innerJoin(reviewer, eq(tasks.reviewerId, reviewer.id))
     .innerJoin(projects, eq(tasks.projectId, projects.id))
     .innerJoin(users, eq(tasks.reviewerId, users.id))
+    .leftJoin(collaboratorRates, eq(tasks.reviewerId, collaboratorRates.userId))
     .where(and(...whereClauses))
     .groupBy(
-      users.id,
+      assignee.id,
+      assignee.name,
       projects.id,
       projects.name,
       projects.reviewerRate,
+      collaboratorRates.rateXs,
+      collaboratorRates.rateS,
+      collaboratorRates.rateM,
+      collaboratorRates.rateL,
+      collaboratorRates.rateXl,
       tasks.size,
     );
 };

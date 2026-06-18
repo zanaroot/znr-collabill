@@ -34,11 +34,20 @@ export interface RawTaskSummary {
 }
 
 export interface ReviewerTaskSummary {
-  userId: string;
-  userName: string;
+  assignedTo: string;
+  assigneeName: string;
+  reviewerId: string;
+  reviewerName: string;
   projectId: string;
   projectName: string;
   projectReviewerRate: string | null;
+
+  rateXs: string | null;
+  rateS: string | null;
+  rateM: string | null;
+  rateL: string | null;
+  rateXl: string | null;
+
   size: "XS" | "S" | "M" | "L" | "XL";
   taskCount: number;
 }
@@ -70,8 +79,10 @@ const getRateForSize = (
 };
 
 export interface ReviewerTaskSummaryRow {
-  userId: string;
-  userName: string;
+  assignedTo: string;
+  assigneeName: string;
+  reviewerId: string;
+  reviewerName: string;
   projectId: string;
   projectName: string;
   projectReviewerRate: number;
@@ -91,13 +102,15 @@ export const ReviewerTaskSummaryTable = ({
   const rowsMap = new Map<string, ReviewerTaskSummaryRow>();
 
   for (const item of data) {
-    const key = `${item.userId}-${item.projectId}`;
+    const key = `${item.assignedTo}-${item.projectId}`;
     const reviewerRate = Number(item.projectReviewerRate || 0);
 
     if (!rowsMap.has(key)) {
       rowsMap.set(key, {
-        userId: item.userId,
-        userName: item.userName,
+        assignedTo: item.assignedTo,
+        assigneeName: item.assigneeName,
+        reviewerId: item.reviewerId,
+        reviewerName: item.reviewerName,
         projectId: item.projectId,
         projectName: item.projectName,
         projectReviewerRate: reviewerRate,
@@ -114,12 +127,34 @@ export const ReviewerTaskSummaryTable = ({
     if (!row) continue;
 
     const count = Number(item.taskCount);
+
     const sizeKey = item.size as keyof Pick<
       ReviewerTaskSummaryRow,
       "XS" | "S" | "M" | "L" | "XL"
     >;
+
+    let sizeRate = 0;
+
+    switch (item.size) {
+      case "XS":
+        sizeRate = Number(item.rateXs ?? 0);
+        break;
+      case "S":
+        sizeRate = Number(item.rateS ?? 0);
+        break;
+      case "M":
+        sizeRate = Number(item.rateM ?? 0);
+        break;
+      case "L":
+        sizeRate = Number(item.rateL ?? 0);
+        break;
+      case "XL":
+        sizeRate = Number(item.rateXl ?? 0);
+        break;
+    }
+
     row[sizeKey] += count;
-    row.total += count * reviewerRate;
+    row.total += count * sizeRate * reviewerRate;
   }
 
   const dataSource = Array.from(rowsMap.values());
@@ -127,8 +162,8 @@ export const ReviewerTaskSummaryTable = ({
   const columns = [
     {
       title: "User",
-      dataIndex: "userName",
-      key: "userName",
+      dataIndex: "assigneeName",
+      key: "assigneeName",
     },
     {
       title: "Project",
@@ -183,7 +218,7 @@ export const ReviewerTaskSummaryTable = ({
     <Table
       dataSource={dataSource}
       columns={columns}
-      rowKey={(record) => `${record.userId}-${record.projectId}`}
+      rowKey={(record) => `${record.assignedTo}-${record.projectId}`}
       pagination={false}
     />
   );

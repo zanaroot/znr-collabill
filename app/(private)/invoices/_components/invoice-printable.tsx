@@ -141,8 +141,21 @@ export const InvoicePrintable = ({
 
   const reviewerTotal = useMemo(() => {
     return reviewerTaskData.reduce((acc, item) => {
-      const rate = Number(item.projectReviewerRate || 0);
-      return acc + Number(item.taskCount) * rate;
+      const reviewerRate = Number(item.projectReviewerRate ?? 0);
+
+      const rates = {
+        XS: Number(item.rateXs ?? 0),
+        S: Number(item.rateS ?? 0),
+        M: Number(item.rateM ?? 0),
+        L: Number(item.rateL ?? 0),
+        XL: Number(item.rateXl ?? 0),
+      };
+
+      const sizeRate = rates[item.size] ?? 0;
+
+      const amount = Number(item.taskCount) * sizeRate * reviewerRate;
+
+      return acc + amount;
     }, 0);
   }, [reviewerTaskData]);
 
@@ -210,8 +223,8 @@ export const InvoicePrintable = ({
         totalAmount += amount;
         linesInput.push({
           type: "TASK",
-          referenceId: rt.userId,
-          label: `Reviewer tasks ${rt.size} for ${rt.userName} (${rt.projectName})`,
+          referenceId: rt.assignedTo,
+          label: `Reviewer tasks ${rt.size} for ${rt.assigneeName} (${rt.projectName})`,
           quantity: rt.taskCount,
           unitPrice: reviewerRate.toString(),
           total: amount.toString(),
@@ -246,6 +259,27 @@ export const InvoicePrintable = ({
       lines: linesInput,
     });
   };
+
+  const groupedReviewerTaskData = useMemo(() => {
+    const map = new Map<string, ReviewerTaskSummary>();
+
+    for (const item of reviewerTaskData) {
+      const key = `${item.projectId}-${item.size}`;
+
+      const existing = map.get(key);
+
+      if (existing) {
+        existing.taskCount += Number(item.taskCount);
+      } else {
+        map.set(key, {
+          ...item,
+          taskCount: Number(item.taskCount),
+        });
+      }
+    }
+
+    return Array.from(map.values());
+  }, [reviewerTaskData]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -564,13 +598,37 @@ export const InvoicePrintable = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {reviewerTaskData.map((item, index) => {
-                    const rate = Number(item.projectReviewerRate || 0);
+                  {groupedReviewerTaskData.map((item, index) => {
+                    const reviewerRate = Number(item.projectReviewerRate ?? 0);
+
+                    let sizeRate = 0;
+
+                    switch (item.size) {
+                      case "XS":
+                        sizeRate = Number(item.rateXs ?? 0);
+                        break;
+                      case "S":
+                        sizeRate = Number(item.rateS ?? 0);
+                        break;
+                      case "M":
+                        sizeRate = Number(item.rateM ?? 0);
+                        break;
+                      case "L":
+                        sizeRate = Number(item.rateL ?? 0);
+                        break;
+                      case "XL":
+                        sizeRate = Number(item.rateXl ?? 0);
+                        break;
+                    }
+
+                    const rate = sizeRate * reviewerRate;
                     const amount = Number(item.taskCount) * rate;
+
                     if (amount === 0) return null;
+
                     return (
                       <tr
-                        key={`${item.userId}-${item.projectId}-${item.size}-${index}`}
+                        key={`${item.assignedTo}-${item.projectId}-${item.size}-${index}`}
                         className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors"
                       >
                         <td className="p-4">
