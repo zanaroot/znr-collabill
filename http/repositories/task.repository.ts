@@ -214,6 +214,11 @@ export const getValidatedTaskSummaryByReviewer = async (
       projectId: projects.id,
       projectName: projects.name,
       projectReviewerRate: projects.reviewerRate,
+      rateXs: collaboratorRates.rateXs,
+      rateS: collaboratorRates.rateS,
+      rateM: collaboratorRates.rateM,
+      rateL: collaboratorRates.rateL,
+      rateXl: collaboratorRates.rateXl,
       size: tasks.size,
       taskCount: count(tasks.id),
     })
@@ -222,6 +227,7 @@ export const getValidatedTaskSummaryByReviewer = async (
     .innerJoin(reviewer, eq(tasks.reviewerId, reviewer.id))
     .innerJoin(projects, eq(tasks.projectId, projects.id))
     .innerJoin(users, eq(tasks.reviewerId, users.id))
+    .leftJoin(collaboratorRates, eq(tasks.reviewerId, collaboratorRates.userId))
     .where(and(...whereClauses))
     .groupBy(
       assignee.id,
@@ -229,6 +235,11 @@ export const getValidatedTaskSummaryByReviewer = async (
       projects.id,
       projects.name,
       projects.reviewerRate,
+      collaboratorRates.rateXs,
+      collaboratorRates.rateS,
+      collaboratorRates.rateM,
+      collaboratorRates.rateL,
+      collaboratorRates.rateXl,
       tasks.size,
     );
 };

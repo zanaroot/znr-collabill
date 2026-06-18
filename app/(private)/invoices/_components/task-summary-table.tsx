@@ -41,6 +41,13 @@ export interface ReviewerTaskSummary {
   projectId: string;
   projectName: string;
   projectReviewerRate: string | null;
+
+  rateXs: string | null;
+  rateS: string | null;
+  rateM: string | null;
+  rateL: string | null;
+  rateXl: string | null;
+
   size: "XS" | "S" | "M" | "L" | "XL";
   taskCount: number;
 }
@@ -120,12 +127,34 @@ export const ReviewerTaskSummaryTable = ({
     if (!row) continue;
 
     const count = Number(item.taskCount);
+
     const sizeKey = item.size as keyof Pick<
       ReviewerTaskSummaryRow,
       "XS" | "S" | "M" | "L" | "XL"
     >;
+
+    let sizeRate = 0;
+
+    switch (item.size) {
+      case "XS":
+        sizeRate = Number(item.rateXs ?? 0);
+        break;
+      case "S":
+        sizeRate = Number(item.rateS ?? 0);
+        break;
+      case "M":
+        sizeRate = Number(item.rateM ?? 0);
+        break;
+      case "L":
+        sizeRate = Number(item.rateL ?? 0);
+        break;
+      case "XL":
+        sizeRate = Number(item.rateXl ?? 0);
+        break;
+    }
+
     row[sizeKey] += count;
-    row.total += count * reviewerRate;
+    row.total += count * sizeRate * reviewerRate;
   }
 
   const dataSource = Array.from(rowsMap.values());
