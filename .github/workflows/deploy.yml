@@ -112,8 +112,6 @@ jobs:
             ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts 2>/dev/null || true
             chmod 600 ~/.ssh/known_hosts
 
-            echo "Deploy token - ${DROPLET_DEPLOY_TOKEN}"
-
             if [ ! -d .git ]; then
               echo "No existing checkout found at $DEPLOY_PATH. Cloning fresh..."
               git clone "$REPO_URL" "$DEPLOY_PATH"
