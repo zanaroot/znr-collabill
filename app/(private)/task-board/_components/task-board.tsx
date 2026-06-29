@@ -3,7 +3,8 @@
 import { Select, Spin, Typography } from "antd";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { useLastProject } from "@/app/(private)/_providers/last-projects-providers";
 // import TestSentry from "@/app/_components/test-sentry";
 import {
   useProjectMembers,
@@ -21,70 +22,108 @@ export const TaskBoard = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { setLastProjectId } = useLastProject();
 
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
 
-  const projectId = searchParams.get("projectId") ?? undefined;
+  const rawProjectId = searchParams.get("projectId") ?? undefined;
   const taskId = searchParams.get("taskId") ?? undefined;
 
-  const { data: tasks, isLoading: isLoadingTasks } = useTasks(projectId);
+  const resolvedProjectId = useMemo(() => {
+    if (!projects?.length) return undefined;
+
+    if (
+      rawProjectId &&
+      projects.some((p) => p.id === rawProjectId)
+    ) {
+      return rawProjectId;
+    }
+
+    if (typeof window === "undefined") return undefined;
+
+    const last = localStorage.getItem(
+      lastProjectKey(
+        currentUser?.id ?? "",
+        currentUser?.organizationId ?? "",
+      ),
+    );
+
+    if (last && projects.some((p) => p.id === last)) {
+      return last;
+    }
+
+    return projects[0]?.id;
+  }, [
+    projects,
+    rawProjectId,
+    currentUser?.id,
+    currentUser?.organizationId,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isLoadingProjects &&
+      projects?.length &&
+      resolvedProjectId &&
+      resolvedProjectId !== rawProjectId
+    ) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("projectId", resolvedProjectId);
+
+      router.replace(`${pathname}?${params.toString()}`);
+    }
+  }, [
+    resolvedProjectId,
+    rawProjectId,
+    isLoadingProjects,
+    projects,
+    router,
+    pathname,
+    searchParams,
+  ]);
+
+  const { data: tasks, isLoading: isLoadingTasks } =
+    useTasks(resolvedProjectId);
 
   const { data: projectMembers, isLoading: isLoadingMembers } =
-    useProjectMembers(projectId ?? "");
+    useProjectMembers(resolvedProjectId ?? "");
+
   const taskCount =
     tasks?.filter(
       (task) => task.status !== "ARCHIVED" && task.status !== "TRASH",
     ).length ?? 0;
 
   const selectedProject = useMemo(
-    () => projects?.find((p) => p.id === projectId),
-    [projects, projectId],
+    () =>
+      projects?.find((p) => p.id === resolvedProjectId),
+    [projects, resolvedProjectId],
   );
 
   const userRole = currentUser?.organizationRole ?? undefined;
 
   const userProjectRole = useMemo(() => {
     if (!currentUser?.id || !projectMembers) return undefined;
-    return projectMembers.find((m) => m.id === currentUser.id)?.projectRole;
+
+    return projectMembers.find(
+      (m) => m.id === currentUser.id,
+    )?.projectRole;
   }, [currentUser?.id, projectMembers]);
 
-  const validProjectId = useMemo(() => {
-    if (!projects?.length) return undefined;
-    const exists = projects.some((p) => p.id === projectId);
-    if (exists) return projectId;
-    if (typeof window === "undefined") return undefined;
-    const lastProjectId = localStorage.getItem(
-      lastProjectKey(currentUser?.id ?? "", currentUser?.organizationId ?? ""),
-    );
-    const lastProjectExists = projects.some((p) => p.id === lastProjectId);
-    if (lastProjectId && lastProjectExists) return lastProjectId;
-    return projects[0].id;
-  }, [projects, projectId, currentUser?.id, currentUser?.organizationId]);
-
-  if (
-    !isLoadingProjects &&
-    projects?.length &&
-    validProjectId &&
-    validProjectId !== projectId
-  ) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("projectId", validProjectId);
-    router.replace(`${pathname}?${params.toString()}`);
-    return null;
-  }
 
   const handleProjectChange = (value: string) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        lastProjectKey(
-          currentUser?.id ?? "",
-          currentUser?.organizationId ?? "",
-        ),
-        value,
-      );
-    }
+    setLastProjectId(value);
+
+    localStorage.setItem(
+      lastProjectKey(
+        currentUser?.id ?? "",
+        currentUser?.organizationId ?? "",
+      ),
+      value,
+    );
+
     const params = new URLSearchParams(searchParams.toString());
     params.set("projectId", value);
+
     router.replace(`${pathname}?${params.toString()}`);
   };
 
@@ -108,8 +147,9 @@ export const TaskBoard = () => {
               <Text type="secondary" className="project-label">
                 Project
               </Text>
+
               <Select
-                value={projectId}
+                value={resolvedProjectId}
                 onChange={handleProjectChange}
                 options={projects.map((project) => ({
                   label: project.name,
@@ -137,7 +177,7 @@ export const TaskBoard = () => {
       ) : (
         <CreateBoard
           tasks={tasks ?? []}
-          projectId={projectId}
+          projectId={resolvedProjectId}
           projectName={selectedProject?.name}
           userRole={userRole}
           userId={currentUser?.id}
@@ -159,7 +199,6 @@ export const TaskBoard = () => {
           projects={projects ?? []}
         />
       )}
-      {/* <TestSentry /> */}
     </div>
   );
 };

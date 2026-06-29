@@ -28,6 +28,7 @@ import { type ReactNode, Suspense, useEffect, useState } from "react";
 import { cn } from "@/app/_utils/class-name";
 import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
+import { useLastProject } from "@/app/(private)/_providers/last-projects-providers";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
 import { lastProjectKey } from "@/http/ressources/keys";
@@ -84,7 +85,7 @@ export const PrivateLayout = ({
   const [showPresenceModal, setShowPresenceModal] = useState(isMissingPresence);
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const { data: currentUser } = useCurrentUser();
-  const [lastProjectId, setLastProjectId] = useState<string | null>(null);
+  const { lastProjectId, setLastProjectId } = useLastProject();
 
   const { data: todayPresence } = useQuery({
     queryKey: ["today-presence"],
@@ -108,10 +109,14 @@ export const PrivateLayout = ({
             currentUser?.id ?? "",
             currentUser?.organizationId ?? "",
           ),
-        ),
+        ) ?? "",
       );
     }
-  }, [currentUser?.id, currentUser?.organizationId]);
+  }, [
+    currentUser?.id,
+    currentUser?.organizationId,
+    setLastProjectId,
+  ]);
 
   const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
   const hasAdminAccess =
@@ -146,12 +151,12 @@ export const PrivateLayout = ({
     },
     ...(hasAdminAccess
       ? [
-          {
-            key: "type-organization",
-            icon: <ApartmentOutlined />,
-            label: "Organizations",
-          },
-        ]
+        {
+          key: "type-organization",
+          icon: <ApartmentOutlined />,
+          label: "Organizations",
+        },
+      ]
       : []),
   ];
 
@@ -168,7 +173,9 @@ export const PrivateLayout = ({
     setShowPresenceModal(true);
   };
 
+
   return (
+
     <Layout className="responsive-layout">
       <PresenceModal
         open={showPresenceModal}
@@ -217,7 +224,7 @@ export const PrivateLayout = ({
               className={cn(
                 "flex items-center gap-3 rounded-lg py-3 px-4 mb-1 no-underline transition-all bg-transparent dark:text-inherit! text-black! font-normal",
                 selectedKey === item.key &&
-                  "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
+                "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
               )}
             >
               <span style={{ fontSize: 16, display: "flex" }}>{item.icon}</span>

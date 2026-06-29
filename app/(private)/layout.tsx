@@ -8,6 +8,7 @@ import {
 import { findPresenceByUserIdAndDate } from "@/http/repositories/presence.repository";
 import { getISODate } from "@/lib/date";
 import { PrivateLayout as PrivateLayoutComponent } from "./_components/private-layout";
+import { LastProjectProvider } from "./_providers/last-projects-providers";
 
 const PrivateLayout = async ({ children }: { children: ReactNode }) => {
   const user = await getCurrentUser();
@@ -34,14 +35,16 @@ const PrivateLayout = async ({ children }: { children: ReactNode }) => {
   const isMissingPresence = !todayPresence;
 
   return (
-    <div>
-      <PrivateLayoutComponent
-        organization={organization}
-        isMissingPresence={isMissingPresence}
-      >
-        {children}
-      </PrivateLayoutComponent>
-    </div>
+    <LastProjectProvider>
+      <div>
+        <PrivateLayoutComponent
+          organization={organization}
+          isMissingPresence={isMissingPresence}
+        >
+          {children}
+        </PrivateLayoutComponent>
+      </div>
+    </LastProjectProvider>
   );
 };
 
