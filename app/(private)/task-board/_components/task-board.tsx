@@ -32,20 +32,14 @@ export const TaskBoard = () => {
   const resolvedProjectId = useMemo(() => {
     if (!projects?.length) return undefined;
 
-    if (
-      rawProjectId &&
-      projects.some((p) => p.id === rawProjectId)
-    ) {
+    if (rawProjectId && projects.some((p) => p.id === rawProjectId)) {
       return rawProjectId;
     }
 
     if (typeof window === "undefined") return undefined;
 
     const last = localStorage.getItem(
-      lastProjectKey(
-        currentUser?.id ?? "",
-        currentUser?.organizationId ?? "",
-      ),
+      lastProjectKey(currentUser?.id ?? "", currentUser?.organizationId ?? ""),
     );
 
     if (last && projects.some((p) => p.id === last)) {
@@ -53,12 +47,7 @@ export const TaskBoard = () => {
     }
 
     return projects[0]?.id;
-  }, [
-    projects,
-    rawProjectId,
-    currentUser?.id,
-    currentUser?.organizationId,
-  ]);
+  }, [projects, rawProjectId, currentUser?.id, currentUser?.organizationId]);
 
   useEffect(() => {
     if (
@@ -94,8 +83,7 @@ export const TaskBoard = () => {
     ).length ?? 0;
 
   const selectedProject = useMemo(
-    () =>
-      projects?.find((p) => p.id === resolvedProjectId),
+    () => projects?.find((p) => p.id === resolvedProjectId),
     [projects, resolvedProjectId],
   );
 
@@ -104,20 +92,14 @@ export const TaskBoard = () => {
   const userProjectRole = useMemo(() => {
     if (!currentUser?.id || !projectMembers) return undefined;
 
-    return projectMembers.find(
-      (m) => m.id === currentUser.id,
-    )?.projectRole;
+    return projectMembers.find((m) => m.id === currentUser.id)?.projectRole;
   }, [currentUser?.id, projectMembers]);
-
 
   const handleProjectChange = (value: string) => {
     setLastProjectId(value);
 
     localStorage.setItem(
-      lastProjectKey(
-        currentUser?.id ?? "",
-        currentUser?.organizationId ?? "",
-      ),
+      lastProjectKey(currentUser?.id ?? "", currentUser?.organizationId ?? ""),
       value,
     );
 

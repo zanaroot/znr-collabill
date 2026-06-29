@@ -112,11 +112,7 @@ export const PrivateLayout = ({
         ) ?? "",
       );
     }
-  }, [
-    currentUser?.id,
-    currentUser?.organizationId,
-    setLastProjectId,
-  ]);
+  }, [currentUser?.id, currentUser?.organizationId, setLastProjectId]);
 
   const selectedKey = pathname.split("/").filter(Boolean)[0] ?? "";
   const hasAdminAccess =
@@ -151,12 +147,12 @@ export const PrivateLayout = ({
     },
     ...(hasAdminAccess
       ? [
-        {
-          key: "type-organization",
-          icon: <ApartmentOutlined />,
-          label: "Organizations",
-        },
-      ]
+          {
+            key: "type-organization",
+            icon: <ApartmentOutlined />,
+            label: "Organizations",
+          },
+        ]
       : []),
   ];
 
@@ -173,9 +169,7 @@ export const PrivateLayout = ({
     setShowPresenceModal(true);
   };
 
-
   return (
-
     <Layout className="responsive-layout">
       <PresenceModal
         open={showPresenceModal}
@@ -224,7 +218,7 @@ export const PrivateLayout = ({
               className={cn(
                 "flex items-center gap-3 rounded-lg py-3 px-4 mb-1 no-underline transition-all bg-transparent dark:text-inherit! text-black! font-normal",
                 selectedKey === item.key &&
-                "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
+                  "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
               )}
             >
               <span style={{ fontSize: 16, display: "flex" }}>{item.icon}</span>
