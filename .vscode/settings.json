@@ -20,5 +20,8 @@
   },
   "chat.tools.terminal.autoApprove": {
     "true": true
+  },
+  "[github-actions-workflow]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
