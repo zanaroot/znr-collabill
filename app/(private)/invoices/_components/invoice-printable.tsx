@@ -107,7 +107,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+          "Failed to validate invoice",
         );
       }
       return res.json();
@@ -280,6 +280,25 @@ export const InvoicePrintable = ({
 
     return Array.from(map.values());
   }, [reviewerTaskData]);
+
+
+  const handleAdd = () => {
+    if (!newFieldLabel || !newFieldAmount) {
+      message.warning("Please enter both label and amount");
+      return;
+    }
+
+    const newLine = {
+      label: newFieldLabel,
+      amount: newFieldAmount,
+      key: crypto.randomUUID(),
+    };
+
+    onCustomLinesChange?.([...customLines, newLine]);
+
+    setNewFieldLabel("");
+    setNewFieldAmount("");
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -754,24 +773,7 @@ export const InvoicePrintable = ({
                         type="primary"
                         ghost
                         icon={<PlusOutlined />}
-                        onClick={() => {
-                          if (newFieldLabel && newFieldAmount) {
-                            onCustomLinesChange?.([
-                              ...customLines,
-                              {
-                                label: newFieldLabel,
-                                amount: newFieldAmount,
-                                key: crypto.randomUUID(),
-                              },
-                            ]);
-                            setNewFieldLabel("");
-                            setNewFieldAmount("");
-                          } else {
-                            message.warning(
-                              "Please enter both label and amount",
-                            );
-                          }
-                        }}
+                        onClick={handleAdd}
                       >
                         Add
                       </Button>
