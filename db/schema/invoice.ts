@@ -28,7 +28,9 @@ export const invoices = pgTable("invoices", {
   validatedAt: timestamp("validated_at"),
   paidAt: timestamp("paid_at"),
   note: text("note"),
+  draftKey: text("draft_key"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const invoiceLines = pgTable("invoice_lines", {
