@@ -1,10 +1,12 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { AuthUser } from "@/http/models/auth.model";
 import type { Organization } from "@/http/models/organization.model";
 import type { Period } from "@/http/models/period.model";
 import type { InvoiceWithLines } from "@/http/repositories/invoice.repository";
+import { client } from "@/packages/hono";
 import { InvoiceContentWrapper } from "./invoice-content-wrapper";
 import { InvoiceFilters } from "./invoice-filters";
 import type { PresenceSummary } from "./presence-summary-table";
@@ -15,6 +17,13 @@ interface Member {
   name: string;
   role: string;
 }
+
+type DraftLine = {
+  id: string;
+  label: string;
+  total: number | string;
+  type: "CUSTOM" | string;
+};
 
 interface InvoiceDetailViewProps {
   presenceSummary: PresenceSummary[];
@@ -51,37 +60,121 @@ export const InvoiceDetailView = ({
     Array<{ label: string; amount: string; key: string }>
   >([]);
 
+  const [draftLines, setDraftLines] = useState<
+    Array<{ label: string; amount: string; key: string }>
+  >([]);
+
+  const [isDraftLoaded, setIsDraftLoaded] = useState(false);
+
+
+  const { mutate: saveDraft } = useMutation({
+    mutationFn: async (args: {
+      organizationId: string;
+      periodStart: string;
+      periodEnd: string;
+      customLines: {
+        label: string;
+        amount: string;
+      }[];
+    }) => {
+      const res = await client.api.invoices.draft.$post({
+        json: args,
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to save draft");
+      }
+
+      return res.json();
+    },
+  });
+
   useEffect(() => {
+    const loadDraft = async () => {
+      if (existingInvoice || !isOwner) {
+        setIsDraftLoaded(true);
+        return;
+      }
+      try {
+        const res = await client.api.invoices.draft[":organizationId"][":periodStart"][":periodEnd"].$get({
+          param: {
+            organizationId: organization.id,
+            periodStart: selectedPeriod.startDate,
+            periodEnd: selectedPeriod.endDate,
+          },
+        });
+
+        if (res.ok) {
+          const draft = await res.json();
+          const line = draft?.lines as DraftLine[] | null;
+          if (line) {
+            setDraftLines(
+              line
+                .filter((line) => line.type === "CUSTOM")
+                .map((line) => ({
+                  key: line.id,
+                  label: line.label,
+                  amount: String(line.total ?? "0"),
+                })),
+            );
+          }
+        }
+      } finally {
+        setIsDraftLoaded(true);
+      }
+    };
+
+    loadDraft();
+  }, [
+    existingInvoice,
+    isOwner,
+    organization.id,
+    selectedPeriod.startDate,
+    selectedPeriod.endDate,
+  ]);
+
+  useEffect(() => {
+    if (!isDraftLoaded) return;
+
     if (existingInvoice?.lines) {
       const custom = existingInvoice.lines
         .filter((l) => l.type === "CUSTOM")
         .map((l) => ({
           label: l.label,
-          amount: l.total || "0",
+          amount: String(l.total ?? "0"),
           key: l.id,
         }));
+
       setCustomLines(custom);
-    } else if (
-      !existingInvoice &&
-      organization?.unusedLeavePolicy === "PAID_AS_WORKED"
-    ) {
+      return;
+    }
+
+    if (draftLines.length > 0) {
+      setCustomLines(draftLines);
+      return;
+    }
+
+    if (organization.unusedLeavePolicy === "PAID_AS_WORKED") {
       const member = members.find((m) => m.id === targetUserId);
       const isAdmin = member?.role === "ADMIN";
+
       const leaveQuota = Number(
         isAdmin
           ? organization.adminLeaveQuota
           : organization.collaboratorLeaveQuota,
       );
+
       const userPresence = presenceSummary.find(
         (p) => p.userId === targetUserId,
       );
-      const dailyRate = Number(userPresence?.dailyRate || 0);
+
+      const dailyRate = Number(userPresence?.dailyRate ?? 0);
       const amount = dailyRate * leaveQuota;
 
       if (amount > 0) {
         setCustomLines([
           {
-            label: `Unused Leave (Paid as Worked) for ${member?.name || targetUserName}`,
+            label: `Unused Leave (Paid as Worked) for ${member?.name ?? targetUserName}`,
             amount: amount.toString(),
             key: `paid-as-worked-${selectedPeriod.id}`,
           },
@@ -89,17 +182,45 @@ export const InvoiceDetailView = ({
       } else {
         setCustomLines([]);
       }
-    } else {
-      setCustomLines([]);
+
+      return;
     }
+
+    setCustomLines([]);
   }, [
     existingInvoice,
+    draftLines,
+    isDraftLoaded,
     organization,
     members,
     targetUserId,
     targetUserName,
     selectedPeriod,
-    presenceSummary.find,
+    presenceSummary,
+  ]);
+
+  useEffect(() => {
+    if (!isDraftLoaded) return;
+    if (existingInvoice || !isOwner) return;
+
+    saveDraft({
+      organizationId: organization.id,
+      periodStart: selectedPeriod.startDate,
+      periodEnd: selectedPeriod.endDate,
+      customLines: customLines.map(({ label, amount }) => ({
+        label,
+        amount,
+      })),
+    });
+  }, [
+    customLines,
+    existingInvoice,
+    isOwner,
+    organization.id,
+    selectedPeriod.startDate,
+    selectedPeriod.endDate,
+    saveDraft,
+    isDraftLoaded,
   ]);
 
   return (
