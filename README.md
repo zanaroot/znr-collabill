@@ -104,7 +104,7 @@ pnpm create:user
 
 ## Production Deployment
 
-Production deployment is handled entirely through GitHub Actions. The workflow builds the image, pushes it to GHCR, and deploys to the VPS with the generated `.env` file.
+Production deployment is handled entirely through GitHub Actions. The workflow SSHs into the VPS, pulls the latest application code directly from Git, generates the `.env` file from GitHub Environment secrets and variables, and rebuilds the Docker stack on the server.
 
 ### GitHub Environment Setup
 
@@ -116,8 +116,6 @@ Production deployment is handled entirely through GitHub Actions. The workflow b
    - `S3_SECRET_KEY`
    - `ENCRYPTION_KEY`
    - `BREVO_API_KEY`
-   - `GHCR_USERNAME` (username used for image pull on VPS)
-   - `GHCR_READ_TOKEN` (token with `read:packages` scope)
    - `DROPLET_HOST`
    - `DROPLET_USER`
    - `DROPLET_SSH_KEY`
@@ -136,32 +134,35 @@ Production deployment is handled entirely through GitHub Actions. The workflow b
 
 ### Deploy
 
-1. Go to **Actions > Build and Deploy**
+1. Go to **Actions > Deploy**
 2. Click **Run workflow**
-3. Select the `production` environment
+3. Select the `production` environment (override `deploy_path` or `branch` only if needed)
 4. The workflow will:
-   - Run lint, typecheck, and unit tests
-   - Build the Docker image with build-time env vars
-   - Push to GHCR with both the commit SHA and `latest` tags
-   - SSH to the VPS
-   - Generate `/var/docker-infra/.env` from GitHub-managed secrets/vars
-   - Pull the new image and restart the stack
-   - Prune old images
+   - SSH to the VPS using `DROPLET_SSH_KEY`
+   - `git fetch --all && git reset --hard origin/<branch>` inside the deploy path (clones the repository on first run)
+   - Write `<deploy_path>/.env` from GitHub-managed secrets/vars with `chmod 600`
+   - `docker compose -p collabill-prod down --remove-orphans`
+   - `docker compose -p collabill-prod build --no-cache`
+   - `docker compose -p collabill-prod up -d --remove-orphans`
+   - Stop on the first failing step (`set -Eeuo pipefail` + `script_stop: true`)
 
-### Initial Server Setup
+### Server Prerequisites
 
-For first-time setup on a new VPS, copy the compose file and nginx config:
+The deploy user on the VPS must be able to:
 
-```bash
-# On your local machine
-scp -r docker-compose.prod.yml nginx <user>@<host>:/var/docker-infra/
-```
+- Authenticate to GitHub over SSH for the target repository (a read-only deploy key added in the repo's **Deploy keys** settings is the recommended approach; ensure `github.com` is in `~/.ssh/known_hosts`).
+- Run `docker compose` without interactive prompts (add the deploy user to the `docker` group or run the workflow with `sudo` capabilities).
 
-Then run the GitHub Actions deploy workflow. The workflow will generate the `.env` file automatically.
+By default the application lives at `/app` on the server; override the path via the `deploy_path` workflow input when running the action.
 
 ### Check logs:
-- `docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env logs -f next`
-- `docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env logs -f nginx`
+
+```bash
+ssh <user>@<host>
+cd /app
+docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env logs -f next
+docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env logs -f nginx
+```
 
 ### TLS Setup
 
@@ -173,7 +174,7 @@ The repo ships with:
 On the server:
 
 ```bash
-cd /var/docker-infra
+cd /app
 
 # Start the stack with the HTTP-only nginx config
 docker compose -p collabill-prod -f docker-compose.prod.yml --env-file .env up -d
