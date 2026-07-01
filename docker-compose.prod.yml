@@ -76,6 +76,7 @@ services:
       "
 
   next:
+    image: ${NEXT_IMAGE}
     build:
       context: .
       dockerfile: Dockerfile
