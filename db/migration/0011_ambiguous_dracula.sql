@@ -1,0 +1,1 @@
+ALTER TABLE "invoices" ADD CONSTRAINT "invoices_draft_key_unique" UNIQUE("draft_key");
