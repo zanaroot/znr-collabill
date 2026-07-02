@@ -66,7 +66,6 @@ export const InvoiceDetailView = ({
 
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
 
-
   const { mutate: saveDraft } = useMutation({
     mutationFn: async (args: {
       organizationId: string;
@@ -97,7 +96,9 @@ export const InvoiceDetailView = ({
         return;
       }
       try {
-        const res = await client.api.invoices.draft[":organizationId"][":targetUserId"][":periodStart"][":periodEnd"].$get({
+        const res = await client.api.invoices.draft[":organizationId"][
+          ":targetUserId"
+        ][":periodStart"][":periodEnd"].$get({
           param: {
             organizationId: organization.id,
             targetUserId: targetUserId,
