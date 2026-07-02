@@ -16,7 +16,7 @@ export const invoiceRoutes = new Hono()
   .get("/", ...getInvoices)
   .get("/:id", ...getInvoiceById)
   .get(
-    "/draft/:organizationId/:periodStart/:periodEnd",
+    "/draft/:organizationId/:targetUserId/:periodStart/:periodEnd",
     ownerMiddleware,
     getInvoiceDraft,
   )
