@@ -70,6 +70,7 @@ export const InvoiceDetailView = ({
   const { mutate: saveDraft } = useMutation({
     mutationFn: async (args: {
       organizationId: string;
+      targetUserId: string;
       periodStart: string;
       periodEnd: string;
       customLines: {
@@ -96,9 +97,10 @@ export const InvoiceDetailView = ({
         return;
       }
       try {
-        const res = await client.api.invoices.draft[":organizationId"][":periodStart"][":periodEnd"].$get({
+        const res = await client.api.invoices.draft[":organizationId"][":targetUserId"][":periodStart"][":periodEnd"].$get({
           param: {
             organizationId: organization.id,
+            targetUserId: targetUserId,
             periodStart: selectedPeriod.startDate,
             periodEnd: selectedPeriod.endDate,
           },
@@ -131,6 +133,7 @@ export const InvoiceDetailView = ({
     organization.id,
     selectedPeriod.startDate,
     selectedPeriod.endDate,
+    targetUserId,
   ]);
 
   useEffect(() => {
@@ -205,6 +208,7 @@ export const InvoiceDetailView = ({
 
     saveDraft({
       organizationId: organization.id,
+      targetUserId: targetUserId,
       periodStart: selectedPeriod.startDate,
       periodEnd: selectedPeriod.endDate,
       customLines: customLines.map(({ label, amount }) => ({
@@ -221,6 +225,7 @@ export const InvoiceDetailView = ({
     selectedPeriod.endDate,
     saveDraft,
     isDraftLoaded,
+    targetUserId,
   ]);
 
   return (

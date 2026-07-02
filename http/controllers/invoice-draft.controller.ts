@@ -12,15 +12,21 @@ export const getInvoiceDraft = async (c: Context) => {
 
   const userId = user.id;
 
-  const { periodStart, periodEnd, organizationId } = c.req.query();
+  const { periodStart, periodEnd, organizationId, targetUserId } =
+    c.req.param();
 
-  console.log("QUERY:", { periodStart, periodEnd, organizationId });
+  console.log("PARAMS:", {
+    periodStart,
+    periodEnd,
+    organizationId,
+    targetUserId,
+  });
 
-  if (!periodStart || !periodEnd || !organizationId) {
-    return c.json({ error: "Missing query params" }, 400);
+  if (!periodStart || !periodEnd || !organizationId || !targetUserId) {
+    return c.json({ error: "Missing params" }, 400);
   }
 
-  const draftKey = `${userId}_${organizationId}_${periodStart}_${periodEnd}`;
+  const draftKey = `${userId}_${organizationId}_${targetUserId}_${periodStart}_${periodEnd}`;
 
   const invoice = await db.query.invoices.findFirst({
     where: (invoices, { eq }) =>
@@ -39,13 +45,19 @@ export const saveInvoiceDraft = async (c: Context) => {
 
     const body = await c.req.json();
 
-    const { organizationId, periodStart, periodEnd, customLines = [] } = body;
+    const {
+      organizationId,
+      periodStart,
+      periodEnd,
+      customLines,
+      targetUserId,
+    } = body;
 
     if (!userId) {
       return c.json({ error: "Unauthorized" }, 401);
     }
 
-    const draftKey = `${userId}_${organizationId}_${periodStart}_${periodEnd}`;
+    const draftKey = `${userId}_${organizationId}_${targetUserId}_${periodStart}_${periodEnd}`;
 
     const [invoice] = await db
       .insert(invoices)
@@ -67,17 +79,19 @@ export const saveInvoiceDraft = async (c: Context) => {
 
     await db.delete(invoiceLines).where(eq(invoiceLines.invoiceId, invoice.id));
 
-    await db.insert(invoiceLines).values(
-      customLines.map((l: { label: string; amount: string | number }) => ({
-        invoiceId: invoice.id,
-        type: "CUSTOM",
-        referenceId: null,
-        label: l.label,
-        quantity: 1,
-        unitPrice: l.amount,
-        total: l.amount,
-      })),
-    );
+    if (customLines.length > 0) {
+      await db.insert(invoiceLines).values(
+        customLines.map((l: { label: string; amount: string | number }) => ({
+          invoiceId: invoice.id,
+          type: "CUSTOM",
+          referenceId: null,
+          label: l.label,
+          quantity: 1,
+          unitPrice: l.amount,
+          total: l.amount,
+        })),
+      );
+    }
 
     return c.json(invoice);
   } catch (err) {
