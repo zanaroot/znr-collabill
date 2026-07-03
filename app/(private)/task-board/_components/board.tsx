@@ -156,6 +156,7 @@ export function CreateBoard({
                       isAdmin ||
                       userRole === "OWNER" ||
                       userRole === "ADMIN" ||
+                      projectRole === "PRODUCT_OWNER" ||
                       (userRole === "COLLABORATOR" && status === "BACKLOG")
                     }
                   />
