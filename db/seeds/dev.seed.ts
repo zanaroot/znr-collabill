@@ -6,9 +6,12 @@ import {
   invoiceComments,
   invoiceLines,
   invoices,
+  leaveRequests,
   passwordResetTokens,
   presences,
   sessions,
+  taskComments,
+  tasks,
 } from "../schema";
 import { seedCore } from "./core.seed";
 
@@ -57,7 +60,7 @@ async function seedInvitations(organizationId: string) {
   });
 }
 
-async function seedSessions(ownerId: string) {
+async function seedSessions(ownerId: string, organizationId: string) {
   const token = "seed-session-token-owner";
   const existing = await db.query.sessions.findFirst({
     where: eq(sessions.token, token),
@@ -69,6 +72,7 @@ async function seedSessions(ownerId: string) {
 
   await db.insert(sessions).values({
     userId: ownerId,
+    organizationId,
     token,
     expiresAt: getExpiryDate(30),
   });
@@ -147,6 +151,117 @@ async function seedPresences(collaboratorId: string, organizationId: string) {
         checkInAt: checkInDate,
         checkOutAt: checkOutDate,
       });
+    }
+  }
+}
+
+async function seedLeaveRequests(
+  collaboratorId: string,
+  adminId: string,
+  organizationId: string,
+) {
+  const existingCount = await db.$count(
+    leaveRequests,
+    eq(leaveRequests.userId, collaboratorId),
+  );
+
+  if (existingCount > 0) {
+    return;
+  }
+
+  await db.insert(leaveRequests).values([
+    {
+      userId: collaboratorId,
+      organizationId,
+      startDate: "2026-02-17",
+      endDate: "2026-02-18",
+      type: "FULL_DAY",
+      status: "APPROVED",
+      reason: "Medical appointment",
+      approvedBy: adminId,
+      approvedAt: new Date("2026-02-10"),
+    },
+    {
+      userId: collaboratorId,
+      organizationId,
+      startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10),
+      endDate: new Date(Date.now() + 31 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10),
+      type: "FULL_DAY",
+      status: "PENDING",
+      reason: "Personal days",
+    },
+  ]);
+}
+
+async function seedTaskComments(input: {
+  collaboratorId: string;
+  adminId: string;
+  projectId: string;
+}) {
+  const existingCount = await db.$count(
+    taskComments,
+    eq(taskComments.userId, input.collaboratorId),
+  );
+
+  if (existingCount > 0) {
+    return;
+  }
+
+  const projectTasks = await db.query.tasks.findMany({
+    where: eq(tasks.projectId, input.projectId),
+  });
+
+  for (const task of projectTasks) {
+    const commentData: Array<{
+      taskId: string;
+      userId: string;
+      content: string;
+    }> = [];
+
+    if (task.status === "TODO") {
+      commentData.push({
+        taskId: task.id,
+        userId: input.collaboratorId,
+        content: "I'll start working on this next sprint.",
+      });
+    }
+
+    if (task.status === "IN_PROGRESS") {
+      commentData.push(
+        {
+          taskId: task.id,
+          userId: input.collaboratorId,
+          content: "Progress is going well. About 60% done.",
+        },
+        {
+          taskId: task.id,
+          userId: input.adminId,
+          content: "Looks good. Keep me posted on blockers.",
+        },
+      );
+    }
+
+    if (task.status === "VALIDATED") {
+      commentData.push(
+        {
+          taskId: task.id,
+          userId: input.adminId,
+          content: "Reviewed and approved. Great work!",
+        },
+        {
+          taskId: task.id,
+          userId: input.collaboratorId,
+          content: "Thanks for the review!",
+        },
+      );
+    }
+
+    if (commentData.length > 0) {
+      await db.insert(taskComments).values(commentData);
     }
   }
 }
@@ -309,29 +424,50 @@ async function seedInvoicesAndLines(input: {
 
 async function seedAuditLogs(
   ownerId: string,
+  adminId: string,
+  collaboratorId: string,
   projectId: string,
   organizationId: string,
 ) {
-  const existing = await db.query.auditLogs.findFirst({
-    where: and(
-      eq(auditLogs.actorId, ownerId),
-      eq(auditLogs.action, "PROJECT_SEEDED"),
-      eq(auditLogs.entity, "project"),
-      eq(auditLogs.entityId, projectId),
-    ),
-  });
+  const logEntries = [
+    {
+      organizationId,
+      actorId: ownerId,
+      action: "ORGANIZATION_CREATED",
+      entity: "organization",
+      entityId: organizationId,
+    },
+    {
+      organizationId,
+      actorId: ownerId,
+      action: "PROJECT_CREATED",
+      entity: "project",
+      entityId: projectId,
+    },
+    {
+      organizationId,
+      actorId: adminId,
+      action: "MEMBER_INVITED",
+      entity: "organization",
+      entityId: organizationId,
+      metadata: JSON.stringify({ invitedUser: collaboratorId }),
+    },
+  ];
 
-  if (existing) {
-    return;
+  for (const entry of logEntries) {
+    const existing = await db.query.auditLogs.findFirst({
+      where: and(
+        eq(auditLogs.actorId, entry.actorId),
+        eq(auditLogs.action, entry.action),
+        eq(auditLogs.entity, entry.entity),
+        eq(auditLogs.entityId, entry.entityId),
+      ),
+    });
+
+    if (!existing) {
+      await db.insert(auditLogs).values(entry);
+    }
   }
-
-  await db.insert(auditLogs).values({
-    organizationId,
-    actorId: ownerId,
-    action: "PROJECT_SEEDED",
-    entity: "project",
-    entityId: projectId,
-  });
 }
 
 export const seedDev = async () => {
@@ -339,8 +475,13 @@ export const seedDev = async () => {
 
   await seedPasswordResetTokens(core.owner.id);
   await seedInvitations(core.organization.id);
-  await seedSessions(core.owner.id);
+  await seedSessions(core.owner.id, core.organization.id);
   await seedPresences(core.collaborator.id, core.organization.id);
+  await seedLeaveRequests(
+    core.collaborator.id,
+    core.admin.id,
+    core.organization.id,
+  );
   await seedInvoicesAndLines({
     collaboratorId: core.collaborator.id,
     ownerId: core.owner.id,
@@ -348,7 +489,18 @@ export const seedDev = async () => {
     projectId: core.project.id,
     organizationId: core.organization.id,
   });
-  await seedAuditLogs(core.owner.id, core.project.id, core.organization.id);
+  await seedTaskComments({
+    collaboratorId: core.collaborator.id,
+    adminId: core.admin.id,
+    projectId: core.project.id,
+  });
+  await seedAuditLogs(
+    core.owner.id,
+    core.admin.id,
+    core.collaborator.id,
+    core.project.id,
+    core.organization.id,
+  );
 
   return core;
 };
