@@ -8,6 +8,7 @@ import {
   updateInvoiceStatusSchema,
 } from "@/http/models/invoice.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
+import * as organizationRepository from "@/http/repositories/organization.repository";
 import {
   archiveTasksByIds,
   getValidatedTaskIdsByPeriodAndReviewer,
@@ -85,9 +86,35 @@ export const updateInvoiceStatus = factory.createHandlers(
     } else if (status === "VALIDATED") {
       updateParams.validatedAt = new Date();
 
+      // Notification existante
       notifyInvoiceValidatedEmail(id).catch((err) => {
         console.error("[Notification] Failed to send email:", err);
       });
+
+      // Récupérer les emails finance
+      const financeEmails = await organizationRepository.getFinanceEmails(
+        invoice.organizationId,
+      );
+
+      if (financeEmails.length > 0) {
+        // Générer le PDF de la facture
+        const pdfBuffer = await generateInvoicePdf(id);
+
+        for (const financeEmail of financeEmails) {
+          try {
+            await sendInvoiceEmail({
+              to: financeEmail.email,
+              pdfBuffer,
+              invoiceNumber: invoice.number,
+            });
+          } catch (err) {
+            console.error(
+              `[Finance notification] Failed to send email to ${financeEmail.email}:`,
+              err,
+            );
+          }
+        }
+      }
     } else if (status === "DRAFT") {
       //  Restaurer les tâches archivées liées à cette facture
       const restoredTasks = await unarchiveTasksByInvoice(id);

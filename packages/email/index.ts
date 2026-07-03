@@ -47,6 +47,10 @@ export type SendEmailParams = {
   html: string;
   text?: string;
   organizationId?: string;
+  attachments?: {
+    name: string;
+    content: string;
+  }[];
 };
 
 const createBrevoClient = (apiKey: string) => {
@@ -61,6 +65,7 @@ export const sendEmail = async ({
   subject,
   html,
   text,
+  attachments,
 }: SendEmailParams): Promise<void> => {
   if (!apiKey) {
     throw new Error("Brevo API key not configured (BREVO_API_KEY)");
@@ -78,6 +83,10 @@ export const sendEmail = async ({
     subject,
     htmlContent: html,
     textContent: text,
+    attachment: attachments?.map((attachment) => ({
+      name: attachment.name,
+      content: attachment.content,
+    })),
   };
 
   try {

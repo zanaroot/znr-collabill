@@ -5,6 +5,7 @@ import {
   DeleteOutlined,
   GithubOutlined,
   InfoCircleOutlined,
+  MailOutlined,
   SlackOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
@@ -16,7 +17,9 @@ import {
   Card,
   Form,
   Input,
+  List,
   Result,
+  Space,
   Tabs,
   Tag,
   Typography,
@@ -59,6 +62,108 @@ export const OrganizationType = () => {
   const [helpProvider, setHelpProvider] = useState<IntegrationType | null>(
     null,
   );
+
+  const { data: _financeEmails = [], isLoading: _financeEmailsLoading } = useQuery({
+    queryKey: ["finance-emails", currentUser?.organizationId],
+    enabled: !!currentUser?.organizationId,
+    queryFn: async () => {
+
+      if (!currentUser?.organizationId) {
+        throw new Error("No organization selected");
+      }
+      const res =
+        await client.api.organizations[":organizationId"]["finance-emails"].$get({
+          param: {
+            organizationId: currentUser.organizationId,
+          },
+        });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+
+        throw new Error(body?.error || "Failed to load finance emails");
+      }
+
+      return res.json();
+    },
+  });
+
+  const addFinanceEmailMutation = useMutation({
+    mutationFn: async (email: string) => {
+      if (!currentUser?.organizationId) {
+        throw new Error("No organization selected");
+      }
+      const res =
+        await client.api.organizations[":organizationId"]["finance-emails"].$post({
+          param: {
+            organizationId: currentUser.organizationId,
+          },
+          json: {
+            email,
+          },
+        });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+
+        throw new Error(body?.error || "Failed to add finance email");
+      }
+
+      return res.json();
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["finance-emails"],
+      });
+
+      message.success("Finance email added");
+    },
+
+    onError: (error: Error) => {
+      message.error(error.message);
+    },
+  });
+
+  const deleteFinanceEmailMutation = useMutation({
+    mutationFn: async (financeEmailId: string) => {
+      if (!currentUser?.organizationId) {
+        throw new Error("No organization selected");
+      }
+
+      const res =
+        await client.api.organizations[":organizationId"]["finance-emails"][":financeEmailId"].$delete({
+          param: {
+            organizationId: currentUser.organizationId,
+            financeEmailId,
+          },
+        });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+
+        throw new Error(body?.error || "Failed to delete finance email");
+      }
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["finance-emails"],
+      });
+
+      message.success("Finance email removed");
+    },
+
+    onError: (error: Error) => {
+      message.error(error.message);
+    },
+  });
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ["organizations", "all"],
@@ -238,6 +343,7 @@ export const OrganizationType = () => {
   if (!canView) {
     return <Result status="403" title="403" subTitle="Forbidden" />;
   }
+
 
   const tabItems: TabsProps["items"] = [
     {
@@ -423,6 +529,68 @@ export const OrganizationType = () => {
             ]}
           />
         </div>
+      ),
+    },
+    {
+      key: "finance",
+      label: (
+        <span>
+          <MailOutlined /> Finance
+        </span>
+      ),
+      children: (
+        <Card
+          style={{ marginTop: 20 }}
+          title="Finance Email Recipients">
+          <Text type="secondary">
+            Configure the email addresses that should receive a PDF copy whenever
+            an invoice is validated.
+          </Text>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              marginTop: 20,
+              marginBottom: 24,
+            }}
+          >
+            <Input
+              placeholder="finance@company.com"
+              style={{ flex: 2 }}
+            />
+
+            <Button type="primary">
+              Add
+            </Button>
+          </div>
+
+          <List
+            bordered
+            locale={{ emptyText: "No finance emails configured" }}
+            dataSource={[
+              "finance@company.com",
+              "billing@company.com",
+            ]}
+            renderItem={(email) => (
+              <List.Item
+                actions={[
+                  <Button
+                    danger
+                    type="text"
+                    icon={<DeleteOutlined />}
+                    key="delete"
+                  />,
+                ]}
+              >
+                <Space>
+                  <MailOutlined />
+                  {email}
+                </Space>
+              </List.Item>
+            )}
+          />
+        </Card>
       ),
     },
   ];

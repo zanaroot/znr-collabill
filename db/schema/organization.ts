@@ -53,8 +53,24 @@ export const organizationMembers = pgTable(
   ],
 );
 
+export const organizationFinanceEmails = pgTable(
+  "organization_finance_emails",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+
+    email: text("email").notNull(),
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+);
+
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(organizationMembers),
+  financeEmails: many(organizationFinanceEmails),
 }));
 
 export const organizationMembersRelations = relations(
@@ -67,6 +83,16 @@ export const organizationMembersRelations = relations(
     user: one(users, {
       fields: [organizationMembers.userId],
       references: [users.id],
+    }),
+  }),
+);
+
+export const organizationFinanceEmailsRelations = relations(
+  organizationFinanceEmails,
+  ({ one }) => ({
+    organization: one(organizations, {
+      fields: [organizationFinanceEmails.organizationId],
+      references: [organizations.id],
     }),
   }),
 );
