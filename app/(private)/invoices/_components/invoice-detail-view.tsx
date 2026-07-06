@@ -140,23 +140,15 @@ export const InvoiceDetailView = ({
   useEffect(() => {
     if (!isDraftLoaded) return;
 
-    if (existingInvoice?.lines) {
-      const custom = existingInvoice.lines
-        .filter((l) => l.type === "CUSTOM")
+    let customLinesToDisplay =
+      existingInvoice?.lines
+        ?.filter((l) => l.type === "CUSTOM")
         .map((l) => ({
           label: l.label,
           amount: String(l.total ?? "0"),
           key: l.id,
-        }));
-
-      setCustomLines(custom);
-      return;
-    }
-
-    if (draftLines.length > 0) {
-      setCustomLines(draftLines);
-      return;
-    }
+        })) ??
+      (draftLines.length > 0 ? draftLines : []);
 
     if (organization.unusedLeavePolicy === "PAID_AS_WORKED") {
       const member = members.find((m) => m.id === targetUserId);
@@ -176,21 +168,20 @@ export const InvoiceDetailView = ({
       const amount = dailyRate * leaveQuota;
 
       if (amount > 0) {
-        setCustomLines([
-          {
-            label: `Unused Leave (Paid as Worked) for ${member?.name ?? targetUserName}`,
-            amount: amount.toString(),
-            key: `paid-as-worked-${selectedPeriod.id}`,
-          },
-        ]);
-      } else {
-        setCustomLines([]);
-      }
+        const paidAsWorkedLine = {
+          label: `Unused Leave (Paid as Worked) for ${member?.name ?? targetUserName}`,
+          amount: amount.toString(),
+          key: `paid-as-worked-${selectedPeriod.id}`,
+        };
+        customLinesToDisplay = customLinesToDisplay.filter(
+          (line) => !line.key.startsWith("paid-as-worked-"),
+        );
 
-      return;
+        customLinesToDisplay.push(paidAsWorkedLine);
+      }
     }
 
-    setCustomLines([]);
+    setCustomLines(customLinesToDisplay);
   }, [
     existingInvoice,
     draftLines,
