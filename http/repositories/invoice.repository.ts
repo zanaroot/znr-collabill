@@ -1,6 +1,6 @@
 "server only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { invoiceLines, invoices } from "@/db/schema/invoice";
 
@@ -84,7 +84,12 @@ export const findInvoicesWithUsersByOrganizationId = async (
   userId?: string,
 ) => {
   const { users } = await import("@/db/schema/user");
-  const conditions = [eq(invoices.organizationId, organizationId)];
+
+  const conditions = [
+    eq(invoices.organizationId, organizationId),
+    inArray(invoices.status, ["VALIDATED", "PAID"]),
+  ];
+
   if (userId) {
     conditions.push(eq(invoices.userId, userId));
   }
