@@ -66,6 +66,12 @@ export const organizationFinanceEmails = pgTable(
 
     createdAt: timestamp("created_at").defaultNow(),
   },
+  (t) => [
+    uniqueIndex("organization_finance_email_unique").on(
+      t.organizationId,
+      t.email,
+    ),
+  ],
 );
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({

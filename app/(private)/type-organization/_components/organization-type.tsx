@@ -53,6 +53,7 @@ type Organization = {
 };
 
 export const OrganizationType = () => {
+  const [financeEmail, setFinanceEmail] = useState("");
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
@@ -63,7 +64,7 @@ export const OrganizationType = () => {
     null,
   );
 
-  const { data: _financeEmails = [], isLoading: _financeEmailsLoading } = useQuery({
+  const { data: financeEmails = [], isLoading: _financeEmailsLoading } = useQuery({
     queryKey: ["finance-emails", currentUser?.organizationId],
     enabled: !!currentUser?.organizationId,
     queryFn: async () => {
@@ -556,11 +557,18 @@ export const OrganizationType = () => {
             }}
           >
             <Input
+              value={financeEmail}
+              onChange={(e) => setFinanceEmail(e.target.value)}
               placeholder="finance@company.com"
               style={{ flex: 2 }}
             />
 
-            <Button type="primary">
+            <Button
+              type="primary"
+              onClick={() => {
+                addFinanceEmailMutation.mutate(financeEmail);
+              }}
+            >
               Add
             </Button>
           </div>
@@ -568,11 +576,8 @@ export const OrganizationType = () => {
           <List
             bordered
             locale={{ emptyText: "No finance emails configured" }}
-            dataSource={[
-              "finance@company.com",
-              "billing@company.com",
-            ]}
-            renderItem={(email) => (
+            dataSource={financeEmails}
+            renderItem={(item: { email: string; id: string }) => (
               <List.Item
                 actions={[
                   <Button
@@ -580,12 +585,15 @@ export const OrganizationType = () => {
                     type="text"
                     icon={<DeleteOutlined />}
                     key="delete"
+                    onClick={() => {
+                      deleteFinanceEmailMutation.mutate(item.id);
+                    }}
                   />,
                 ]}
               >
                 <Space>
                   <MailOutlined />
-                  {email}
+                  {item.email}
                 </Space>
               </List.Item>
             )}

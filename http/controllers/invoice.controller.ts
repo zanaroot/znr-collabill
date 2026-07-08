@@ -8,13 +8,13 @@ import {
   updateInvoiceStatusSchema,
 } from "@/http/models/invoice.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
-import * as organizationRepository from "@/http/repositories/organization.repository";
 import {
   archiveTasksByIds,
   getValidatedTaskIdsByPeriodAndReviewer,
   getValidatedTaskIdsByPeriodAndUser,
   unarchiveTasksByInvoice,
 } from "@/http/repositories/task.repository";
+import { sendFinanceInvoiceNotification } from "@/lib/incoices/send-finance-invoice";
 import {
   notifyInvoicePaidEmail,
   notifyInvoiceValidatedEmail,
@@ -80,43 +80,42 @@ export const updateInvoiceStatus = factory.createHandlers(
     if (status === "PAID") {
       updateParams.paidAt = new Date();
 
-      notifyInvoicePaidEmail(id).catch((err) => {
-        console.error("[Notification] Failed to send email:", err);
-      });
+      await notifyInvoicePaidEmail(id);
+
+      try {
+        const invoice = await invoiceRepository.findInvoiceById(id);
+
+        if (invoice) {
+          if (status === "PAID") {
+            updateParams.paidAt = new Date();
+
+            await notifyInvoicePaidEmail(id);
+
+            sendFinanceInvoiceNotification(id, "PAID").catch((err) => {
+              console.error(
+                "[Finance notification] Failed to send paid invoice email:",
+                err,
+              );
+            });
+          }
+        }
+      } catch (err) {
+        console.error("[Finance notification] Unexpected error:", err);
+      }
     } else if (status === "VALIDATED") {
       updateParams.validatedAt = new Date();
 
-      // Notification existante
       notifyInvoiceValidatedEmail(id).catch((err) => {
         console.error("[Notification] Failed to send email:", err);
       });
 
-      // Récupérer les emails finance
-      const financeEmails = await organizationRepository.getFinanceEmails(
-        invoice.organizationId,
-      );
-
-      if (financeEmails.length > 0) {
-        // Générer le PDF de la facture
-        const pdfBuffer = await generateInvoicePdf(id);
-
-        for (const financeEmail of financeEmails) {
-          try {
-            await sendInvoiceEmail({
-              to: financeEmail.email,
-              pdfBuffer,
-              invoiceNumber: invoice.number,
-            });
-          } catch (err) {
-            console.error(
-              `[Finance notification] Failed to send email to ${financeEmail.email}:`,
-              err,
-            );
-          }
-        }
-      }
+      sendFinanceInvoiceNotification(id, "VALIDATED").catch((err) => {
+        console.error(
+          "[Finance notification] Failed to send validated invoice email:",
+          err,
+        );
+      });
     } else if (status === "DRAFT") {
-      //  Restaurer les tâches archivées liées à cette facture
       const restoredTasks = await unarchiveTasksByInvoice(id);
       console.log(
         `Successfully restored ${restoredTasks.length} tasks for invoice ${id}:`,
@@ -173,29 +172,45 @@ export const createInvoice = factory.createHandlers(
       lines,
     );
 
+    if (invoice.status === "VALIDATED") {
+      console.log("Invoice validated - sending finance email");
+
+      sendFinanceInvoiceNotification(invoice.id, "VALIDATED").catch((err) => {
+        console.error(
+          "[Finance notification] Failed to send validated invoice email:",
+          err,
+        );
+      });
+    }
+
     const validatedTaskIds = await getValidatedTaskIdsByPeriodAndUser(
       invoiceData.userId,
       new Date(invoiceData.periodStart),
       new Date(invoiceData.periodEnd),
     );
+
     const validatedReviewerTaskIds =
       await getValidatedTaskIdsByPeriodAndReviewer(
         invoiceData.userId,
         new Date(invoiceData.periodStart),
         new Date(invoiceData.periodEnd),
       );
+
     const taskIdsToArchive = Array.from(
       new Set([...validatedTaskIds, ...validatedReviewerTaskIds]),
     );
+
     console.log(
       `Found ${validatedTaskIds.length} validated tasks and ${validatedReviewerTaskIds.length} validated reviewer tasks to archive for invoice ${invoice.id}:`,
       taskIdsToArchive,
     );
+
     if (taskIdsToArchive.length > 0) {
       const archivedTasks = await archiveTasksByIds(
         taskIdsToArchive,
         invoice.id,
       );
+
       console.log(
         `Successfully archived ${archivedTasks.length} tasks for invoice ${invoice.id}:`,
         archivedTasks.map((t) => ({

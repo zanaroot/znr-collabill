@@ -92,7 +92,12 @@ export const sendEmail = async ({
   try {
     await brevo.transactionalEmails.sendTransacEmail(request);
   } catch (error) {
+    console.error("BREVO ERROR:");
+    console.dir(error, { depth: null });
+
     if (error instanceof BrevoError) {
+      console.error("Status:", error.statusCode);
+      console.error("Body:", error.body);
       throw new Error(formatBrevoError(error));
     }
 
