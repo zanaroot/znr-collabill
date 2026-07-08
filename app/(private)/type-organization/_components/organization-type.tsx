@@ -64,47 +64,49 @@ export const OrganizationType = () => {
     null,
   );
 
-  const { data: financeEmails = [], isLoading: _financeEmailsLoading } = useQuery({
-    queryKey: ["finance-emails", currentUser?.organizationId],
-    enabled: !!currentUser?.organizationId,
-    queryFn: async () => {
-
-      if (!currentUser?.organizationId) {
-        throw new Error("No organization selected");
-      }
-      const res =
-        await client.api.organizations[":organizationId"]["finance-emails"].$get({
+  const { data: financeEmails = [], isLoading: _financeEmailsLoading } =
+    useQuery({
+      queryKey: ["finance-emails", currentUser?.organizationId],
+      enabled: !!currentUser?.organizationId,
+      queryFn: async () => {
+        if (!currentUser?.organizationId) {
+          throw new Error("No organization selected");
+        }
+        const res = await client.api.organizations[":organizationId"][
+          "finance-emails"
+        ].$get({
           param: {
             organizationId: currentUser.organizationId,
           },
         });
 
-      if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as {
-          error?: string;
-        } | null;
+        if (!res.ok) {
+          const body = (await res.json().catch(() => null)) as {
+            error?: string;
+          } | null;
 
-        throw new Error(body?.error || "Failed to load finance emails");
-      }
+          throw new Error(body?.error || "Failed to load finance emails");
+        }
 
-      return res.json();
-    },
-  });
+        return res.json();
+      },
+    });
 
   const addFinanceEmailMutation = useMutation({
     mutationFn: async (email: string) => {
       if (!currentUser?.organizationId) {
         throw new Error("No organization selected");
       }
-      const res =
-        await client.api.organizations[":organizationId"]["finance-emails"].$post({
-          param: {
-            organizationId: currentUser.organizationId,
-          },
-          json: {
-            email,
-          },
-        });
+      const res = await client.api.organizations[":organizationId"][
+        "finance-emails"
+      ].$post({
+        param: {
+          organizationId: currentUser.organizationId,
+        },
+        json: {
+          email,
+        },
+      });
 
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as {
@@ -136,13 +138,14 @@ export const OrganizationType = () => {
         throw new Error("No organization selected");
       }
 
-      const res =
-        await client.api.organizations[":organizationId"]["finance-emails"][":financeEmailId"].$delete({
-          param: {
-            organizationId: currentUser.organizationId,
-            financeEmailId,
-          },
-        });
+      const res = await client.api.organizations[":organizationId"][
+        "finance-emails"
+      ][":financeEmailId"].$delete({
+        param: {
+          organizationId: currentUser.organizationId,
+          financeEmailId,
+        },
+      });
 
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as {
@@ -345,7 +348,6 @@ export const OrganizationType = () => {
     return <Result status="403" title="403" subTitle="Forbidden" />;
   }
 
-
   const tabItems: TabsProps["items"] = [
     {
       key: "members",
@@ -540,12 +542,10 @@ export const OrganizationType = () => {
         </span>
       ),
       children: (
-        <Card
-          style={{ marginTop: 20 }}
-          title="Finance Email Recipients">
+        <Card style={{ marginTop: 20 }} title="Finance Email Recipients">
           <Text type="secondary">
-            Configure the email addresses that should receive a PDF copy whenever
-            an invoice is validated.
+            Configure the email addresses that should receive a PDF copy
+            whenever an invoice is validated.
           </Text>
 
           <div
