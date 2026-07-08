@@ -147,8 +147,7 @@ export const InvoiceDetailView = ({
           label: l.label,
           amount: String(l.total ?? "0"),
           key: l.id,
-        })) ??
-      (draftLines.length > 0 ? draftLines : []);
+        })) ?? (draftLines.length > 0 ? draftLines : []);
 
     if (organization.unusedLeavePolicy === "PAID_AS_WORKED") {
       const member = members.find((m) => m.id === targetUserId);
