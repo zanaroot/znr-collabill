@@ -140,14 +140,20 @@ export const InvoiceDetailView = ({
   useEffect(() => {
     if (!isDraftLoaded) return;
 
-    let customLinesToDisplay =
-      existingInvoice?.lines
-        ?.filter((l) => l.type === "CUSTOM")
-        .map((l) => ({
-          label: l.label,
-          amount: String(l.total ?? "0"),
-          key: l.id,
-        })) ?? (draftLines.length > 0 ? draftLines : []);
+    const customLinesToDisplay =
+      (
+        existingInvoice?.lines
+          ?.filter((l) => l.type === "CUSTOM")
+          .map((l) => ({
+            label: l.label,
+            amount: String(l.total ?? "0"),
+            key: l.id,
+          })) ??
+        (draftLines.length > 0 ? draftLines : [])
+      ).filter(
+        (line) =>
+          !line.label.startsWith("Unused Leave (Paid as Worked)"),
+      );
 
     if (organization.unusedLeavePolicy === "PAID_AS_WORKED") {
       const member = members.find((m) => m.id === targetUserId);
@@ -167,16 +173,11 @@ export const InvoiceDetailView = ({
       const amount = dailyRate * leaveQuota;
 
       if (amount > 0) {
-        const paidAsWorkedLine = {
+        customLinesToDisplay.push({
           label: `Unused Leave (Paid as Worked) for ${member?.name ?? targetUserName}`,
           amount: amount.toString(),
           key: `paid-as-worked-${selectedPeriod.id}`,
-        };
-        customLinesToDisplay = customLinesToDisplay.filter(
-          (line) => !line.key.startsWith("paid-as-worked-"),
-        );
-
-        customLinesToDisplay.push(paidAsWorkedLine);
+        });
       }
     }
 
