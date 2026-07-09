@@ -3,6 +3,8 @@ import { findInvoiceByIdWithLines } from "@/http/repositories/invoice.repository
 
 export const generateInvoicePdf = async (invoiceId: string) => {
   const invoice = await findInvoiceByIdWithLines(invoiceId);
+  const formatAmount = (value: string | number | null) =>
+    Number(value ?? 0).toLocaleString("de-DE");
 
   if (!invoice) {
     throw new Error("Invoice not found");
@@ -17,56 +19,89 @@ export const generateInvoicePdf = async (invoiceId: string) => {
     const chunks: Buffer[] = [];
 
     doc.on("data", (chunk) => chunks.push(chunk));
-
-    doc.on("end", () => {
-      resolve(Buffer.concat(chunks));
-    });
-
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    doc.font("Helvetica-Bold").fontSize(24).text("INVOICE", {
-      align: "center",
-    });
-
-    doc.moveDown(2);
-
     doc
-      .font("Helvetica")
-      .fontSize(12)
-      .text(`Organization : ${invoice.organization.name}`)
-      .text(`Member       : ${invoice.user.name}`)
-      .text(`Email        : ${invoice.user.email}`)
-      .text(`Phone        : ${invoice.user.phoneNumber ?? "-"}`)
-      .text(`Phone Owner  : ${invoice.user.phoneOwnerName ?? "-"}`)
-      .text(`Status       : ${invoice.invoice.status}`);
-    doc.moveDown();
-
-    doc
-      .text(`Invoice ID   : ${invoice.invoice.id}`)
-      .text(
-        `Period       : ${invoice.invoice.periodStart} → ${invoice.invoice.periodEnd}`,
-      );
-
-    doc.moveDown(2);
-
-    doc.font("Helvetica-Bold").fontSize(16).text("Invoice Lines");
-
-    doc.moveDown();
-
-    const startY = doc.y;
-
-    doc.font("Helvetica-Bold").fontSize(11);
-
-    doc.text("Description", 50, startY);
-    doc.text("Qty", 320, startY);
-    doc.text("Unit", 380, startY);
-    doc.text("Total", 470, startY);
-
-    doc.moveDown();
-
-    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      .fillColor("#1F4E79")
+      .font("Helvetica-Bold")
+      .fontSize(24)
+      .text("INVOICE", {
+        align: "center",
+      });
 
     doc.moveDown(0.5);
+
+    doc
+      .strokeColor("#1F4E79")
+      .lineWidth(2)
+      .moveTo(50, doc.y)
+      .lineTo(550, doc.y)
+      .stroke();
+
+    doc.moveDown(2);
+
+    doc.fillColor("black").font("Helvetica").fontSize(12);
+
+    doc.text(`Organization : ${invoice.organization.name}`, {
+      lineGap: 5,
+    });
+
+    doc.text(`Member       : ${invoice.user.name}`, {
+      lineGap: 5,
+    });
+
+    doc.text(`Email        : ${invoice.user.email}`, {
+      lineGap: 5,
+    });
+
+    doc.text(`Phone        : ${invoice.user.phoneNumber ?? "-"}`, {
+      lineGap: 5,
+    });
+
+    doc.text(`Phone Owner  : ${invoice.user.phoneOwnerName ?? "-"}`, {
+      lineGap: 5,
+    });
+
+    doc.text(`Status       : ${invoice.invoice.status}`, {
+      lineGap: 5,
+    });
+
+    doc.moveDown(1);
+
+    doc.text(`Invoice ID   : ${invoice.invoice.id}`, {
+      lineGap: 5,
+    });
+
+    doc.text(
+      `Period       : ${invoice.invoice.periodStart} - ${invoice.invoice.periodEnd}`,
+      {
+        lineGap: 5,
+      },
+    );
+
+    doc.moveDown(2);
+
+    doc
+      .fillColor("#1F4E79")
+      .font("Helvetica-Bold")
+      .fontSize(16)
+      .text("Invoice Lines");
+
+    doc.moveDown();
+
+    const headerY = doc.y;
+
+    doc.rect(50, headerY - 4, 500, 24).fill("#F2F2F2");
+
+    doc.fillColor("black").font("Helvetica-Bold").fontSize(11);
+
+    doc.text("Description", 55, headerY + 2);
+    doc.text("Qty", 320, headerY + 2);
+    doc.text("Unit", 380, headerY + 2);
+    doc.text("Total", 470, headerY + 2);
+
+    doc.moveDown(2);
 
     doc.font("Helvetica").fontSize(10);
 
@@ -75,40 +110,52 @@ export const generateInvoicePdf = async (invoiceId: string) => {
 
       doc.text(line.label, 50, y, {
         width: 250,
+        lineGap: 4,
       });
 
       doc.text(String(line.quantity), 320, y);
 
-      doc.text(`${Number(line.unitPrice).toLocaleString()} €`, 380, y, {
+      doc.text(`${formatAmount(line.unitPrice)} €`, 380, y, {
         width: 70,
         align: "right",
       });
 
-      doc.text(`${Number(line.total).toLocaleString()} €`, 470, y, {
+      doc.text(`${formatAmount(line.total)} €`, 470, y, {
         width: 70,
         align: "right",
       });
 
-      doc.moveDown(1.3);
+      doc
+        .strokeColor("#E5E5E5")
+        .lineWidth(0.5)
+        .moveTo(50, doc.y + 8)
+        .lineTo(550, doc.y + 8)
+        .stroke();
+
+      doc.moveDown(1.8);
     });
 
     doc.moveDown();
 
-    doc.moveTo(300, doc.y).lineTo(550, doc.y).stroke();
+    const totalY = doc.y;
 
-    doc.moveDown();
+    doc.roundedRect(330, totalY, 220, 35, 5).fill("#F5F5F5");
 
     doc
+      .fillColor("#1F4E79")
       .font("Helvetica-Bold")
       .fontSize(18)
       .text(
-        `TOTAL : ${Number(invoice.invoice.totalAmount).toLocaleString()} €`,
+        `TOTAL : ${formatAmount(invoice.invoice.totalAmount)} €`,
+        340,
+        totalY + 8,
         {
+          width: 200,
           align: "right",
         },
       );
 
-    doc.moveDown(2);
+    doc.moveDown(4);
 
     doc.end();
   });
