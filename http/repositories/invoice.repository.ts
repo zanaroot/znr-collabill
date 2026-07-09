@@ -137,6 +137,7 @@ export const findInvoiceByIdWithLines = async (id: string) => {
         name: users.name,
         email: users.email,
         phoneNumber: users.phoneNumber,
+        phoneOwnerName: users.phoneOwnerName,
       },
       organization: {
         id: organizations.id,

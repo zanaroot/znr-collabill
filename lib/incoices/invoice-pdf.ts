@@ -36,8 +36,9 @@ export const generateInvoicePdf = async (invoiceId: string) => {
       .text(`Organization : ${invoice.organization.name}`)
       .text(`Member       : ${invoice.user.name}`)
       .text(`Email        : ${invoice.user.email}`)
+      .text(`Phone        : ${invoice.user.phoneNumber ?? "-"}`)
+      .text(`Phone Owner  : ${invoice.user.phoneOwnerName ?? "-"}`)
       .text(`Status       : ${invoice.invoice.status}`);
-
     doc.moveDown();
 
     doc
@@ -108,17 +109,6 @@ export const generateInvoicePdf = async (invoiceId: string) => {
       );
 
     doc.moveDown(2);
-
-    doc
-      .font("Helvetica")
-      .fontSize(10)
-      .fillColor("gray")
-      .text(
-        "Please make sure all tasks are validated before the end of the billing period.",
-        {
-          align: "center",
-        },
-      );
 
     doc.end();
   });
