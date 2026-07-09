@@ -345,7 +345,7 @@ export const InvoiceFilters = ({
         {isDetailsPage && (
           <div className="flex gap-3 no-print">
             {isOwner &&
-              !existingInvoice &&
+              (!existingInvoice || existingInvoice.status === "DRAFT") &&
               targetUserId &&
               periodStart &&
               periodEnd && (
