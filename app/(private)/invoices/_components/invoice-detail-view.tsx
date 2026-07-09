@@ -140,20 +140,15 @@ export const InvoiceDetailView = ({
   useEffect(() => {
     if (!isDraftLoaded) return;
 
-    const customLinesToDisplay =
-      (
-        existingInvoice?.lines
-          ?.filter((l) => l.type === "CUSTOM")
-          .map((l) => ({
-            label: l.label,
-            amount: String(l.total ?? "0"),
-            key: l.id,
-          })) ??
-        (draftLines.length > 0 ? draftLines : [])
-      ).filter(
-        (line) =>
-          !line.label.startsWith("Unused Leave (Paid as Worked)"),
-      );
+    const customLinesToDisplay = (
+      existingInvoice?.lines
+        ?.filter((l) => l.type === "CUSTOM")
+        .map((l) => ({
+          label: l.label,
+          amount: String(l.total ?? "0"),
+          key: l.id,
+        })) ?? (draftLines.length > 0 ? draftLines : [])
+    ).filter((line) => !line.label.startsWith("Unused Leave (Paid as Worked)"));
 
     if (organization.unusedLeavePolicy === "PAID_AS_WORKED") {
       const member = members.find((m) => m.id === targetUserId);
