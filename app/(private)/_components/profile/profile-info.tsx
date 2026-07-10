@@ -1,4 +1,8 @@
-import { ApartmentOutlined, PhoneOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  ApartmentOutlined,
+  PhoneOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { Button, Divider, Space, Tag } from "antd";
 import type { AuthUser } from "@/http/models/auth.model";
 
@@ -62,7 +66,9 @@ export const ProfileInfo = ({
           <UserOutlined />
           <span>Phone Owner Name</span>
         </Space>
-        <span>{currentPhoneOwnerName || currentUser?.phoneOwnerName || "N/A"}</span>
+        <span>
+          {currentPhoneOwnerName || currentUser?.phoneOwnerName || "N/A"}
+        </span>
       </div>
     </div>
   </div>
