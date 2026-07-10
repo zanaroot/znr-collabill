@@ -1,4 +1,4 @@
-import { ApartmentOutlined, UserOutlined } from "@ant-design/icons";
+import { ApartmentOutlined, PhoneOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Divider, Space, Tag } from "antd";
 import type { AuthUser } from "@/http/models/auth.model";
 
@@ -6,6 +6,8 @@ type ProfileInfoProps = {
   currentUser?: AuthUser | null;
   currentName?: string;
   currentEmail?: string;
+  currentPhoneNumber?: string;
+  currentPhoneOwnerName?: string;
   onEdit: () => void;
 };
 
@@ -13,6 +15,8 @@ export const ProfileInfo = ({
   currentUser,
   currentName,
   currentEmail,
+  currentPhoneNumber,
+  currentPhoneOwnerName,
   onEdit,
 }: ProfileInfoProps) => (
   <div className="flex flex-col items-center w-full gap-2 text-center mt-3">
@@ -44,6 +48,21 @@ export const ProfileInfo = ({
           <span>Organization</span>
         </Space>
         <span>{currentUser?.organizationName || "N/A"}</span>
+      </div>
+      <div className="flex justify-between py-1">
+        <Space className="text-gray-500">
+          <PhoneOutlined />
+          <span>Phone Number</span>
+        </Space>
+        <span>{currentPhoneNumber || currentUser?.phoneNumber || "N/A"}</span>
+      </div>
+
+      <div className="flex justify-between py-1">
+        <Space className="text-gray-500">
+          <UserOutlined />
+          <span>Phone Owner Name</span>
+        </Space>
+        <span>{currentPhoneOwnerName || currentUser?.phoneOwnerName || "N/A"}</span>
       </div>
     </div>
   </div>
