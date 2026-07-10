@@ -140,18 +140,29 @@ export const InvoiceDetailView = ({
   useEffect(() => {
     if (!isDraftLoaded) return;
 
-    const customLinesToDisplay = (
+    const savedCustomLines =
       existingInvoice?.lines
         ?.filter((l) => l.type === "CUSTOM")
         .map((l) => ({
           label: l.label,
           amount: String(l.total ?? "0"),
           key: l.id,
-        })) ?? (draftLines.length > 0 ? draftLines : [])
-    ).filter((line) => !line.label.startsWith("Unused Leave (Paid as Worked)"));
+        })) ??
+      draftLines;
+
+    // On enlève uniquement la ligne automatique du congé
+    const customLinesWithoutLeave = savedCustomLines.filter(
+      (line) =>
+        !line.label.startsWith("Unused Leave (Paid as Worked)"),
+    );
+
+    const customLinesWithLeave = [...customLinesWithoutLeave];
 
     if (organization.unusedLeavePolicy === "PAID_AS_WORKED") {
-      const member = members.find((m) => m.id === targetUserId);
+      const member = members.find(
+        (m) => m.id === targetUserId,
+      );
+
       const isAdmin = member?.role === "ADMIN";
 
       const leaveQuota = Number(
@@ -168,15 +179,23 @@ export const InvoiceDetailView = ({
       const amount = dailyRate * leaveQuota;
 
       if (amount > 0) {
-        customLinesToDisplay.push({
-          label: `Unused Leave (Paid as Worked) for ${member?.name ?? targetUserName}`,
+        customLinesWithLeave.push({
+          label: `Unused Leave (Paid as Worked) for ${member?.name ?? targetUserName
+            }`,
           amount: amount.toString(),
           key: `paid-as-worked-${selectedPeriod.id}`,
         });
       }
+
+      console.log({
+        memberRole: member?.role,
+        leaveQuota,
+        dailyRate,
+        amount,
+      });
     }
 
-    setCustomLines(customLinesToDisplay);
+    setCustomLines(customLinesWithLeave);
   }, [
     existingInvoice,
     draftLines,
@@ -193,15 +212,22 @@ export const InvoiceDetailView = ({
     if (!isDraftLoaded) return;
     if (existingInvoice || !isOwner) return;
 
-    saveDraft({
-      organizationId: organization.id,
-      targetUserId: targetUserId,
-      periodStart: selectedPeriod.startDate,
-      periodEnd: selectedPeriod.endDate,
-      customLines: customLines.map(({ label, amount }) => ({
+    const linesToSave = customLines
+      .filter(
+        (line) =>
+          !line.label.startsWith("Unused Leave (Paid as Worked)"),
+      )
+      .map(({ label, amount }) => ({
         label,
         amount,
-      })),
+      }));
+
+    saveDraft({
+      organizationId: organization.id,
+      targetUserId,
+      periodStart: selectedPeriod.startDate,
+      periodEnd: selectedPeriod.endDate,
+      customLines: linesToSave,
     });
   }, [
     customLines,
