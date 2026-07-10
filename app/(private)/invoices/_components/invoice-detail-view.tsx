@@ -147,21 +147,16 @@ export const InvoiceDetailView = ({
           label: l.label,
           amount: String(l.total ?? "0"),
           key: l.id,
-        })) ??
-      draftLines;
+        })) ?? draftLines;
 
-    // On enlève uniquement la ligne automatique du congé
     const customLinesWithoutLeave = savedCustomLines.filter(
-      (line) =>
-        !line.label.startsWith("Unused Leave (Paid as Worked)"),
+      (line) => !line.label.startsWith("Unused Leave (Paid as Worked)"),
     );
 
     const customLinesWithLeave = [...customLinesWithoutLeave];
 
     if (organization.unusedLeavePolicy === "PAID_AS_WORKED") {
-      const member = members.find(
-        (m) => m.id === targetUserId,
-      );
+      const member = members.find((m) => m.id === targetUserId);
 
       const isAdmin = member?.role === "ADMIN";
 
@@ -180,8 +175,9 @@ export const InvoiceDetailView = ({
 
       if (amount > 0) {
         customLinesWithLeave.push({
-          label: `Unused Leave (Paid as Worked) for ${member?.name ?? targetUserName
-            }`,
+          label: `Unused Leave (Paid as Worked) for ${
+            member?.name ?? targetUserName
+          }`,
           amount: amount.toString(),
           key: `paid-as-worked-${selectedPeriod.id}`,
         });
@@ -213,10 +209,7 @@ export const InvoiceDetailView = ({
     if (existingInvoice || !isOwner) return;
 
     const linesToSave = customLines
-      .filter(
-        (line) =>
-          !line.label.startsWith("Unused Leave (Paid as Worked)"),
-      )
+      .filter((line) => !line.label.startsWith("Unused Leave (Paid as Worked)"))
       .map(({ label, amount }) => ({
         label,
         amount,
