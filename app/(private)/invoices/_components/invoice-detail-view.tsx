@@ -175,8 +175,9 @@ export const InvoiceDetailView = ({
 
       if (amount > 0) {
         customLinesWithLeave.push({
-          label: `Unused Leave (Paid as Worked) for ${member?.name ?? targetUserName
-            }`,
+          label: `Unused Leave (Paid as Worked) for ${
+            member?.name ?? targetUserName
+          }`,
           amount: amount.toString(),
           key: `paid-as-worked-${selectedPeriod.id}`,
         });
