@@ -185,7 +185,7 @@ export function useBoard({
   const handleSave = () => {
     if (!formValues.title.trim()) return;
 
-    const taskReviewerId = activeTask?.reviewerId ?? userId;
+    const taskReviewerId = formValues.reviewerId ?? userId;
 
     if (
       activeTask &&
