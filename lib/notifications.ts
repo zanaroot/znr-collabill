@@ -105,7 +105,11 @@ export const notifyTaskValidatedSlack = async (taskId: string) => {
   await sendSlackMessageWithCredentials(slackCreds, channel, text, blocks);
 };
 
-export const notifyTaskAssignedSlack = async (taskId: string) => {
+export const notifyTaskAssignedSlack = async (
+  taskId: string,
+  assignedBy: string,
+  assignmentDate: Date,
+) => {
   const task = await taskRepository.findTaskWithAssigneeById(taskId);
   if (!task) return;
 
@@ -128,6 +132,8 @@ export const notifyTaskAssignedSlack = async (taskId: string) => {
     taskTitle: task.title,
     assigneeName: task.assigneeName,
     projectName: project.name,
+    assignedBy,
+    assignmentDate,
     taskUrl,
   });
 
@@ -178,4 +184,44 @@ View invoice: ${baseUrl}/invoices/${invoiceId}
   `;
 
   await sendEmail({ to: invoice.ownerEmail, subject, html, text });
+};
+
+export const notifyTaskAssignedEmail = async (
+  taskId: string,
+  assigneeName: string,
+  assignmentDate: Date,
+) => {
+  console.log("notifyTaskAssignedEmail called");
+  const task = await taskRepository.findTaskWithAssigneeById(taskId);
+
+  if (!task || !task.assigneeEmail) return;
+
+  const project = await projectRepository.findProjectById(task.projectId);
+  console.log("project:", project);
+
+  if (!project) return;
+
+  const taskUrl = getTaskUrl(taskId, project.id);
+
+  console.log("Sending email to:", task.assigneeEmail);
+  console.log("Email sent");
+  await sendEmail({
+    to: task.assigneeEmail,
+    subject: `New task assigned: ${task.title}`,
+    html: `
+      <h2>New task assigned</h2>
+
+      <p>
+        Task: ${task.title}<br/>
+        Project: ${project.name}<br/>
+        Assigned user: ${assigneeName}<br/>
+        Assigned by: ${task.assigneeName}<br/>
+        Assignment date: ${assignmentDate.toLocaleString()}
+      </p>
+
+      <a href="${taskUrl}">
+        View task
+      </a>
+    `,
+  });
 };
