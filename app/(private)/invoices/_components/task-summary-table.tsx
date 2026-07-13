@@ -154,7 +154,7 @@ export const ReviewerTaskSummaryTable = ({
     }
 
     row[sizeKey] += count;
-    row.total += count * sizeRate * reviewerRate;
+    row.total += count * sizeRate * (reviewerRate / 100);
   }
 
   const dataSource = Array.from(rowsMap.values());
@@ -201,10 +201,10 @@ export const ReviewerTaskSummaryTable = ({
       render: (count: number) => (count > 0 ? count : "-"),
     },
     {
-      title: "Rate (€)",
+      title: "Rate (%)",
       dataIndex: "projectReviewerRate",
       key: "projectReviewerRate",
-      render: (rate: number) => (rate > 0 ? `${rate.toLocaleString()} €` : "-"),
+      render: (rate: number) => (rate > 0 ? `${rate.toLocaleString()} %` : "-"),
     },
     {
       title: "Total (€)",
@@ -256,7 +256,7 @@ export const TaskSummaryTable = ({ data }: { data: RawTaskSummary[] }) => {
       rateL: item.rateL,
       rateXl: item.rateXl,
     });
-    const totalRate = baseRate * projectRate;
+    const totalRate = baseRate * (projectRate / 100);
     const sizeKey = item.size as keyof Pick<
       TaskSummaryRow,
       "XS" | "S" | "M" | "L" | "XL"

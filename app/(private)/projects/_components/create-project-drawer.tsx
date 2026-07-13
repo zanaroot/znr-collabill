@@ -138,7 +138,9 @@ export function CreateProjectDrawer({
               <InputNumber
                 {...field}
                 min={0}
+                max={100}
                 step={0.01}
+                suffix="%"
                 placeholder="Enter base rate"
                 style={{ width: "100%" }}
               />
@@ -158,7 +160,9 @@ export function CreateProjectDrawer({
               <InputNumber
                 {...field}
                 min={0}
+                max={100}
                 step={0.01}
+                suffix="%"
                 placeholder="Enter reviewer rate"
                 style={{ width: "100%" }}
               />
