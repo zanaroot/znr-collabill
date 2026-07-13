@@ -459,73 +459,73 @@ export function ProjectDetailsDrawer({
                     actions={
                       isAdminOrOwner
                         ? [
-                          item.projectRole !== "PRODUCT_OWNER" && (
-                            <Button
-                              key="make-po"
-                              type="text"
-                              icon={<CrownOutlined />}
-                              onClick={() =>
-                                updateMemberRoleMutation.mutate(
-                                  {
-                                    projectId: project.id,
-                                    userId: item.id,
-                                    role: "PRODUCT_OWNER",
-                                  },
-                                  {
-                                    onSuccess: () =>
-                                      message.success(
-                                        `${item.name} is now Product Owner`,
-                                      ),
-                                    onError: (error) =>
-                                      message.error(
-                                        (error as Error).message ||
-                                        "Failed to update role",
-                                      ),
-                                  },
-                                )
-                              }
-                            />
-                          ),
-                          item.projectRole === "PRODUCT_OWNER" && (
-                            <Button
-                              key="remove-po"
-                              type="text"
-                              onClick={() =>
-                                updateMemberRoleMutation.mutate(
-                                  {
-                                    projectId: project.id,
-                                    userId: item.id,
-                                    role: "MEMBER",
-                                  },
-                                  {
-                                    onSuccess: () =>
-                                      message.success(
-                                        `Removed Product Owner from ${item.name}`,
-                                      ),
-                                    onError: (error) =>
-                                      message.error(
-                                        (error as Error).message ||
-                                        "Failed to update role",
-                                      ),
-                                  },
-                                )
-                              }
-                            >
-                              Remove PO
-                            </Button>
-                          ),
-                          canRemoveUser(item.id) && (
-                            <Button
-                              key="remove"
-                              type="text"
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() =>
-                                handleRemoveAccess(item.id, item.name)
-                              }
-                            />
-                          ),
-                        ].filter(Boolean)
+                            item.projectRole !== "PRODUCT_OWNER" && (
+                              <Button
+                                key="make-po"
+                                type="text"
+                                icon={<CrownOutlined />}
+                                onClick={() =>
+                                  updateMemberRoleMutation.mutate(
+                                    {
+                                      projectId: project.id,
+                                      userId: item.id,
+                                      role: "PRODUCT_OWNER",
+                                    },
+                                    {
+                                      onSuccess: () =>
+                                        message.success(
+                                          `${item.name} is now Product Owner`,
+                                        ),
+                                      onError: (error) =>
+                                        message.error(
+                                          (error as Error).message ||
+                                            "Failed to update role",
+                                        ),
+                                    },
+                                  )
+                                }
+                              />
+                            ),
+                            item.projectRole === "PRODUCT_OWNER" && (
+                              <Button
+                                key="remove-po"
+                                type="text"
+                                onClick={() =>
+                                  updateMemberRoleMutation.mutate(
+                                    {
+                                      projectId: project.id,
+                                      userId: item.id,
+                                      role: "MEMBER",
+                                    },
+                                    {
+                                      onSuccess: () =>
+                                        message.success(
+                                          `Removed Product Owner from ${item.name}`,
+                                        ),
+                                      onError: (error) =>
+                                        message.error(
+                                          (error as Error).message ||
+                                            "Failed to update role",
+                                        ),
+                                    },
+                                  )
+                                }
+                              >
+                                Remove PO
+                              </Button>
+                            ),
+                            canRemoveUser(item.id) && (
+                              <Button
+                                key="remove"
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={() =>
+                                  handleRemoveAccess(item.id, item.name)
+                                }
+                              />
+                            ),
+                          ].filter(Boolean)
                         : undefined
                     }
                   >
