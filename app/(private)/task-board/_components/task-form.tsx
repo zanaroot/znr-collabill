@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noExcessiveLinesPerFunction: True, but it's a form component with many features */
 "use client";
 
 import {
@@ -93,6 +94,7 @@ export const TaskForm = ({
   const [imageModalUrl, setImageModalUrl] = useState("");
   const [newBranchName, setNewBranchName] = useState("");
   const [sourceBranch, setSourceBranch] = useState("main");
+  const [hasInitializedGitBranch, setHasInitializedGitBranch] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -123,14 +125,32 @@ export const TaskForm = ({
   const isNewTask = !taskId;
 
   useEffect(() => {
-    if (!isNewTask || !generatedGitBranch) {
+    if (!isNewTask) {
+      setHasInitializedGitBranch(false);
       return;
     }
+
+    if (hasInitializedGitBranch) {
+      return;
+    }
+
+    if (!generatedGitBranch) {
+      return;
+    }
+
     if (formValues.gitBranch.trim()) {
       return;
     }
+
     updateField("gitBranch", generatedGitBranch);
-  }, [generatedGitBranch, isNewTask, formValues.gitBranch, updateField]); // Refined dependencies to avoid re-triggering unnecessarily
+    setHasInitializedGitBranch(true);
+  }, [
+    generatedGitBranch,
+    isNewTask,
+    hasInitializedGitBranch,
+    formValues.gitBranch,
+    updateField,
+  ]);
 
   const applyGeneratedGitBranch = () => {
     if (!generatedGitBranch) {
