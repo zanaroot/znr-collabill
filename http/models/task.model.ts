@@ -68,6 +68,7 @@ export const updateTaskSchema = z.object({
   priority: z.number().int().optional(),
   dueDate: z.string().optional().nullable(),
   assignedTo: z.uuid().optional().nullable(),
+  reviewerId: z.uuid().optional().nullable(),
   status: taskStatusEnum.optional(),
   gitRepo: z.url().optional().nullable().or(z.literal("")),
   gitBranch: z.string().optional().nullable(),
