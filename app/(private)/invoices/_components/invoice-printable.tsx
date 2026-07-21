@@ -524,7 +524,7 @@ export const InvoicePrintable = ({
                     `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
                   const baseRate = Number((item[rateKey] as unknown) || 0);
                   const projectRate = Number(item.projectBaseRate || 1);
-                  const totalRate = baseRate * projectRate;
+                  const totalRate = baseRate * (projectRate / 100);
                   const amount = item.taskCount * totalRate;
                   if (amount === 0) return null;
                   return (
@@ -621,7 +621,7 @@ export const InvoicePrintable = ({
                         break;
                     }
 
-                    const rate = sizeRate * reviewerRate;
+                    const rate = sizeRate * (reviewerRate / 100);
                     const amount = Number(item.taskCount) * rate;
 
                     if (amount === 0) return null;

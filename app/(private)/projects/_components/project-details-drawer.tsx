@@ -298,7 +298,9 @@ export function ProjectDetailsDrawer({
                   <InputNumber
                     {...field}
                     min={0}
+                    max={100}
                     step={0.01}
+                    suffix="%"
                     placeholder="Enter base rate"
                     style={{ width: "100%" }}
                   />
@@ -306,10 +308,12 @@ export function ProjectDetailsDrawer({
               />
             ) : (
               <InputNumber
-                value={project?.baseRate || 1}
+                value={project?.baseRate ?? 0}
                 disabled
                 min={0}
+                max={100}
                 step={0.01}
+                suffix="%"
                 style={{ width: "100%" }}
               />
             )}
@@ -328,7 +332,9 @@ export function ProjectDetailsDrawer({
                   <InputNumber
                     {...field}
                     min={0}
+                    max={100}
                     step={0.01}
+                    suffix="%"
                     placeholder="Enter reviewer rate"
                     style={{ width: "100%" }}
                   />
@@ -339,7 +345,9 @@ export function ProjectDetailsDrawer({
                 value={project?.reviewerRate ?? 0}
                 disabled
                 min={0}
+                max={100}
                 step={0.01}
+                suffix="%"
                 style={{ width: "100%" }}
               />
             )}

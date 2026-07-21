@@ -12,7 +12,7 @@ describe("TaskSummaryTable", () => {
       userName: "John Doe",
       projectId: "project-1",
       projectName: "Project A",
-      projectBaseRate: "1.5",
+      projectBaseRate: "150",
       size: "M",
       taskCount: 5,
       rateXs: "10",
@@ -26,7 +26,7 @@ describe("TaskSummaryTable", () => {
       userName: "John Doe",
       projectId: "project-1",
       projectName: "Project A",
-      projectBaseRate: "1.5",
+      projectBaseRate: "150",
       size: "S",
       taskCount: 3,
       rateXs: "10",
@@ -71,7 +71,7 @@ describe("TaskSummaryTable", () => {
   it("calculates total correctly", () => {
     render(<TaskSummaryTable data={mockData} />);
 
-    // M: 5 * 30 * 1.5 = 225, S: 3 * 20 * 1.5 = 90, Total = 315
+    // M: 5 * 30 * 150 = 225, S: 3 * 20 * 150 = 900, Total = 315
     expect(screen.getByText(/315/)).toBeInTheDocument();
   });
 
@@ -90,7 +90,7 @@ describe("TaskSummaryTable", () => {
         userName: "John",
         projectId: "project-1",
         projectName: "Project A",
-        projectBaseRate: "1",
+        projectBaseRate: "100",
         size: "M",
         taskCount: 2,
         rateXs: "10",
@@ -104,7 +104,7 @@ describe("TaskSummaryTable", () => {
         userName: "Jane",
         projectId: "project-2",
         projectName: "Project B",
-        projectBaseRate: "1",
+        projectBaseRate: "100",
         size: "L",
         taskCount: 1,
         rateXs: "10",
