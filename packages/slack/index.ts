@@ -329,9 +329,19 @@ export const buildTaskAssignedMessage = (params: {
   taskTitle: string;
   projectName: string;
   assigneeName: string | null;
+  assignedBy: string;
+  assignmentDate: Date;
   taskUrl: string;
 }) => {
-  const { taskId, taskTitle, projectName, assigneeName, taskUrl } = params;
+  const {
+    taskId,
+    taskTitle,
+    projectName,
+    assigneeName,
+    assignedBy,
+    assignmentDate,
+    taskUrl,
+  } = params;
 
   const fields = [];
   if (assigneeName) {
@@ -353,7 +363,7 @@ export const buildTaskAssignedMessage = (params: {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `*Task assigned to ${assigneeName || "Unknown"}*`,
+        text: `*Task assigned to ${assigneeName || "Unknown"} by ${assignedBy} on ${assignmentDate.toLocaleString()}*`,
       },
       accessory: {
         type: "button",

@@ -13,6 +13,7 @@ import { createTaskSchema, updateTaskSchema } from "@/http/models/task.model";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import {
+  notifyTaskAssignedEmail,
   notifyTaskAssignedSlack,
   notifyTaskInReviewSlack,
   notifyTaskValidatedSlack,
@@ -159,6 +160,18 @@ export const createTask = factory.createHandlers(
     };
     const task = await taskRepository.createTask(taskData);
 
+    if (task.assignedTo) {
+      const assignedAt = new Date();
+
+      notifyTaskAssignedEmail(task.id, user.name, assignedAt).catch((err) => {
+        console.error("[Notification] Failed to send email notification:", err);
+      });
+
+      notifyTaskAssignedSlack(task.id, user.name, assignedAt).catch((err) => {
+        console.error("[Notification] Failed to send Slack notification:", err);
+      });
+    }
+
     if (user.organizationId) {
       await logAudit({
         organizationId: user.organizationId,
@@ -281,17 +294,28 @@ export const updateTask = factory.createHandlers(
       }
     }
 
-    if (payload.assignedTo && payload.assignedTo !== task.assignedTo) {
-      notifyTaskAssignedSlack(id).catch((err) => {
-        console.error("[Notification] Failed to send Slack notification:", err);
-      });
-    }
+    const assigneeChanged =
+      payload.assignedTo && payload.assignedTo !== task.assignedTo;
 
     if (payload.status === "IN_REVIEW" && !task.reviewerId) {
       updates.reviewerId = user.id;
     }
 
     const updated = await taskRepository.updateTask(id, updates);
+
+    console.log("assigneeChanged:", assigneeChanged);
+    console.log("Sending assignment notifications...");
+
+    if (assigneeChanged) {
+      notifyTaskAssignedEmail(id, user.name, new Date()).catch((err) => {
+        console.error("[Notification] Failed to send email notification:", err);
+      });
+
+      notifyTaskAssignedSlack(id, user.name, new Date()).catch((err) => {
+        console.error("[Notification] Failed to send Slack notification:", err);
+      });
+    }
+
     if (!updated) {
       return c.json({ error: "Failed to update task" }, 500);
     }
