@@ -128,3 +128,43 @@ export const deleteInvoiceLines = async (invoiceId: string) => {
 export const deleteInvoice = async (id: string) => {
   await db.delete(invoices).where(eq(invoices.id, id));
 };
+
+export const findInvoiceByIdWithLines = async (id: string) => {
+  const { users } = await import("@/db/schema/user");
+  const { organizations } = await import("@/db/schema/organization");
+
+  const results = await db
+    .select({
+      invoice: invoices,
+      line: invoiceLines,
+      user: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        phoneOwnerName: users.phoneOwnerName,
+      },
+      organization: {
+        id: organizations.id,
+        name: organizations.name,
+      },
+    })
+    .from(invoices)
+    .innerJoin(users, eq(invoices.userId, users.id))
+    .innerJoin(organizations, eq(invoices.organizationId, organizations.id))
+    .leftJoin(invoiceLines, eq(invoiceLines.invoiceId, invoices.id))
+    .where(eq(invoices.id, id));
+
+  if (results.length === 0) {
+    return null;
+  }
+
+  return {
+    invoice: results[0].invoice,
+    user: results[0].user,
+    organization: results[0].organization,
+    lines: results
+      .map((r) => r.line)
+      .filter((line): line is NonNullable<typeof line> => line !== null),
+  };
+};

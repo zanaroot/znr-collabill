@@ -8,6 +8,7 @@ import {
   invoiceComments,
   invoiceLines,
   invoices,
+  organizationFinanceEmails,
   organizationIntegrations,
   organizationMembers,
   organizations,
@@ -710,4 +711,49 @@ export const updateOrganizationSlackSettings = async (
     .returning();
 
   return org ?? null;
+};
+
+export const getFinanceEmails = async (organizationId: string) => {
+  return db.query.organizationFinanceEmails.findMany({
+    where: (t, { eq }) => eq(t.organizationId, organizationId),
+  });
+};
+
+export const addFinanceEmail = async (
+  organizationId: string,
+  email: string,
+) => {
+  const [financeEmail] = await db
+    .insert(organizationFinanceEmails)
+    .values({
+      organizationId,
+      email,
+    })
+    .returning();
+
+  return financeEmail;
+};
+
+export const financeEmailExists = async (
+  organizationId: string,
+  email: string,
+) => {
+  const existing = await db.query.organizationFinanceEmails.findFirst({
+    where: (financeEmail, { and, eq }) =>
+      and(
+        eq(financeEmail.organizationId, organizationId),
+        eq(financeEmail.email, email),
+      ),
+  });
+
+  return existing;
+};
+
+export const deleteFinanceEmail = async (id: string) => {
+  const [deleted] = await db
+    .delete(organizationFinanceEmails)
+    .where(eq(organizationFinanceEmails.id, id))
+    .returning();
+
+  return deleted;
 };
