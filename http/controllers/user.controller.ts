@@ -22,10 +22,12 @@ import {
   updateOrganizationMemberRole,
 } from "@/http/repositories/organization.repository";
 import {
+  findUserById,
   getCollaboratorRate,
   updateUser,
   upsertCollaboratorRate,
 } from "@/http/repositories/user.repository";
+import { sendRateUpdatedEmail } from "@/packages/email/send-rate-updated-email";
 import { serverEnv } from "@/packages/env/server";
 import { deleteFile, uploadFile } from "@/packages/minio";
 
@@ -322,6 +324,7 @@ export const getCollaboratorRateHandler = factory.createHandlers(async (c) => {
 export const updateCollaboratorRateHandler = factory.createHandlers(
   zValidator("json", collaboratorRateSchema),
   async (c) => {
+    console.log("UPDATE RATE HANDLER CALLED");
     const currentUser = c.get("user");
     const isOwner = currentUser.organizationRole === "OWNER";
 
@@ -330,6 +333,7 @@ export const updateCollaboratorRateHandler = factory.createHandlers(
     }
 
     const id = c.req.param("id");
+
     if (!id) return c.json({ error: "ID required" }, 400);
 
     if (!currentUser.organizationId) {
@@ -338,11 +342,34 @@ export const updateCollaboratorRateHandler = factory.createHandlers(
 
     const rates = c.req.valid("json");
 
+    const oldRate = await getCollaboratorRate(id, currentUser.organizationId);
+
+    const user = await findUserById(id);
+
     const updatedRate = await upsertCollaboratorRate(
       id,
       currentUser.organizationId,
       rates,
     );
+
+    if (isOwner && user) {
+      console.log("RATE UPDATE EMAIL START", {
+        email: user.email,
+        userName: user.name,
+        oldRate,
+        newRate: rates,
+      });
+      try {
+        await sendRateUpdatedEmail({
+          email: user.email,
+          userName: user.name,
+          oldRate,
+          newRate: rates,
+        });
+      } catch (error) {
+        console.error("Failed to send rate update email:", error);
+      }
+    }
 
     await logAudit({
       organizationId: currentUser.organizationId,
