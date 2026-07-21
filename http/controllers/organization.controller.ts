@@ -204,3 +204,84 @@ export const updateOrganizationSlackSettings = factory.createHandlers(
     return c.json({ message: "Slack settings updated", success: true });
   },
 );
+
+export const getFinanceEmails = factory.createHandlers(
+  zValidator(
+    "param",
+    z.object({
+      organizationId: z.string().uuid(),
+    }),
+  ),
+  async (c) => {
+    const { organizationId } = c.req.valid("param");
+    const { getFinanceEmails } = await import(
+      "@/http/repositories/organization.repository"
+    );
+
+    const financeEmails = await getFinanceEmails(organizationId);
+
+    return c.json(financeEmails);
+  },
+);
+
+export const addFinanceEmail = factory.createHandlers(
+  zValidator(
+    "param",
+    z.object({
+      organizationId: z.string().uuid(),
+    }),
+  ),
+  zValidator(
+    "json",
+    z.object({
+      email: z.string().email(),
+    }),
+  ),
+  async (c) => {
+    const { organizationId } = c.req.valid("param");
+
+    // 1. normalisation (IMPORTANT)
+    const email = c.req.valid("json").email.toLowerCase().trim();
+
+    const { financeEmailExists } = await import(
+      "@/http/repositories/organization.repository"
+    );
+
+    // 2. check doublon
+    const existing = await financeEmailExists(organizationId, email);
+
+    if (existing) {
+      throw new Error("Finance email already exists");
+    }
+
+    const { addFinanceEmail } = await import(
+      "@/http/repositories/organization.repository"
+    );
+
+    // 3. insert
+    const financeEmail = await addFinanceEmail(organizationId, email);
+
+    return c.json(financeEmail, 201);
+  },
+);
+
+export const deleteFinanceEmail = factory.createHandlers(
+  zValidator(
+    "param",
+    z.object({
+      organizationId: z.string().uuid(),
+      financeEmailId: z.string().uuid(),
+    }),
+  ),
+  async (c) => {
+    const { financeEmailId } = c.req.valid("param");
+
+    const { deleteFinanceEmail } = await import(
+      "@/http/repositories/organization.repository"
+    );
+
+    await deleteFinanceEmail(financeEmailId);
+
+    return c.body(null, 204);
+  },
+);
