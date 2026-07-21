@@ -185,7 +185,7 @@ export function useBoard({
   const handleSave = () => {
     if (!formValues.title.trim()) return;
 
-    const taskReviewerId = activeTask?.reviewerId ?? userId;
+    const taskReviewerId = formValues.reviewerId ?? userId;
 
     if (
       activeTask &&
@@ -211,7 +211,7 @@ export function useBoard({
       status: formValues.status,
       assignedTo: formValues.assigneeId,
       reviewerId: formValues.reviewerId,
-      gitBranch: formValues.gitBranch || undefined,
+      gitBranch: formValues.gitBranch?.trim() || null,
       previewLink: formValues.previewLink || undefined,
     };
 

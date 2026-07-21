@@ -208,6 +208,22 @@ export const updateTask = factory.createHandlers(
       return c.json({ error: "Project not found" }, 404);
     }
 
+    const reviewerId = payload.reviewerId;
+
+    if (reviewerId && reviewerId !== task.reviewerId) {
+      const reviewerIsMember = await projectRepository.isProjectMember(
+        task.projectId,
+        reviewerId,
+      );
+
+      if (!reviewerIsMember) {
+        return c.json(
+          { error: "Reviewer must be a member of the project" },
+          400,
+        );
+      }
+    }
+
     const updates: UpdateTaskSystemInput = { ...payload };
 
     const taskReviewerId = task.reviewerId ?? user.id;
