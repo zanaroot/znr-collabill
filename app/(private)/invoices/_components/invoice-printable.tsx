@@ -281,6 +281,24 @@ export const InvoicePrintable = ({
     return Array.from(map.values());
   }, [reviewerTaskData]);
 
+  const handleAdd = () => {
+    if (!newFieldLabel || !newFieldAmount) {
+      message.warning("Please enter both label and amount");
+      return;
+    }
+
+    const newLine = {
+      label: newFieldLabel,
+      amount: newFieldAmount,
+      key: crypto.randomUUID(),
+    };
+
+    onCustomLinesChange?.([...customLines, newLine]);
+
+    setNewFieldLabel("");
+    setNewFieldAmount("");
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-white dark:bg-card p-8 md:p-12 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 invoice-container print:shadow-none print:border-none print:p-0 print:m-0 w-full max-w-4xl mx-auto">
@@ -754,24 +772,7 @@ export const InvoicePrintable = ({
                         type="primary"
                         ghost
                         icon={<PlusOutlined />}
-                        onClick={() => {
-                          if (newFieldLabel && newFieldAmount) {
-                            onCustomLinesChange?.([
-                              ...customLines,
-                              {
-                                label: newFieldLabel,
-                                amount: newFieldAmount,
-                                key: crypto.randomUUID(),
-                              },
-                            ]);
-                            setNewFieldLabel("");
-                            setNewFieldAmount("");
-                          } else {
-                            message.warning(
-                              "Please enter both label and amount",
-                            );
-                          }
-                        }}
+                        onClick={handleAdd}
                       >
                         Add
                       </Button>

@@ -90,7 +90,6 @@ const InvoicesPage = async ({
       ? user.name
       : members.find((m) => m.id === targetUserId)?.name;
 
-  // Récupérer les informations de téléphone de l'utilisateur cible
   const targetUser = await findUserById(targetUserId);
   const targetUserPhoneNumber = targetUser?.phoneNumber || null;
   const targetUserPhoneOwnerName = targetUser?.phoneOwnerName || null;

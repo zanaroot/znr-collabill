@@ -1,6 +1,6 @@
 {
-  "id": "75ad7f48-f7f5-4d37-8eee-5277abc0104b",
-  "prevId": "c1fb985a-534a-4e1b-baad-d7aa1c20e0fc",
+  "id": "719c2017-ee49-45e4-8780-e157e2145cbf",
+  "prevId": "75ad7f48-f7f5-4d37-8eee-5277abc0104b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -648,7 +648,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "invoices_draft_key_unique": {
+          "name": "invoices_draft_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "draft_key"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
