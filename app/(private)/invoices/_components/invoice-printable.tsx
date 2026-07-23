@@ -108,7 +108,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-          "Failed to validate invoice",
+            "Failed to validate invoice",
         );
       }
       return res.json();
@@ -154,7 +154,7 @@ export const InvoicePrintable = ({
 
       const sizeRate = rates[item.size] ?? 0;
 
-      const amount = Number(item.taskCount) * sizeRate * reviewerRate / 100;
+      const amount = (Number(item.taskCount) * sizeRate * reviewerRate) / 100;
 
       return acc + amount;
     }, 0);
