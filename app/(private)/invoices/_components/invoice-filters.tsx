@@ -20,6 +20,7 @@ import { client } from "@/packages/hono";
 
 const { Text } = Typography;
 
+import { calculateReviewerAmount } from "@/lib/incoices/invoice-calculation";
 import { getMonthlyPeriods } from "@/lib/periods";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
@@ -108,7 +109,7 @@ export const InvoiceFilters = ({
           const errorData = await res.json();
           throw new Error(
             (errorData as { error?: string }).error ||
-              "Failed to validate invoice",
+            "Failed to validate invoice",
           );
         }
         return res.json();
@@ -262,8 +263,7 @@ export const InvoiceFilters = ({
     }
 
     for (const rt of reviewerTaskData) {
-      const reviewerRate = Number(rt.projectReviewerRate || 0);
-      const amount = rt.taskCount * reviewerRate;
+      const { rate, amount } = calculateReviewerAmount(rt);
 
       if (amount > 0) {
         totalAmount += amount;
@@ -272,7 +272,7 @@ export const InvoiceFilters = ({
           referenceId: rt.assignedTo,
           label: `Reviewer tasks ${rt.size} for ${rt.assigneeName} (${rt.projectName})`,
           quantity: rt.taskCount,
-          unitPrice: reviewerRate.toString(),
+          unitPrice: rate.toString(),
           total: amount.toString(),
         });
       }
