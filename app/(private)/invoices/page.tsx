@@ -71,7 +71,7 @@ const InvoicesPage = async ({
       selectedPeriod.startDate ? new Date(selectedPeriod.startDate) : undefined,
       selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : undefined,
     ),
-    isOwner ? getOrganizationMembers(user.organizationId) : Promise.resolve([]),
+    getOrganizationMembers(user.organizationId),
     findInvoiceByPeriodAndUser(
       selectedPeriod.startDate,
       selectedPeriod.endDate,
