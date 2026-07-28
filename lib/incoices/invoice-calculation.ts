@@ -31,23 +31,23 @@ export function calculateReviewerAmount(task: ReviewerTaskSummary) {
   };
 }
 
-export function groupReviewerTasks(reviewerTaskData: ReviewerTaskSummary[]) {
-  const map = new Map<string, ReviewerTaskSummary>();
+// export function groupReviewerTasks(reviewerTaskData: ReviewerTaskSummary[]) {
+//   const map = new Map<string, ReviewerTaskSummary>();
 
-  for (const item of reviewerTaskData) {
-    const key = `${item.projectId}-${item.size}`;
+//   for (const item of reviewerTaskData) {
+//     const key = `${item.projectId}-${item.size}`;
 
-    const existing = map.get(key);
+//     const existing = map.get(key);
 
-    if (existing) {
-      existing.taskCount += Number(item.taskCount);
-    } else {
-      map.set(key, {
-        ...item,
-        taskCount: Number(item.taskCount),
-      });
-    }
-  }
+//     if (existing) {
+//       existing.taskCount += Number(item.taskCount);
+//     } else {
+//       map.set(key, {
+//         ...item,
+//         taskCount: Number(item.taskCount),
+//       });
+//     }
+//   }
 
-  return Array.from(map.values());
-}
+//   return Array.from(map.values());
+// }
