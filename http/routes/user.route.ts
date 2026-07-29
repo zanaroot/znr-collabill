@@ -4,6 +4,7 @@ import {
   getCollaboratorRateHandler,
   getInvitations,
   getMe,
+  getMemberProjects,
   getUsers,
   removeUser,
   resendInvitation,
@@ -30,4 +31,5 @@ export const userRoutes = new Hono()
   .delete("/:id", adminMiddleware, ...removeUser)
   .patch("/:id/role", ownerMiddleware, ...updateUserRoleHandler)
   .get("/:id/rates", ...getCollaboratorRateHandler)
-  .patch("/:id/rates", ownerMiddleware, ...updateCollaboratorRateHandler);
+  .patch("/:id/rates", ownerMiddleware, ...updateCollaboratorRateHandler)
+  .get("/:id/projects", ...getMemberProjects);

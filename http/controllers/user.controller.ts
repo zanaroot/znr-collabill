@@ -21,6 +21,7 @@ import {
   removeOrganizationMember,
   updateOrganizationMemberRole,
 } from "@/http/repositories/organization.repository";
+import { getProjectsByMember } from "@/http/repositories/project.repository";
 import {
   findUserById,
   getCollaboratorRate,
@@ -383,3 +384,15 @@ export const updateCollaboratorRateHandler = factory.createHandlers(
     return c.json(updatedRate);
   },
 );
+
+export const getMemberProjects = factory.createHandlers(async (c) => {
+  const id = c.req.param("id");
+
+  if (!id) {
+    return c.json({ error: "ID required" }, 400);
+  }
+
+  const projects = await getProjectsByMember(id);
+
+  return c.json(projects);
+});
