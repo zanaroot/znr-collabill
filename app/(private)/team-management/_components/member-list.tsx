@@ -6,27 +6,25 @@ import {
   ExclamationCircleOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
+
 import {
-  Alert,
   App,
   Button,
   Card,
-  Divider,
-  Drawer,
   Flex,
   Input,
   Modal,
   Select,
-  Space,
   Table,
   Tag,
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
+
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
-import { useAddProjectMember, useMemberProjects, useProjects } from "@/app/(private)/projects/_hooks/use-projects";
+import { DetailMembers } from "@/app/(private)/team-management/_components/detail-mebers";
 import type {
   CollaboratorRate,
   Role,
@@ -60,7 +58,6 @@ export const MemberList = () => {
     rateXl: "0",
     dailyRate: "0",
   }));
-  const [selectedProjectId, setSelectedProjectId] = useState<string>();
   const [selectedMember, setSelectedMember] = useState<UserWithRoles | null>(null);
   const [baseRateM, setBaseRateM] = useState<string>("0");
   const { data: users, isLoading } = useUsers();
@@ -69,11 +66,7 @@ export const MemberList = () => {
   const updateRoleMutation = useUpdateUserRole();
   const updateRatesMutation = useUpdateCollaboratorRates();
   const { data: currentUser } = useCurrentUser();
-  const addMemberMutation = useAddProjectMember();
-  const { data: projects } = useProjects();
-  const { data: memberProjects = [] } = useMemberProjects(
-    selectedMember?.id || ""
-  );
+
   const isOwner = currentUser?.organizationRole === "OWNER";
   const isAdmin =
     currentUser?.organizationRole === "OWNER" ||
@@ -87,26 +80,6 @@ export const MemberList = () => {
     setDetailsOpen(true);
   };
 
-  const handleAddToProject = async () => {
-    if (!selectedMember || !selectedProjectId) return;
-
-    try {
-      await addMemberMutation.mutateAsync({
-        projectId: selectedProjectId,
-        userId: selectedMember.id,
-      });
-
-      message.success("Member added to project");
-      setSelectedProjectId(undefined);
-    } catch (error) {
-      message.error((error as Error).message || "Failed to add member");
-    }
-  };
-
-  const availableProjects =
-    projects?.filter(
-      (project) => !memberProjects.some((p) => p.id === project.id)
-    ) ?? [];
 
   const handleDelete = (id: string) => {
     modal.confirm({
@@ -498,109 +471,12 @@ export const MemberList = () => {
           </div>
         </Flex>
       </Modal>
-      <Drawer
-        title="Member details"
-        placement="right"
-        width={500}
+
+      <DetailMembers
         open={detailsOpen}
         onClose={() => setDetailsOpen(false)}
-      >
-        {selectedMember && (
-          <Space direction="vertical" size="large" style={{ width: "100%" }}>
-            <Flex align="center" gap={16}>
-              <AvatarProfile
-                src={selectedMember.avatar}
-                userName={selectedMember.name}
-                userEmail={selectedMember.email}
-                size={64}
-              />
-
-              <div>
-                <Typography.Title level={4} style={{ margin: 0 }}>
-                  {selectedMember.name}
-                </Typography.Title>
-
-                <Typography.Text type="secondary">
-                  {selectedMember.email}
-                </Typography.Text>
-              </div>
-            </Flex>
-
-            {isOwner && (
-              <>
-                <Divider>Project management</Divider>
-
-                {availableProjects.length > 0 ? (
-                  <>
-                    <Select
-                      placeholder="Select a project"
-                      value={selectedProjectId}
-                      style={{ width: "100%" }}
-                      onChange={setSelectedProjectId}
-                      options={availableProjects.map((project) => ({
-                        value: project.id,
-                        label: project.name,
-                      }))}
-                      allowClear
-                    />
-
-                    <Button
-                      type="primary"
-                      block
-                      onClick={handleAddToProject}
-                      loading={addMemberMutation.isPending}
-                      disabled={!selectedProjectId}
-                    >
-                      Add to project
-                    </Button>
-                  </>
-                ) : (
-                  <Alert
-                    type="success"
-                    showIcon
-                    message="This member already has access to all projects."
-                  />
-                )}
-
-                <Divider>Projects</Divider>
-
-                {memberProjects.length === 0 ? (
-                  <Typography.Text type="secondary">
-                    This member doesn't have access to any project.
-                  </Typography.Text>
-                ) : (
-                  <Space direction="vertical" style={{ width: "100%" }}>
-                    {memberProjects.map((project) => (
-                      <Flex
-                        key={project.id}
-                        justify="space-between"
-                        align="center"
-                        style={{
-                          border: "1px solid #f0f0f0",
-                          borderRadius: 8,
-                          padding: "10px 12px",
-                        }}
-                      >
-                        <Typography.Text>
-                          {project.name}
-                        </Typography.Text>
-
-                        <Button
-                          danger
-                          type="text"
-                          icon={<DeleteOutlined />}
-                        />
-                      </Flex>
-                    ))}
-                  </Space>
-                )}
-
-                <Divider />
-              </>
-            )}
-          </Space>
-        )}
-      </Drawer>
+        member={selectedMember}
+      />
     </>
   );
 };

@@ -3,6 +3,7 @@ import {
   createInvoice,
   getInvoiceById,
   getInvoices,
+  getMemberInvoice,
   updateInvoiceStatus,
 } from "@/http/controllers/invoice.controller";
 import {
@@ -15,6 +16,7 @@ import { ownerMiddleware } from "@/http/middleware/auth.middleware";
 export const invoiceRoutes = new Hono()
   .get("/", ...getInvoices)
   .get("/:id", ...getInvoiceById)
+  .get("/member/:userId", ...getMemberInvoice)
   .get(
     "/draft/:organizationId/:targetUserId/:periodStart/:periodEnd",
     ownerMiddleware,

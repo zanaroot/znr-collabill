@@ -26,5 +26,9 @@ export const updateInvoiceStatusSchema = z.object({
   status: invoiceStatusSchema,
 });
 
+export const memberInvoiceQuerySchema = z.object({
+  month: z.string(),
+});
+
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
