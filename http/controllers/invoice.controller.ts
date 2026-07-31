@@ -263,13 +263,15 @@ export const getMemberInvoice = factory.createHandlers(
       return c.json({ error: "Invalid month format. Expected YYYY-MM" }, 400);
     }
 
-    const periodStart = new Date(Number(year), Number(monthNumber) - 1, 1);
+    const periodStart = `${year}-${monthNumber}-01`;
 
-    const periodEnd = new Date(Number(year), Number(monthNumber), 0);
+    const lastDay = new Date(Number(year), Number(monthNumber), 0).getDate();
+
+    const periodEnd = `${year}-${monthNumber}-${String(lastDay).padStart(2, "0")}`;
 
     const invoice = await invoiceRepository.findInvoiceByPeriodAndUser(
-      periodStart.toISOString(),
-      periodEnd.toISOString(),
+      periodStart,
+      periodEnd,
       userId,
       user.organizationId,
     );

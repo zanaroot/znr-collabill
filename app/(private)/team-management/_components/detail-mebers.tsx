@@ -1,9 +1,8 @@
 "use client";
 
-import { DeleteOutlined } from "@ant-design/icons";
+import { CalendarOutlined, DeleteOutlined, FileTextOutlined, ProjectOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import {
-	Alert,
 	App,
 	Badge,
 	Button,
@@ -13,10 +12,15 @@ import {
 	DatePicker,
 	Divider,
 	Drawer,
+	Empty,
 	Flex,
+	List,
 	Row,
 	Select,
 	Space,
+	Statistic,
+	Table,
+	Tag,
 	Typography,
 } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
@@ -177,7 +181,7 @@ export const DetailMembers = ({
 
 			const data = await res.json();
 
-			if ("error" in data) {
+			if (!data || "error" in data) {
 				return null;
 			}
 
@@ -188,26 +192,29 @@ export const DetailMembers = ({
 
 	return (
 		<Drawer
-			title="Member details"
+			title={null}
 			placement="right"
 			width={1500}
 			open={open}
 			onClose={onClose}
 		>
 			{member && (
-				<Row gutter={24}>
-					<Col span={10}>
-						<Space direction="vertical" size="large" style={{ width: "100%" }}>
-							<Flex align="center" gap={16}>
+				<Space direction="vertical" size={24} style={{ width: "100%" }}>
+
+					{/* HEADER */}
+
+					<Card bordered={false}>
+						<Flex justify="space-between" align="center">
+							<Flex align="center" gap={20}>
 								<AvatarProfile
 									src={member.avatar}
 									userName={member.name}
 									userEmail={member.email}
-									size={64}
+									size={72}
 								/>
 
 								<div>
-									<Typography.Title level={4} style={{ margin: 0 }}>
+									<Typography.Title level={3} style={{ marginBottom: 4 }}>
 										{member.name}
 									</Typography.Title>
 
@@ -217,129 +224,199 @@ export const DetailMembers = ({
 								</div>
 							</Flex>
 
-							{isOwner && (
-								<>
-									<Divider>Project management</Divider>
+							<Tag color="blue">
+								Collaborator
+							</Tag>
+						</Flex>
+					</Card>
 
-									{availableProjects.length > 0 ? (
-										<Card>
-											<Select
-												placeholder="Select a project"
-												value={selectedProjectId}
-												style={{ width: "100%", marginBottom: "10px" }}
-												onChange={setSelectedProjectId}
-												options={availableProjects.map((project) => ({
-													value: project.id,
-													label: project.name,
-												}))}
-												allowClear
+					<Row gutter={24} align="top">
+
+						{/* LEFT */}
+
+						<Col span={8}>
+
+							<Space
+								direction="vertical"
+								size={20}
+								style={{ width: "100%" }}
+							>
+
+								{/* PROJECT MANAGEMENT */}
+
+								{isOwner && (
+									<Card
+										title="Project management"
+										extra={<ProjectOutlined />}
+									>
+										{availableProjects.length > 0 ? (
+											<>
+												<Select
+													placeholder="Select project"
+													value={selectedProjectId}
+													style={{ width: "100%" }}
+													options={availableProjects.map((project) => ({
+														value: project.id,
+														label: project.name,
+													}))}
+													onChange={setSelectedProjectId}
+													allowClear
+												/>
+
+												<Button
+													type="primary"
+													block
+													style={{ marginTop: 16 }}
+													loading={addMemberMutation.isPending}
+													disabled={!selectedProjectId}
+													onClick={handleAddToProject}
+												>
+													Add to project
+												</Button>
+											</>
+										) : (
+											<Empty
+												image={Empty.PRESENTED_IMAGE_SIMPLE}
+												description="Already assigned to every project"
+											/>
+										)}
+									</Card>
+								)}
+
+								{/* PROJECTS */}
+
+								{isOwner && (
+									<Card
+										title={`Projects (${memberProjects.length})`}
+									>
+										{memberProjects.length === 0 ? (
+											<Empty
+												image={Empty.PRESENTED_IMAGE_SIMPLE}
+												description="No project"
+											/>
+										) : (
+											<List
+												dataSource={memberProjects}
+												renderItem={(project) => (
+													<List.Item
+														actions={[
+															<Button
+																key="remove"
+																danger
+																type="text"
+																icon={<DeleteOutlined />}
+																loading={removeMemberMutation.isPending}
+																onClick={() =>
+																	handleRemoveFromProject(project.id)
+																}
+															/>,
+														]}
+													>
+														<List.Item.Meta
+															avatar={<ProjectOutlined />}
+															title={project.name}
+														/>
+													</List.Item>
+												)}
+											/>
+										)}
+									</Card>
+								)}
+
+								{/* INVOICE */}
+
+								<Card
+									title="Invoice"
+									extra={<FileTextOutlined />}
+								>
+									<DatePicker
+										picker="month"
+										value={invoiceMonth}
+										onChange={(date) => date && setInvoiceMonth(date)}
+										style={{
+											width: "100%",
+											marginBottom: 20,
+										}}
+									/>
+
+									{!invoice?.lines?.length ? (
+										<Empty
+											image={Empty.PRESENTED_IMAGE_SIMPLE}
+											description="No invoice"
+										/>
+									) : (
+										<>
+											<Table
+												size="small"
+												pagination={false}
+												dataSource={invoice.lines}
+												rowKey="id"
+												columns={[
+													{
+														title: "Label",
+														dataIndex: "label",
+													},
+													{
+														title: "Qty",
+														dataIndex: "quantity",
+														width: 70,
+													},
+													{
+														title: "Unit",
+														dataIndex: "unitPrice",
+														width: 90,
+														render: (v) => `${v} €`,
+													},
+													{
+														title: "Total",
+														dataIndex: "total",
+														width: 90,
+														render: (v) => (
+															<Typography.Text strong>
+																{v} €
+															</Typography.Text>
+														),
+													},
+												]}
 											/>
 
-											<Button
-												type="primary"
-												block
-												onClick={handleAddToProject}
-												loading={addMemberMutation.isPending}
-												disabled={!selectedProjectId}
-											>
-												Add to project
-											</Button>
-										</Card>
-									) : (
-										<Alert
-											type="success"
-											showIcon
-											message="This member already has access to all projects."
-										/>
+											<Divider />
+
+											<Statistic
+												title="Invoice total"
+												value={invoice.totalAmount ?? 0}
+												suffix="€"
+											/>
+										</>
 									)}
-
-									<Divider>Projects</Divider>
-
-									{memberProjects.length === 0 ? (
-										<Typography.Text type="secondary">
-											This member doesn't have access to any project.
-										</Typography.Text>
-									) : (
-										<Card>
-											{memberProjects.map((project) => (
-												<Flex
-													key={project.id}
-													justify="space-between"
-													align="center"
-												>
-													<Typography.Text>{project.name}</Typography.Text>
-
-													<Button
-														danger
-														type="text"
-														icon={<DeleteOutlined />}
-														loading={removeMemberMutation.isPending}
-														onClick={() => handleRemoveFromProject(project.id)}
-													/>
-												</Flex>
-											))}
-										</Card>
-									)}
-								</>
-							)}
-						</Space>
-
-						<Divider>Invoice</Divider>
-
-						<Card style={{ marginTop: "20px" }}>
-							<Space direction="vertical" size="large" style={{ width: "100%" }}>
-
-								<DatePicker
-									picker="month"
-									value={invoiceMonth}
-									onChange={(date) => {
-										if (date) {
-											setInvoiceMonth(date);
-										}
-									}}
-									format="MMMM YYYY"
-									style={{ width: "100%" }}
-								/>
-
-								{invoice?.lines?.map((line) => (
-									<Flex
-										key={line.id}
-										justify="space-between"
-									>
-										<div>
-											<Typography.Text>
-												{line.description}
-											</Typography.Text>
-
-											<br />
-
-											<Typography.Text type="secondary">
-												{line.type}
-											</Typography.Text>
-										</div>
-
-										<Typography.Text strong>
-											{line.total} €
-										</Typography.Text>
-									</Flex>
-								))}
+								</Card>
 
 							</Space>
-						</Card>
-					</Col>
 
-					<Col span={14}>
-						<Card title="Presence">
-							<Divider>Invoice</Divider>
+						</Col>
 
-							<Calendar
-								value={currentMonth}
-								cellRender={dateCellRender}
-								onPanelChange={(value) => setCurrentMonth(value)}
-							/>
-						</Card>
-					</Col>
-				</Row>
+						{/* RIGHT */}
+
+						<Col span={16}>
+
+							<Card
+								title="Presence calendar"
+								extra={<CalendarOutlined />}
+							>
+								<Calendar
+									value={currentMonth}
+									cellRender={dateCellRender}
+									onPanelChange={(value) =>
+										setCurrentMonth(value)
+									}
+								/>
+							</Card>
+
+						</Col>
+
+					</Row>
+
+				</Space>
 			)}
 		</Drawer>
 	)
