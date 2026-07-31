@@ -337,36 +337,36 @@ export const hasProjectAdminAccess = async (
   return projectRole === "PRODUCT_OWNER";
 };
 
-export const findProjectsByMember = async (
-  organizationId: string,
-  userId: string,
-): Promise<Project[]> => {
-  const result = await db
-    .select({
-      id: projects.id,
-      name: projects.name,
-      description: projects.description,
-      gitRepo: projects.gitRepo,
-      baseRate: projects.baseRate,
-      reviewerRate: projects.reviewerRate,
-      organizationId: projects.organizationId,
-      createdBy: projects.createdBy,
-      createdAt: projects.createdAt,
-      slackChannel: projects.slackChannel,
-      slackNotificationsEnabled: projects.slackNotificationsEnabled,
-    })
-    .from(projectMembers)
-    .innerJoin(projects, eq(projectMembers.projectId, projects.id))
-    .where(
-      and(
-        eq(projectMembers.userId, userId),
-        eq(projects.organizationId, organizationId),
-      ),
-    )
-    .orderBy(projects.name);
+// export const findProjectsByMember = async (
+//   organizationId: string,
+//   userId: string,
+// ): Promise<Project[]> => {
+//   const result = await db
+//     .select({
+//       id: projects.id,
+//       name: projects.name,
+//       description: projects.description,
+//       gitRepo: projects.gitRepo,
+//       baseRate: projects.baseRate,
+//       reviewerRate: projects.reviewerRate,
+//       organizationId: projects.organizationId,
+//       createdBy: projects.createdBy,
+//       createdAt: projects.createdAt,
+//       slackChannel: projects.slackChannel,
+//       slackNotificationsEnabled: projects.slackNotificationsEnabled,
+//     })
+//     .from(projectMembers)
+//     .innerJoin(projects, eq(projectMembers.projectId, projects.id))
+//     .where(
+//       and(
+//         eq(projectMembers.userId, userId),
+//         eq(projects.organizationId, organizationId),
+//       ),
+//     )
+//     .orderBy(projects.name);
 
-  return result.map(normalizeProject);
-};
+//   return result.map(normalizeProject);
+// };
 
 export const getProjectsByMember = async (userId: string) => {
   return await db
