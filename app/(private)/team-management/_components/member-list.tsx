@@ -58,7 +58,9 @@ export const MemberList = () => {
     rateXl: "0",
     dailyRate: "0",
   }));
-  const [selectedMember, setSelectedMember] = useState<UserWithRoles | null>(null);
+  const [selectedMember, setSelectedMember] = useState<UserWithRoles | null>(
+    null,
+  );
   const [baseRateM, setBaseRateM] = useState<string>("0");
   const { data: users, isLoading } = useUsers();
   const deleteMutation = useDeleteUser();
@@ -79,7 +81,6 @@ export const MemberList = () => {
     setSelectedMember(member);
     setDetailsOpen(true);
   };
-
 
   const handleDelete = (id: string) => {
     modal.confirm({
@@ -331,28 +332,28 @@ export const MemberList = () => {
 
           {record.id === currentUser?.id
             ? !isOwner && (
-              <Button
-                danger
-                onClick={handleLeave}
-                size="small"
-                loading={leaveMutation.isPending}
-              >
-                Leave
-              </Button>
-            )
+                <Button
+                  danger
+                  onClick={handleLeave}
+                  size="small"
+                  loading={leaveMutation.isPending}
+                >
+                  Leave
+                </Button>
+              )
             : canManageMembers && (
-              <Button
-                danger
-                type="text"
-                icon={<DeleteOutlined />}
-                size="small"
-                onClick={() => handleDelete(record.id)}
-                loading={
-                  deleteMutation.isPending &&
-                  deleteMutation.variables === record.id
-                }
-              />
-            )}
+                <Button
+                  danger
+                  type="text"
+                  icon={<DeleteOutlined />}
+                  size="small"
+                  onClick={() => handleDelete(record.id)}
+                  loading={
+                    deleteMutation.isPending &&
+                    deleteMutation.variables === record.id
+                  }
+                />
+              )}
         </Flex>
       ),
     },
