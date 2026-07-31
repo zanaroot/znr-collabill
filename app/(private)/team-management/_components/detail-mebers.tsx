@@ -89,7 +89,6 @@ export const DetailMembers = ({
   const { data: presences } = useQuery({
     queryKey: ["member-presences", member?.id, startDate, endDate],
     queryFn: async () => {
-      console.log("Query exécutée");
 
       if (!member) {
         return [];
@@ -110,8 +109,6 @@ export const DetailMembers = ({
     enabled: !!member,
   });
 
-  console.log("presences", presences);
-
   const presenceByDate = useMemo(() => {
     if (!presences || "error" in presences) {
       return new Map();
@@ -124,8 +121,6 @@ export const DetailMembers = ({
       ]),
     );
   }, [presences]);
-
-  console.log("presenceByDate", presenceByDate);
 
   const dateCellRender = (value: Dayjs) => {
     const dateStr = value.format("YYYY-MM-DD");
