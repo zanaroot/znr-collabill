@@ -89,7 +89,6 @@ export const DetailMembers = ({
   const { data: presences } = useQuery({
     queryKey: ["member-presences", member?.id, startDate, endDate],
     queryFn: async () => {
-
       if (!member) {
         return [];
       }
