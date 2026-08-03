@@ -69,16 +69,16 @@ export const generateInvoicePdf = async (invoiceId: string) => {
 
     doc.moveDown(1);
 
-    doc.text(`Invoice ID   : ${invoice.invoice.id}`, {
-      lineGap: 5,
+    const periodMonth = new Date(
+      invoice.invoice.periodStart,
+    ).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
     });
 
-    doc.text(
-      `Period       : ${invoice.invoice.periodStart} - ${invoice.invoice.periodEnd}`,
-      {
-        lineGap: 5,
-      },
-    );
+    doc.text(`Period       : ${periodMonth}`, {
+      lineGap: 5,
+    });
 
     doc.moveDown(2);
 
@@ -104,6 +104,8 @@ export const generateInvoicePdf = async (invoiceId: string) => {
     doc.moveDown(2);
 
     doc.font("Helvetica").fontSize(10);
+
+    console.log("PDF LINES:", invoice.lines);
 
     invoice.lines.forEach((line) => {
       const y = doc.y;

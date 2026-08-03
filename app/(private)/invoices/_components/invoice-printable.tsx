@@ -18,6 +18,7 @@ import type {
   CreateInvoiceInput,
   InvoiceStatus,
 } from "@/http/models/invoice.model";
+import { calculateReviewerAmount } from "@/lib/incoices/invoice-calculation";
 import { client } from "@/packages/hono";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
@@ -153,7 +154,7 @@ export const InvoicePrintable = ({
 
       const sizeRate = rates[item.size] ?? 0;
 
-      const amount = Number(item.taskCount) * sizeRate * reviewerRate;
+      const amount = (Number(item.taskCount) * sizeRate * reviewerRate) / 100;
 
       return acc + amount;
     }, 0);
@@ -166,6 +167,7 @@ export const InvoicePrintable = ({
   }, [customLines]);
 
   const grandTotal = presenceTotal + taskTotal + reviewerTotal + customTotal;
+
   const invoiceDate = clientInvoiceDate;
   const invoiceNumber = clientInvoiceNumber;
   const [newFieldLabel, setNewFieldLabel] = useState("");
@@ -617,30 +619,7 @@ export const InvoicePrintable = ({
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                   {groupedReviewerTaskData.map((item, index) => {
-                    const reviewerRate = Number(item.projectReviewerRate ?? 0);
-
-                    let sizeRate = 0;
-
-                    switch (item.size) {
-                      case "XS":
-                        sizeRate = Number(item.rateXs ?? 0);
-                        break;
-                      case "S":
-                        sizeRate = Number(item.rateS ?? 0);
-                        break;
-                      case "M":
-                        sizeRate = Number(item.rateM ?? 0);
-                        break;
-                      case "L":
-                        sizeRate = Number(item.rateL ?? 0);
-                        break;
-                      case "XL":
-                        sizeRate = Number(item.rateXl ?? 0);
-                        break;
-                    }
-
-                    const rate = sizeRate * (reviewerRate / 100);
-                    const amount = Number(item.taskCount) * rate;
+                    const { rate, amount } = calculateReviewerAmount(item);
 
                     if (amount === 0) return null;
 
