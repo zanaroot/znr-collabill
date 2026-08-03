@@ -5,6 +5,7 @@ import { logAudit } from "@/http/actions/audit.action";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   createInvoiceSchema,
+  memberInvoiceQuerySchema,
   updateInvoiceStatusSchema,
 } from "@/http/models/invoice.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
@@ -234,5 +235,55 @@ export const createInvoice = factory.createHandlers(
     });
 
     return c.json(invoice, 201);
+  },
+);
+
+export const getMemberInvoice = factory.createHandlers(
+  zValidator("query", memberInvoiceQuerySchema),
+  async (c) => {
+    const user = c.get("user");
+    const userId = c.req.param("userId");
+    const month = c.req.query("month");
+
+    if (!user.organizationId) {
+      return c.json({ error: "Organization required" }, 400);
+    }
+
+    if (!userId) {
+      return c.json({ error: "User ID is required" }, 400);
+    }
+
+    if (!month) {
+      return c.json({ error: "Month is required" }, 400);
+    }
+
+    const [year, monthNumber] = month.split("-");
+
+    if (!year || !monthNumber) {
+      return c.json({ error: "Invalid month format. Expected YYYY-MM" }, 400);
+    }
+
+    const periodStart = `${year}-${monthNumber}-01`;
+
+    const lastDay = new Date(Number(year), Number(monthNumber), 0).getDate();
+
+    const periodEnd = `${year}-${monthNumber}-${String(lastDay).padStart(2, "0")}`;
+
+    const invoice = await invoiceRepository.findInvoiceByPeriodAndUser(
+      periodStart,
+      periodEnd,
+      userId,
+      user.organizationId,
+    );
+
+    if (!invoice) {
+      return c.json(null);
+    }
+
+    if (invoice.organizationId !== user.organizationId) {
+      return c.json({ error: "Unauthorized" }, 403);
+    }
+
+    return c.json(invoice);
   },
 );

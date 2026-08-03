@@ -278,3 +278,27 @@ export function useUpdateProjectMemberRole() {
     },
   });
 }
+
+export function useMemberProjects(userId?: string) {
+  return useQuery({
+    queryKey: ["member-projects", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) {
+        throw new Error("User ID is required");
+      }
+
+      const res = await client.api.users[":id"].projects.$get({
+        param: {
+          id: userId,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch member projects");
+      }
+
+      return (await res.json()) as Project[];
+    },
+  });
+}

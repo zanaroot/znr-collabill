@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
+import { z } from "zod";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
   markPresenceSchema,
@@ -9,6 +10,11 @@ import * as presenceRepository from "@/http/repositories/presence.repository";
 import { getISODate } from "@/lib/date";
 
 const factory = createFactory<AuthEnv>();
+
+const presenceRangeSchema = z.object({
+  startDate: z.string(),
+  endDate: z.string(),
+});
 
 export const getTodayPresence = factory.createHandlers(async (c) => {
   const user = c.get("user");
@@ -83,5 +89,34 @@ export const markPresence = factory.createHandlers(
     );
 
     return c.json(presence);
+  },
+);
+
+export const getMemberPresences = factory.createHandlers(
+  zValidator("query", presenceRangeSchema),
+  async (c) => {
+    const user = c.get("user");
+
+    if (!user.organizationId) {
+      return c.json({ error: "No organization found" }, 404);
+    }
+
+    const userId = c.req.param("userId");
+
+    const { startDate, endDate } = c.req.valid("query");
+
+    if (!userId) {
+      return c.json({ error: "User ID is required" }, 400);
+    }
+
+    const presences =
+      await presenceRepository.findPresencesByUserIdAndDateRange(
+        userId,
+        user.organizationId,
+        startDate,
+        endDate,
+      );
+
+    return c.json(presences);
   },
 );

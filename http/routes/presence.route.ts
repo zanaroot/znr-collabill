@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import {
   getAllPresences,
+  getMemberPresences,
   getMyPresences,
   getTodayPresence,
   markPresence,
@@ -13,4 +14,5 @@ export const presenceRoutes = new Hono()
   .get("/today", ...getTodayPresence)
   .get("/my", ...getMyPresences)
   .get("/all", adminMiddleware, ...getAllPresences)
-  .post("/", ...markPresence);
+  .post("/", ...markPresence)
+  .get("/member/:userId", adminMiddleware, ...getMemberPresences);

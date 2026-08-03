@@ -4,7 +4,9 @@ import {
   DeleteOutlined,
   DollarOutlined,
   ExclamationCircleOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
+
 import {
   App,
   Button,
@@ -18,9 +20,11 @@ import {
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
+
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { DetailMembers } from "@/app/(private)/team-management/_components/detail-mebers";
 import type {
   CollaboratorRate,
   Role,
@@ -54,6 +58,9 @@ export const MemberList = () => {
     rateXl: "0",
     dailyRate: "0",
   }));
+  const [selectedMember, setSelectedMember] = useState<UserWithRoles | null>(
+    null,
+  );
   const [baseRateM, setBaseRateM] = useState<string>("0");
   const { data: users, isLoading } = useUsers();
   const deleteMutation = useDeleteUser();
@@ -61,12 +68,19 @@ export const MemberList = () => {
   const updateRoleMutation = useUpdateUserRole();
   const updateRatesMutation = useUpdateCollaboratorRates();
   const { data: currentUser } = useCurrentUser();
+
   const isOwner = currentUser?.organizationRole === "OWNER";
   const isAdmin =
     currentUser?.organizationRole === "OWNER" ||
     currentUser?.organizationRole === "ADMIN";
   const canManageMembers = isOwner || isAdmin;
   const { data: currentRates } = useCollaboratorRates(selectedUser?.id || "");
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  const openDetails = (member: UserWithRoles) => {
+    setSelectedMember(member);
+    setDetailsOpen(true);
+  };
 
   const handleDelete = (id: string) => {
     modal.confirm({
@@ -296,10 +310,17 @@ export const MemberList = () => {
     {
       title: "Actions",
       key: "actions",
-      width: 100,
+      width: 120,
       responsive: ["xs", "sm", "md", "lg", "xl"],
       render: (_, record) => (
         <Flex gap={4} wrap="wrap">
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => openDetails(record)}
+          />
+
           {(isOwner || record.id === currentUser?.id) && (
             <Button
               type="text"
@@ -308,6 +329,7 @@ export const MemberList = () => {
               onClick={() => openSizeModal(record)}
             />
           )}
+
           {record.id === currentUser?.id
             ? !isOwner && (
                 <Button
@@ -450,6 +472,12 @@ export const MemberList = () => {
           </div>
         </Flex>
       </Modal>
+
+      <DetailMembers
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        member={selectedMember}
+      />
     </>
   );
 };
