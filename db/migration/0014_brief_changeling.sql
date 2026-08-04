@@ -1,0 +1,1 @@
+ALTER TABLE "organizations" ADD COLUMN "presence_selection_enabled" boolean DEFAULT false NOT NULL;
