@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
     Button,
     Card,
@@ -13,7 +13,7 @@ import {
     Switch,
     Typography,
 } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { client } from "@/packages/hono";
 import { queryClient } from "@/packages/react-query";
 
@@ -39,6 +39,44 @@ export const OrganizationSettingsPanel = ({ organizationId }: OrganizationSettin
             rate: 120,
         },
     });
+
+    const { data: attendanceSettings } = useQuery({
+        queryKey: ["organization-attendance-settings", organizationId],
+        queryFn: async () => {
+            const response =
+                await client.api.organizations[":organizationId"]["attendance-settings"].$get({
+                    param: {
+                        organizationId,
+                    },
+                });
+
+            return response.json();
+        },
+    });
+
+    useEffect(() => {
+        if (!attendanceSettings) return;
+
+        setPresenceSelectionEnabled(
+            attendanceSettings.presenceSelectionEnabled
+        );
+
+        const settings = Object.fromEntries(
+            attendanceSettings.settings.map((setting) => [
+                setting.type,
+                {
+                    enabled: setting.enabled,
+                    rate: Number(setting.rate),
+                },
+            ])
+        ) as typeof presenceTypes;
+
+        setPresenceTypes((prev) => ({
+            ...prev,
+            ...settings,
+        }));
+
+    }, [attendanceSettings]);
 
     const mutation = useMutation({
         mutationFn: async () => {
@@ -160,7 +198,7 @@ export const OrganizationSettingsPanel = ({ organizationId }: OrganizationSettin
                                     disabled={!presenceTypes.OFFICE.enabled}
                                     min={0}
                                     max={500}
-                                    defaultValue={presenceTypes.OFFICE.rate}
+                                    value={presenceTypes.OFFICE.rate}
                                     addonAfter="%"
                                 />
                             </Flex>
@@ -172,7 +210,7 @@ export const OrganizationSettingsPanel = ({ organizationId }: OrganizationSettin
                                     disabled={!presenceTypes.REMOTE.enabled}
                                     min={0}
                                     max={500}
-                                    defaultValue={presenceTypes.REMOTE.rate}
+                                    value={presenceTypes.REMOTE.rate}
                                     addonAfter="%"
                                 />
                             </Flex>
@@ -184,7 +222,7 @@ export const OrganizationSettingsPanel = ({ organizationId }: OrganizationSettin
                                     disabled={!presenceTypes.ON_SITE.enabled}
                                     min={0}
                                     max={500}
-                                    defaultValue={presenceTypes.ON_SITE.rate}
+                                    value={presenceTypes.ON_SITE.rate}
                                     addonAfter="%"
                                 />
                             </Flex>
