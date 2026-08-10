@@ -31,12 +31,24 @@ export const OrganizationSettingsPanel = ({ organizationId }: OrganizationSettin
             rate: 100,
         },
         REMOTE: {
-            enabled: true,
+            enabled: false,
             rate: 100,
         },
         ON_SITE: {
             enabled: false,
             rate: 120,
+        },
+        SICK: {
+            enabled: true,
+            rate: 80,
+        },
+        VACATION: {
+            enabled: true,
+            rate: 100,
+        },
+        ON_LEAVE: {
+            enabled: true,
+            rate: 0,
         },
     });
 
@@ -75,8 +87,12 @@ export const OrganizationSettingsPanel = ({ organizationId }: OrganizationSettin
             ...prev,
             ...settings,
         }));
-
+        console.log("Merged", settings);
     }, [attendanceSettings]);
+
+    console.log("Initial", presenceTypes);
+    console.log("API", attendanceSettings?.settings);
+
 
     const mutation = useMutation({
         mutationFn: async () => {
@@ -242,8 +258,17 @@ export const OrganizationSettingsPanel = ({ organizationId }: OrganizationSettin
                                 <InputNumber
                                     min={0}
                                     max={500}
-                                    defaultValue={80}
+                                    value={presenceTypes.SICK.rate}
                                     addonAfter="%"
+                                    onChange={(value) =>
+                                        setPresenceTypes((prev) => ({
+                                            ...prev,
+                                            SICK: {
+                                                ...prev.SICK,
+                                                rate: value ?? 0,
+                                            },
+                                        }))
+                                    }
                                 />
                             </Flex>
 
@@ -252,8 +277,17 @@ export const OrganizationSettingsPanel = ({ organizationId }: OrganizationSettin
                                 <InputNumber
                                     min={0}
                                     max={500}
-                                    defaultValue={100}
+                                    value={presenceTypes.VACATION.rate}
                                     addonAfter="%"
+                                    onChange={(value) =>
+                                        setPresenceTypes((prev) => ({
+                                            ...prev,
+                                            VACATION: {
+                                                ...prev.VACATION,
+                                                rate: value ?? 0,
+                                            },
+                                        }))
+                                    }
                                 />
                             </Flex>
 
@@ -262,8 +296,17 @@ export const OrganizationSettingsPanel = ({ organizationId }: OrganizationSettin
                                 <InputNumber
                                     min={0}
                                     max={500}
-                                    defaultValue={0}
+                                    value={presenceTypes.ON_LEAVE.rate}
                                     addonAfter="%"
+                                    onChange={(value) =>
+                                        setPresenceTypes((prev) => ({
+                                            ...prev,
+                                            ON_LEAVE: {
+                                                ...prev.ON_LEAVE,
+                                                rate: value ?? 0,
+                                            },
+                                        }))
+                                    }
                                 />
                             </Flex>
                         </Flex>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Table, Typography } from "antd";
@@ -7,11 +8,23 @@ const { Text } = Typography;
 export interface PresenceSummary {
   userId: string;
   userName: string;
+  type:
+  | "OFFICE"
+  | "REMOTE"
+  | "ON_SITE"
+  | "SICK"
+  | "VACATION"
+  | "ON_LEAVE";
+  count: number;
   dailyRate: string | null;
-  presenceCount: number;
+  rate: number;
 }
 
-export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
+export const PresenceSummaryTable = ({
+  data,
+}: {
+  data: PresenceSummary[];
+}) => {
   const columns = [
     {
       title: "User",
@@ -19,10 +32,16 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
       key: "userName",
     },
     {
-      title: "Presence Count",
-      dataIndex: "presenceCount",
-      key: "presenceCount",
-      render: (count: number) => <Text>{count} days</Text>,
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      render: (type: string) => <span>{type}</span>,
+    },
+    {
+      title: "Count",
+      dataIndex: "count",
+      key: "count",
+      render: (count: number) => <span>{count} days</span>,
     },
     {
       title: "Daily Rate",
@@ -32,21 +51,30 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
         rate ? `${Number(rate).toLocaleString()} €` : "Not set",
     },
     {
-      title: "Total (Theoretical)",
+      title: "Total",
       key: "total",
       render: (_: unknown, record: PresenceSummary) => {
-        const rate = Number(record.dailyRate || 0);
-        const total = record.presenceCount * rate;
-        return <Text strong>{total.toLocaleString()} €</Text>;
+        const dailyRate = Number(record.dailyRate ?? 0);
+
+        const total =
+          record.count * dailyRate * (record.rate / 100);
+
+        return (
+          <Text strong>
+            {total.toLocaleString()} €
+          </Text>
+        );
       },
     },
   ];
 
+  console.log("PresenceSummaryTable", data);
+
   return (
     <Table
-      dataSource={data}
+      rowKey={(record) => `${record.userId}-${record.type}`}
       columns={columns}
-      rowKey="userId"
+      dataSource={data}
       pagination={false}
     />
   );

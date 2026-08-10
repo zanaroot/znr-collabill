@@ -4,6 +4,7 @@ import {
   CalendarOutlined,
   DeleteOutlined,
   FileTextOutlined,
+  PlusOutlined,
   ProjectOutlined,
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
@@ -25,7 +26,6 @@ import {
   Space,
   Statistic,
   Table,
-  Tag,
   Typography,
 } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
@@ -53,15 +53,89 @@ export const DetailMembers = ({
   member,
 }: DetailMembersProps) => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>();
+  const [absenceType, setAbsenceType] = useState<
+    "SICK" | "VACATION" | "ON_LEAVE"
+  >("SICK");
+
+  const [absenceDate, setAbsenceDate] = useState<Dayjs>(dayjs());
   const addMemberMutation = useAddProjectMember();
   const { data: projects } = useProjects();
   const { data: memberProjects = [] } = useMemberProjects(member?.id || "");
   const { data: currentUser } = useCurrentUser();
+
   const removeMemberMutation = useRemoveProjectMember();
   const isOwner = currentUser?.organizationRole === "OWNER";
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [invoiceMonth, setInvoiceMonth] = useState(dayjs());
   const { message } = App.useApp();
+
+  const { data: attendanceSettings } = useQuery({
+    queryKey: [
+      "organization-attendance-settings",
+      currentUser?.organizationId,
+    ],
+    queryFn: async () => {
+      if (!currentUser?.organizationId) return null;
+
+      const response =
+        await client.api.organizations[
+          ":organizationId"
+        ]["attendance-settings"].$get({
+          param: {
+            organizationId: currentUser.organizationId,
+          },
+        });
+
+      return response.json();
+    },
+    enabled: !!currentUser?.organizationId,
+  });
+
+  const absenceOptions =
+    attendanceSettings?.settings
+      .filter((setting) =>
+        ["SICK", "VACATION", "ON_LEAVE"].includes(setting.type)
+      )
+      .map((setting) => ({
+        value: setting.type,
+        label:
+          setting.type === "SICK"
+            ? "🤒 Sick Leave"
+            : setting.type === "VACATION"
+              ? "🌴 Vacation"
+              : "📄 Other Leave",
+        rate: Number(setting.rate),
+      })) ?? [];
+
+  const handleAddAbsence = async () => {
+    if (!member) return;
+
+    try {
+      const selected = absenceOptions.find(
+        (item) => item.value === absenceType,
+      );
+
+      if (!selected) return;
+
+      await client.api.presence.member[":userId"].absence.$post({
+        param: {
+          userId: member.id,
+        },
+        json: {
+          date: absenceDate.format("YYYY-MM-DD"),
+          status: absenceType,
+        },
+      });
+
+      message.success("Absence added");
+
+    } catch (error) {
+      message.error(
+        (error as Error).message || "Failed to add absence",
+      );
+    }
+  };
+
   const handleAddToProject = async () => {
     if (!member || !selectedProjectId) return;
 
@@ -220,7 +294,6 @@ export const DetailMembers = ({
                 </div>
               </Flex>
 
-              <Tag color="blue">Collaborator</Tag>
             </Flex>
           </Card>
 
@@ -358,6 +431,83 @@ export const DetailMembers = ({
                       />
                     </>
                   )}
+                </Card>
+
+                <Card
+                  title="Attendance management"
+                  extra={<PlusOutlined />}
+                >
+                  <Space
+                    direction="vertical"
+                    size={16}
+                    style={{
+                      width: "100%",
+                    }}
+                  >
+
+                    <div>
+                      <Typography.Text strong>
+                        Add absence
+                      </Typography.Text>
+
+                      <br />
+
+                      <Typography.Text type="secondary">
+                        Create an absence record for this member.
+                      </Typography.Text>
+                    </div>
+
+
+                    <Select
+                      style={{
+                        width: "100%",
+                      }}
+                      value={absenceType}
+                      options={absenceOptions}
+                      onChange={setAbsenceType}
+                    />
+
+
+                    <DatePicker
+                      style={{
+                        width: "100%",
+                      }}
+                      value={absenceDate}
+                      onChange={(date) => {
+                        if (date) {
+                          setAbsenceDate(date);
+                        }
+                      }}
+                    />
+
+
+                    <Card size="small">
+                      <Flex justify="space-between">
+                        <Typography.Text>
+                          Rate
+                        </Typography.Text>
+
+                        <Typography.Text strong>
+                          {
+                            absenceOptions.find(
+                              (item) => item.value === absenceType,
+                            )?.rate
+                          }
+                          %
+                        </Typography.Text>
+                      </Flex>
+                    </Card>
+
+
+                    <Button
+                      type="primary"
+                      block
+                      onClick={handleAddAbsence}
+                    >
+                      Add absence
+                    </Button>
+
+                  </Space>
                 </Card>
               </Space>
             </Col>

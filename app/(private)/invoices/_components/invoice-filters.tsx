@@ -109,7 +109,7 @@ export const InvoiceFilters = ({
           const errorData = await res.json();
           throw new Error(
             (errorData as { error?: string }).error ||
-              "Failed to validate invoice",
+            "Failed to validate invoice",
           );
         }
         return res.json();
@@ -193,16 +193,22 @@ export const InvoiceFilters = ({
     let totalAmount = 0;
     const linesInput: z.infer<typeof invoiceLineSchema>[] = [];
 
-    for (const p of presenceData) {
+    const userPresenceData = presenceData.filter(
+      (p) => p.userId === targetUserId,
+    );
+
+    for (const p of userPresenceData) {
       const rate = Number(p.dailyRate || 0);
-      const amount = p.presenceCount * rate;
+      const amount = p.count * rate;
+
       if (amount > 0) {
         totalAmount += amount;
+
         linesInput.push({
           type: "PRESENCE",
           referenceId: p.userId,
           label: `Presence for ${p.userName}`,
-          quantity: p.presenceCount,
+          quantity: p.count,
           unitPrice: rate.toString(),
           total: amount.toString(),
         });

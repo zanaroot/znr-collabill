@@ -4,6 +4,7 @@ import { and, count, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
 import {
   collaboratorRates,
+  organizationAttendanceSettings,
   organizationMembers,
   presences,
   users,
@@ -165,8 +166,10 @@ export const getPresenceSummaryByOrganization = async (
     .select({
       userId: users.id,
       userName: users.name,
+      type: presences.status,
       dailyRate: collaboratorRates.dailyRate,
-      presenceCount: count(presences.id),
+      rate: organizationAttendanceSettings.rate,
+      count: count(presences.id),
     })
     .from(users)
     .innerJoin(organizationMembers, eq(users.id, organizationMembers.userId))
@@ -178,11 +181,50 @@ export const getPresenceSummaryByOrganization = async (
       ),
     )
     .leftJoin(presences, and(...presenceFilters))
+    .leftJoin(
+      organizationAttendanceSettings,
+      and(
+        eq(organizationAttendanceSettings.organizationId, organizationId),
+        eq(organizationAttendanceSettings.type, presences.status),
+      ),
+    )
     .where(
       and(
         eq(organizationMembers.userId, targetUserId ?? userId),
         eq(organizationMembers.organizationId, organizationId),
       ),
     )
-    .groupBy(users.id, collaboratorRates.dailyRate);
+    .groupBy(
+      users.id,
+      collaboratorRates.dailyRate,
+      presences.status,
+      organizationAttendanceSettings.rate,
+    );
+};
+
+export const createMemberAbsence = async ({
+  userId,
+  organizationId,
+  createdBy,
+  date,
+  status,
+}: {
+  userId: string;
+  organizationId: string;
+  createdBy: string;
+  date: string;
+  status: "SICK" | "VACATION" | "ON_LEAVE";
+}) => {
+  const [absence] = await db
+    .insert(presences)
+    .values({
+      userId,
+      organizationId,
+      createdBy,
+      date,
+      status,
+    })
+    .returning();
+
+  return absence;
 };

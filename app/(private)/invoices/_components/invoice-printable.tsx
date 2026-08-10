@@ -108,7 +108,7 @@ export const InvoicePrintable = ({
         const errorData = await res.json();
         throw new Error(
           (errorData as { error?: string }).error ||
-            "Failed to validate invoice",
+          "Failed to validate invoice",
         );
       }
       return res.json();
@@ -124,7 +124,10 @@ export const InvoicePrintable = ({
 
   const presenceTotal = useMemo(() => {
     return presenceData.reduce((acc, item) => {
-      return acc + item.presenceCount * Number(item.dailyRate || 0);
+      const dailyRate = Number(item.dailyRate || 0);
+      const rate = Number(item.rate || 0);
+
+      return acc + item.count * dailyRate * (rate / 100);
     }, 0);
   }, [presenceData]);
 
@@ -181,14 +184,14 @@ export const InvoicePrintable = ({
 
     for (const p of presenceData) {
       const rate = Number(p.dailyRate || 0);
-      const amount = p.presenceCount * rate;
+      const amount = p.count * rate;
       if (amount > 0) {
         totalAmount += amount;
         linesInput.push({
           type: "PRESENCE",
           referenceId: p.userId,
           label: `Presence for ${p.userName}`,
-          quantity: p.presenceCount,
+          quantity: p.count,
           unitPrice: rate.toString(),
           total: amount.toString(),
         });
@@ -456,6 +459,9 @@ export const InvoicePrintable = ({
                     Member
                   </th>
                   <th className="text-center p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="text-center p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Days Worked
                   </th>
                   <th className="text-right p-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -468,12 +474,16 @@ export const InvoicePrintable = ({
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {presenceData.map((item) => {
-                  const amount =
-                    item.presenceCount * Number(item.dailyRate || 0);
+                  const dailyRate = Number(item.dailyRate || 0);
+                  const presenceRate = Number(item.rate || 0);
+
+                  const amount = item.count * dailyRate * (presenceRate / 100);
+
                   if (amount === 0) return null;
+
                   return (
                     <tr
-                      key={item.userId}
+                      key={`${item.userId}-${item.type}`}
                       className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors"
                     >
                       <td className="p-4">
@@ -482,11 +492,16 @@ export const InvoicePrintable = ({
                         </Text>
                       </td>
                       <td className="text-center p-4 dark:text-gray-300">
-                        <Text>{item.presenceCount} days</Text>
+                        <Text>{item.type}</Text>
                       </td>
+                      <td className="text-center p-4 dark:text-gray-300">
+                        <Text>{item.count} days</Text>
+                      </td>
+
                       <td className="text-right p-4 font-mono dark:text-gray-300">
-                        {Number(item.dailyRate).toLocaleString()} €
+                        {dailyRate.toLocaleString()} €
                       </td>
+
                       <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
                         {amount.toLocaleString()} €
                       </td>
