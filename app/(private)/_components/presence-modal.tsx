@@ -174,20 +174,19 @@ export const PresenceModal = ({
           >
             <Flex vertical gap={12}>
               {attendanceSettings
-                ?.filter((setting) => setting.enabled)
+                ?.filter(
+                  (setting) =>
+                    setting.enabled &&
+                    ["OFFICE", "REMOTE", "ON_SITE"].includes(setting.type),
+                )
                 .map((setting) => (
                   <Radio
                     key={setting.type}
                     value={setting.type}
                   >
-                    {setting.type === "OFFICE" &&
-                      "🏢 Office"}
-
-                    {setting.type === "REMOTE" &&
-                      "💻 Remote"}
-
-                    {setting.type === "ON_SITE" &&
-                      "📍 On Site"}
+                    {setting.type === "OFFICE" && "🏢 Office"}
+                    {setting.type === "REMOTE" && "💻 Remote"}
+                    {setting.type === "ON_SITE" && "📍 On Site"}
                   </Radio>
                 ))}
 
