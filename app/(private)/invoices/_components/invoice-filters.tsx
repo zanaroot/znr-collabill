@@ -198,7 +198,9 @@ export const InvoiceFilters = ({
     );
 
     for (const p of userPresenceData) {
-      const rate = Number(p.dailyRate || 0);
+      const dailyRate = Number(p.dailyRate || 0);
+      const percentage = Number(p.rate || 0);
+      const rate = dailyRate * (percentage / 100);
       const amount = p.count * rate;
 
       if (amount > 0) {
@@ -206,6 +208,7 @@ export const InvoiceFilters = ({
 
         linesInput.push({
           type: "PRESENCE",
+          presenceType: p.type,
           referenceId: p.userId,
           label: `Presence for ${p.userName}`,
           quantity: p.count,

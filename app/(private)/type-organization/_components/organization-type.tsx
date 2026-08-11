@@ -58,6 +58,7 @@ export const OrganizationType = () => {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
+  const isOwner = currentUser?.organizationRole === "OWNER";
   const canView =
     currentUser?.organizationRole === "OWNER" ||
     currentUser?.organizationRole === "ADMIN";
@@ -554,15 +555,23 @@ export const OrganizationType = () => {
         />
       ),
     },
-    {
-      key: "settings",
-      label: (
-        <span>
-          <SettingOutlined /> Settings
-        </span>
-      ),
-      children: <OrganizationSettingsPanel organizationId={organizations?.[0]?.id ?? ""} />,
-    },
+    ...(isOwner
+      ? [
+        {
+          key: "settings",
+          label: (
+            <span>
+              <SettingOutlined /> Settings
+            </span>
+          ),
+          children: (
+            <OrganizationSettingsPanel
+              organizationId={organizations?.[0]?.id ?? ""}
+            />
+          ),
+        },
+      ]
+      : []),
   ];
 
   return (

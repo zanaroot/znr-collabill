@@ -51,6 +51,12 @@ export const PresenceSummaryTable = ({
         rate ? `${Number(rate).toLocaleString()} €` : "Not set",
     },
     {
+      title: "Rate",
+      dataIndex: "rate",
+      key: "rate",
+      render: (rate: number) => `${rate}%`,
+    },
+    {
       title: "Total",
       key: "total",
       render: (_: unknown, record: PresenceSummary) => {

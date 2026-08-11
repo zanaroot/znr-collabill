@@ -4,6 +4,7 @@ export const invoiceStatusSchema = z.enum(["DRAFT", "VALIDATED", "PAID"]);
 
 export const invoiceLineSchema = z.object({
   type: z.string(),
+  presenceType: z.string().optional().nullable(),
   referenceId: z.uuid().optional().nullable(),
   label: z.string(),
   quantity: z.number(),
