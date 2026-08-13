@@ -29,7 +29,8 @@ App URL: `http://localhost:3000`
 ### Build-time (baked into the image)
 
 - `NEXT_PUBLIC_APP_URL`: Public app base URL used in client-side code.
-- `NEXT_PUBLIC_S3_ENDPOINT`: Public S3/MinIO endpoint for browser access.
+- `NEXT_PUBLIC_S3_ENDPOINT`: Browser-facing storage endpoint. Defaults to the
+  app's `/api/storage` proxy route so browsers never contact MinIO directly.
 
 ### Runtime (provided at container start)
 
@@ -48,7 +49,7 @@ App URL: `http://localhost:3000`
 - `S3_ACCESS_KEY`: Access key for S3/MinIO.
 - `S3_BUCKET`: S3 bucket name.
 - `S3_REGION`: S3 region.
-- `S3_ENDPOINT`: Server-side S3/MinIO endpoint.
+- `S3_ENDPOINT`: Server-side S3/MinIO endpoint (never exposed to the browser).
 - `MAIL_FROM`: The "From" address for outgoing emails.
 
 **Development Seeds (optional):**
@@ -122,7 +123,8 @@ Production deployment is handled entirely through GitHub Actions. The workflow S
 
 3. Add **Environment Variables** (non-sensitive):
    - `NEXT_PUBLIC_APP_URL` (e.g., `https://collabill.tchi.xyz`)
-   - `NEXT_PUBLIC_S3_ENDPOINT` (e.g., `https://files.collabill.tchi.xyz`)
+   - `NEXT_PUBLIC_S3_ENDPOINT` (e.g., `/api/storage` — must stay the proxy
+     route; the real MinIO/S3 endpoint is never exposed via a `NEXT_PUBLIC_*` var)
    - `POSTGRES_DB`
    - `POSTGRES_USER`
    - `MINIO_ROOT_USER`
@@ -206,7 +208,7 @@ DNS required before certificate issuance:
 - Secrets are **not** baked into the Docker image. Only `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_S3_ENDPOINT` are build-time values.
 - If you use the bundled `postgres` service with a persisted volume, changing `POSTGRES_PASSWORD` later does not rotate the existing database user's password. In that case, update `DATABASE_URL` to the real live credential or rotate the Postgres role password manually before rerunning migrations.
 - `next` is no longer exposed on public port `3000`; `nginx` is the public entrypoint on `80/443`.
-- `postgres` and `minio` are internal-only in production. Public file access should go through `https://files.collabill.tchi.xyz`.
+- `postgres` and `minio` are internal-only in production. Browser file/avatar access goes through the app's `/api/storage` proxy, which forwards to `S3_ENDPOINT` server-side.
 
 ## Project Structure
 

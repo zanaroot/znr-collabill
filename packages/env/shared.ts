@@ -6,11 +6,7 @@ const formatIssues = (issues: z.core.$ZodIssue[]) =>
     .join("\n");
 
 export const publicEnvSchema = z.object({
-  NEXT_PUBLIC_S3_ENDPOINT: z
-    .string()
-    .trim()
-    .min(1)
-    .default("http://localhost:9000"),
+  NEXT_PUBLIC_S3_ENDPOINT: z.string().trim().min(1).default("/api/storage"),
   NEXT_PUBLIC_APP_URL: z
     .string()
     .trim()
