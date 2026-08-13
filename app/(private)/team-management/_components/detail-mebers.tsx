@@ -62,8 +62,7 @@ export const DetailMembers = ({
     currentUser?.organizationRole === "OWNER" ||
     currentUser?.organizationRole === "ADMIN";
   const canViewInvoice =
-    currentUser?.organizationRole === "OWNER" ||
-    currentUser?.id === member?.id;
+    currentUser?.organizationRole === "OWNER" || currentUser?.id === member?.id;
 
   const [absenceDate, setAbsenceDate] = useState<Dayjs>(dayjs());
   const addMemberMutation = useAddProjectMember();
@@ -76,21 +75,17 @@ export const DetailMembers = ({
   const { message } = App.useApp();
 
   const { data: attendanceSettings } = useQuery({
-    queryKey: [
-      "organization-attendance-settings",
-      currentUser?.organizationId,
-    ],
+    queryKey: ["organization-attendance-settings", currentUser?.organizationId],
     queryFn: async () => {
       if (!currentUser?.organizationId) return null;
 
-      const response =
-        await client.api.organizations[
-          ":organizationId"
-        ]["attendance-settings"].$get({
-          param: {
-            organizationId: currentUser.organizationId,
-          },
-        });
+      const response = await client.api.organizations[":organizationId"][
+        "attendance-settings"
+      ].$get({
+        param: {
+          organizationId: currentUser.organizationId,
+        },
+      });
 
       return response.json();
     },
@@ -100,7 +95,7 @@ export const DetailMembers = ({
   const absenceOptions =
     attendanceSettings?.settings
       .filter((setting) =>
-        ["SICK", "VACATION", "ON_LEAVE"].includes(setting.type)
+        ["SICK", "VACATION", "ON_LEAVE"].includes(setting.type),
       )
       .map((setting) => ({
         value: setting.type,
@@ -134,11 +129,8 @@ export const DetailMembers = ({
       });
 
       message.success("Absence added");
-
     } catch (error) {
-      message.error(
-        (error as Error).message || "Failed to add absence",
-      );
+      message.error((error as Error).message || "Failed to add absence");
     }
   };
 
@@ -299,7 +291,6 @@ export const DetailMembers = ({
                   </Typography.Text>
                 </div>
               </Flex>
-
             </Flex>
           </Card>
 
@@ -356,17 +347,17 @@ export const DetailMembers = ({
                           actions={
                             canView
                               ? [
-                                <Button
-                                  key="remove"
-                                  danger
-                                  type="text"
-                                  icon={<DeleteOutlined />}
-                                  loading={removeMemberMutation.isPending}
-                                  onClick={() =>
-                                    handleRemoveFromProject(project.id)
-                                  }
-                                />,
-                              ]
+                                  <Button
+                                    key="remove"
+                                    danger
+                                    type="text"
+                                    icon={<DeleteOutlined />}
+                                    loading={removeMemberMutation.isPending}
+                                    onClick={() =>
+                                      handleRemoveFromProject(project.id)
+                                    }
+                                  />,
+                                ]
                               : undefined
                           }
                         >
@@ -444,19 +435,14 @@ export const DetailMembers = ({
                 )}
 
                 {canView && (
-                  <Card
-                    title="Attendance management"
-                    extra={<PlusOutlined />}
-                  >
+                  <Card title="Attendance management" extra={<PlusOutlined />}>
                     <Space
                       direction="vertical"
                       size={16}
                       style={{ width: "100%" }}
                     >
                       <div>
-                        <Typography.Text strong>
-                          Add absence
-                        </Typography.Text>
+                        <Typography.Text strong>Add absence</Typography.Text>
 
                         <br />
 
@@ -484,9 +470,7 @@ export const DetailMembers = ({
 
                       <Card size="small">
                         <Flex justify="space-between">
-                          <Typography.Text>
-                            Rate
-                          </Typography.Text>
+                          <Typography.Text>Rate</Typography.Text>
 
                           <Typography.Text strong>
                             {
@@ -499,11 +483,7 @@ export const DetailMembers = ({
                         </Flex>
                       </Card>
 
-                      <Button
-                        type="primary"
-                        block
-                        onClick={handleAddAbsence}
-                      >
+                      <Button type="primary" block onClick={handleAddAbsence}>
                         Add absence
                       </Button>
                     </Space>

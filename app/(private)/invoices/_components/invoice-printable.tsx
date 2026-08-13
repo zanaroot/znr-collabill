@@ -33,7 +33,7 @@ type InvoiceLineInput = {
   unitPrice: string;
   total: string;
 };
-type InvoicePrintableProps = {
+export type InvoicePrintableProps = {
   presenceData: PresenceSummary[];
   taskData: RawTaskSummary[];
   reviewerTaskData?: ReviewerTaskSummary[];

@@ -1,7 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { InvoicePrintable } from "@/app/(private)/invoices/_components/invoice-printable";
+import {
+  InvoicePrintable,
+  type InvoicePrintableProps,
+} from "@/app/(private)/invoices/_components/invoice-printable";
+
+
 
 // Mock the client
 vi.mock("@/packages/hono", () => ({
@@ -48,13 +53,15 @@ const createWrapper = () => {
 };
 
 describe("InvoicePrintable", () => {
-  const mockProps = {
+  const mockProps: InvoicePrintableProps = {
     presenceData: [
       {
         userId: "user-1",
         userName: "John Doe",
+        type: "OFFICE",
+        count: 5,
         dailyRate: "100",
-        presenceCount: 5,
+        rate: 100,
       },
     ],
     taskData: [],

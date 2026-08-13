@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Table, Typography } from "antd";
@@ -8,23 +7,13 @@ const { Text } = Typography;
 export interface PresenceSummary {
   userId: string;
   userName: string;
-  type:
-  | "OFFICE"
-  | "REMOTE"
-  | "ON_SITE"
-  | "SICK"
-  | "VACATION"
-  | "ON_LEAVE";
+  type: "OFFICE" | "REMOTE" | "ON_SITE" | "SICK" | "VACATION" | "ON_LEAVE";
   count: number;
   dailyRate: string | null;
   rate: number;
 }
 
-export const PresenceSummaryTable = ({
-  data,
-}: {
-  data: PresenceSummary[];
-}) => {
+export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
   const columns = [
     {
       title: "User",
@@ -62,14 +51,9 @@ export const PresenceSummaryTable = ({
       render: (_: unknown, record: PresenceSummary) => {
         const dailyRate = Number(record.dailyRate ?? 0);
 
-        const total =
-          record.count * dailyRate * (record.rate / 100);
+        const total = record.count * dailyRate * (record.rate / 100);
 
-        return (
-          <Text strong>
-            {total.toLocaleString()} €
-          </Text>
-        );
+        return <Text strong>{total.toLocaleString()} €</Text>;
       },
     },
   ];

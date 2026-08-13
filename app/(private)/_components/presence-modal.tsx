@@ -28,15 +28,13 @@ export const PresenceModal = ({
   const [isVisible, setIsVisible] = useState(false);
   const [status, setStatus] = useState<PresenceStatus>();
 
-  const { data: attendanceData } =
-    useOrganizationAttendanceSettings(
-      organizationId || "",
-    );
+  const { data: attendanceData } = useOrganizationAttendanceSettings(
+    organizationId || "",
+  );
 
   const attendanceSettings = attendanceData?.settings;
   const presenceSelectionEnabled =
     attendanceData?.presenceSelectionEnabled ?? false;
-
 
   const { data: todayPresence, refetch: refetchPresence } = useQuery({
     queryKey: ["today-presence"],
@@ -49,14 +47,12 @@ export const PresenceModal = ({
 
   const isAlreadyPresent = !!todayPresence;
 
-
   useEffect(() => {
     if (open) {
       setIsVisible(true);
       refetchPresence();
     }
   }, [open, refetchPresence]);
-
 
   const { mutateAsync: markPresence, isPending } = useMutation({
     mutationFn: async (payload: { status: PresenceStatus }) => {
@@ -85,7 +81,6 @@ export const PresenceModal = ({
     },
   });
 
-
   useEffect(() => {
     if (!attendanceSettings?.length) return;
 
@@ -96,18 +91,12 @@ export const PresenceModal = ({
     }
 
     // Switch ON => première présence active par défaut
-    const firstEnabled = attendanceSettings.find(
-      (item) => item.enabled,
-    );
+    const firstEnabled = attendanceSettings.find((item) => item.enabled);
 
     if (firstEnabled) {
       setStatus(firstEnabled.type as PresenceStatus);
     }
-  }, [
-    attendanceSettings,
-    presenceSelectionEnabled,
-  ]);
-
+  }, [attendanceSettings, presenceSelectionEnabled]);
 
   const handleCheckIn = async () => {
     if (isAlreadyPresent || isPending || !status) return;
@@ -117,17 +106,14 @@ export const PresenceModal = ({
     });
   };
 
-
   const handleCancel = () => {
     setIsVisible(false);
     onClose();
   };
 
-
   const handleAfterClose = () => {
     setIsVisible(false);
   };
-
 
   return (
     <Modal
@@ -140,10 +126,7 @@ export const PresenceModal = ({
       width={400}
     >
       <Flex vertical align="center" className="py-6 text-center">
-
-        <Title level={4}>
-          {getGreeting(userName)}
-        </Title>
+        <Title level={4}>{getGreeting(userName)}</Title>
 
         {isAlreadyPresent ? (
           <Text type="secondary" className="mb-6 block">
@@ -159,13 +142,10 @@ export const PresenceModal = ({
           </Text>
         )}
 
-
         {presenceSelectionEnabled && (
           <Radio.Group
             value={status}
-            onChange={(e) =>
-              setStatus(e.target.value)
-            }
+            onChange={(e) => setStatus(e.target.value)}
             disabled={isAlreadyPresent}
             style={{
               width: "100%",
@@ -180,29 +160,21 @@ export const PresenceModal = ({
                     ["OFFICE", "REMOTE", "ON_SITE"].includes(setting.type),
                 )
                 .map((setting) => (
-                  <Radio
-                    key={setting.type}
-                    value={setting.type}
-                  >
+                  <Radio key={setting.type} value={setting.type}>
                     {setting.type === "OFFICE" && "🏢 Office"}
                     {setting.type === "REMOTE" && "💻 Remote"}
                     {setting.type === "ON_SITE" && "📍 On Site"}
                   </Radio>
                 ))}
 
-
-              {attendanceSettings?.every(
-                (setting) => !setting.enabled,
-              ) && (
-                  <Text type="danger">
-                    No presence type available. Contact your administrator.
-                  </Text>
-                )}
-
+              {attendanceSettings?.every((setting) => !setting.enabled) && (
+                <Text type="danger">
+                  No presence type available. Contact your administrator.
+                </Text>
+              )}
             </Flex>
           </Radio.Group>
         )}
-
 
         <Button
           type="primary"
@@ -216,11 +188,8 @@ export const PresenceModal = ({
             marginTop: 24,
           }}
         >
-          {isAlreadyPresent
-            ? "Already Checked In"
-            : "Check-in for today"}
+          {isAlreadyPresent ? "Already Checked In" : "Check-in for today"}
         </Button>
-
       </Flex>
     </Modal>
   );

@@ -557,20 +557,20 @@ export const OrganizationType = () => {
     },
     ...(isOwner
       ? [
-        {
-          key: "settings",
-          label: (
-            <span>
-              <SettingOutlined /> Settings
-            </span>
-          ),
-          children: (
-            <OrganizationSettingsPanel
-              organizationId={organizations?.[0]?.id ?? ""}
-            />
-          ),
-        },
-      ]
+          {
+            key: "settings",
+            label: (
+              <span>
+                <SettingOutlined /> Settings
+              </span>
+            ),
+            children: (
+              <OrganizationSettingsPanel
+                organizationId={organizations?.[0]?.id ?? ""}
+              />
+            ),
+          },
+        ]
       : []),
   ];
 
