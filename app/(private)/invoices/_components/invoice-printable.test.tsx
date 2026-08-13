@@ -6,8 +6,6 @@ import {
   type InvoicePrintableProps,
 } from "@/app/(private)/invoices/_components/invoice-printable";
 
-
-
 // Mock the client
 vi.mock("@/packages/hono", () => ({
   client: {

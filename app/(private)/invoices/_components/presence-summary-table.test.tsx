@@ -24,7 +24,6 @@ describe("PresenceSummaryTable", () => {
   };
   const mockData: PresenceSummary[] = [summary, summary2];
 
-
   it("renders table with data", () => {
     render(<PresenceSummaryTable data={mockData} />);
 
