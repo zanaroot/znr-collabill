@@ -95,7 +95,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://user:password@localhost:5432/collabill_db
-      NEXT_PUBLIC_S3_ENDPOINT: http://localhost:9000
+      NEXT_PUBLIC_S3_ENDPOINT: /api/storage
       MINIO_ROOT_USER: user
       MINIO_ROOT_PASSWORD: password
       S3_ENDPOINT: http://localhost:9000

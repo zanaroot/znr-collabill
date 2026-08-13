@@ -3,7 +3,7 @@ import { getAvatarUrl, getAvatarUrlByEmail } from "@/lib/get-avatar-url";
 
 describe("getAvatarUrl", () => {
   beforeEach(() => {
-    vi.stubEnv("NEXT_PUBLIC_S3_ENDPOINT", "http://localhost:9000");
+    vi.stubEnv("NEXT_PUBLIC_S3_ENDPOINT", "/api/storage");
   });
 
   it("returns avatar URL if avatar is a full URL", () => {
@@ -16,12 +16,12 @@ describe("getAvatarUrl", () => {
 
   it("returns S3 endpoint path for relative avatar path", () => {
     const result = getAvatarUrl("/avatars/user1.png", "test@example.com");
-    expect(result).toBe("http://localhost:9000/avatars/user1.png");
+    expect(result).toBe("/api/storage/avatars/user1.png");
   });
 
   it("returns S3 endpoint path for avatar without leading slash", () => {
     const result = getAvatarUrl("avatars/user1.png", "test@example.com");
-    expect(result).toBe("http://localhost:9000/avatars/user1.png");
+    expect(result).toBe("/api/storage/avatars/user1.png");
   });
 
   it("returns DiceBear URL when no avatar provided", () => {
