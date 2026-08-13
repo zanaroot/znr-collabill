@@ -134,7 +134,7 @@ export const ProfileDrawer = ({
       }}
       open={open}
       size={400}
-      forceRender
+      forceRender={false}
     >
       <div className="flex flex-col items-center w-full">
         <AvatarSection
