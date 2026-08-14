@@ -19,7 +19,7 @@ export type TaskMembers = {
   role?: string;
 }[];
 
-export type ColumnBulkAction = {
+type ColumnBulkAction = {
   label: string;
   icon?: ReactNode;
   onClick: () => void;

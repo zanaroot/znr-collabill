@@ -1415,13 +1415,13 @@ const MainFooter = () => {
           </span>
           <div className="flex gap-6 text-xs font-semibold">
             <Link
-              href="#"
+              href="/privacy"
               className="text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400"
             >
               Privacy Policy
             </Link>
             <Link
-              href="#"
+              href="/terms"
               className="text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400"
             >
               Terms of Service
