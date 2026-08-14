@@ -1,6 +1,10 @@
 "use client";
 
-import { LockOutlined } from "@ant-design/icons";
+import {
+  CheckCircleOutlined,
+  CheckSquareOutlined,
+  LockOutlined,
+} from "@ant-design/icons";
 import { Segmented } from "antd";
 import { useMemo } from "react";
 import {
@@ -8,7 +12,7 @@ import {
   getAllowedTaskTransitions,
 } from "@/app/_utils/task-workflow";
 import type { ProjectMemberRole } from "@/http/models/project.model";
-import type { Task as TaskModel } from "@/http/models/task.model";
+import type { Task as TaskModel, TaskStatus } from "@/http/models/task.model";
 import type { Role } from "@/http/models/user.model";
 import { useBoard } from "../_hooks/use-board";
 import { ArchivedSection } from "./archived-section";
@@ -59,6 +63,16 @@ export function CreateBoard({
     userRole === "OWNER" ||
     userRole === "ADMIN" ||
     projectRole === "PRODUCT_OWNER";
+
+  const canTransitionTask = (task: TaskModel, to: TaskStatus) =>
+    canTransitionTaskStatus({
+      from: task.status,
+      to,
+      userRole,
+      reviewerId: task.reviewerId ?? userId,
+      userId,
+      projectRole,
+    });
 
   const projectMap = useMemo(
     () => new Map(projects.map((p) => [p.id, p.name])),
@@ -115,6 +129,42 @@ export function CreateBoard({
               const draggingTask = tasks.find(
                 (task) => task.id === board.draggingTaskId,
               );
+
+              const eligibleApproveCount =
+                status === "IN_REVIEW"
+                  ? columnTasks.filter((task) =>
+                      canTransitionTask(task, "APPROVED"),
+                    ).length
+                  : 0;
+
+              const eligibleValidateCount =
+                status === "APPROVED"
+                  ? columnTasks.filter((task) =>
+                      canTransitionTask(task, "VALIDATED"),
+                    ).length
+                  : 0;
+
+              const bulkAction =
+                status === "IN_REVIEW"
+                  ? {
+                      label: "Approve All",
+                      icon: <CheckCircleOutlined />,
+                      onClick: () =>
+                        board.handleBulkTransition("IN_REVIEW", "APPROVED"),
+                      disabled: eligibleApproveCount === 0,
+                      pending: board.isSaving,
+                    }
+                  : status === "APPROVED"
+                    ? {
+                        label: "Validate All",
+                        icon: <CheckSquareOutlined />,
+                        onClick: () =>
+                          board.handleBulkTransition("APPROVED", "VALIDATED"),
+                        disabled: eligibleValidateCount === 0,
+                        pending: board.isSaving,
+                      }
+                    : undefined;
+
               return (
                 <div
                   key={status}
@@ -159,6 +209,7 @@ export function CreateBoard({
                       projectRole === "PRODUCT_OWNER" ||
                       (userRole === "COLLABORATOR" && status === "BACKLOG")
                     }
+                    bulkAction={bulkAction}
                   />
                 </div>
               );

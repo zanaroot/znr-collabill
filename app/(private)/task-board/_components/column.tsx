@@ -2,7 +2,7 @@
 
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Card, Empty, Tag, Typography } from "antd";
-import type { DragEvent, MouseEvent } from "react";
+import type { DragEvent, MouseEvent, ReactNode } from "react";
 import { useState } from "react";
 import { cn } from "@/app/_utils/class-name";
 import { formatStatus, statusTagColor } from "@/app/_utils/status-task";
@@ -18,6 +18,14 @@ export type TaskMembers = {
   email?: string;
   role?: string;
 }[];
+
+export type ColumnBulkAction = {
+  label: string;
+  icon?: ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  pending?: boolean;
+};
 
 export type ColumnProps = {
   status: TaskStatus;
@@ -35,6 +43,7 @@ export type ColumnProps = {
   onDropTask: (taskId: string, status: TaskStatus) => void;
   members: TaskMembers;
   canCreateTask: boolean;
+  bulkAction?: ColumnBulkAction;
 };
 
 export function Column({
@@ -53,6 +62,7 @@ export function Column({
   onDropTask,
   members,
   canCreateTask,
+  bulkAction,
 }: ColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const canDropCurrentTask =
@@ -113,14 +123,29 @@ export function Column({
               {tasks.length}
             </Tag>
           </div>
-          <Button
-            type="text"
-            size="small"
-            className="flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"
-            icon={<PlusOutlined className="text-[12px]" />}
-            onClick={handlePlusClick}
-            disabled={!projectId || !canCreateTask}
-          />
+          <div className="flex items-center gap-1">
+            {bulkAction ? (
+              <Button
+                type="primary"
+                size="small"
+                icon={bulkAction.icon}
+                className="text-[12px]"
+                onClick={bulkAction.onClick}
+                disabled={bulkAction.disabled || bulkAction.pending}
+                loading={bulkAction.pending}
+              >
+                {bulkAction.label}
+              </Button>
+            ) : null}
+            <Button
+              type="text"
+              size="small"
+              className="flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"
+              icon={<PlusOutlined className="text-[12px]" />}
+              onClick={handlePlusClick}
+              disabled={!projectId || !canCreateTask}
+            />
+          </div>
         </div>
       }
       styles={{

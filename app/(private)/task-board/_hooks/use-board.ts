@@ -63,6 +63,7 @@ export type UseBoardReturn = {
   handleDragStartTask: (taskId: string) => void;
   handleDragEndTask: () => void;
   handleDropTask: (taskId: string, status: TaskStatus) => void;
+  handleBulkTransition: (from: TaskStatus, to: TaskStatus) => void;
 };
 
 export function useBoard({
@@ -286,6 +287,32 @@ export function useBoard({
     );
   };
 
+  const handleBulkTransition = (from: TaskStatus, to: TaskStatus) => {
+    if (isSaving) return;
+
+    const eligibleTasks = tasks.filter((task) => {
+      if (task.status !== from) return false;
+
+      return canTransitionTaskStatus({
+        from,
+        to,
+        userRole,
+        reviewerId: task.reviewerId ?? userId,
+        userId,
+        projectRole,
+      });
+    });
+
+    if (eligibleTasks.length === 0) return;
+
+    for (const task of eligibleTasks) {
+      updateTaskMutation.mutate({
+        id: task.id,
+        data: { status: to },
+      });
+    }
+  };
+
   return {
     boardView,
     setBoardView,
@@ -314,6 +341,7 @@ export function useBoard({
     handleDragStartTask,
     handleDragEndTask,
     handleDropTask,
+    handleBulkTransition,
   };
 }
 
