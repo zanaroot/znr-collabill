@@ -240,8 +240,7 @@ export default function RateSettingsPanel({
     if (!leaveSettingsData) return;
 
     setLeaveSettings({
-      unusedLeavePolicy:
-        leaveSettingsData.unusedLeavePolicy ?? "CARRY_OVER",
+      unusedLeavePolicy: leaveSettingsData.unusedLeavePolicy ?? "CARRY_OVER",
       adminLeaveQuota: Number(leaveSettingsData.adminLeaveQuota ?? 2.5),
       collaboratorLeaveQuota: Number(
         leaveSettingsData.collaboratorLeaveQuota ?? 2.0,
