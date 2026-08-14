@@ -234,6 +234,10 @@ export const InvoiceDetailView = ({
     targetUserId,
   ]);
 
+  const filteredPresenceSummary = presenceSummary.filter(
+    (presence) => presence.userId === targetUserId,
+  );
+
   return (
     <>
       <div className="no-print">
@@ -247,7 +251,7 @@ export const InvoiceDetailView = ({
           periodEnd={selectedPeriod.endDate}
           existingInvoice={existingInvoice}
           isOwner={isOwner}
-          presenceData={presenceSummary}
+          presenceData={filteredPresenceSummary}
           taskData={taskSummary}
           reviewerTaskData={reviewerTaskSummary}
           isDetailsPage={true}
@@ -257,7 +261,7 @@ export const InvoiceDetailView = ({
       </div>
 
       <InvoiceContentWrapper
-        presenceSummary={presenceSummary}
+        presenceSummary={filteredPresenceSummary}
         taskSummary={taskSummary}
         reviewerTaskSummary={reviewerTaskSummary}
         user={user}

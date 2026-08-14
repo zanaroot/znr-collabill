@@ -6,6 +6,7 @@ import {
   GithubOutlined,
   InfoCircleOutlined,
   MailOutlined,
+  SettingOutlined,
   SlackOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
@@ -17,9 +18,7 @@ import {
   Card,
   Form,
   Input,
-  List,
   Result,
-  Space,
   Tabs,
   Tag,
   Typography,
@@ -32,6 +31,8 @@ import type {
 } from "@/app/(private)/type-organization/_components/integration-card-form";
 import { IntegrationCard } from "@/app/(private)/type-organization/_components/integration-card-form";
 import { IntegrationHelpModal } from "@/app/(private)/type-organization/_components/integration-help-modal";
+import { OrganizationFinancePanel } from "@/app/(private)/type-organization/_components/organization-finance-panel";
+import { OrganizationSettingsPanel } from "@/app/(private)/type-organization/_components/organization-settings-panel";
 import type { IntegrationType } from "@/http/models/integration.model";
 import type { Role } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
@@ -57,6 +58,7 @@ export const OrganizationType = () => {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
+  const isOwner = currentUser?.organizationRole === "OWNER";
   const canView =
     currentUser?.organizationRole === "OWNER" ||
     currentUser?.organizationRole === "ADMIN";
@@ -542,65 +544,34 @@ export const OrganizationType = () => {
         </span>
       ),
       children: (
-        <Card style={{ marginTop: 20 }} title="Finance Email Recipients">
-          <Text type="secondary">
-            Configure the email addresses that should receive a PDF copy
-            whenever an invoice is validated.
-          </Text>
-
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              marginTop: 20,
-              marginBottom: 24,
-            }}
-          >
-            <Input
-              value={financeEmail}
-              onChange={(e) => setFinanceEmail(e.target.value)}
-              placeholder="finance@company.com"
-              style={{ flex: 2 }}
-            />
-
-            <Button
-              type="primary"
-              onClick={() => {
-                addFinanceEmailMutation.mutate(financeEmail);
-              }}
-            >
-              Add
-            </Button>
-          </div>
-
-          <List
-            bordered
-            locale={{ emptyText: "No finance emails configured" }}
-            dataSource={financeEmails}
-            renderItem={(item: { email: string; id: string }) => (
-              <List.Item
-                actions={[
-                  <Button
-                    danger
-                    type="text"
-                    icon={<DeleteOutlined />}
-                    key="delete"
-                    onClick={() => {
-                      deleteFinanceEmailMutation.mutate(item.id);
-                    }}
-                  />,
-                ]}
-              >
-                <Space>
-                  <MailOutlined />
-                  {item.email}
-                </Space>
-              </List.Item>
-            )}
-          />
-        </Card>
+        <OrganizationFinancePanel
+          financeEmail={financeEmail}
+          setFinanceEmail={setFinanceEmail}
+          financeEmails={financeEmails}
+          isAdding={addFinanceEmailMutation.isPending}
+          isDeleting={deleteFinanceEmailMutation.isPending}
+          onAdd={() => addFinanceEmailMutation.mutate(financeEmail)}
+          onDelete={(id) => deleteFinanceEmailMutation.mutate(id)}
+        />
       ),
     },
+    ...(isOwner
+      ? [
+          {
+            key: "settings",
+            label: (
+              <span>
+                <SettingOutlined /> Settings
+              </span>
+            ),
+            children: (
+              <OrganizationSettingsPanel
+                organizationId={organizations?.[0]?.id ?? ""}
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (

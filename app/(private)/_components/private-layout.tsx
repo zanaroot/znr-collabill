@@ -4,6 +4,7 @@ import {
   ApartmentOutlined,
   CalendarOutlined,
   ContactsOutlined,
+  DollarOutlined,
   FileTextOutlined,
   LeftOutlined,
   MenuOutlined,
@@ -144,6 +145,11 @@ export const PrivateLayout = ({
       key: "team-management",
       icon: <UsergroupAddOutlined />,
       label: hasAdminAccess ? "Team Management" : "Team members",
+    },
+    {
+      key: "rates",
+      icon: <DollarOutlined />,
+      label: "Rates",
     },
     ...(hasAdminAccess
       ? [

@@ -6,11 +6,13 @@ import {
   deleteOrganization,
   getFinanceEmails,
   getMyOrganizations,
+  getOrganizationAttendanceSettings,
   getOrganizationSlackSettings,
   getOwnedOrganizations,
   leaveOrganization,
   organizationOwner,
   selectOrganization,
+  updateOrganizationAttendanceSettings,
   updateOrganizationSlackSettings,
 } from "@/http/controllers/organization.controller";
 import { ownerMiddleware } from "@/http/middleware/auth.middleware";
@@ -31,4 +33,13 @@ export const organizationRoutes = new Hono()
     "/:organizationId/finance-emails/:financeEmailId",
     ownerMiddleware,
     ...deleteFinanceEmail,
+  )
+  .get(
+    "/:organizationId/attendance-settings",
+    ...getOrganizationAttendanceSettings,
+  )
+  .put(
+    "/:organizationId/attendance-settings",
+    ownerMiddleware,
+    ...updateOrganizationAttendanceSettings,
   );

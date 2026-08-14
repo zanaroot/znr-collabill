@@ -58,3 +58,12 @@ export const integrationTypeEnum = pgEnum("integration_type", [
   "BREVO",
   "SLACK",
 ]);
+
+export const attendanceStatusEnum = pgEnum("attendance_status", [
+  "OFFICE",
+  "REMOTE",
+  "ON_SITE",
+  "SICK",
+  "VACATION",
+  "ON_LEAVE",
+]);

@@ -193,16 +193,25 @@ export const InvoiceFilters = ({
     let totalAmount = 0;
     const linesInput: z.infer<typeof invoiceLineSchema>[] = [];
 
-    for (const p of presenceData) {
-      const rate = Number(p.dailyRate || 0);
-      const amount = p.presenceCount * rate;
+    const userPresenceData = presenceData.filter(
+      (p) => p.userId === targetUserId,
+    );
+
+    for (const p of userPresenceData) {
+      const dailyRate = Number(p.dailyRate || 0);
+      const percentage = Number(p.rate || 0);
+      const rate = dailyRate * (percentage / 100);
+      const amount = p.count * rate;
+
       if (amount > 0) {
         totalAmount += amount;
+
         linesInput.push({
           type: "PRESENCE",
+          presenceType: p.type,
           referenceId: p.userId,
           label: `Presence for ${p.userName}`,
-          quantity: p.presenceCount,
+          quantity: p.count,
           unitPrice: rate.toString(),
           total: amount.toString(),
         });

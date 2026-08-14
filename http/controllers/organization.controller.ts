@@ -285,3 +285,84 @@ export const deleteFinanceEmail = factory.createHandlers(
     return c.body(null, 204);
   },
 );
+
+export const getOrganizationAttendanceSettings = factory.createHandlers(
+  zValidator(
+    "param",
+    z.object({
+      organizationId: z.string().uuid(),
+    }),
+  ),
+  async (c) => {
+    const { organizationId } = c.req.valid("param");
+
+    const {
+      getOrganizationAttendanceSettings,
+      getOrganizationPresenceSelectionSetting,
+    } = await import(
+      "@/http/repositories/organization-attendance-settings.repository"
+    );
+
+    const settings = await getOrganizationAttendanceSettings(organizationId);
+
+    const organizationSettings =
+      await getOrganizationPresenceSelectionSetting(organizationId);
+
+    return c.json({
+      presenceSelectionEnabled:
+        organizationSettings?.presenceSelectionEnabled ?? false,
+      settings,
+    });
+  },
+);
+
+export const updateOrganizationAttendanceSettings = factory.createHandlers(
+  zValidator(
+    "json",
+    z.object({
+      presenceSelectionEnabled: z.boolean(),
+      settings: z.array(
+        z.object({
+          type: z.enum([
+            "OFFICE",
+            "REMOTE",
+            "ON_SITE",
+            "SICK",
+            "VACATION",
+            "ON_LEAVE",
+          ]),
+          enabled: z.boolean(),
+          rate: z.number(),
+        }),
+      ),
+    }),
+  ),
+  async (c) => {
+    const currentUser = c.get("user");
+
+    if (currentUser.organizationRole !== "OWNER") {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    if (!currentUser.organizationId) {
+      return c.json({ error: "No organization selected" }, 400);
+    }
+
+    const payload = c.req.valid("json");
+
+    const { upsertOrganizationAttendanceSettings } = await import(
+      "@/http/repositories/organization-attendance-settings.repository"
+    );
+
+    await upsertOrganizationAttendanceSettings(
+      currentUser.organizationId,
+      payload.presenceSelectionEnabled,
+      payload.settings,
+    );
+
+    return c.json({
+      message: "Attendance settings updated",
+      success: true,
+    });
+  },
+);

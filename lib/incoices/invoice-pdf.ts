@@ -97,6 +97,7 @@ export const generateInvoicePdf = async (invoiceId: string) => {
     doc.fillColor("black").font("Helvetica-Bold").fontSize(11);
 
     doc.text("Description", 55, headerY + 2);
+    doc.text("Type", 260, headerY + 2);
     doc.text("Qty", 320, headerY + 2);
     doc.text("Unit", 380, headerY + 2);
     doc.text("Total", 470, headerY + 2);
@@ -105,8 +106,6 @@ export const generateInvoicePdf = async (invoiceId: string) => {
 
     doc.font("Helvetica").fontSize(10);
 
-    console.log("PDF LINES:", invoice.lines);
-
     invoice.lines.forEach((line) => {
       const y = doc.y;
 
@@ -114,6 +113,8 @@ export const generateInvoicePdf = async (invoiceId: string) => {
         width: 250,
         lineGap: 4,
       });
+
+      doc.text(line.presenceType ?? "", 260, y);
 
       doc.text(String(line.quantity), 320, y);
 

@@ -120,3 +120,39 @@ export const getMemberPresences = factory.createHandlers(
     return c.json(presences);
   },
 );
+
+const createMemberAbsenceSchema = z.object({
+  date: z.string(),
+  status: z.enum(["SICK", "VACATION", "ON_LEAVE"]),
+});
+
+export const createMemberAbsence = factory.createHandlers(
+  zValidator("json", createMemberAbsenceSchema),
+  async (c) => {
+    const user = c.get("user");
+
+    if (!user.organizationId) {
+      return c.json({ error: "No organization found" }, 404);
+    }
+
+    const userIdParam = c.req.param("userId");
+
+    if (!userIdParam) {
+      return c.json({ error: "User ID is required" }, 400);
+    }
+
+    const userId = userIdParam;
+
+    const { date, status } = c.req.valid("json");
+
+    const absence = await presenceRepository.createMemberAbsence({
+      userId,
+      organizationId: user.organizationId,
+      createdBy: user.id,
+      date,
+      status,
+    });
+
+    return c.json(absence, 201);
+  },
+);

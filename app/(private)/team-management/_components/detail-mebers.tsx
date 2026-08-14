@@ -4,6 +4,7 @@ import {
   CalendarOutlined,
   DeleteOutlined,
   FileTextOutlined,
+  PlusOutlined,
   ProjectOutlined,
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
@@ -25,7 +26,6 @@ import {
   Space,
   Statistic,
   Table,
-  Tag,
   Typography,
 } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
@@ -53,15 +53,87 @@ export const DetailMembers = ({
   member,
 }: DetailMembersProps) => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>();
+  const [absenceType, setAbsenceType] = useState<
+    "SICK" | "VACATION" | "ON_LEAVE"
+  >("SICK");
+
+  const { data: currentUser } = useCurrentUser();
+  const canView =
+    currentUser?.organizationRole === "OWNER" ||
+    currentUser?.organizationRole === "ADMIN";
+  const canViewInvoice =
+    currentUser?.organizationRole === "OWNER" || currentUser?.id === member?.id;
+
+  const [absenceDate, setAbsenceDate] = useState<Dayjs>(dayjs());
   const addMemberMutation = useAddProjectMember();
   const { data: projects } = useProjects();
   const { data: memberProjects = [] } = useMemberProjects(member?.id || "");
-  const { data: currentUser } = useCurrentUser();
+
   const removeMemberMutation = useRemoveProjectMember();
-  const isOwner = currentUser?.organizationRole === "OWNER";
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [invoiceMonth, setInvoiceMonth] = useState(dayjs());
   const { message } = App.useApp();
+
+  const { data: attendanceSettings } = useQuery({
+    queryKey: ["organization-attendance-settings", currentUser?.organizationId],
+    queryFn: async () => {
+      if (!currentUser?.organizationId) return null;
+
+      const response = await client.api.organizations[":organizationId"][
+        "attendance-settings"
+      ].$get({
+        param: {
+          organizationId: currentUser.organizationId,
+        },
+      });
+
+      return response.json();
+    },
+    enabled: !!currentUser?.organizationId,
+  });
+
+  const absenceOptions =
+    attendanceSettings?.settings
+      .filter((setting) =>
+        ["SICK", "VACATION", "ON_LEAVE"].includes(setting.type),
+      )
+      .map((setting) => ({
+        value: setting.type,
+        label:
+          setting.type === "SICK"
+            ? "🤒 Sick Leave"
+            : setting.type === "VACATION"
+              ? "🌴 Vacation"
+              : "📄 Other Leave",
+        rate: Number(setting.rate),
+      })) ?? [];
+
+  const handleAddAbsence = async () => {
+    if (!member) return;
+
+    try {
+      const selected = absenceOptions.find(
+        (item) => item.value === absenceType,
+      );
+
+      if (!selected) return;
+
+      await client.api.presence.member[":userId"].absence.$post({
+        param: {
+          userId: member.id,
+        },
+        json: {
+          date: absenceDate.format("YYYY-MM-DD"),
+          status: absenceType,
+        },
+      });
+
+      message.success("Absence added");
+    } catch (error) {
+      message.error((error as Error).message || "Failed to add absence");
+    }
+  };
+
   const handleAddToProject = async () => {
     if (!member || !selectedProjectId) return;
 
@@ -219,15 +291,13 @@ export const DetailMembers = ({
                   </Typography.Text>
                 </div>
               </Flex>
-
-              <Tag color="blue">Collaborator</Tag>
             </Flex>
           </Card>
 
           <Row gutter={24} align="top">
             <Col span={8}>
               <Space direction="vertical" size={20} style={{ width: "100%" }}>
-                {isOwner && (
+                {canView && (
                   <Card title="Project management" extra={<ProjectOutlined />}>
                     {availableProjects.length > 0 ? (
                       <>
@@ -263,102 +333,162 @@ export const DetailMembers = ({
                   </Card>
                 )}
 
-                {isOwner && (
-                  <Card title={`Projects (${memberProjects.length})`}>
-                    {memberProjects.length === 0 ? (
+                <Card title={`Projects (${memberProjects.length})`}>
+                  {memberProjects.length === 0 ? (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description="No project"
+                    />
+                  ) : (
+                    <List
+                      dataSource={memberProjects}
+                      renderItem={(project) => (
+                        <List.Item
+                          actions={
+                            canView
+                              ? [
+                                  <Button
+                                    key="remove"
+                                    danger
+                                    type="text"
+                                    icon={<DeleteOutlined />}
+                                    loading={removeMemberMutation.isPending}
+                                    onClick={() =>
+                                      handleRemoveFromProject(project.id)
+                                    }
+                                  />,
+                                ]
+                              : undefined
+                          }
+                        >
+                          <List.Item.Meta
+                            avatar={<ProjectOutlined />}
+                            title={project.name}
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  )}
+                </Card>
+
+                {canViewInvoice && (
+                  <Card title="Invoice" extra={<FileTextOutlined />}>
+                    <DatePicker
+                      picker="month"
+                      value={invoiceMonth}
+                      onChange={(date) => date && setInvoiceMonth(date)}
+                      style={{
+                        width: "100%",
+                        marginBottom: 20,
+                      }}
+                    />
+
+                    {!invoice?.lines?.length ? (
                       <Empty
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description="No project"
+                        description="No invoice"
                       />
                     ) : (
-                      <List
-                        dataSource={memberProjects}
-                        renderItem={(project) => (
-                          <List.Item
-                            actions={[
-                              <Button
-                                key="remove"
-                                danger
-                                type="text"
-                                icon={<DeleteOutlined />}
-                                loading={removeMemberMutation.isPending}
-                                onClick={() =>
-                                  handleRemoveFromProject(project.id)
-                                }
-                              />,
-                            ]}
-                          >
-                            <List.Item.Meta
-                              avatar={<ProjectOutlined />}
-                              title={project.name}
-                            />
-                          </List.Item>
-                        )}
-                      />
+                      <>
+                        <Table
+                          size="small"
+                          pagination={false}
+                          dataSource={invoice.lines}
+                          rowKey="id"
+                          columns={[
+                            {
+                              title: "Label",
+                              dataIndex: "label",
+                            },
+                            {
+                              title: "Qty",
+                              dataIndex: "quantity",
+                              width: 70,
+                            },
+                            {
+                              title: "Unit",
+                              dataIndex: "unitPrice",
+                              width: 90,
+                              render: (v) => `${v} €`,
+                            },
+                            {
+                              title: "Total",
+                              dataIndex: "total",
+                              width: 90,
+                              render: (v) => (
+                                <Typography.Text strong>{v} €</Typography.Text>
+                              ),
+                            },
+                          ]}
+                        />
+
+                        <Divider />
+
+                        <Statistic
+                          title="Invoice total"
+                          value={invoice.totalAmount ?? 0}
+                          suffix="€"
+                        />
+                      </>
                     )}
                   </Card>
                 )}
 
-                <Card title="Invoice" extra={<FileTextOutlined />}>
-                  <DatePicker
-                    picker="month"
-                    value={invoiceMonth}
-                    onChange={(date) => date && setInvoiceMonth(date)}
-                    style={{
-                      width: "100%",
-                      marginBottom: 20,
-                    }}
-                  />
+                {canView && (
+                  <Card title="Attendance management" extra={<PlusOutlined />}>
+                    <Space
+                      direction="vertical"
+                      size={16}
+                      style={{ width: "100%" }}
+                    >
+                      <div>
+                        <Typography.Text strong>Add absence</Typography.Text>
 
-                  {!invoice?.lines?.length ? (
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="No invoice"
-                    />
-                  ) : (
-                    <>
-                      <Table
-                        size="small"
-                        pagination={false}
-                        dataSource={invoice.lines}
-                        rowKey="id"
-                        columns={[
-                          {
-                            title: "Label",
-                            dataIndex: "label",
-                          },
-                          {
-                            title: "Qty",
-                            dataIndex: "quantity",
-                            width: 70,
-                          },
-                          {
-                            title: "Unit",
-                            dataIndex: "unitPrice",
-                            width: 90,
-                            render: (v) => `${v} €`,
-                          },
-                          {
-                            title: "Total",
-                            dataIndex: "total",
-                            width: 90,
-                            render: (v) => (
-                              <Typography.Text strong>{v} €</Typography.Text>
-                            ),
-                          },
-                        ]}
+                        <br />
+
+                        <Typography.Text type="secondary">
+                          Create an absence record for this member.
+                        </Typography.Text>
+                      </div>
+
+                      <Select
+                        style={{ width: "100%" }}
+                        value={absenceType}
+                        options={absenceOptions}
+                        onChange={setAbsenceType}
                       />
 
-                      <Divider />
-
-                      <Statistic
-                        title="Invoice total"
-                        value={invoice.totalAmount ?? 0}
-                        suffix="€"
+                      <DatePicker
+                        style={{ width: "100%" }}
+                        value={absenceDate}
+                        onChange={(date) => {
+                          if (date) {
+                            setAbsenceDate(date);
+                          }
+                        }}
                       />
-                    </>
-                  )}
-                </Card>
+
+                      <Card size="small">
+                        <Flex justify="space-between">
+                          <Typography.Text>Rate</Typography.Text>
+
+                          <Typography.Text strong>
+                            {
+                              absenceOptions.find(
+                                (item) => item.value === absenceType,
+                              )?.rate
+                            }
+                            %
+                          </Typography.Text>
+                        </Flex>
+                      </Card>
+
+                      <Button type="primary" block onClick={handleAddAbsence}>
+                        Add absence
+                      </Button>
+                    </Space>
+                  </Card>
+                )}
               </Space>
             </Col>
 

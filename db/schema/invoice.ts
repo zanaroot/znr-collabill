@@ -38,7 +38,8 @@ export const invoiceLines = pgTable("invoice_lines", {
   invoiceId: uuid("invoice_id")
     .notNull()
     .references(() => invoices.id),
-  type: text("type").notNull(), // PRESENCE | TASK
+  type: text("type").notNull(),
+  presenceType: text("presence_type"),
   referenceId: uuid("reference_id"),
   label: text("label").notNull(),
   quantity: integer("quantity").notNull(),
