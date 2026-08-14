@@ -17,6 +17,7 @@ type AvatarProfileProps = {
   children?: React.ReactNode;
   isPresent?: boolean;
   onPresenceClick?: () => void;
+  isOnline?: boolean;
 };
 
 export const AvatarProfile = ({
@@ -32,6 +33,7 @@ export const AvatarProfile = ({
   children,
   isPresent,
   onPresenceClick,
+  isOnline,
 }: AvatarProfileProps) => {
   const shortName = getInitials(userName);
   const avatarUrl = getAvatarUrl(src, userEmail);
@@ -104,6 +106,31 @@ export const AvatarProfile = ({
             }}
           />
         )}
+      </span>
+    );
+  }
+
+  if (isOnline !== undefined) {
+    const dotSize = typeof size === "number" ? Math.max(size * 0.3, 8) : 12;
+
+    return (
+      <span style={{ position: "relative", display: "inline-flex" }}>
+        {avatar}
+        <span
+          aria-label={isOnline ? "Active now" : "Offline"}
+          title={isOnline ? "Active now" : "Offline"}
+          role="img"
+          style={{
+            position: "absolute",
+            bottom: 0,
+            right: 0,
+            width: dotSize,
+            height: dotSize,
+            borderRadius: "50%",
+            backgroundColor: isOnline ? "#52c41a" : "#bfbfbf",
+            border: "2px solid white",
+          }}
+        />
       </span>
     );
   }

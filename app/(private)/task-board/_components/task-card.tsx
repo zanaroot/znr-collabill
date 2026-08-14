@@ -7,6 +7,7 @@ import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { cn } from "@/app/_utils/class-name";
 import { getPriorityLabel, priorityTagColor } from "@/app/_utils/priority";
+import { useMembersOnlineStatus } from "@/app/(private)/team-management/_hooks/use-team";
 import type { Task as TaskModel } from "@/http/models/task.model";
 import { formatDueDate } from "@/lib/date";
 
@@ -44,6 +45,15 @@ export function TaskCard({
       task.assignedTo ? members.find((m) => m.id === task.assignedTo) : null,
     [task.assignedTo, members],
   );
+
+  const { data: onlineStatuses } = useMembersOnlineStatus();
+  const onlineByUserId = useMemo(() => {
+    const map = new Map<string, boolean>();
+    for (const status of onlineStatuses ?? []) {
+      map.set(status.id, status.isOnline);
+    }
+    return map;
+  }, [onlineStatuses]);
 
   const descriptionImages = useMemo(() => {
     if (typeof window === "undefined" || !task.description) return [];
@@ -141,6 +151,7 @@ export function TaskCard({
                   src={assignee.avatar}
                   userName={assignee.name}
                   userEmail={assignee.email}
+                  isOnline={onlineByUserId.get(assignee.id) ?? false}
                   className="border border-white ring-1 ring-slate-100"
                 />
               </div>

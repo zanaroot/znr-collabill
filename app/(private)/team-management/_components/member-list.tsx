@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { DetailMembers } from "@/app/(private)/team-management/_components/detail-mebers";
+import { InviteUserModal } from "@/app/(private)/team-management/_components/invite-user-modal";
 import { OnlineStatusTag } from "@/app/(private)/team-management/_components/online-status-tag";
 import type {
   CollaboratorRate,
@@ -385,6 +386,7 @@ export const MemberList = () => {
             <Title level={4} style={{ margin: 0 }}>
               Team Members
             </Title>
+            <InviteUserModal />
           </Flex>
         }
         styles={{ body: { padding: "12px" } }}
