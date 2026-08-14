@@ -5,9 +5,11 @@ import type { AuthUser } from "@/http/models/auth.model";
 import type {
   CollaboratorRate,
   Invitation,
+  MemberOnlineStatus,
   Role,
   UserWithRoles,
 } from "@/http/models/user.model";
+import { HEARTBEAT_INTERVAL_MS } from "@/lib/online-presence";
 import { client } from "@/packages/hono";
 
 export const teamKeys = {
@@ -17,6 +19,8 @@ export const teamKeys = {
   invitations: () => [...teamKeys.all, "invitations"] as const,
   collaboratorRates: (userId: string) =>
     [...teamKeys.all, "collaboratorRates", userId] as const,
+  heartbeat: () => [...teamKeys.all, "heartbeat"] as const,
+  onlineStatus: () => [...teamKeys.all, "onlineStatus"] as const,
 };
 
 export function useCurrentUser() {
@@ -38,6 +42,30 @@ export function useUsers() {
       if (!res.ok) throw new Error("Failed to fetch users");
       return (await res.json()) as UserWithRoles[];
     },
+  });
+}
+
+export function useHeartbeat() {
+  return useQuery({
+    queryKey: teamKeys.heartbeat(),
+    queryFn: async () => {
+      const res = await client.api.users.me.heartbeat.$post();
+      if (!res.ok) throw new Error("Failed to send heartbeat");
+      return await res.json();
+    },
+    refetchInterval: HEARTBEAT_INTERVAL_MS,
+  });
+}
+
+export function useMembersOnlineStatus() {
+  return useQuery({
+    queryKey: teamKeys.onlineStatus(),
+    queryFn: async () => {
+      const res = await client.api.users.status.$get();
+      if (!res.ok) throw new Error("Failed to fetch online status");
+      return (await res.json()) as MemberOnlineStatus[];
+    },
+    refetchInterval: HEARTBEAT_INTERVAL_MS,
   });
 }
 

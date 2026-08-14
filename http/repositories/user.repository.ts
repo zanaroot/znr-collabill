@@ -101,6 +101,33 @@ export const updateUser = async (
   return user;
 };
 
+export const updateUserLastSeen = async (userId: string) => {
+  const [user] = await db
+    .update(users)
+    .set({ lastSeenAt: new Date() })
+    .where(eq(users.id, userId))
+    .returning({ lastSeenAt: users.lastSeenAt });
+
+  return user?.lastSeenAt ?? null;
+};
+
+export const getOrganizationMembersWithLastSeen = async (
+  organizationId: string,
+) => {
+  return db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      avatar: users.avatar,
+      role: organizationMembers.role,
+      lastSeenAt: users.lastSeenAt,
+    })
+    .from(organizationMembers)
+    .innerJoin(users, eq(organizationMembers.userId, users.id))
+    .where(eq(organizationMembers.organizationId, organizationId));
+};
+
 const _getOrganizations = async (userId: string) => {
   const membership = await db
     .select()

@@ -31,7 +31,10 @@ import { OrganizationSwitcher } from "@/app/(private)/_components/organization-s
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import { useLastProject } from "@/app/(private)/_providers/last-projects-providers";
 import { useProjects } from "@/app/(private)/projects/_hooks/use-projects";
-import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
+import {
+  useCurrentUser,
+  useHeartbeat,
+} from "@/app/(private)/team-management/_hooks/use-team";
 import { lastProjectKey } from "@/http/ressources/keys";
 import { client } from "@/packages/hono";
 import { PresenceModal } from "./presence-modal";
@@ -87,6 +90,8 @@ export const PrivateLayout = ({
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const { data: currentUser } = useCurrentUser();
   const { lastProjectId, setLastProjectId } = useLastProject();
+
+  useHeartbeat();
 
   const { data: todayPresence } = useQuery({
     queryKey: ["today-presence"],

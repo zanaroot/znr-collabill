@@ -19,6 +19,7 @@ export const users = pgTable("users", {
   avatar: text("avatar"),
   phoneNumber: text("phone_number"),
   phoneOwnerName: text("phone_owner_name"),
+  lastSeenAt: timestamp("last_seen_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

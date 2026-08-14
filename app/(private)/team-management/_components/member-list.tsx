@@ -22,9 +22,10 @@ import {
 import type { ColumnsType } from "antd/es/table";
 
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { DetailMembers } from "@/app/(private)/team-management/_components/detail-mebers";
+import { OnlineStatusTag } from "@/app/(private)/team-management/_components/online-status-tag";
 import type {
   CollaboratorRate,
   Role,
@@ -35,6 +36,7 @@ import {
   useCurrentUser,
   useDeleteUser,
   useLeaveOrganization,
+  useMembersOnlineStatus,
   useUpdateCollaboratorRates,
   useUpdateUserRole,
   useUsers,
@@ -63,6 +65,14 @@ export const MemberList = () => {
   );
   const [baseRateM, setBaseRateM] = useState<string>("0");
   const { data: users, isLoading } = useUsers();
+  const { data: onlineStatuses } = useMembersOnlineStatus();
+  const onlineByUserId = useMemo(() => {
+    const map = new Map<string, boolean>();
+    for (const status of onlineStatuses ?? []) {
+      map.set(status.id, status.isOnline);
+    }
+    return map;
+  }, [onlineStatuses]);
   const deleteMutation = useDeleteUser();
   const leaveMutation = useLeaveOrganization();
   const updateRoleMutation = useUpdateUserRole();
@@ -298,6 +308,14 @@ export const MemberList = () => {
           );
         }
       },
+    },
+    {
+      title: "Status",
+      key: "status",
+      responsive: ["xs", "sm", "md", "lg", "xl"],
+      render: (_, record: UserWithRoles) => (
+        <OnlineStatusTag isOnline={onlineByUserId.get(record.id) ?? false} />
+      ),
     },
     {
       title: "Joined",

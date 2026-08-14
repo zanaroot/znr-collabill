@@ -34,6 +34,16 @@ export type Invitation = {
   createdAt: string | Date | null;
 };
 
+export type MemberOnlineStatus = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  role: Role;
+  lastSeenAt: string | null;
+  isOnline: boolean;
+};
+
 export const allowedAvatarTypes = [
   "image/jpeg",
   "image/png",

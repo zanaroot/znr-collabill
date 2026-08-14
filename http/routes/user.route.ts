@@ -5,7 +5,9 @@ import {
   getInvitations,
   getMe,
   getMemberProjects,
+  getMembersOnlineStatus,
   getUsers,
+  heartbeat,
   removeUser,
   resendInvitation,
   revokeInvitation,
@@ -23,7 +25,9 @@ export const userRoutes = new Hono()
   .get("/me", ...getMe)
   .patch("/me", ...updateMe)
   .post("/me/avatar", ...uploadAvatar)
+  .post("/me/heartbeat", ...heartbeat)
   .get("/all", ...getUsers)
+  .get("/status", ...getMembersOnlineStatus)
   .get("/invitations", ...getInvitations)
   .post("/invitations", adminMiddleware, ...createInvitation)
   .post("/invitations/:id/resend", adminMiddleware, ...resendInvitation)

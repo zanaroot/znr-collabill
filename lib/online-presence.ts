@@ -1,0 +1,3 @@
+export const HEARTBEAT_INTERVAL_MS = 30_000;
+
+export const ACTIVE_THRESHOLD_MS = 60_000;

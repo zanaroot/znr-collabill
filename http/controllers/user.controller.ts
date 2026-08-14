@@ -25,9 +25,12 @@ import { getProjectsByMember } from "@/http/repositories/project.repository";
 import {
   findUserById,
   getCollaboratorRate,
+  getOrganizationMembersWithLastSeen,
   updateUser,
+  updateUserLastSeen,
   upsertCollaboratorRate,
 } from "@/http/repositories/user.repository";
+import { ACTIVE_THRESHOLD_MS } from "@/lib/online-presence";
 import { sendRateUpdatedEmail } from "@/packages/email/send-rate-updated-email";
 import { serverEnv } from "@/packages/env/server";
 import { deleteFile, uploadFile } from "@/packages/minio";
@@ -60,6 +63,38 @@ const deleteS3FileFromUrl = async (urlStr: string) => {
 export const getMe = factory.createHandlers(async (c) => {
   const user = c.get("user");
   return c.json(user);
+});
+
+export const heartbeat = factory.createHandlers(async (c) => {
+  const user = c.get("user");
+
+  const lastSeenAt = await updateUserLastSeen(user.id);
+
+  return c.json({ success: true, lastSeenAt });
+});
+
+export const getMembersOnlineStatus = factory.createHandlers(async (c) => {
+  const currentUser = c.get("user");
+  if (!currentUser.organizationId) {
+    return c.json({ error: "No organization found" }, 404);
+  }
+
+  const members = await getOrganizationMembersWithLastSeen(
+    currentUser.organizationId,
+  );
+
+  const now = Date.now();
+  const isOnline = (lastSeenAt: Date | null | undefined) =>
+    lastSeenAt
+      ? now - new Date(lastSeenAt).getTime() <= ACTIVE_THRESHOLD_MS
+      : false;
+
+  return c.json(
+    members.map((member) => ({
+      ...member,
+      isOnline: isOnline(member.lastSeenAt),
+    })),
+  );
 });
 
 export const updateMe = factory.createHandlers(
