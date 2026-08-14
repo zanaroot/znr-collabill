@@ -154,7 +154,7 @@ export function TaskCard({
         footer={null}
         width={800}
         centered
-        destroyOnClose
+        destroyOnHidden
       >
         <div className="mt-4 flex flex-col gap-4">
           {/* biome-ignore lint/performance/noImgElement: External dynamic image */}

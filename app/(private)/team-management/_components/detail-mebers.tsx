@@ -347,17 +347,17 @@ export const DetailMembers = ({
                           actions={
                             canView
                               ? [
-                                  <Button
-                                    key="remove"
-                                    danger
-                                    type="text"
-                                    icon={<DeleteOutlined />}
-                                    loading={removeMemberMutation.isPending}
-                                    onClick={() =>
-                                      handleRemoveFromProject(project.id)
-                                    }
-                                  />,
-                                ]
+                                <Button
+                                  key="remove"
+                                  danger
+                                  type="text"
+                                  icon={<DeleteOutlined />}
+                                  loading={removeMemberMutation.isPending}
+                                  onClick={() =>
+                                    handleRemoveFromProject(project.id)
+                                  }
+                                />,
+                              ]
                               : undefined
                           }
                         >
