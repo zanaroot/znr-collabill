@@ -406,7 +406,7 @@ export const InvoicePrintable = ({
 
         {targetUserName && (
           <div className="mb-8 p-4 bg-blue-50/50 rounded-lg border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800 print:bg-transparent">
-            <Space direction="vertical" size="small">
+            <Space vertical size="small">
               <div>
                 <Text strong className="dark:text-gray-200">
                   Billing for Member:

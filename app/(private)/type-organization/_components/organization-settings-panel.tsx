@@ -220,7 +220,7 @@ export const OrganizationSettingsPanel = ({
                   min={0}
                   max={500}
                   value={presenceTypes.OFFICE.rate}
-                  addonAfter="%"
+                  suffix="%"
                 />
               </Flex>
 
@@ -232,7 +232,7 @@ export const OrganizationSettingsPanel = ({
                   min={0}
                   max={500}
                   value={presenceTypes.REMOTE.rate}
-                  addonAfter="%"
+                  suffix="%"
                 />
               </Flex>
 
@@ -246,7 +246,7 @@ export const OrganizationSettingsPanel = ({
                   min={0}
                   max={500}
                   value={presenceTypes.ON_SITE.rate}
-                  addonAfter="%"
+                  suffix="%"
                 />
               </Flex>
             </Flex>
@@ -266,7 +266,7 @@ export const OrganizationSettingsPanel = ({
                   min={0}
                   max={500}
                   value={presenceTypes.SICK.rate}
-                  addonAfter="%"
+                  suffix="%"
                   onChange={(value) =>
                     setPresenceTypes((prev) => ({
                       ...prev,
@@ -285,7 +285,7 @@ export const OrganizationSettingsPanel = ({
                   min={0}
                   max={500}
                   value={presenceTypes.VACATION.rate}
-                  addonAfter="%"
+                  suffix="%"
                   onChange={(value) =>
                     setPresenceTypes((prev) => ({
                       ...prev,
@@ -304,7 +304,7 @@ export const OrganizationSettingsPanel = ({
                   min={0}
                   max={500}
                   value={presenceTypes.ON_LEAVE.rate}
-                  addonAfter="%"
+                  suffix="%"
                   onChange={(value) =>
                     setPresenceTypes((prev) => ({
                       ...prev,

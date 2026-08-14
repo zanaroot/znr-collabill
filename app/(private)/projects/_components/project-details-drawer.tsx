@@ -13,7 +13,6 @@ import {
   Form,
   Input,
   InputNumber,
-  List,
   Select,
   Space,
   Spin,
@@ -451,105 +450,125 @@ export function ProjectDetailsDrawer({
                 <Spin />
               </Flex>
             ) : members && members.length > 0 ? (
-              <List
-                itemLayout="horizontal"
-                dataSource={members}
-                renderItem={(item) => (
-                  <List.Item
-                    actions={
-                      isAdminOrOwner
-                        ? [
-                            item.projectRole !== "PRODUCT_OWNER" && (
-                              <Button
-                                key="make-po"
-                                type="text"
-                                icon={<CrownOutlined />}
-                                onClick={() =>
-                                  updateMemberRoleMutation.mutate(
-                                    {
-                                      projectId: project.id,
-                                      userId: item.id,
-                                      role: "PRODUCT_OWNER",
-                                    },
-                                    {
-                                      onSuccess: () =>
-                                        message.success(
-                                          `${item.name} is now Product Owner`,
-                                        ),
-                                      onError: (error) =>
-                                        message.error(
-                                          (error as Error).message ||
-                                            "Failed to update role",
-                                        ),
-                                    },
-                                  )
-                                }
-                              />
-                            ),
-                            item.projectRole === "PRODUCT_OWNER" && (
-                              <Button
-                                key="remove-po"
-                                type="text"
-                                onClick={() =>
-                                  updateMemberRoleMutation.mutate(
-                                    {
-                                      projectId: project.id,
-                                      userId: item.id,
-                                      role: "MEMBER",
-                                    },
-                                    {
-                                      onSuccess: () =>
-                                        message.success(
-                                          `Removed Product Owner from ${item.name}`,
-                                        ),
-                                      onError: (error) =>
-                                        message.error(
-                                          (error as Error).message ||
-                                            "Failed to update role",
-                                        ),
-                                    },
-                                  )
-                                }
-                              >
-                                Remove PO
-                              </Button>
-                            ),
-                            canRemoveUser(item.id) && (
-                              <Button
-                                key="remove"
-                                type="text"
-                                danger
-                                icon={<DeleteOutlined />}
-                                onClick={() =>
-                                  handleRemoveAccess(item.id, item.name)
-                                }
-                              />
-                            ),
-                          ].filter(Boolean)
-                        : undefined
-                    }
-                  >
-                    <List.Item.Meta
-                      avatar={
+              <Flex vertical gap={12}>
+                {members.map((item) => {
+                  const actions = isAdminOrOwner
+                    ? [
+                        item.projectRole !== "PRODUCT_OWNER" && (
+                          <Button
+                            key="make-po"
+                            type="text"
+                            icon={<CrownOutlined />}
+                            onClick={() =>
+                              updateMemberRoleMutation.mutate(
+                                {
+                                  projectId: project.id,
+                                  userId: item.id,
+                                  role: "PRODUCT_OWNER",
+                                },
+                                {
+                                  onSuccess: () =>
+                                    message.success(
+                                      `${item.name} is now Product Owner`,
+                                    ),
+                                  onError: (error) =>
+                                    message.error(
+                                      (error as Error).message ||
+                                        "Failed to update role",
+                                    ),
+                                },
+                              )
+                            }
+                          />
+                        ),
+
+                        item.projectRole === "PRODUCT_OWNER" && (
+                          <Button
+                            key="remove-po"
+                            type="text"
+                            onClick={() =>
+                              updateMemberRoleMutation.mutate(
+                                {
+                                  projectId: project.id,
+                                  userId: item.id,
+                                  role: "MEMBER",
+                                },
+                                {
+                                  onSuccess: () =>
+                                    message.success(
+                                      `Removed Product Owner from ${item.name}`,
+                                    ),
+                                  onError: (error) =>
+                                    message.error(
+                                      (error as Error).message ||
+                                        "Failed to update role",
+                                    ),
+                                },
+                              )
+                            }
+                          >
+                            Remove PO
+                          </Button>
+                        ),
+
+                        canRemoveUser(item.id) && (
+                          <Button
+                            key="remove"
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() =>
+                              handleRemoveAccess(item.id, item.name)
+                            }
+                          />
+                        ),
+                      ].filter(Boolean)
+                    : [];
+
+                  return (
+                    <Flex
+                      key={item.id}
+                      align="center"
+                      justify="space-between"
+                      gap={16}
+                      style={{
+                        padding: "12px 0",
+                        borderBottom: "1px solid #f0f0f0",
+                      }}
+                    >
+                      <Flex align="center" gap={12} style={{ minWidth: 0 }}>
                         <AvatarProfile
                           src={item.avatar}
                           userName={item.name}
                           userEmail={item.email}
                         />
-                      }
-                      title={
-                        <Space>
-                          {item.name}
-                          {item.projectRole === "PRODUCT_OWNER" && (
-                            <Tag color="gold">Product Owner</Tag>
-                          )}
-                        </Space>
-                      }
-                      description={item.email}
-                    />
-                  </List.Item>
-                )}
-              />
+
+                        <Flex vertical style={{ minWidth: 0 }}>
+                          <Flex align="center" gap={8}>
+                            <Typography.Text strong ellipsis>
+                              {item.name}
+                            </Typography.Text>
+
+                            {item.projectRole === "PRODUCT_OWNER" && (
+                              <Tag color="gold">Product Owner</Tag>
+                            )}
+                          </Flex>
+
+                          <Typography.Text type="secondary" ellipsis>
+                            {item.email}
+                          </Typography.Text>
+                        </Flex>
+                      </Flex>
+
+                      {actions.length > 0 && (
+                        <Flex align="center" gap={4}>
+                          {actions}
+                        </Flex>
+                      )}
+                    </Flex>
+                  );
+                })}
+              </Flex>
             ) : (
               <Empty description="No members found" />
             )}

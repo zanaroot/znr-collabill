@@ -223,6 +223,31 @@ export default function RateSettingsPanel({
     },
   });
 
+  const { data: leaveSettingsData } = useQuery({
+    queryKey: ["current-organization-settings"],
+    queryFn: async () => {
+      const response = await client.api["leave-requests"].settings.$get();
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch leave settings");
+      }
+
+      return response.json();
+    },
+  });
+
+  useEffect(() => {
+    if (!leaveSettingsData) return;
+
+    setLeaveSettings({
+      unusedLeavePolicy: leaveSettingsData.unusedLeavePolicy ?? "CARRY_OVER",
+      adminLeaveQuota: Number(leaveSettingsData.adminLeaveQuota ?? 2.5),
+      collaboratorLeaveQuota: Number(
+        leaveSettingsData.collaboratorLeaveQuota ?? 2.0,
+      ),
+    });
+  }, [leaveSettingsData]);
+
   useEffect(() => {
     if (!projects) return;
 
