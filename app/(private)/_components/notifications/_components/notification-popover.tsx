@@ -6,36 +6,28 @@ import { useUnreadNotificationsCount } from "@/app/(private)/_components/notific
 import { NotificationList } from "./notification-list";
 
 export const NotificationPopover = () => {
-    const { data } = useUnreadNotificationsCount();
+  const { data } = useUnreadNotificationsCount();
 
-    const unreadCount = data?.count ?? 0;
+  const unreadCount = data?.count ?? 0;
 
-    return (
-        <Popover
-            trigger="click"
-            placement="bottomRight"
-            title={
-                <Typography.Text strong>
-                    Notifications
-                </Typography.Text>
-            }
-            content={
-                <div style={{ width: 380, maxWidth: "90vw" }}>
-                    <NotificationList />
-                </div>
-            }
-        >
-            <Badge
-                count={unreadCount}
-                size="small"
-                offset={[-2, 2]}
-            >
-                <Button
-                    type="text"
-                    shape="circle"
-                    icon={<BellOutlined style={{ fontSize: 20 }} />}
-                />
-            </Badge>
-        </Popover>
-    );
+  return (
+    <Popover
+      trigger="click"
+      placement="bottomRight"
+      title={<Typography.Text strong>Notifications</Typography.Text>}
+      content={
+        <div style={{ width: 380, maxWidth: "90vw" }}>
+          <NotificationList />
+        </div>
+      }
+    >
+      <Badge count={unreadCount} size="small" offset={[-2, 2]}>
+        <Button
+          type="text"
+          shape="circle"
+          icon={<BellOutlined style={{ fontSize: 20 }} />}
+        />
+      </Badge>
+    </Popover>
+  );
 };
