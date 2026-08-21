@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { notifications } from "@/db/schema/notification";
 import { attendanceStatusEnum, roleEnum, unusedLeavePolicyEnum } from "./enums";
 import { users } from "./user";
 
@@ -118,6 +119,7 @@ export const organizationsRelations = relations(organizations, ({ many }) => ({
   members: many(organizationMembers),
   financeEmails: many(organizationFinanceEmails),
   attendanceSettings: many(organizationAttendanceSettings),
+  notifications: many(notifications),
 }));
 
 export const organizationMembersRelations = relations(

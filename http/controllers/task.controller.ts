@@ -10,6 +10,7 @@ import type { AuthEnv } from "@/http/models/auth.model";
 import type { ProjectMemberRole } from "@/http/models/project.model";
 import type { UpdateTaskSystemInput } from "@/http/models/task.model";
 import { createTaskSchema, updateTaskSchema } from "@/http/models/task.model";
+import { createNotification } from "@/http/repositories/notification.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import {
@@ -160,8 +161,36 @@ export const createTask = factory.createHandlers(
     };
     const task = await taskRepository.createTask(taskData);
 
+    if (reviewerId && reviewerId !== user.id) {
+      if (user.organizationId) {
+        await createNotification({
+          userId: reviewerId,
+          organizationId: user.organizationId,
+          actorId: user.id,
+          type: "TASK_REVIEWER_ASSIGNED",
+          title: "Task assigned for review",
+          message: `You have been assigned to review the task "${task.title}"`,
+          entityType: "TASK",
+          entityId: task.id,
+        });
+      }
+    }
+
     if (task.assignedTo) {
       const assignedAt = new Date();
+
+      if (user.organizationId) {
+        await createNotification({
+          userId: task.assignedTo,
+          organizationId: user.organizationId,
+          actorId: user.id,
+          type: "TASK_ASSIGNED",
+          title: "New task assigned",
+          message: `You have been assigned to the task "${task.title}"`,
+          entityType: "TASK",
+          entityId: task.id,
+        });
+      }
 
       notifyTaskAssignedEmail(task.id, user.name, assignedAt).catch((err) => {
         console.error("[Notification] Failed to send email notification:", err);
@@ -301,12 +330,44 @@ export const updateTask = factory.createHandlers(
       updates.reviewerId = user.id;
     }
 
+    const reviewerChanged =
+      payload.reviewerId !== undefined &&
+      payload.reviewerId !== task.reviewerId;
+
     const updated = await taskRepository.updateTask(id, updates);
 
     console.log("assigneeChanged:", assigneeChanged);
     console.log("Sending assignment notifications...");
 
-    if (assigneeChanged) {
+    if (reviewerChanged && payload.reviewerId) {
+      if (user.organizationId) {
+        await createNotification({
+          userId: payload.reviewerId,
+          organizationId: user.organizationId,
+          actorId: user.id,
+          type: "TASK_REVIEWER_ASSIGNED",
+          title: "Task assigned for review",
+          message: `You have been assigned to review the task "${task.title}"`,
+          entityType: "TASK",
+          entityId: task.id,
+        });
+      }
+    }
+
+    if (assigneeChanged && payload.assignedTo) {
+      if (user.organizationId) {
+        await createNotification({
+          userId: payload.assignedTo,
+          organizationId: user.organizationId,
+          actorId: user.id,
+          type: "TASK_ASSIGNED",
+          title: "Task assigned to you",
+          message: `You have been assigned to the task "${task.title}"`,
+          entityType: "TASK",
+          entityId: task.id,
+        });
+      }
+
       notifyTaskAssignedEmail(id, user.name, new Date()).catch((err) => {
         console.error("[Notification] Failed to send email notification:", err);
       });

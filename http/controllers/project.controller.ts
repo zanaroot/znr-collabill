@@ -9,6 +9,7 @@ import {
   projectRoleEnum,
   updateProjectSchema,
 } from "@/http/models/project.model";
+import { createNotification } from "@/http/repositories/notification.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 
@@ -401,6 +402,18 @@ export const addProjectMember = factory.createHandlers(
     }
 
     const member = await projectRepository.addProjectMember(id, userId);
+
+    await createNotification({
+      userId,
+      organizationId: user.organizationId,
+      actorId: user.id,
+      type: "PROJECT_MEMBER_ADDED",
+      title: "Added to a project",
+      message: `You have been added to the project "${project.name}"`,
+      entityType: "PROJECT",
+      entityId: project.id,
+    });
+
     return c.json(member, 201);
   },
 );
