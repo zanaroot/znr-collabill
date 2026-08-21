@@ -90,24 +90,3 @@ export const markNotificationAsRead = async (
 
   return notification;
 };
-
-export const markAllNotificationsAsRead = async (
-  userId: string,
-  organizationId: string,
-) => {
-  return db
-    .update(notifications)
-    .set({
-      isRead: true,
-      readAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(notifications.userId, userId),
-        eq(notifications.organizationId, organizationId),
-        eq(notifications.isRead, false),
-      ),
-    )
-    .returning();
-};
