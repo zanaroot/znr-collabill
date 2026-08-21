@@ -9,6 +9,7 @@ import {
   updateInvoiceStatusSchema,
 } from "@/http/models/invoice.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
+import { createNotification } from "@/http/repositories/notification.repository";
 import {
   archiveTasksByIds,
   getValidatedTaskIdsByPeriodAndReviewer,
@@ -62,6 +63,8 @@ export const updateInvoiceStatus = factory.createHandlers(
     const id = c.req.param("id");
     const user = c.get("user");
     const { status } = c.req.valid("json");
+
+    console.log("[Invoice] Status received:", status);
 
     if (!id) {
       return c.json({ error: "Invoice ID is required" }, 400);
@@ -143,6 +146,28 @@ export const updateInvoiceStatus = factory.createHandlers(
 
     const updated = await invoiceRepository.updateInvoice(id, updateParams);
 
+    console.log("[Invoice] Updated:", {
+      previousStatus: invoice.status,
+      newStatus: status,
+      invoiceUserId: invoice.userId,
+      updatedId: updated?.id,
+    });
+
+    if (updated && user.organizationId) {
+      if (status === "PAID" && invoice.status !== "PAID") {
+        await createNotification({
+          userId: invoice.userId,
+          organizationId: user.organizationId,
+          actorId: user.id,
+          type: "INVOICE_PAID",
+          title: "Invoice paid",
+          message: "Your invoice has been paid.",
+          entityType: "INVOICE",
+          entityId: invoice.id,
+        });
+      }
+    }
+
     await logAudit({
       organizationId: user.organizationId,
       actorId: user.id,
@@ -175,6 +200,17 @@ export const createInvoice = factory.createHandlers(
 
     if (invoice.status === "VALIDATED") {
       console.log("Invoice validated - sending finance email");
+
+      await createNotification({
+        userId: invoice.userId,
+        organizationId: user.organizationId,
+        actorId: user.id,
+        type: "INVOICE_UPDATED",
+        title: "Invoice validated",
+        message: "Your invoice has been validated.",
+        entityType: "INVOICE",
+        entityId: invoice.id,
+      });
 
       sendFinanceInvoiceNotification(invoice.id, "VALIDATED").catch((err) => {
         console.error(

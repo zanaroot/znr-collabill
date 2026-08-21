@@ -27,6 +27,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { type ReactNode, Suspense, useEffect, useState } from "react";
 import { cn } from "@/app/_utils/class-name";
+import { NotificationPopover } from "@/app/(private)/_components/notifications/_components/notification-popover";
 import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import { useLastProject } from "@/app/(private)/_providers/last-projects-providers";
@@ -158,12 +159,12 @@ export const PrivateLayout = ({
     },
     ...(hasAdminAccess
       ? [
-          {
-            key: "type-organization",
-            icon: <ApartmentOutlined />,
-            label: "Organizations",
-          },
-        ]
+        {
+          key: "type-organization",
+          icon: <ApartmentOutlined />,
+          label: "Organizations",
+        },
+      ]
       : []),
   ];
 
@@ -229,7 +230,7 @@ export const PrivateLayout = ({
               className={cn(
                 "flex items-center gap-3 rounded-lg py-3 px-4 mb-1 no-underline transition-all bg-transparent dark:text-inherit! text-black! font-normal",
                 selectedKey === item.key &&
-                  "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
+                "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
               )}
             >
               <span style={{ fontSize: 16, display: "flex" }}>{item.icon}</span>
@@ -288,7 +289,10 @@ export const PrivateLayout = ({
               </Suspense>
             </Col>
             <Col className="header-right">
+
               <Space size={16}>
+                <NotificationPopover />
+
                 <UserDropdownMenus
                   isPresent={isPresent}
                   onPresenceClick={handlePresenceClick}

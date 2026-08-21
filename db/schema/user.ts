@@ -9,6 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { roleEnum } from "./enums";
+import { notifications } from "./notification";
 import { organizations } from "./organization";
 
 export const users = pgTable("users", {
@@ -67,6 +68,14 @@ export const collaboratorRates = pgTable(
 export const usersRelations = relations(users, ({ many }) => ({
   roles: many(userRoles),
   collaboratorRates: many(collaboratorRates),
+
+  receivedNotifications: many(notifications, {
+    relationName: "receivedNotifications",
+  }),
+
+  createdNotifications: many(notifications, {
+    relationName: "createdNotifications",
+  }),
 }));
 
 export const userRolesRelations = relations(userRoles, ({ one }) => ({
