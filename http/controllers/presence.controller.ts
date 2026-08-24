@@ -6,6 +6,7 @@ import {
   markPresenceSchema,
   type PresenceStatus,
 } from "@/http/models/presence.model";
+import { createNotification } from "@/http/repositories/notification.repository";
 import * as presenceRepository from "@/http/repositories/presence.repository";
 import { getISODate } from "@/lib/date";
 
@@ -151,6 +152,17 @@ export const createMemberAbsence = factory.createHandlers(
       createdBy: user.id,
       date,
       status,
+    });
+
+    await createNotification({
+      userId,
+      organizationId: user.organizationId,
+      actorId: user.id,
+      type: "PRESENCE_UPDATED",
+      title: "Absence added",
+      message: `A ${status.toLowerCase().replace("_", " ")} absence has been added to your attendance record.`,
+      entityType: "PRESENCE",
+      entityId: absence.id,
     });
 
     return c.json(absence, 201);

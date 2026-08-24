@@ -27,6 +27,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { type ReactNode, Suspense, useEffect, useState } from "react";
 import { cn } from "@/app/_utils/class-name";
+import { NotificationPopover } from "@/app/(private)/_components/notifications/_components/notification-popover";
 import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
 import { useLastProject } from "@/app/(private)/_providers/last-projects-providers";
@@ -289,6 +290,8 @@ export const PrivateLayout = ({
             </Col>
             <Col className="header-right">
               <Space size={16}>
+                <NotificationPopover />
+
                 <UserDropdownMenus
                   isPresent={isPresent}
                   onPresenceClick={handlePresenceClick}

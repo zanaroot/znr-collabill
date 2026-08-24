@@ -5,6 +5,7 @@ export * from "./integration";
 export * from "./invoice";
 export * from "./invoice-comment";
 export * from "./leave";
+export * from "./notification";
 export * from "./organization";
 export * from "./presence";
 export * from "./project";

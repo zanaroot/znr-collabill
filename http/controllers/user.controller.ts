@@ -16,6 +16,7 @@ import {
   deleteInvitationById,
   getAllInvitations,
 } from "@/http/repositories/invitation.repository";
+import { createNotification } from "@/http/repositories/notification.repository";
 import {
   getOrganizationMembers,
   removeOrganizationMember,
@@ -387,6 +388,20 @@ export const updateCollaboratorRateHandler = factory.createHandlers(
       currentUser.organizationId,
       rates,
     );
+
+    if (isOwner && user) {
+      await createNotification({
+        userId: id,
+        organizationId: currentUser.organizationId,
+        actorId: currentUser.id,
+        type: "RATE_UPDATED",
+        title: "Rates updated",
+        message:
+          "Your billing rates have been updated by the organization owner.",
+        entityType: "RATE",
+        entityId: id,
+      });
+    }
 
     if (isOwner && user) {
       console.log("RATE UPDATE EMAIL START", {

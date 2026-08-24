@@ -67,3 +67,43 @@ export const attendanceStatusEnum = pgEnum("attendance_status", [
   "VACATION",
   "ON_LEAVE",
 ]);
+
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "TASK_ASSIGNED",
+  "TASK_REVIEWER_ASSIGNED",
+  "TASK_UPDATED",
+  "TASK_COMMENTED",
+
+  "PROJECT_CREATED",
+  "PROJECT_UPDATED",
+  "PROJECT_MEMBER_ADDED",
+  "PROJECT_MEMBER_REMOVED",
+
+  "RATE_CREATED",
+  "RATE_UPDATED",
+
+  "INVOICE_CREATED",
+  "INVOICE_UPDATED",
+  "INVOICE_VALIDATED",
+  "INVOICE_PAID",
+
+  "LEAVE_REQUESTED",
+  "LEAVE_APPROVED",
+  "LEAVE_REJECTED",
+
+  "PRESENCE_UPDATED",
+
+  "MEMBER_ADDED",
+  "MEMBER_REMOVED",
+]);
+
+export const notificationEntityTypeEnum = pgEnum("notification_entity_type", [
+  "TASK",
+  "PROJECT",
+  "RATE",
+  "INVOICE",
+  "LEAVE",
+  "PRESENCE",
+  "MEMBER",
+  "ORGANIZATION",
+]);

@@ -1,0 +1,1 @@
+ALTER TYPE "public"."notification_type" ADD VALUE 'INVOICE_VALIDATED' BEFORE 'INVOICE_PAID';

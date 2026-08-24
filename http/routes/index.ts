@@ -1,6 +1,7 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { Hono } from "hono";
 import { authMiddleware } from "@/http/middleware/auth.middleware";
+import { notificationRoutes } from "@/http/routes/notification.routes";
 import { authRoutes } from "./auth.route";
 import { openAPIDocument } from "./docs/open-api.doc";
 import { integrationRoutes } from "./integration.route";
@@ -31,7 +32,8 @@ export const app = new Hono()
   .route("/presence", presenceRoutes)
   .route("/leave-requests", leaveRoutes)
   .route("/projects", projectRoutes)
-  .route("/tasks", taskRoutes);
+  .route("/tasks", taskRoutes)
+  .route("/notifications", notificationRoutes);
 
 app.get("/openapi.json", (c) => c.json(openAPIDocument));
 
