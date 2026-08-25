@@ -3,7 +3,7 @@ import { z } from "zod";
 const PRESENCE_STATUSES = [
   "OFFICE",
   "REMOTE",
-  "ON_SITE",
+  "HALF_DAY",
   "SICK",
   "VACATION",
   "ON_LEAVE",

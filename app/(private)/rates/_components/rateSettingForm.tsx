@@ -62,7 +62,7 @@ interface RateSettingsFormProps {
   presenceTypes: {
     OFFICE: { enabled: boolean; rate: number };
     REMOTE: { enabled: boolean; rate: number };
-    ON_SITE: { enabled: boolean; rate: number };
+    HALF_DAY: { enabled: boolean; rate: number };
     SICK: { enabled: boolean; rate: number };
     VACATION: { enabled: boolean; rate: number };
     ON_LEAVE: { enabled: boolean; rate: number };
@@ -72,7 +72,7 @@ interface RateSettingsFormProps {
     React.SetStateAction<{
       OFFICE: { enabled: boolean; rate: number };
       REMOTE: { enabled: boolean; rate: number };
-      ON_SITE: { enabled: boolean; rate: number };
+      HALF_DAY: { enabled: boolean; rate: number };
       SICK: { enabled: boolean; rate: number };
       VACATION: { enabled: boolean; rate: number };
       ON_LEAVE: { enabled: boolean; rate: number };
@@ -165,11 +165,10 @@ export default function RateSettingsForm({
 
             <span>
               {isOwner
-                ? `Rates for ${
-                    selectedUserId
-                      ? users.find((user) => user.id === selectedUserId)?.name
-                      : "Member"
-                  }`
+                ? `Rates for ${selectedUserId
+                  ? users.find((user) => user.id === selectedUserId)?.name
+                  : "Member"
+                }`
                 : "My Rates"}
             </span>
           </Space>
@@ -253,10 +252,10 @@ export default function RateSettingsForm({
                 onChange={
                   isOwner
                     ? (e) =>
-                        setRates((prev) => ({
-                          ...prev,
-                          dailyRate: e.target.value,
-                        }))
+                      setRates((prev) => ({
+                        ...prev,
+                        dailyRate: e.target.value,
+                      }))
                     : undefined
                 }
               />
@@ -373,20 +372,20 @@ export default function RateSettingsForm({
                 <Flex align="center" gap={8}>
                   <span>📍</span>
 
-                  <Text disabled={!presenceTypes.ON_SITE.enabled}>On Site</Text>
+                  <Text disabled={!presenceTypes.HALF_DAY.enabled}>Half Day</Text>
                 </Flex>
 
                 <InputNumber
-                  disabled={!presenceTypes.ON_SITE.enabled}
+                  disabled={!presenceTypes.HALF_DAY.enabled}
                   min={0}
                   max={500}
-                  value={presenceTypes.ON_SITE.rate}
+                  value={presenceTypes.HALF_DAY.rate}
                   suffix="%"
                   onChange={(value) =>
                     setPresenceTypes((prev) => ({
                       ...prev,
-                      ON_SITE: {
-                        ...prev.ON_SITE,
+                      HALF_DAY: {
+                        ...prev.HALF_DAY,
                         rate: value ?? 0,
                       },
                     }))

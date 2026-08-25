@@ -27,7 +27,7 @@ interface RateSettingsPanelProps {
 const DEFAULT_PRESENCE_TYPES = {
   OFFICE: { enabled: true, rate: 100 },
   REMOTE: { enabled: false, rate: 100 },
-  ON_SITE: { enabled: false, rate: 100 },
+  HALF_DAY: { enabled: false, rate: 100 },
   SICK: { enabled: true, rate: 100 },
   VACATION: { enabled: true, rate: 100 },
   ON_LEAVE: { enabled: true, rate: 100 },
@@ -166,7 +166,7 @@ export default function RateSettingsPanel({
               type: type as
                 | "OFFICE"
                 | "REMOTE"
-                | "ON_SITE"
+                | "HALF_DAY"
                 | "SICK"
                 | "VACATION"
                 | "ON_LEAVE",

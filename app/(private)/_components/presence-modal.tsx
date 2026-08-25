@@ -33,6 +33,7 @@ export const PresenceModal = ({
   );
 
   const attendanceSettings = attendanceData?.settings;
+  console.log("attendanceSettings:", attendanceSettings);
   const presenceSelectionEnabled =
     attendanceData?.presenceSelectionEnabled ?? false;
 
@@ -157,13 +158,13 @@ export const PresenceModal = ({
                 ?.filter(
                   (setting) =>
                     setting.enabled &&
-                    ["OFFICE", "REMOTE", "ON_SITE"].includes(setting.type),
+                    ["OFFICE", "REMOTE", "HALF_DAY"].includes(setting.type),
                 )
                 .map((setting) => (
                   <Radio key={setting.type} value={setting.type}>
                     {setting.type === "OFFICE" && "🏢 Office"}
                     {setting.type === "REMOTE" && "💻 Remote"}
-                    {setting.type === "ON_SITE" && "📍 On Site"}
+                    {setting.type === "HALF_DAY" && "📅 Half Day"}
                   </Radio>
                 ))}
 

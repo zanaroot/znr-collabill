@@ -37,7 +37,7 @@ export const OrganizationSettingsPanel = ({
       enabled: false,
       rate: 100,
     },
-    ON_SITE: {
+    HALF_DAY: {
       enabled: false,
       rate: 120,
     },
@@ -110,7 +110,7 @@ export const OrganizationSettingsPanel = ({
               type: type as
                 | "OFFICE"
                 | "REMOTE"
-                | "ON_SITE"
+                | "HALF_DAY"
                 | "SICK"
                 | "VACATION"
                 | "ON_LEAVE",
@@ -187,18 +187,18 @@ export const OrganizationSettingsPanel = ({
 
                 <Checkbox
                   disabled={!presenceSelectionEnabled}
-                  checked={presenceTypes.ON_SITE.enabled}
+                  checked={presenceTypes.HALF_DAY.enabled}
                   onChange={(e) =>
                     setPresenceTypes((prev) => ({
                       ...prev,
-                      ON_SITE: {
-                        ...prev.ON_SITE,
+                      HALF_DAY: {
+                        ...prev.HALF_DAY,
                         enabled: e.target.checked,
                       },
                     }))
                   }
                 >
-                  📍 On Site
+                  🕐 Half day
                 </Checkbox>
               </Flex>
             </Flex>
@@ -237,15 +237,15 @@ export const OrganizationSettingsPanel = ({
               </Flex>
 
               <Flex justify="space-between" align="center">
-                <Text disabled={!presenceTypes.ON_SITE.enabled}>
-                  📍 On Site
+                <Text disabled={!presenceTypes.HALF_DAY.enabled}>
+                  🕐 Half day
                 </Text>
 
                 <InputNumber
-                  disabled={!presenceTypes.ON_SITE.enabled}
+                  disabled={!presenceTypes.HALF_DAY.enabled}
                   min={0}
                   max={500}
-                  value={presenceTypes.ON_SITE.rate}
+                  value={presenceTypes.HALF_DAY.rate}
                   suffix="%"
                 />
               </Flex>
