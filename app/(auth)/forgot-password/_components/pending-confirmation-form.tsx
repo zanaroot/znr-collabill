@@ -1,12 +1,47 @@
-import { Card, Typography } from "antd";
+import { Typography } from "antd";
+import Link from "next/link";
 
 export const PendingConfirmationForm = () => (
-  <div>
-    <Card title="Pending Confirmation">
-      <Typography.Text>
-        Please check your email for a confirmation link. If you haven&apos;t
-        received it, check your spam folder.
+  <div className="auth-card">
+    <div className="auth-card-header">
+      <div className="auth-icon-wrapper success">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-label="Success"
+          role="img"
+        >
+          <path
+            d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.7089 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M22 4L12 14.01L9 11.01"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+      <Typography.Title level={2} className="auth-card-title">
+        Check your email
+      </Typography.Title>
+      <Typography.Text type="secondary" className="auth-card-subtitle">
+        We&apos;ve sent a password reset link to your email address. Please
+        check your inbox and follow the instructions.
       </Typography.Text>
-    </Card>
+    </div>
+
+    <div className="auth-card-footer">
+      <Link href="/sign-in" className="auth-back-link">
+        Back to sign in
+      </Link>
+    </div>
   </div>
 );
