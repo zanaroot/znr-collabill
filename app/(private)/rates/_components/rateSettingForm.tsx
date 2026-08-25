@@ -165,10 +165,11 @@ export default function RateSettingsForm({
 
             <span>
               {isOwner
-                ? `Rates for ${selectedUserId
-                  ? users.find((user) => user.id === selectedUserId)?.name
-                  : "Member"
-                }`
+                ? `Rates for ${
+                    selectedUserId
+                      ? users.find((user) => user.id === selectedUserId)?.name
+                      : "Member"
+                  }`
                 : "My Rates"}
             </span>
           </Space>
@@ -252,10 +253,10 @@ export default function RateSettingsForm({
                 onChange={
                   isOwner
                     ? (e) =>
-                      setRates((prev) => ({
-                        ...prev,
-                        dailyRate: e.target.value,
-                      }))
+                        setRates((prev) => ({
+                          ...prev,
+                          dailyRate: e.target.value,
+                        }))
                     : undefined
                 }
               />
@@ -374,7 +375,9 @@ export default function RateSettingsForm({
                 <Flex align="center" gap={8}>
                   <span>🕐</span>
 
-                  <Text disabled={!presenceTypes.HALF_DAY.enabled}>Half Day</Text>
+                  <Text disabled={!presenceTypes.HALF_DAY.enabled}>
+                    Half Day
+                  </Text>
                 </Flex>
 
                 <InputNumber
