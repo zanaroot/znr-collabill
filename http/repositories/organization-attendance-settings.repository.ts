@@ -29,7 +29,7 @@ export async function upsertOrganizationAttendanceSettings(
   organizationId: string,
   presenceSelectionEnabled: boolean,
   settings: {
-    type: "OFFICE" | "REMOTE" | "ON_SITE" | "SICK" | "VACATION" | "ON_LEAVE";
+    type: "OFFICE" | "REMOTE" | "HALF_DAY" | "SICK" | "VACATION" | "ON_LEAVE";
     enabled: boolean;
     rate: number;
   }[],

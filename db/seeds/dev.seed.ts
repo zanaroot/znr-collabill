@@ -94,7 +94,7 @@ async function seedPresences(collaboratorId: string, organizationId: string) {
     },
     {
       date: "2026-02-12",
-      status: "ON_SITE" as const,
+      status: "HALF_DAY" as const,
       checkIn: "08:30",
       checkOut: "18:00",
     },

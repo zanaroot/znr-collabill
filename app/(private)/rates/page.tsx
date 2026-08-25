@@ -4,11 +4,7 @@ import RateSettingsPanel from "./_components/rateSettingsPanel";
 import { useMyOrganizations } from "./hook/useMyOrganizations";
 
 const RateSettingsPage = () => {
-  const { data: organizations, isLoading } = useMyOrganizations();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  const { data: organizations } = useMyOrganizations();
 
   const organization = organizations?.[0];
 

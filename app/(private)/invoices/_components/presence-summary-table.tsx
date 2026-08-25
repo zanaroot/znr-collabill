@@ -7,7 +7,7 @@ const { Text } = Typography;
 export interface PresenceSummary {
   userId: string;
   userName: string;
-  type: "OFFICE" | "REMOTE" | "ON_SITE" | "SICK" | "VACATION" | "ON_LEAVE";
+  type: "OFFICE" | "REMOTE" | "HALF_DAY" | "SICK" | "VACATION" | "ON_LEAVE";
   count: number;
   dailyRate: string | null;
   rate: number;

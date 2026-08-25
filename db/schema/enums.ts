@@ -30,7 +30,7 @@ export const invoiceStatusEnum = pgEnum("invoice_status", [
 export const presenceStatusEnum = pgEnum("presence_status", [
   "OFFICE",
   "REMOTE",
-  "ON_SITE",
+  "HALF_DAY",
   "SICK",
   "VACATION",
   "ON_LEAVE",
@@ -62,7 +62,7 @@ export const integrationTypeEnum = pgEnum("integration_type", [
 export const attendanceStatusEnum = pgEnum("attendance_status", [
   "OFFICE",
   "REMOTE",
-  "ON_SITE",
+  "HALF_DAY",
   "SICK",
   "VACATION",
   "ON_LEAVE",

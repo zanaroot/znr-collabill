@@ -16,7 +16,7 @@ interface LeaveCalendarProps {
 const STATUS_COLORS: Record<string, string> = {
   OFFICE: "#52c41a",
   REMOTE: "#1890ff",
-  ON_SITE: "#722ed1",
+  HALF_DAY: "#722ed1",
   SICK: "#fa541c",
   VACATION: "#eb2f96",
   ON_LEAVE: "#faad14",

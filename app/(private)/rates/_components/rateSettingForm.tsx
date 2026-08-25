@@ -62,7 +62,7 @@ interface RateSettingsFormProps {
   presenceTypes: {
     OFFICE: { enabled: boolean; rate: number };
     REMOTE: { enabled: boolean; rate: number };
-    ON_SITE: { enabled: boolean; rate: number };
+    HALF_DAY: { enabled: boolean; rate: number };
     SICK: { enabled: boolean; rate: number };
     VACATION: { enabled: boolean; rate: number };
     ON_LEAVE: { enabled: boolean; rate: number };
@@ -72,7 +72,7 @@ interface RateSettingsFormProps {
     React.SetStateAction<{
       OFFICE: { enabled: boolean; rate: number };
       REMOTE: { enabled: boolean; rate: number };
-      ON_SITE: { enabled: boolean; rate: number };
+      HALF_DAY: { enabled: boolean; rate: number };
       SICK: { enabled: boolean; rate: number };
       VACATION: { enabled: boolean; rate: number };
       ON_LEAVE: { enabled: boolean; rate: number };
@@ -324,6 +324,7 @@ export default function RateSettingsForm({
                   disabled={!presenceTypes.OFFICE.enabled}
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.OFFICE.rate}
                   suffix="%"
                   onChange={(value) =>
@@ -352,6 +353,7 @@ export default function RateSettingsForm({
                   disabled={!presenceTypes.REMOTE.enabled}
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.REMOTE.rate}
                   suffix="%"
                   onChange={(value) =>
@@ -371,22 +373,25 @@ export default function RateSettingsForm({
 
               <Flex justify="space-between" align="center">
                 <Flex align="center" gap={8}>
-                  <span>📍</span>
+                  <span>🕐</span>
 
-                  <Text disabled={!presenceTypes.ON_SITE.enabled}>On Site</Text>
+                  <Text disabled={!presenceTypes.HALF_DAY.enabled}>
+                    Half Day
+                  </Text>
                 </Flex>
 
                 <InputNumber
-                  disabled={!presenceTypes.ON_SITE.enabled}
+                  disabled={!presenceTypes.HALF_DAY.enabled}
                   min={0}
                   max={500}
-                  value={presenceTypes.ON_SITE.rate}
+                  readOnly={!isOwner}
+                  value={presenceTypes.HALF_DAY.rate}
                   suffix="%"
                   onChange={(value) =>
                     setPresenceTypes((prev) => ({
                       ...prev,
-                      ON_SITE: {
-                        ...prev.ON_SITE,
+                      HALF_DAY: {
+                        ...prev.HALF_DAY,
                         rate: value ?? 0,
                       },
                     }))
@@ -433,6 +438,7 @@ export default function RateSettingsForm({
                 <InputNumber
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.SICK.rate}
                   suffix="%"
                   onChange={(value) =>
@@ -457,6 +463,7 @@ export default function RateSettingsForm({
                 <InputNumber
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.VACATION.rate}
                   suffix="%"
                   onChange={(value) =>
@@ -481,6 +488,7 @@ export default function RateSettingsForm({
                 <InputNumber
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.ON_LEAVE.rate}
                   suffix="%"
                   onChange={(value) =>

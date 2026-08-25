@@ -326,7 +326,7 @@ export const updateOrganizationAttendanceSettings = factory.createHandlers(
           type: z.enum([
             "OFFICE",
             "REMOTE",
-            "ON_SITE",
+            "HALF_DAY",
             "SICK",
             "VACATION",
             "ON_LEAVE",

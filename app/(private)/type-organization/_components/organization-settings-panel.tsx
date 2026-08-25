@@ -37,7 +37,7 @@ export const OrganizationSettingsPanel = ({
       enabled: false,
       rate: 100,
     },
-    ON_SITE: {
+    HALF_DAY: {
       enabled: false,
       rate: 120,
     },
@@ -97,20 +97,21 @@ export const OrganizationSettingsPanel = ({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return client.api.organizations[":organizationId"][
+      const response = await client.api.organizations[":organizationId"][
         "attendance-settings"
       ].$put({
         param: {
           organizationId,
         },
         json: {
-          presenceSelectionEnabled,
+          presenceSelectionEnabled: presenceSelectionEnabled ?? true,
+
           settings: Object.entries(presenceTypes).map(
             ([type, { enabled, rate }]) => ({
               type: type as
                 | "OFFICE"
                 | "REMOTE"
-                | "ON_SITE"
+                | "HALF_DAY"
                 | "SICK"
                 | "VACATION"
                 | "ON_LEAVE",
@@ -120,12 +121,28 @@ export const OrganizationSettingsPanel = ({
           ),
         },
       });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error("Failed to update attendance settings:", error);
+
+        throw new Error("Failed to update attendance settings");
+      }
+
+      return response.json();
     },
+
     onSuccess: () => {
       message.success("Settings saved");
+
       queryClient.invalidateQueries({
         queryKey: ["organization-attendance-settings", organizationId],
       });
+    },
+
+    onError: (error) => {
+      console.error("Attendance settings error:", error);
+      message.error("Failed to save settings");
     },
   });
 
@@ -187,18 +204,18 @@ export const OrganizationSettingsPanel = ({
 
                 <Checkbox
                   disabled={!presenceSelectionEnabled}
-                  checked={presenceTypes.ON_SITE.enabled}
+                  checked={presenceTypes.HALF_DAY.enabled}
                   onChange={(e) =>
                     setPresenceTypes((prev) => ({
                       ...prev,
-                      ON_SITE: {
-                        ...prev.ON_SITE,
+                      HALF_DAY: {
+                        ...prev.HALF_DAY,
                         enabled: e.target.checked,
                       },
                     }))
                   }
                 >
-                  📍 On Site
+                  🕐 Half day
                 </Checkbox>
               </Flex>
             </Flex>
@@ -221,6 +238,15 @@ export const OrganizationSettingsPanel = ({
                   max={500}
                   value={presenceTypes.OFFICE.rate}
                   suffix="%"
+                  onChange={(value) =>
+                    setPresenceTypes((prev) => ({
+                      ...prev,
+                      OFFICE: {
+                        ...prev.OFFICE,
+                        rate: value ?? 0,
+                      },
+                    }))
+                  }
                 />
               </Flex>
 
@@ -233,20 +259,38 @@ export const OrganizationSettingsPanel = ({
                   max={500}
                   value={presenceTypes.REMOTE.rate}
                   suffix="%"
+                  onChange={(value) =>
+                    setPresenceTypes((prev) => ({
+                      ...prev,
+                      REMOTE: {
+                        ...prev.REMOTE,
+                        rate: value ?? 0,
+                      },
+                    }))
+                  }
                 />
               </Flex>
 
               <Flex justify="space-between" align="center">
-                <Text disabled={!presenceTypes.ON_SITE.enabled}>
-                  📍 On Site
+                <Text disabled={!presenceTypes.HALF_DAY.enabled}>
+                  🕐 Half day
                 </Text>
 
                 <InputNumber
-                  disabled={!presenceTypes.ON_SITE.enabled}
+                  disabled={!presenceTypes.HALF_DAY.enabled}
                   min={0}
                   max={500}
-                  value={presenceTypes.ON_SITE.rate}
+                  value={presenceTypes.HALF_DAY.rate}
                   suffix="%"
+                  onChange={(value) =>
+                    setPresenceTypes((prev) => ({
+                      ...prev,
+                      HALF_DAY: {
+                        ...prev.HALF_DAY,
+                        rate: value ?? 0,
+                      },
+                    }))
+                  }
                 />
               </Flex>
             </Flex>
