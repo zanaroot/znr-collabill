@@ -1,6 +1,9 @@
 ALTER TABLE "organization_attendance_settings" ALTER COLUMN "type" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "presences" ALTER COLUMN "status" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "presences" ALTER COLUMN "status" SET DEFAULT 'OFFICE'::text;--> statement-breakpoint
+-- Normalize legacy values before recreating enum
+UPDATE "organization_attendance_settings" SET "type" = 'HALF_DAY' WHERE "type" = 'ON_SITE';
+UPDATE "presences" SET "status" = 'HALF_DAY' WHERE "status" = 'ON_SITE';
 DROP TYPE "public"."attendance_status";--> statement-breakpoint
 CREATE TYPE "public"."attendance_status" AS ENUM('OFFICE', 'REMOTE', 'HALF_DAY', 'SICK', 'VACATION', 'ON_LEAVE');--> statement-breakpoint
 ALTER TABLE "organization_attendance_settings" ALTER COLUMN "type" SET DATA TYPE "public"."attendance_status" USING "type"::"public"."attendance_status";--> statement-breakpoint
