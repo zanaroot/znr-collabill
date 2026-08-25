@@ -97,14 +97,15 @@ export const OrganizationSettingsPanel = ({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return client.api.organizations[":organizationId"][
+      const response = await client.api.organizations[":organizationId"][
         "attendance-settings"
       ].$put({
         param: {
           organizationId,
         },
         json: {
-          presenceSelectionEnabled,
+          presenceSelectionEnabled: presenceSelectionEnabled ?? true,
+
           settings: Object.entries(presenceTypes).map(
             ([type, { enabled, rate }]) => ({
               type: type as
@@ -120,12 +121,28 @@ export const OrganizationSettingsPanel = ({
           ),
         },
       });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error("Failed to update attendance settings:", error);
+
+        throw new Error("Failed to update attendance settings");
+      }
+
+      return response.json();
     },
+
     onSuccess: () => {
       message.success("Settings saved");
+
       queryClient.invalidateQueries({
         queryKey: ["organization-attendance-settings", organizationId],
       });
+    },
+
+    onError: (error) => {
+      console.error("Attendance settings error:", error);
+      message.error("Failed to save settings");
     },
   });
 
@@ -221,6 +238,15 @@ export const OrganizationSettingsPanel = ({
                   max={500}
                   value={presenceTypes.OFFICE.rate}
                   suffix="%"
+                  onChange={(value) =>
+                    setPresenceTypes((prev) => ({
+                      ...prev,
+                      OFFICE: {
+                        ...prev.OFFICE,
+                        rate: value ?? 0,
+                      },
+                    }))
+                  }
                 />
               </Flex>
 
@@ -233,6 +259,15 @@ export const OrganizationSettingsPanel = ({
                   max={500}
                   value={presenceTypes.REMOTE.rate}
                   suffix="%"
+                  onChange={(value) =>
+                    setPresenceTypes((prev) => ({
+                      ...prev,
+                      REMOTE: {
+                        ...prev.REMOTE,
+                        rate: value ?? 0,
+                      },
+                    }))
+                  }
                 />
               </Flex>
 
@@ -247,6 +282,15 @@ export const OrganizationSettingsPanel = ({
                   max={500}
                   value={presenceTypes.HALF_DAY.rate}
                   suffix="%"
+                  onChange={(value) =>
+                    setPresenceTypes((prev) => ({
+                      ...prev,
+                      HALF_DAY: {
+                        ...prev.HALF_DAY,
+                        rate: value ?? 0,
+                      },
+                    }))
+                  }
                 />
               </Flex>
             </Flex>

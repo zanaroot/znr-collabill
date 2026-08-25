@@ -164,7 +164,7 @@ export const PresenceModal = ({
                   <Radio key={setting.type} value={setting.type}>
                     {setting.type === "OFFICE" && "🏢 Office"}
                     {setting.type === "REMOTE" && "💻 Remote"}
-                    {setting.type === "HALF_DAY" && "📅 Half Day"}
+                    {setting.type === "HALF_DAY" && "🕐 Half Day"}
                   </Radio>
                 ))}
 

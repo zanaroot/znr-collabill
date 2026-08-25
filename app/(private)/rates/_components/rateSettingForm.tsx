@@ -323,6 +323,7 @@ export default function RateSettingsForm({
                   disabled={!presenceTypes.OFFICE.enabled}
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.OFFICE.rate}
                   suffix="%"
                   onChange={(value) =>
@@ -351,6 +352,7 @@ export default function RateSettingsForm({
                   disabled={!presenceTypes.REMOTE.enabled}
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.REMOTE.rate}
                   suffix="%"
                   onChange={(value) =>
@@ -370,7 +372,7 @@ export default function RateSettingsForm({
 
               <Flex justify="space-between" align="center">
                 <Flex align="center" gap={8}>
-                  <span>📍</span>
+                  <span>🕐</span>
 
                   <Text disabled={!presenceTypes.HALF_DAY.enabled}>Half Day</Text>
                 </Flex>
@@ -379,6 +381,7 @@ export default function RateSettingsForm({
                   disabled={!presenceTypes.HALF_DAY.enabled}
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.HALF_DAY.rate}
                   suffix="%"
                   onChange={(value) =>
@@ -432,6 +435,7 @@ export default function RateSettingsForm({
                 <InputNumber
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.SICK.rate}
                   suffix="%"
                   onChange={(value) =>
@@ -456,6 +460,7 @@ export default function RateSettingsForm({
                 <InputNumber
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.VACATION.rate}
                   suffix="%"
                   onChange={(value) =>
@@ -480,6 +485,7 @@ export default function RateSettingsForm({
                 <InputNumber
                   min={0}
                   max={500}
+                  readOnly={!isOwner}
                   value={presenceTypes.ON_LEAVE.rate}
                   suffix="%"
                   onChange={(value) =>
