@@ -1141,3 +1141,8 @@ h4 {
 .dark .auth-card .ant-input-password-icon {
   color: #64748b;
 }
+.tiptap img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { Extension } from "@tiptap/core";
 import CharacterCount from "@tiptap/extension-character-count";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
@@ -14,8 +15,56 @@ import {
   CodeBlockShortcut,
   TaskShortcut,
 } from "@/app/_components/editor/shortcut";
+import {
+  isAllowedImageSrc,
+  normalizeDescriptionImageUrl,
+} from "@/lib/description-image-url";
 import { Commands } from "./commands";
 import { suggestion } from "./suggestion";
+
+declare module "@tiptap/core" {
+  interface Storage {
+    imageUploadTrigger: {
+      openFilePicker: (() => void) | null;
+    };
+  }
+}
+
+export const ImageUploadTrigger = Extension.create({
+  name: "imageUploadTrigger",
+
+  addStorage() {
+    return {
+      openFilePicker: null as (() => void) | null,
+    };
+  },
+});
+
+const ValidatedImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      src: {
+        default: null,
+        parseHTML: (element) => {
+          const src = element.getAttribute("src");
+          if (!src || !isAllowedImageSrc(src)) {
+            return null;
+          }
+
+          return normalizeDescriptionImageUrl(src) ?? src;
+        },
+        renderHTML: (attributes) => {
+          if (!attributes.src) {
+            return {};
+          }
+
+          return { src: attributes.src };
+        },
+      },
+    };
+  },
+});
 
 export const extensions = [
   Markdown.configure({
@@ -70,12 +119,14 @@ export const extensions = [
         "text-blue-500 underline decoration-blue-500 underline-offset-4 cursor-pointer",
     },
   }),
-  Image.configure({
+  ValidatedImage.configure({
+    allowBase64: false,
     HTMLAttributes: {
       class:
         "rounded-xl border border-zinc-200 shadow-sm transition-all hover:shadow-md dark:border-zinc-800",
     },
   }),
+  ImageUploadTrigger,
   Placeholder.configure({
     placeholder: "Type '/' for commands or start writing...",
     emptyEditorClass: "is-editor-empty",

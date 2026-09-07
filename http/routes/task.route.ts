@@ -5,6 +5,7 @@ import {
   getTasksByPeriod,
   getTasksByProject,
   updateTask,
+  uploadEditorImage,
 } from "@/http/controllers/task.controller";
 
 export const taskRoutes = new Hono()
@@ -12,4 +13,5 @@ export const taskRoutes = new Hono()
   .get("/project/:projectId/period", ...getTasksByPeriod)
   .post("/", ...createTask)
   .put("/:id", ...updateTask)
-  .delete("/:id", ...deleteTask);
+  .delete("/:id", ...deleteTask)
+  .post("/upload-image", ...uploadEditorImage);
