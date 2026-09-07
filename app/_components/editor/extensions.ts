@@ -30,7 +30,7 @@ declare module "@tiptap/core" {
   }
 }
 
-export const ImageUploadTrigger = Extension.create({
+const ImageUploadTrigger = Extension.create({
   name: "imageUploadTrigger",
 
   addStorage() {
