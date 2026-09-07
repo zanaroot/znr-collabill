@@ -33,9 +33,9 @@ export const PresenceModal = ({
   );
 
   const attendanceSettings = attendanceData?.settings;
-  console.log("attendanceSettings:", attendanceSettings);
   const presenceSelectionEnabled =
     attendanceData?.presenceSelectionEnabled ?? false;
+  const configured = attendanceData?.configured ?? false;
 
   const { data: todayPresence, refetch: refetchPresence } = useQuery({
     queryKey: ["today-presence"],
@@ -43,17 +43,25 @@ export const PresenceModal = ({
       const res = await client.api.presence.today.$get();
       return res.json();
     },
-    enabled: open,
+    enabled: open && configured,
   });
 
   const isAlreadyPresent = !!todayPresence;
 
   useEffect(() => {
-    if (open) {
-      setIsVisible(true);
-      refetchPresence();
+    if (!open) {
+      setIsVisible(false);
+      return;
     }
-  }, [open, refetchPresence]);
+
+    if (!configured) {
+      setIsVisible(false);
+      return;
+    }
+
+    setIsVisible(true);
+    refetchPresence();
+  }, [open, configured, refetchPresence]);
 
   const { mutateAsync: markPresence, isPending } = useMutation({
     mutationFn: async (payload: { status: PresenceStatus }) => {
