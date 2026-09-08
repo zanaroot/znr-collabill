@@ -160,12 +160,12 @@ export const PrivateLayout = ({
     },
     ...(hasAdminAccess
       ? [
-        {
-          key: "type-organization",
-          icon: <ApartmentOutlined />,
-          label: "Organizations",
-        },
-      ]
+          {
+            key: "type-organization",
+            icon: <ApartmentOutlined />,
+            label: "Organizations",
+          },
+        ]
       : []),
   ];
 
@@ -232,10 +232,12 @@ export const PrivateLayout = ({
                 className={cn(
                   "flex items-center gap-3 rounded-lg py-3 px-4 mb-1 no-underline transition-all bg-transparent dark:text-inherit! text-black! font-normal",
                   selectedKey === item.key &&
-                  "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
+                    "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
                 )}
               >
-                <span style={{ fontSize: 16, display: "flex" }}>{item.icon}</span>
+                <span style={{ fontSize: 16, display: "flex" }}>
+                  {item.icon}
+                </span>
                 {!collapsed && <span>{item.label}</span>}
               </Link>
             ))}
@@ -355,7 +357,8 @@ export const PrivateLayout = ({
                     padding: "14px 16px",
                     borderRadius: 8,
                     marginBottom: 4,
-                    background: selectedKey === item.key ? "red" : "transparent",
+                    background:
+                      selectedKey === item.key ? "red" : "transparent",
                     color: selectedKey === item.key ? "#1677ff" : "inherit",
                     fontWeight: selectedKey === item.key ? 500 : 400,
                     textDecoration: "none",

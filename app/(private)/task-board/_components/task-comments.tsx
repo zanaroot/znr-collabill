@@ -2,7 +2,17 @@
 
 import { CommentOutlined, EditOutlined, SendOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { App, Button, Card, Empty, Flex, Input, List, Spin, Typography } from "antd";
+import {
+  App,
+  Button,
+  Card,
+  Empty,
+  Flex,
+  Input,
+  List,
+  Spin,
+  Typography,
+} from "antd";
 import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
@@ -224,9 +234,7 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
               ))}
             </div>
           ) : (
-            <Empty
-              description="No comments yet. Be the first to comment!"
-            />
+            <Empty description="No comments yet. Be the first to comment!" />
           )}
 
           <Flex vertical gap={28} className="mt-6">
