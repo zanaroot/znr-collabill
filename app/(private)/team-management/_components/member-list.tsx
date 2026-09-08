@@ -351,28 +351,28 @@ export const MemberList = () => {
 
           {record.id === currentUser?.id
             ? !isOwner && (
-                <Button
-                  danger
-                  onClick={handleLeave}
-                  size="small"
-                  loading={leaveMutation.isPending}
-                >
-                  Leave
-                </Button>
-              )
+              <Button
+                danger
+                onClick={handleLeave}
+                size="small"
+                loading={leaveMutation.isPending}
+              >
+                Leave
+              </Button>
+            )
             : canManageMembers && (
-                <Button
-                  danger
-                  type="text"
-                  icon={<DeleteOutlined />}
-                  size="small"
-                  onClick={() => handleDelete(record.id)}
-                  loading={
-                    deleteMutation.isPending &&
-                    deleteMutation.variables === record.id
-                  }
-                />
-              )}
+              <Button
+                danger
+                type="text"
+                icon={<DeleteOutlined />}
+                size="small"
+                onClick={() => handleDelete(record.id)}
+                loading={
+                  deleteMutation.isPending &&
+                  deleteMutation.variables === record.id
+                }
+              />
+            )}
         </Flex>
       ),
     },
@@ -400,6 +400,12 @@ export const MemberList = () => {
             pagination={false}
             scroll={{ x: "max-content" }}
             size="middle"
+            onRow={(record) => ({
+              onClick: () => openDetails(record),
+              style: {
+                cursor: "pointer",
+              },
+            })}
           />
         </div>
       </Card>

@@ -78,7 +78,7 @@ export const LeaveAdminPanel = ({ mode }: LeaveAdminPanelProps) => {
       title: "Date Range",
       key: "dates",
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text>
             {dayjs(record.startDate).format("DD MMM YYYY")} -{" "}
             {dayjs(record.endDate).format("DD MMM YYYY")}

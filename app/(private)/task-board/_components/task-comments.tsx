@@ -2,7 +2,7 @@
 
 import { CommentOutlined, EditOutlined, SendOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { App, Button, Card, Flex, Input, List, Spin, Typography } from "antd";
+import { App, Button, Card, Empty, Flex, Input, List, Spin, Typography } from "antd";
 import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
@@ -212,18 +212,22 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
         </div>
       ) : (
         <>
-          <List
-            dataSource={comments || []}
-            locale={{ emptyText: "No comments yet. Be the first to comment!" }}
-            renderItem={(comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                isAuthor={currentUser?.id === comment.user.id}
-                onUpdate={handleUpdate}
-              />
-            )}
-          />
+          {comments && comments.length > 0 ? (
+            <div>
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  isAuthor={currentUser?.id === comment.user.id}
+                  onUpdate={handleUpdate}
+                />
+              ))}
+            </div>
+          ) : (
+            <Empty
+              description="No comments yet. Be the first to comment!"
+            />
+          )}
 
           <Flex vertical gap={28} className="mt-6">
             <TextArea

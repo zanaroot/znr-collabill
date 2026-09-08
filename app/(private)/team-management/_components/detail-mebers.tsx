@@ -265,13 +265,13 @@ export const DetailMembers = ({
     <Drawer
       title={null}
       placement="right"
-      width={1500}
+      size={1500}
       open={open}
       onClose={onClose}
     >
       {member && (
-        <Space direction="vertical" size={24} style={{ width: "100%" }}>
-          <Card bordered={false}>
+        <Space orientation="vertical" size={24} style={{ width: "100%" }}>
+          <Card variant="borderless">
             <Flex justify="space-between" align="center">
               <Flex align="center" gap={20}>
                 <AvatarProfile
@@ -296,7 +296,7 @@ export const DetailMembers = ({
 
           <Row gutter={24} align="top">
             <Col span={8}>
-              <Space direction="vertical" size={20} style={{ width: "100%" }}>
+              <Space orientation="vertical" size={20} style={{ width: "100%" }}>
                 {canView && (
                   <Card title="Project management" extra={<ProjectOutlined />}>
                     {availableProjects.length > 0 ? (
@@ -347,17 +347,17 @@ export const DetailMembers = ({
                           actions={
                             canView
                               ? [
-                                  <Button
-                                    key="remove"
-                                    danger
-                                    type="text"
-                                    icon={<DeleteOutlined />}
-                                    loading={removeMemberMutation.isPending}
-                                    onClick={() =>
-                                      handleRemoveFromProject(project.id)
-                                    }
-                                  />,
-                                ]
+                                <Button
+                                  key="remove"
+                                  danger
+                                  type="text"
+                                  icon={<DeleteOutlined />}
+                                  loading={removeMemberMutation.isPending}
+                                  onClick={() =>
+                                    handleRemoveFromProject(project.id)
+                                  }
+                                />,
+                              ]
                               : undefined
                           }
                         >
@@ -437,7 +437,7 @@ export const DetailMembers = ({
                 {canView && (
                   <Card title="Attendance management" extra={<PlusOutlined />}>
                     <Space
-                      direction="vertical"
+                      orientation="vertical"
                       size={16}
                       style={{ width: "100%" }}
                     >
