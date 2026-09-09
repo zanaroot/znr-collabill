@@ -309,6 +309,7 @@ export const getOrganizationAttendanceSettings = factory.createHandlers(
       await getOrganizationPresenceSelectionSetting(organizationId);
 
     return c.json({
+      configured: settings.length > 0,
       presenceSelectionEnabled:
         organizationSettings?.presenceSelectionEnabled ?? false,
       settings,
