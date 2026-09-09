@@ -75,18 +75,17 @@ export const SignInForm = () => {
               <svg
                 width="18"
                 height="18"
-                viewBox="0 0 18 18"
+                viewBox="0 0 24 24"
                 fill="none"
-                aria-label="Email"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 role="img"
+                aria-label="Email"
               >
-                <path
-                  d="M2.25 4.5L9 9.75L15.75 4.5M3.75 3H14.25C15.075 3 15.75 3.675 15.75 4.5V13.5C15.75 14.325 15.075 15 14.25 15H3.75C2.925 15 2.25 14.325 2.25 13.5V4.5C2.25 3.675 2.925 3 3.75 3Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
             }
           />
@@ -102,25 +101,17 @@ export const SignInForm = () => {
               <svg
                 width="18"
                 height="18"
-                viewBox="0 0 18 18"
+                viewBox="0 0 24 24"
                 fill="none"
-                aria-label="Password"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 role="img"
+                aria-label="Lock"
               >
-                <path
-                  d="M13.5 8.25H4.5C3.675 8.25 3 8.925 3 9.75V15C3 15.825 3.675 16.5 4.5 16.5H13.5C14.325 16.5 15 15.825 15 15V9.75C15 8.925 14.325 8.25 13.5 8.25Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M5.25 8.25V5.25C5.25 4.25544 5.64509 3.30161 6.34835 2.59835C7.05161 1.89509 8.00544 1.5 9 1.5C9.99456 1.5 10.9484 1.89509 11.6517 2.59835C12.3549 3.30161 12.75 4.25544 12.75 5.25V8.25"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
             }
           />

@@ -5,6 +5,7 @@ import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
 import { findUserById } from "@/http/repositories/user.repository";
 import { sendEmail } from "@/packages/email";
+import { publicEnv } from "@/packages/env";
 import {
   buildTaskAssignedMessage,
   buildTaskCommentMessage,
@@ -13,7 +14,7 @@ import {
   sendSlackMessageWithCredentials,
 } from "@/packages/slack";
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL;
 
 export const notifyTaskCommentSlack = async (taskId: string) => {
   const task = await taskRepository.findTaskWithAssigneeById(taskId);

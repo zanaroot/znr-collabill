@@ -17,8 +17,7 @@ import {
 } from "@/http/repositories/password-reset.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
 import { sendEmail } from "@/packages/email";
-
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+import { publicEnv } from "@/packages/env";
 
 const factory = createFactory<AuthEnv>();
 
@@ -41,7 +40,7 @@ export const forgotPassword = factory.createHandlers(
 
       await createPasswordResetToken({ userId: user.id, token, expiresAt });
 
-      const resetLink = `${appUrl}/reset-password?token=${token}`;
+      const resetLink = `${publicEnv.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
 
       await sendEmail({
         to: email,

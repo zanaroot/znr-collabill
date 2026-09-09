@@ -8,6 +8,7 @@ import type { AuthEnv } from "@/http/models/auth.model";
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
 import * as invoiceCommentRepository from "@/http/repositories/invoice-comment.repository";
 import { sendEmail } from "@/packages/email";
+import { publicEnv } from "@/packages/env";
 
 const factory = createFactory<AuthEnv>();
 
@@ -113,7 +114,7 @@ async function notifyOrganizationMembers(
     <blockquote style="border-left: 3px solid #ccc; padding-left: 10px; margin-left: 0; color: #555;">
       ${content.replace(/\n/g, "<br>")}
     </blockquote>
-    <p><a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/invoices/${invoiceId}">View invoice</a></p>
+    <p><a href="${publicEnv.NEXT_PUBLIC_APP_URL}/invoices/${invoiceId}">View invoice</a></p>
   `;
 
   const emailText = `
@@ -123,7 +124,7 @@ ${commenterName} added a comment to an invoice:
 
 > ${content}
 
-View invoice: ${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/invoices/${invoiceId}
+View invoice: ${publicEnv.NEXT_PUBLIC_APP_URL}/invoices/${invoiceId}
   `;
 
   // Send emails to all members

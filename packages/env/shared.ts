@@ -5,13 +5,13 @@ const formatIssues = (issues: z.core.$ZodIssue[]) =>
     .map((issue) => `- ${issue.path.join(".")}: ${issue.message}`)
     .join("\n");
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export const publicEnvSchema = z.object({
   NEXT_PUBLIC_S3_ENDPOINT: z.string().trim().min(1).default("/api/storage"),
-  NEXT_PUBLIC_APP_URL: z
-    .string()
-    .trim()
-    .min(1)
-    .default("http://localhost:3000"),
+  NEXT_PUBLIC_APP_URL: isProduction
+    ? z.string().trim().url("NEXT_PUBLIC_APP_URL must be a valid URL").min(1)
+    : z.string().trim().min(1).default("http://localhost:3000"),
 });
 
 export const serverEnvSchema = publicEnvSchema.extend({

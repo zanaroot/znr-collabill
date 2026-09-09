@@ -21,9 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    publicEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-  ),
+  metadataBase: new URL(publicEnv.NEXT_PUBLIC_APP_URL),
   title: {
     default: "CollaBill - Collaborative Billing & Project Management for Teams",
     template: "%s | CollaBill",
@@ -59,7 +57,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: publicEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    url: publicEnv.NEXT_PUBLIC_APP_URL,
     siteName: "CollaBill",
     title: "CollaBill - Collaborative Billing & Project Management for Teams",
     description:
@@ -81,9 +79,9 @@ export const metadata: Metadata = {
     creator: "@collabill",
   },
   alternates: {
-    canonical: publicEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    canonical: publicEnv.NEXT_PUBLIC_APP_URL,
     languages: {
-      en: publicEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      en: publicEnv.NEXT_PUBLIC_APP_URL,
     },
   },
 };

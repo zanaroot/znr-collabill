@@ -15,46 +15,46 @@ const AuthLayout = async ({ children }: { children: ReactNode }) => {
         <div className="auth-branding-content">
           <div className="auth-logo">
             <svg
-              width="48"
-              height="48"
-              viewBox="0 0 48 48"
+              width="56"
+              height="56"
+              viewBox="0 0 56 56"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
               aria-label="Collabill logo"
               role="img"
             >
               <rect
-                width="48"
-                height="48"
-                rx="12"
+                width="56"
+                height="56"
+                rx="14"
                 fill="white"
-                fillOpacity="0.15"
+                fillOpacity="0.12"
               />
               <path
-                d="M14 24C14 18.477 18.477 14 24 14C29.523 14 34 18.477 34 24C34 29.523 29.523 34 24 34"
+                d="M16 28C16 21.373 21.373 16 28 16C34.627 16 40 21.373 40 28C40 34.627 34.627 40 28 40"
                 stroke="white"
                 strokeWidth="3"
                 strokeLinecap="round"
               />
               <path
-                d="M24 34V44"
+                d="M28 40V52"
                 stroke="white"
                 strokeWidth="3"
                 strokeLinecap="round"
               />
-              <circle cx="24" cy="24" r="4" fill="white" />
+              <circle cx="28" cy="28" r="5" fill="white" />
             </svg>
           </div>
           <h1 className="auth-brand-title">Collabill</h1>
           <p className="auth-brand-subtitle">
-            Streamline your team's collaboration and billing workflow
+            Streamline your team&apos;s collaboration and billing workflow
           </p>
           <div className="auth-features">
             <div className="auth-feature">
               <div className="auth-feature-icon">
                 <svg
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   viewBox="0 0 20 20"
                   fill="none"
                   aria-label="Checkmark"
@@ -74,8 +74,8 @@ const AuthLayout = async ({ children }: { children: ReactNode }) => {
             <div className="auth-feature">
               <div className="auth-feature-icon">
                 <svg
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   viewBox="0 0 20 20"
                   fill="none"
                   aria-label="Checkmark"
@@ -95,8 +95,8 @@ const AuthLayout = async ({ children }: { children: ReactNode }) => {
             <div className="auth-feature">
               <div className="auth-feature-icon">
                 <svg
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   viewBox="0 0 20 20"
                   fill="none"
                   aria-label="Checkmark"

@@ -1,6 +1,7 @@
 "use client";
 
 import Script from "next/script";
+import { publicEnv } from "@/packages/env";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -19,7 +20,7 @@ const jsonLd = {
   author: {
     "@type": "Organization",
     name: "CollaBill",
-    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    url: publicEnv.NEXT_PUBLIC_APP_URL,
   },
 };
 

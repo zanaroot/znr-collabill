@@ -67,23 +67,16 @@ export const SendEmailForm = () => {
             height="24"
             viewBox="0 0 24 24"
             fill="none"
-            aria-label="Info"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             role="img"
+            aria-label="Information"
           >
-            <path
-              d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M12 8V12M12 16H12.01"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
           </svg>
         </div>
         <Typography.Title level={2} className="auth-card-title">
@@ -114,18 +107,17 @@ export const SendEmailForm = () => {
                   <svg
                     width="18"
                     height="18"
-                    viewBox="0 0 18 18"
+                    viewBox="0 0 24 24"
                     fill="none"
-                    aria-label="Email"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     role="img"
+                    aria-label="Email"
                   >
-                    <path
-                      d="M2.25 4.5L9 9.75L15.75 4.5M3.75 3H14.25C15.075 3 15.75 3.675 15.75 4.5V13.5C15.75 14.325 15.075 15 14.25 15H3.75C2.925 15 2.25 14.325 2.25 13.5V4.5C2.25 3.675 2.925 3 3.75 3Z"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                   </svg>
                 }
               />
