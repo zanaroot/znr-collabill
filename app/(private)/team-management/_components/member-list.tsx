@@ -400,6 +400,12 @@ export const MemberList = () => {
             pagination={false}
             scroll={{ x: "max-content" }}
             size="middle"
+            onRow={(record) => ({
+              onClick: () => openDetails(record),
+              style: {
+                cursor: "pointer",
+              },
+            })}
           />
         </div>
       </Card>

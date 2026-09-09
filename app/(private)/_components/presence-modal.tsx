@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Flex, Modal, message, Radio, Typography } from "antd";
+import { App, Button, Flex, Modal, Radio, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { getGreeting } from "@/app/_utils/get-greeting";
 import type { PresenceStatus } from "@/http/models/presence.model";
@@ -25,6 +25,8 @@ export const PresenceModal = ({
   onClose,
   userName,
 }: PresenceModalProps) => {
+  const { message } = App.useApp();
+
   const [isVisible, setIsVisible] = useState(false);
   const [status, setStatus] = useState<PresenceStatus>();
 

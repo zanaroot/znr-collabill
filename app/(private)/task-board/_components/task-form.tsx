@@ -282,7 +282,7 @@ export const TaskForm = ({
           className="shadow-sm border-slate-200 dark:border-gray-700"
           styles={{ body: { padding: 24 } }}
         >
-          <Space direction="vertical" size={20} className="w-full">
+          <Space orientation="vertical" size={20} className="w-full">
             <InfoRow label="Status" icon={<FlagOutlined />}>
               <Tag
                 color="blue"
@@ -393,7 +393,7 @@ export const TaskForm = ({
     >
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={15}>
-          <Space direction="vertical" size={24} className="w-full">
+          <Space orientation="vertical" size={24} className="w-full">
             <Card
               className="shadow-sm border-slate-200 dark:border-gray-700"
               styles={{ body: { padding: 24 } }}
@@ -523,7 +523,7 @@ export const TaskForm = ({
             className="shadow-sm border-slate-200 dark:border-gray-700"
             styles={{ body: { padding: 24 } }}
           >
-            <Space direction="vertical" size={20} className="w-full">
+            <Space orientation="vertical" size={20} className="w-full">
               <Form.Item label={<Text strong>Status</Text>} className="mb-0">
                 <Select<TaskStatus>
                   value={formValues.status}
@@ -666,9 +666,9 @@ export const TaskForm = ({
         confirmLoading={isCreatingBranch}
         okButtonProps={{ disabled: !newBranchName || !sourceBranch }}
         centered
-        destroyOnClose
+        destroyOnHidden
       >
-        <Space direction="vertical" size={20} className="w-full mt-4">
+        <Space orientation="vertical" size={20} className="w-full mt-4">
           <div>
             <Text strong className="block mb-2">
               Source Branch
@@ -705,7 +705,7 @@ export const TaskForm = ({
         footer={null}
         width={1000}
         centered
-        destroyOnClose
+        destroyOnHidden
         styles={{ body: { padding: 0 } }}
       >
         <div className="flex flex-col bg-zinc-950 rounded-lg overflow-hidden">

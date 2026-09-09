@@ -14,6 +14,7 @@ import {
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import {
+  App,
   Breadcrumb,
   Button,
   Col,
@@ -182,159 +183,41 @@ export const PrivateLayout = ({
   };
 
   return (
-    <Layout className="responsive-layout">
-      <PresenceModal
-        open={showPresenceModal}
-        organizationId={organization?.id}
-        onSuccess={handlePresenceSuccess}
-        onClose={handlePresenceClose}
-        userName={currentUser?.name}
-      />
-      <Sider
-        className="desktop-sider"
-        collapsible
-        collapsed={collapsed}
-        onCollapse={(value) => setCollapsed(value)}
-        theme="light"
-        width={250}
-        collapsedWidth={80}
-        style={{
-          position: "sticky",
-          top: 0,
-          left: 0,
-          height: "100vh",
-          overflow: "auto",
-          zIndex: 100,
-        }}
-      >
-        <OrganizationSwitcher
-          currentOrganization={organization}
+    <App>
+      <Layout className="responsive-layout">
+        <PresenceModal
+          open={showPresenceModal}
+          organizationId={organization?.id}
+          onSuccess={handlePresenceSuccess}
+          onClose={handlePresenceClose}
+          userName={currentUser?.name}
+        />
+        <Sider
+          className="desktop-sider"
+          collapsible
           collapsed={collapsed}
-        />
-        <div
+          onCollapse={(value) => setCollapsed(value)}
+          theme="light"
+          width={250}
+          collapsedWidth={80}
           style={{
-            padding: collapsed ? "8px 8px" : "8px 16px",
+            position: "sticky",
+            top: 0,
+            left: 0,
+            height: "100vh",
+            overflow: "auto",
+            zIndex: 100,
           }}
         >
-          {menuItems.map((item) => (
-            <Link
-              key={item.key}
-              href={
-                item.key === "task-board"
-                  ? lastProjectId
-                    ? `/task-board?projectId=${lastProjectId}`
-                    : "/task-board"
-                  : `/${item.key}`
-              }
-              prefetch
-              className={cn(
-                "flex items-center gap-3 rounded-lg py-3 px-4 mb-1 no-underline transition-all bg-transparent dark:text-inherit! text-black! font-normal",
-                selectedKey === item.key &&
-                  "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
-              )}
-            >
-              <span style={{ fontSize: 16, display: "flex" }}>{item.icon}</span>
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          ))}
-        </div>
-        <Button
-          onClick={() => setCollapsed(!collapsed)}
-          icon={
-            collapsed ? (
-              <RightOutlined style={{ fontSize: 10 }} />
-            ) : (
-              <LeftOutlined style={{ fontSize: 10 }} />
-            )
-          }
-          style={{
-            position: "absolute",
-            right: -14,
-            top: "50%",
-            transform: "translateY(-50%)",
-            zIndex: 101,
-            width: 14,
-            height: 48,
-            borderRadius: "0 8px 8px 0",
-            borderLeft: "none",
-          }}
-        />
-      </Sider>
-
-      <Layout>
-        <Header
-          style={{
-            padding: "0 16px",
-            background: colorBgContainer,
-          }}
-          className="responsive-header"
-        >
-          <Row
-            align="middle"
-            justify="space-between"
-            gutter={[16, 16]}
-            className="header-row"
-          >
-            <Col className="header-left">
-              <Button
-                type="text"
-                icon={<MenuOutlined />}
-                onClick={() => setMobileMenuOpen(true)}
-                className="mobile-menu-btn"
-              />
-              <Suspense
-                fallback={<Breadcrumb items={[{ title: "Dashboard" }]} />}
-              >
-                <DynamicBreadcrumb selectedKey={selectedKey} />
-              </Suspense>
-            </Col>
-            <Col className="header-right">
-              <Space size={16}>
-                <NotificationPopover />
-
-                <UserDropdownMenus
-                  isPresent={isPresent}
-                  onPresenceClick={handlePresenceClick}
-                />
-              </Space>
-            </Col>
-          </Row>
-        </Header>
-
-        <Content
-          className="responsive-content"
-          style={{
-            margin: "16px",
-            padding: 18,
-            height: "calc(100vh - 96px)",
-            overflow: "hidden",
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
-          }}
-        >
-          {children}
-        </Content>
-      </Layout>
-
-      {/* Mobile Drawer Menu */}
-      <Drawer
-        title={
-          <div className="org-drawer-title">
-            <span style={{ fontWeight: 600 }}>Menu</span>
-          </div>
-        }
-        placement="left"
-        onClose={() => setMobileMenuOpen(false)}
-        open={mobileMenuOpen}
-        size={280}
-        className="mobile-drawer-menu"
-      >
-        <div className="mobile-menu-content">
           <OrganizationSwitcher
             currentOrganization={organization}
-            collapsed={false}
+            collapsed={collapsed}
           />
-          <div style={{ marginTop: 16 }}>
+          <div
+            style={{
+              padding: collapsed ? "8px 8px" : "8px 16px",
+            }}
+          >
             {menuItems.map((item) => (
               <Link
                 key={item.key}
@@ -345,30 +228,153 @@ export const PrivateLayout = ({
                       : "/task-board"
                     : `/${item.key}`
                 }
-                onClick={() => setMobileMenuOpen(false)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "14px 16px",
-                  borderRadius: 8,
-                  marginBottom: 4,
-                  background: selectedKey === item.key ? "red" : "transparent",
-                  color: selectedKey === item.key ? "#1677ff" : "inherit",
-                  fontWeight: selectedKey === item.key ? 500 : 400,
-                  textDecoration: "none",
-                  transition: "all 0.2s",
-                }}
+                prefetch
+                className={cn(
+                  "flex items-center gap-3 rounded-lg py-3 px-4 mb-1 no-underline transition-all bg-transparent dark:text-inherit! text-black! font-normal",
+                  selectedKey === item.key &&
+                    "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
+                )}
               >
-                <span style={{ fontSize: 18, display: "flex" }}>
+                <span style={{ fontSize: 16, display: "flex" }}>
                   {item.icon}
                 </span>
-                <span>{item.label}</span>
+                {!collapsed && <span>{item.label}</span>}
               </Link>
             ))}
           </div>
-        </div>
-      </Drawer>
-    </Layout>
+          <Button
+            onClick={() => setCollapsed(!collapsed)}
+            icon={
+              collapsed ? (
+                <RightOutlined style={{ fontSize: 10 }} />
+              ) : (
+                <LeftOutlined style={{ fontSize: 10 }} />
+              )
+            }
+            style={{
+              position: "absolute",
+              right: -14,
+              top: "50%",
+              transform: "translateY(-50%)",
+              zIndex: 101,
+              width: 14,
+              height: 48,
+              borderRadius: "0 8px 8px 0",
+              borderLeft: "none",
+            }}
+          />
+        </Sider>
+
+        <Layout>
+          <Header
+            style={{
+              padding: "0 16px",
+              background: colorBgContainer,
+            }}
+            className="responsive-header"
+          >
+            <Row
+              align="middle"
+              justify="space-between"
+              gutter={[16, 16]}
+              className="header-row"
+            >
+              <Col className="header-left">
+                <Button
+                  type="text"
+                  icon={<MenuOutlined />}
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="mobile-menu-btn"
+                />
+                <Suspense
+                  fallback={<Breadcrumb items={[{ title: "Dashboard" }]} />}
+                >
+                  <DynamicBreadcrumb selectedKey={selectedKey} />
+                </Suspense>
+              </Col>
+              <Col className="header-right">
+                <Space size={16}>
+                  <NotificationPopover />
+
+                  <UserDropdownMenus
+                    isPresent={isPresent}
+                    onPresenceClick={handlePresenceClick}
+                  />
+                </Space>
+              </Col>
+            </Row>
+          </Header>
+
+          <Content
+            className="responsive-content"
+            style={{
+              margin: "16px",
+              padding: 18,
+              height: "calc(100vh - 96px)",
+              overflow: "hidden",
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
+          >
+            {children}
+          </Content>
+        </Layout>
+
+        {/* Mobile Drawer Menu */}
+        <Drawer
+          title={
+            <div className="org-drawer-title">
+              <span style={{ fontWeight: 600 }}>Menu</span>
+            </div>
+          }
+          placement="left"
+          onClose={() => setMobileMenuOpen(false)}
+          open={mobileMenuOpen}
+          size={280}
+          className="mobile-drawer-menu"
+        >
+          <div className="mobile-menu-content">
+            <OrganizationSwitcher
+              currentOrganization={organization}
+              collapsed={false}
+            />
+            <div style={{ marginTop: 16 }}>
+              {menuItems.map((item) => (
+                <Link
+                  key={item.key}
+                  href={
+                    item.key === "task-board"
+                      ? lastProjectId
+                        ? `/task-board?projectId=${lastProjectId}`
+                        : "/task-board"
+                      : `/${item.key}`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "14px 16px",
+                    borderRadius: 8,
+                    marginBottom: 4,
+                    background:
+                      selectedKey === item.key ? "red" : "transparent",
+                    color: selectedKey === item.key ? "#1677ff" : "inherit",
+                    fontWeight: selectedKey === item.key ? 500 : 400,
+                    textDecoration: "none",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  <span style={{ fontSize: 18, display: "flex" }}>
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </Drawer>
+      </Layout>
+    </App>
   );
 };
