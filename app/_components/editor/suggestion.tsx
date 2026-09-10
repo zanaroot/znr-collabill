@@ -201,11 +201,12 @@ export const suggestion = {
       },
       {
         title: "Image",
-        description: "Insert an image URL.",
-        searchTerms: ["photo", "picture", "media"],
+        description: "Upload an image to storage.",
+        searchTerms: ["photo", "picture", "media", "upload"],
         icon: ImageIcon,
         command: ({ editor, range }: { editor: Editor; range: Range }) => {
           editor.chain().focus().deleteRange(range).run();
+          editor.storage.imageUploadTrigger.openFilePicker?.();
         },
       },
     ].filter((item) => {

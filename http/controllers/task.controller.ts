@@ -19,6 +19,7 @@ import {
   notifyTaskInReviewSlack,
   notifyTaskValidatedSlack,
 } from "@/lib/notifications";
+import { uploadFile } from "@/packages/minio";
 
 const factory = createFactory<AuthEnv>();
 
@@ -459,4 +460,62 @@ export const deleteTask = factory.createHandlers(async (c) => {
   }
 
   return c.json({ message: "Task deleted" });
+});
+
+const allowedImageTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+];
+
+export const uploadEditorImage = factory.createHandlers(async (c) => {
+  try {
+    const user = c.get("user");
+    const body = await c.req.parseBody();
+
+    const file = body.file;
+
+    if (!(file instanceof File)) {
+      return c.json({ error: "Image file is required" }, 400);
+    }
+
+    if (!allowedImageTypes.includes(file.type)) {
+      return c.json(
+        {
+          error:
+            "Invalid image type. Only JPEG, PNG, GIF, WebP and SVG are allowed.",
+        },
+        400,
+      );
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      return c.json({ error: "Image size exceeds 10MB limit." }, 400);
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const fileExtension = file.name.split(".").pop()?.toLowerCase() || "png";
+
+    const fileName = `${Date.now()}-${crypto.randomUUID()}.${fileExtension}`;
+
+    const key = `editor/${user.id}/${fileName}`;
+
+    const path = await uploadFile(buffer, key, file.type);
+
+    // uploadFile returns:
+    // /my-buckets/editor/user-id/file.png
+    //
+    // The browser must use:
+    // /api/storage/my-buckets/editor/user-id/file.png
+    const url = `/api/storage${path}`;
+
+    return c.json({ url });
+  } catch (error) {
+    console.error("Error uploading editor image:", error);
+
+    return c.json({ error: "Failed to upload image" }, 500);
+  }
 });

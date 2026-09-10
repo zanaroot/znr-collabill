@@ -10,6 +10,7 @@ import { getPriorityLabel, priorityTagColor } from "@/app/_utils/priority";
 import { useMembersOnlineStatus } from "@/app/(private)/team-management/_hooks/use-team";
 import type { Task as TaskModel } from "@/http/models/task.model";
 import { formatDueDate } from "@/lib/date";
+import { extractDescriptionImageUrls } from "@/lib/description-image-url";
 
 const { Text } = Typography;
 
@@ -55,16 +56,10 @@ export function TaskCard({
     return map;
   }, [onlineStatuses]);
 
-  const descriptionImages = useMemo(() => {
-    if (typeof window === "undefined" || !task.description) return [];
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(task.description, "text/html");
-      return Array.from(doc.querySelectorAll("img")).map((img) => img.src);
-    } catch {
-      return [];
-    }
-  }, [task.description]);
+  const descriptionImages = useMemo(
+    () => extractDescriptionImageUrls(task.description ?? ""),
+    [task.description],
+  );
 
   return (
     <>
