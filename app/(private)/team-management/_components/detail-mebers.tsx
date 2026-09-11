@@ -67,7 +67,10 @@ export const DetailMembers = ({
   const [absenceDate, setAbsenceDate] = useState<Dayjs>(dayjs());
   const addMemberMutation = useAddProjectMember();
   const { data: projects } = useProjects();
-  const { data: memberProjects = [] } = useMemberProjects(member?.id || "");
+  const { data: memberProjects = [] } = useMemberProjects(
+    member?.id,
+    currentUser?.organizationId || "",
+  );
 
   const removeMemberMutation = useRemoveProjectMember();
   const [currentMonth, setCurrentMonth] = useState(dayjs());
@@ -152,7 +155,9 @@ export const DetailMembers = ({
 
   const availableProjects =
     projects?.filter(
-      (project) => !memberProjects.some((p) => p.id === project.id),
+      (project) =>
+        project.organizationId === currentUser?.organizationId &&
+        !memberProjects.some((p) => p.id === project.id),
     ) ?? [];
 
   const startDate = currentMonth.startOf("month").format("YYYY-MM-DD");
