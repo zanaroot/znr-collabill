@@ -368,7 +368,10 @@ export const hasProjectAdminAccess = async (
 //   return result.map(normalizeProject);
 // };
 
-export const getProjectsByMember = async (userId: string) => {
+export const getProjectsByMember = async (
+  userId: string,
+  organizationId: string,
+) => {
   return await db
     .select({
       id: projects.id,
@@ -377,5 +380,10 @@ export const getProjectsByMember = async (userId: string) => {
     })
     .from(projects)
     .innerJoin(projectMembers, eq(projectMembers.projectId, projects.id))
-    .where(eq(projectMembers.userId, userId));
+    .where(
+      and(
+        eq(projectMembers.userId, userId),
+        eq(projects.organizationId, organizationId),
+      ),
+    );
 };
