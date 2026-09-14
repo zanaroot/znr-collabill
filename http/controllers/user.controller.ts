@@ -435,14 +435,24 @@ export const updateCollaboratorRateHandler = factory.createHandlers(
   },
 );
 
-export const getMemberProjects = factory.createHandlers(async (c) => {
-  const id = c.req.param("id");
+export const getMemberProjects = factory.createHandlers(
+  zValidator(
+    "query",
+    z.object({
+      organizationId: z.string().uuid(),
+    }),
+  ),
+  async (c) => {
+    const id = c.req.param("id");
 
-  if (!id) {
-    return c.json({ error: "ID required" }, 400);
-  }
+    if (!id) {
+      return c.json({ error: "ID required" }, 400);
+    }
 
-  const projects = await getProjectsByMember(id);
+    const { organizationId } = c.req.valid("query");
 
-  return c.json(projects);
-});
+    const projects = await getProjectsByMember(id, organizationId);
+
+    return c.json(projects);
+  },
+);

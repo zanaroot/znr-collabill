@@ -329,7 +329,7 @@ export const MemberList = () => {
     {
       title: "Actions",
       key: "actions",
-      width: 120,
+      width: 150,
       responsive: ["xs", "sm", "md", "lg", "xl"],
       render: (_, record) => (
         <Flex gap={4} wrap="wrap">

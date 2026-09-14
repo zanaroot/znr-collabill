@@ -279,18 +279,21 @@ export function useUpdateProjectMemberRole() {
   });
 }
 
-export function useMemberProjects(userId?: string) {
+export function useMemberProjects(userId?: string, organizationId?: string) {
   return useQuery({
-    queryKey: ["member-projects", userId],
-    enabled: !!userId,
+    queryKey: ["member-projects", userId, organizationId],
+    enabled: !!userId && !!organizationId,
     queryFn: async () => {
-      if (!userId) {
-        throw new Error("User ID is required");
+      if (!userId || !organizationId) {
+        throw new Error("User ID and organization ID are required");
       }
 
       const res = await client.api.users[":id"].projects.$get({
         param: {
           id: userId,
+        },
+        query: {
+          organizationId,
         },
       });
 
