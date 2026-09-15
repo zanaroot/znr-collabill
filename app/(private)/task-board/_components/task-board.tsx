@@ -1,8 +1,8 @@
 "use client";
 
-import { Select, Spin, Typography } from "antd";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
+import { Select, Spin, Tooltip, Typography } from "antd";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
 import { useEffect, useMemo } from "react";
 import { useLastProject } from "@/app/(private)/_providers/last-projects-providers";
 // import TestSentry from "@/app/_components/test-sentry";
@@ -134,7 +134,17 @@ export const TaskBoard = () => {
                 value={resolvedProjectId}
                 onChange={handleProjectChange}
                 options={projects.map((project) => ({
-                  label: project.name,
+                  label: (
+                    <div className="flex items-center gap-2">
+                      <span>{project.name}</span>
+
+                      {project.memberCount === 0 && (
+                        <Tooltip title="This project has no members yet">
+                          <ExclamationCircleOutlined />
+                        </Tooltip>
+                      )}
+                    </div>
+                  ),
                   value: project.id,
                 }))}
                 className="project-select"

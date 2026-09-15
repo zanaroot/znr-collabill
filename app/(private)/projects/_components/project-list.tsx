@@ -21,8 +21,7 @@ export function ProjectList() {
   const [selectedProjectForDetails, setSelectedProjectForDetails] =
     useState<Project | null>(null);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
-  const [newlyCreatedProjectId, setNewlyCreatedProjectId] =
-    useState<string | null>(null);
+
 
   const { modal, message } = App.useApp();
 
@@ -30,8 +29,7 @@ export function ProjectList() {
   const { data: projects, isLoading: isFetching } = useProjects();
   const deleteProjectMutation = useDeleteProject();
 
-  const handleProjectCreated = (projectId: string) => {
-    setNewlyCreatedProjectId(projectId);
+  const handleProjectCreated = () => {
     setIsCreateDrawerOpen(false);
   };
 
@@ -65,9 +63,7 @@ export function ProjectList() {
       key: "name",
       responsive: ["xs", "sm", "md", "lg", "xl"],
       render: (text, record) => {
-        const showWarning =
-          record.id === newlyCreatedProjectId &&
-          record.memberCount === 0;
+        const showWarning = record.memberCount === 0;
 
         if (!showWarning) {
           return <Typography.Text strong>{text}</Typography.Text>;
@@ -75,7 +71,9 @@ export function ProjectList() {
 
         return (
           <Tooltip title="This project has no members yet">
-            <Typography.Text strong>{text}</Typography.Text>
+            <Typography.Text strong>
+              {text} ⚠️
+            </Typography.Text>
           </Tooltip>
         );
       },
