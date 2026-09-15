@@ -20,6 +20,8 @@ export const projectSchema = z.object({
   slackNotificationsEnabled: z.boolean().nullable().optional(),
   createdBy: z.string().uuid().nullable(),
   createdAt: z.date().nullable().or(z.string()),
+
+  memberCount: z.number(),
 });
 
 export type Project = z.infer<typeof projectSchema>;
