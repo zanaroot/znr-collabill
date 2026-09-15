@@ -17,6 +17,7 @@ describe("project model schemas", () => {
         organizationId: "123e4567-e89b-12d3-a456-426614174001",
         createdBy: "123e4567-e89b-12d3-a456-426614174002",
         createdAt: "2024-01-01",
+        memberCount: 0,
       };
 
       const result = projectSchema.safeParse(validProject);
@@ -73,6 +74,7 @@ describe("project model schemas", () => {
         organizationId: "123e4567-e89b-12d3-a456-426614174001",
         createdBy: null,
         createdAt: "2024-01-01",
+        memberCount: 0,
       };
 
       const result = projectSchema.safeParse(projectWithNulls);

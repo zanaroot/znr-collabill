@@ -22,7 +22,6 @@ export function ProjectList() {
     useState<Project | null>(null);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
-
   const { modal, message } = App.useApp();
 
   const { data: currentUser } = useCurrentUser();
@@ -71,9 +70,7 @@ export function ProjectList() {
 
         return (
           <Tooltip title="This project has no members yet">
-            <Typography.Text strong>
-              {text} ⚠️
-            </Typography.Text>
+            <Typography.Text strong>{text} ⚠️</Typography.Text>
           </Tooltip>
         );
       },
