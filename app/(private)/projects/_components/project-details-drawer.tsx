@@ -47,15 +47,17 @@ interface ProjectDetailsDrawerProps {
   project: Project | null;
   open: boolean;
   onClose: () => void;
+  openGrantAccess?: boolean;
 }
 
 export function ProjectDetailsDrawer({
   project,
   open,
   onClose,
+  openGrantAccess = false,
 }: ProjectDetailsDrawerProps) {
   const { message, modal } = App.useApp();
-  const [isGrantingAccess, setIsGrantingAccess] = useState(false);
+  const [isGrantingAccess, setIsGrantingAccess] = useState(openGrantAccess);
   const [selectedUserId, setSelectedUserId] = useState<string | undefined>();
   const [isEditing, setIsEditing] = useState(false);
 

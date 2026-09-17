@@ -1,11 +1,11 @@
 "use client";
 
-import { ExclamationCircleOutlined } from "@ant-design/icons";
-import { Select, Spin, Tooltip, Typography } from "antd";
+import { ExclamationCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Select, Spin, Tooltip, Typography } from "antd";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLastProject } from "@/app/(private)/_providers/last-projects-providers";
-// import TestSentry from "@/app/_components/test-sentry";
+import { ProjectDetailsDrawer } from "@/app/(private)/projects/_components/project-details-drawer";
 import {
   useProjectMembers,
   useProjects,
@@ -18,6 +18,8 @@ import { CreateBoard } from "./board";
 const { Title, Text } = Typography;
 
 export const TaskBoard = () => {
+  const [isProjectDetailsOpen, setIsProjectDetailsOpen] = useState(false);
+
   const { data: currentUser } = useCurrentUser();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -109,6 +111,10 @@ export const TaskBoard = () => {
     router.replace(`${pathname}?${params.toString()}`);
   };
 
+  const handleGrantAccess = () => {
+    setIsProjectDetailsOpen(true);
+  };
+
   return (
     <div className="responsive-task-board h-full min-h-0">
       <div className="task-board-header shrink-0">
@@ -116,9 +122,32 @@ export const TaskBoard = () => {
           <Title level={3} style={{ margin: 0 }} className="dark:text-white">
             Task Board
           </Title>
+
           <Text type="secondary" className="dark:text-gray-400">
             Track work by status and move cards across columns.
           </Text>
+
+          {userRole === "OWNER" && selectedProject?.memberCount === 0 && (
+            <div className="mt-3 flex items-center justify-between gap-4 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 dark:border-yellow-700 dark:bg-yellow-950">
+              <div className="flex items-center gap-2">
+                <ExclamationCircleOutlined className="text-yellow-600" />
+
+                <Text className="text-yellow-800 dark:text-yellow-200">
+                  This project has no members yet. Grant access to members to
+                  start assigning work.
+                </Text>
+              </div>
+
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="small"
+                onClick={handleGrantAccess}
+              >
+                Grant Access
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="task-board-project-selector">
@@ -158,6 +187,7 @@ export const TaskBoard = () => {
           <span className="task-tag">
             {selectedProject?.name ?? "No project selected"}
           </span>
+
           <span className="task-tag">{taskCount} tasks</span>
         </div>
       </div>
@@ -191,6 +221,13 @@ export const TaskBoard = () => {
           projects={projects ?? []}
         />
       )}
+
+      <ProjectDetailsDrawer
+        project={selectedProject ?? null}
+        open={isProjectDetailsOpen}
+        openGrantAccess
+        onClose={() => setIsProjectDetailsOpen(false)}
+      />
     </div>
   );
 };
