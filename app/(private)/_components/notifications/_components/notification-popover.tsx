@@ -25,7 +25,14 @@ export const NotificationPopover = () => {
       onOpenChange={handleOpenChange}
       title={<Typography.Text strong>Notifications</Typography.Text>}
       content={
-        <div style={{ width: 380, maxWidth: "90vw" }}>
+        <div
+          style={{
+            width: 380,
+            maxWidth: "90vw",
+            maxHeight: 800,
+            overflowY: "auto",
+          }}
+        >
           <NotificationList />
         </div>
       }
