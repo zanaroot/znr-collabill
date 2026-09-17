@@ -1,6 +1,10 @@
 "use client";
 
-import { CrownOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  PlusOutlined,
+  UserSwitchOutlined,
+} from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   App,
@@ -17,6 +21,7 @@ import {
   Space,
   Spin,
   Tag,
+  Tooltip,
   Typography,
 } from "antd";
 import { useEffect, useState } from "react";
@@ -455,31 +460,33 @@ export function ProjectDetailsDrawer({
                   const actions = isAdminOrOwner
                     ? [
                         item.projectRole !== "PRODUCT_OWNER" && (
-                          <Button
-                            key="make-po"
-                            type="text"
-                            icon={<CrownOutlined />}
-                            onClick={() =>
-                              updateMemberRoleMutation.mutate(
-                                {
-                                  projectId: project.id,
-                                  userId: item.id,
-                                  role: "PRODUCT_OWNER",
-                                },
-                                {
-                                  onSuccess: () =>
-                                    message.success(
-                                      `${item.name} is now Product Owner`,
-                                    ),
-                                  onError: (error) =>
-                                    message.error(
-                                      (error as Error).message ||
-                                        "Failed to update role",
-                                    ),
-                                },
-                              )
-                            }
-                          />
+                          <Tooltip title="Make Product Owner">
+                            <Button
+                              key="make-po"
+                              type="text"
+                              icon={<UserSwitchOutlined />}
+                              onClick={() =>
+                                updateMemberRoleMutation.mutate(
+                                  {
+                                    projectId: project.id,
+                                    userId: item.id,
+                                    role: "PRODUCT_OWNER",
+                                  },
+                                  {
+                                    onSuccess: () =>
+                                      message.success(
+                                        `${item.name} is now Product Owner`,
+                                      ),
+                                    onError: (error) =>
+                                      message.error(
+                                        (error as Error).message ||
+                                          "Failed to update role",
+                                      ),
+                                  },
+                                )
+                              }
+                            />
+                          </Tooltip>
                         ),
 
                         item.projectRole === "PRODUCT_OWNER" && (
