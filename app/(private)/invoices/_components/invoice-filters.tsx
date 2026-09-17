@@ -254,8 +254,8 @@ export const InvoiceFilters = ({
       const rateKey =
         `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
       const baseRate = Number((t[rateKey] as string | null) || 0);
-      const projectRate = Number(t.projectBaseRate || 1);
-      const totalRate = baseRate * projectRate;
+      const projectRate = Number(t.projectBaseRate || 100);
+      const totalRate = baseRate * (projectRate / 100);
       const amount = t.taskCount * totalRate;
 
       if (amount > 0) {
