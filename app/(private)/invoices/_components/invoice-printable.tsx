@@ -134,11 +134,15 @@ export const InvoicePrintable = ({
   const taskTotal = useMemo(() => {
     return taskData.reduce((acc, item) => {
       const size = item.size.toLowerCase();
+
       const rateKey =
         `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
+
       const baseRate = Number(item[rateKey] || 0);
-      const projectRate = Number(item.projectBaseRate || 1);
-      const totalRate = baseRate * projectRate;
+      const projectRate = Number(item.projectBaseRate || 100);
+
+      const totalRate = baseRate * (projectRate / 100);
+
       return acc + item.taskCount * totalRate;
     }, 0);
   }, [taskData]);
