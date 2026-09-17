@@ -14,11 +14,13 @@ const { TextArea } = Input;
 interface CreateProjectDrawerProps {
   open: boolean;
   onClose: () => void;
+  onCreated: (projectId: string) => void;
 }
 
 export function CreateProjectDrawer({
   open,
   onClose,
+  onCreated,
 }: CreateProjectDrawerProps) {
   const { message } = App.useApp();
   const createProjectMutation = useCreateProject();
@@ -47,8 +49,9 @@ export function CreateProjectDrawer({
 
   const onSubmit = (data: CreateProjectInput) => {
     createProjectMutation.mutate(data, {
-      onSuccess: () => {
+      onSuccess: (project) => {
         message.success("Project created successfully");
+        onCreated(project.id);
         handleClose();
       },
       onError: (error) => {

@@ -1,6 +1,7 @@
 "server only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
   organizationMembers,
@@ -31,7 +32,10 @@ const normalizeProject = <
 });
 
 export const createProject = async (
-  input: CreateProjectInput & { createdBy: string; organizationId: string },
+  input: CreateProjectInput & {
+    createdBy: string;
+    organizationId: string;
+  },
 ): Promise<Project> => {
   return await db.transaction(async (tx) => {
     const [project] = await tx
@@ -52,7 +56,10 @@ export const createProject = async (
       userId: input.createdBy,
     });
 
-    return normalizeProject(project);
+    return {
+      ...normalizeProject(project),
+      memberCount: 0,
+    };
   });
 };
 
@@ -62,25 +69,50 @@ export const findProjectById = async (id: string): Promise<Project | null> => {
     .from(projects)
     .where(eq(projects.id, id))
     .limit(1);
-  return project ? normalizeProject(project) : null;
+  return project ? { ...normalizeProject(project), memberCount: 0 } : null;
 };
 
 export const findProjectsByOrganizationId = async (
   organizationId: string,
-): Promise<Project[]> => {
+): Promise<(Project & { memberCount: number })[]> => {
   const result = await db
-    .select()
+    .select({
+      id: projects.id,
+      name: projects.name,
+      description: projects.description,
+      gitRepo: projects.gitRepo,
+      baseRate: projects.baseRate,
+      reviewerRate: projects.reviewerRate,
+      organizationId: projects.organizationId,
+      slackChannel: projects.slackChannel,
+      slackNotificationsEnabled: projects.slackNotificationsEnabled,
+      createdBy: projects.createdBy,
+      createdAt: projects.createdAt,
+
+      memberCount: sql<number>`
+        count(*) filter (
+          where ${projectMembers.userId} <> ${projects.createdBy}
+        )
+      `,
+    })
     .from(projects)
+    .leftJoin(projectMembers, eq(projects.id, projectMembers.projectId))
     .where(eq(projects.organizationId, organizationId))
+    .groupBy(projects.id)
     .orderBy(projects.createdAt);
 
-  return result.map(normalizeProject);
+  return result.map((project) => ({
+    ...normalizeProject(project),
+    memberCount: Number(project.memberCount),
+  }));
 };
 
 export const findProjectsForCollaborator = async (
   organizationId: string,
   userId: string,
-): Promise<(Project & { organizationId: string })[]> => {
+): Promise<(Project & { organizationId: string; memberCount: number })[]> => {
+  const projectMembersCount = alias(projectMembers, "project_members_count");
+
   const result = await db
     .select({
       id: projects.id,
@@ -91,18 +123,31 @@ export const findProjectsForCollaborator = async (
       organizationId: projects.organizationId,
       createdBy: projects.createdBy,
       createdAt: projects.createdAt,
+      memberCount: sql<number>`
+  count(*) filter (
+    where ${projectMembersCount.userId} <> ${projects.createdBy}
+  )
+`,
     })
     .from(projects)
     .innerJoin(projectMembers, eq(projects.id, projectMembers.projectId))
+    .leftJoin(
+      projectMembersCount,
+      eq(projects.id, projectMembersCount.projectId),
+    )
     .where(
       and(
         eq(projects.organizationId, organizationId),
         eq(projectMembers.userId, userId),
       ),
     )
+    .groupBy(projects.id)
     .orderBy(projects.createdAt);
 
-  return result.map(normalizeProject);
+  return result.map((project) => ({
+    ...normalizeProject(project),
+    memberCount: Number(project.memberCount),
+  }));
 };
 
 const _findProjectsByUserId = async (userId: string) => {
@@ -140,7 +185,7 @@ export const updateProject = async (
     })
     .where(eq(projects.id, id))
     .returning();
-  return project ? normalizeProject(project) : null;
+  return project ? { ...normalizeProject(project), memberCount: 0 } : null;
 };
 
 export const deleteProject = async (id: string) => {
