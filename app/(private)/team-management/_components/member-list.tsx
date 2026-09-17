@@ -337,7 +337,10 @@ export const MemberList = () => {
             type="text"
             icon={<EyeOutlined />}
             size="small"
-            onClick={() => openDetails(record)}
+            onClick={(e) => {
+              e.stopPropagation();
+              openDetails(record);
+            }}
           />
 
           {(isOwner || record.id === currentUser?.id) && (
@@ -345,7 +348,10 @@ export const MemberList = () => {
               type="text"
               icon={<DollarOutlined />}
               size="small"
-              onClick={() => openSizeModal(record)}
+              onClick={(e) => {
+                e.stopPropagation();
+                openSizeModal(record);
+              }}
             />
           )}
 
@@ -353,7 +359,10 @@ export const MemberList = () => {
             ? !isOwner && (
                 <Button
                   danger
-                  onClick={handleLeave}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLeave();
+                  }}
                   size="small"
                   loading={leaveMutation.isPending}
                 >
@@ -366,7 +375,10 @@ export const MemberList = () => {
                   type="text"
                   icon={<DeleteOutlined />}
                   size="small"
-                  onClick={() => handleDelete(record.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(record.id);
+                  }}
                   loading={
                     deleteMutation.isPending &&
                     deleteMutation.variables === record.id
