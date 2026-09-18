@@ -124,8 +124,6 @@ export const TaskForm = ({
 
   const isNewTask = !taskId;
 
-
-
   useEffect(() => {
     if (!isNewTask) {
       setHasInitializedGitBranch(false);
