@@ -124,6 +124,8 @@ export const TaskForm = ({
 
   const isNewTask = !taskId;
 
+
+
   useEffect(() => {
     if (!isNewTask) {
       setHasInitializedGitBranch(false);
@@ -528,6 +530,7 @@ export const TaskForm = ({
                 <Select<TaskStatus>
                   value={formValues.status}
                   onChange={(value) => updateField("status", value)}
+                  labelRender={({ value }) => formatStatus(value as TaskStatus)}
                   options={getAllowedTaskTransitions({
                     from: formValues.status,
                     userRole,
