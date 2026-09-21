@@ -6,7 +6,7 @@ import {
   EyeOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import { App, Button, Card, Flex, Table, Typography } from "antd";
+import { App, Button, Card, Flex, Table, Tooltip, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import type { Project } from "@/http/models/project.model";
@@ -27,6 +27,10 @@ export function ProjectList() {
   const { data: currentUser } = useCurrentUser();
   const { data: projects, isLoading: isFetching } = useProjects();
   const deleteProjectMutation = useDeleteProject();
+
+  const handleProjectCreated = () => {
+    setIsCreateDrawerOpen(false);
+  };
 
   const handleDelete = (id: string) => {
     modal.confirm({
@@ -57,7 +61,19 @@ export function ProjectList() {
       dataIndex: "name",
       key: "name",
       responsive: ["xs", "sm", "md", "lg", "xl"],
-      render: (text) => <Typography.Text strong>{text}</Typography.Text>,
+      render: (text, record) => {
+        const showWarning = record.memberCount === 0;
+
+        if (!showWarning) {
+          return <Typography.Text strong>{text}</Typography.Text>;
+        }
+
+        return (
+          <Tooltip title="This project has no members yet">
+            <Typography.Text strong>{text} ⚠️</Typography.Text>
+          </Tooltip>
+        );
+      },
     },
     {
       title: "Description",
@@ -188,6 +204,7 @@ export function ProjectList() {
       <CreateProjectDrawer
         open={isCreateDrawerOpen}
         onClose={() => setIsCreateDrawerOpen(false)}
+        onCreated={handleProjectCreated}
       />
       <ProjectDetailsDrawer
         project={selectedProjectForDetails}
