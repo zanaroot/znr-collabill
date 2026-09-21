@@ -2,6 +2,7 @@ import type { Context } from "hono";
 import {
   getNotificationsByUser,
   getUnreadNotificationsCount,
+  markAllNotificationsAsReadRepository,
   markNotificationAsRead as markNotificationAsReadRepository,
 } from "@/http/repositories/notification.repository";
 
@@ -67,4 +68,25 @@ export const markNotificationAsRead = async (c: Context) => {
   }
 
   return c.json(notification);
+};
+
+export const markAllNotificationsAsRead = async (c: Context) => {
+  const user = c.get("user");
+
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const organizationId = user.organizationId;
+
+  if (!organizationId) {
+    return c.json({ error: "Organization not found" }, 400);
+  }
+
+  const notifications = await markAllNotificationsAsReadRepository(
+    user.id,
+    organizationId,
+  );
+
+  return c.json(notifications);
 };
