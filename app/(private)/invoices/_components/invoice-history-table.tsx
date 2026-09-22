@@ -4,6 +4,7 @@ import { CalendarOutlined } from "@ant-design/icons";
 import { Button, Table, Typography } from "antd";
 import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
+import { AmountDisplay } from "./amount-display";
 import { StatusTagInvoice } from "./status-tag-invoice";
 
 const { Title } = Typography;
@@ -70,7 +71,11 @@ export const InvoiceHistoryTable = ({
       dataIndex: "totalAmount",
       key: "amount",
       render: (amount: string | null) =>
-        amount ? `${Number(amount).toFixed(2)} €` : "-",
+        amount ? (
+          <AmountDisplay>{Number(amount).toFixed(2)} €</AmountDisplay>
+        ) : (
+          "-"
+        ),
     },
     {
       title: "Actions",

@@ -1,6 +1,7 @@
 "use client";
 
 import { Table, Typography } from "antd";
+import { AmountDisplay } from "./amount-display";
 
 const { Text } = Typography;
 
@@ -210,7 +211,11 @@ export const ReviewerTaskSummaryTable = ({
       title: "Total (€)",
       dataIndex: "total",
       key: "total",
-      render: (total: number) => <Text strong>{total.toLocaleString()} €</Text>,
+      render: (total: number) => (
+        <Text strong>
+          <AmountDisplay>{total.toLocaleString()} €</AmountDisplay>
+        </Text>
+      ),
     },
   ];
 
@@ -312,7 +317,11 @@ export const TaskSummaryTable = ({ data }: { data: RawTaskSummary[] }) => {
       title: "Total (€)",
       dataIndex: "total",
       key: "total",
-      render: (total: number) => <Text strong>{total.toLocaleString()} €</Text>,
+      render: (total: number) => (
+        <Text strong>
+          <AmountDisplay>{total.toLocaleString()} €</AmountDisplay>
+        </Text>
+      ),
     },
   ];
 

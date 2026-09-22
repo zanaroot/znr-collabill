@@ -20,6 +20,8 @@ import type {
 } from "@/http/models/invoice.model";
 import { calculateReviewerAmount } from "@/lib/incoices/invoice-calculation";
 import { client } from "@/packages/hono";
+import { AmountDisplay } from "./amount-display";
+import { useAmountsVisibility } from "./amounts-visibility-provider";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 
@@ -74,6 +76,7 @@ export const InvoicePrintable = ({
   onCustomLinesChange,
 }: InvoicePrintableProps) => {
   const { message } = App.useApp();
+  const { hidden: amountsHidden } = useAmountsVisibility();
   const [clientInvoiceDate] = useState(() =>
     new Date().toLocaleDateString("en-US", {
       year: "numeric",
@@ -503,11 +506,15 @@ export const InvoicePrintable = ({
                       </td>
 
                       <td className="text-right p-4 font-mono dark:text-gray-300">
-                        {dailyRate.toLocaleString()} €
+                        <AmountDisplay>
+                          {dailyRate.toLocaleString()} €
+                        </AmountDisplay>
                       </td>
 
                       <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
-                        {amount.toLocaleString()} €
+                        <AmountDisplay>
+                          {amount.toLocaleString()} €
+                        </AmountDisplay>
                       </td>
                     </tr>
                   );
@@ -583,10 +590,14 @@ export const InvoicePrintable = ({
                         <Text>{item.taskCount} tasks</Text>
                       </td>
                       <td className="text-right p-4 font-mono dark:text-gray-300">
-                        {totalRate.toLocaleString()} €
+                        <AmountDisplay>
+                          {totalRate.toLocaleString()} €
+                        </AmountDisplay>
                       </td>
                       <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
-                        {amount.toLocaleString()} €
+                        <AmountDisplay>
+                          {amount.toLocaleString()} €
+                        </AmountDisplay>
                       </td>
                     </tr>
                   );
@@ -659,10 +670,14 @@ export const InvoicePrintable = ({
                           <Text>{item.taskCount} tasks</Text>
                         </td>
                         <td className="text-right p-4 font-mono dark:text-gray-300">
-                          {rate.toLocaleString()} €
+                          <AmountDisplay>
+                            {rate.toLocaleString()} €
+                          </AmountDisplay>
                         </td>
                         <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
-                          {amount.toLocaleString()} €
+                          <AmountDisplay>
+                            {amount.toLocaleString()} €
+                          </AmountDisplay>
                         </td>
                       </tr>
                     );
@@ -710,7 +725,9 @@ export const InvoicePrintable = ({
                       </Text>
                     </td>
                     <td className="text-right p-4 font-bold text-gray-800 dark:text-gray-100 font-mono">
-                      {Number(item.amount).toLocaleString()} €
+                      <AmountDisplay>
+                        {Number(item.amount).toLocaleString()} €
+                      </AmountDisplay>
                     </td>
                     {!existingInvoice && isOwner && (
                       <td className="text-right p-4 no-print">
@@ -740,30 +757,36 @@ export const InvoicePrintable = ({
                       />
                     </td>
                     <td className="text-right p-4">
-                      <InputNumber
-                        placeholder="Amount"
-                        controls={false}
-                        value={newFieldAmount}
-                        onChange={(val) =>
-                          setNewFieldAmount(val === null ? "" : String(val))
-                        }
-                        variant="borderless"
-                        className="text-right font-mono"
-                        onPressEnter={() => {
-                          if (newFieldLabel && newFieldAmount) {
-                            onCustomLinesChange?.([
-                              ...customLines,
-                              {
-                                label: newFieldLabel,
-                                amount: newFieldAmount,
-                                key: crypto.randomUUID(),
-                              },
-                            ]);
-                            setNewFieldLabel("");
-                            setNewFieldAmount("");
+                      {amountsHidden ? (
+                        newFieldAmount ? (
+                          <AmountDisplay>{newFieldAmount}</AmountDisplay>
+                        ) : null
+                      ) : (
+                        <InputNumber
+                          placeholder="Amount"
+                          controls={false}
+                          value={newFieldAmount}
+                          onChange={(val) =>
+                            setNewFieldAmount(val === null ? "" : String(val))
                           }
-                        }}
-                      />
+                          variant="borderless"
+                          className="text-right font-mono"
+                          onPressEnter={() => {
+                            if (newFieldLabel && newFieldAmount) {
+                              onCustomLinesChange?.([
+                                ...customLines,
+                                {
+                                  label: newFieldLabel,
+                                  amount: newFieldAmount,
+                                  key: crypto.randomUUID(),
+                                },
+                              ]);
+                              setNewFieldLabel("");
+                              setNewFieldAmount("");
+                            }
+                          }}
+                        />
+                      )}
                     </td>
                     <td className="text-right p-4">
                       <Button
@@ -798,20 +821,24 @@ export const InvoicePrintable = ({
               <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
                 <Text className="dark:text-gray-300">Presence Subtotal</Text>
                 <Text className="font-mono dark:text-gray-200">
-                  {presenceTotal.toLocaleString()} €
+                  <AmountDisplay>
+                    {presenceTotal.toLocaleString()} €
+                  </AmountDisplay>
                 </Text>
               </div>
               <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
                 <Text className="dark:text-gray-300">Tasks Subtotal</Text>
                 <Text className="font-mono dark:text-gray-200">
-                  {taskTotal.toLocaleString()} €
+                  <AmountDisplay>{taskTotal.toLocaleString()} €</AmountDisplay>
                 </Text>
               </div>
               {reviewerTotal !== 0 && (
                 <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
                   <Text className="dark:text-gray-300">Reviewer Subtotal</Text>
                   <Text className="font-mono dark:text-gray-200">
-                    {reviewerTotal.toLocaleString()} €
+                    <AmountDisplay>
+                      {reviewerTotal.toLocaleString()} €
+                    </AmountDisplay>
                   </Text>
                 </div>
               )}
@@ -819,7 +846,9 @@ export const InvoicePrintable = ({
                 <div className="flex justify-between items-center text-gray-600 dark:text-gray-400">
                   <Text className="dark:text-gray-300">Custom Fields</Text>
                   <Text className="font-mono dark:text-gray-200">
-                    {customTotal.toLocaleString()} €
+                    <AmountDisplay>
+                      {customTotal.toLocaleString()} €
+                    </AmountDisplay>
                   </Text>
                 </div>
               )}
@@ -832,7 +861,7 @@ export const InvoicePrintable = ({
                   level={3}
                   className="m-0! text-white font-mono print:text-black"
                 >
-                  {grandTotal.toLocaleString()} €
+                  <AmountDisplay>{grandTotal.toLocaleString()} €</AmountDisplay>
                 </Title>
               </div>
             </div>

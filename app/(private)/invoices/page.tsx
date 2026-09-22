@@ -18,6 +18,8 @@ import {
 } from "@/http/repositories/task.repository";
 import { findUserById } from "@/http/repositories/user.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
+import { AmountsVisibilityProvider } from "./_components/amounts-visibility-provider";
+import { HideAmountsToggle } from "./_components/hide-amounts-toggle";
 import { InvoiceDetailView } from "./_components/invoice-detail-view";
 import { InvoiceHistoryTable } from "./_components/invoice-history-table";
 import type { PresenceSummary } from "./_components/presence-summary-table";
@@ -105,42 +107,47 @@ const InvoicesPage = async ({
         paddingRight: "8px",
       }}
     >
-      <div className="invoice-header no-print">
-        <div className="flex items-center gap-4">
-          {!showHistory && history.length > 0 && (
-            <Link href="/invoices">
-              <Button icon={<ArrowLeftOutlined />} type="text">
-                Back
-              </Button>
-            </Link>
-          )}
-          <h1 className="text-2xl font-semibold dark:text-white">
-            Invoices & Summary
-          </h1>
+      <AmountsVisibilityProvider>
+        <div className="invoice-header no-print">
+          <div className="flex items-center gap-4">
+            {!showHistory && history.length > 0 && (
+              <Link href="/invoices">
+                <Button icon={<ArrowLeftOutlined />} type="text">
+                  Back
+                </Button>
+              </Link>
+            )}
+            <h1 className="text-2xl font-semibold dark:text-white">
+              Invoices & Summary
+            </h1>
+          </div>
+          <div className="self-end md:self-center">
+            <HideAmountsToggle />
+          </div>
         </div>
-      </div>
 
-      {showHistory ? (
-        <InvoiceHistoryTable data={history} isOwner={isOwner} />
-      ) : (
-        <InvoiceDetailView
-          presenceSummary={presenceSummary as unknown as PresenceSummary[]}
-          taskSummary={taskSummary as unknown as RawTaskSummary[]}
-          reviewerTaskSummary={
-            reviewerTaskSummary as unknown as import("./_components/task-summary-table").ReviewerTaskSummary[]
-          }
-          user={user}
-          targetUserName={targetUserName}
-          targetUserId={targetUserId}
-          targetUserPhoneNumber={targetUserPhoneNumber}
-          targetUserPhoneOwnerName={targetUserPhoneOwnerName}
-          selectedPeriod={selectedPeriod}
-          existingInvoice={existingInvoice}
-          isOwner={isOwner}
-          members={members}
-          organization={organization}
-        />
-      )}
+        {showHistory ? (
+          <InvoiceHistoryTable data={history} isOwner={isOwner} />
+        ) : (
+          <InvoiceDetailView
+            presenceSummary={presenceSummary as unknown as PresenceSummary[]}
+            taskSummary={taskSummary as unknown as RawTaskSummary[]}
+            reviewerTaskSummary={
+              reviewerTaskSummary as unknown as import("./_components/task-summary-table").ReviewerTaskSummary[]
+            }
+            user={user}
+            targetUserName={targetUserName}
+            targetUserId={targetUserId}
+            targetUserPhoneNumber={targetUserPhoneNumber}
+            targetUserPhoneOwnerName={targetUserPhoneOwnerName}
+            selectedPeriod={selectedPeriod}
+            existingInvoice={existingInvoice}
+            isOwner={isOwner}
+            members={members}
+            organization={organization}
+          />
+        )}
+      </AmountsVisibilityProvider>
     </div>
   );
 };

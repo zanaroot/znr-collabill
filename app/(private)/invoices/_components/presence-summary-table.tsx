@@ -1,6 +1,7 @@
 "use client";
 
 import { Table, Typography } from "antd";
+import { AmountDisplay } from "./amount-display";
 
 const { Text } = Typography;
 
@@ -37,7 +38,11 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
       dataIndex: "dailyRate",
       key: "dailyRate",
       render: (rate: string | null) =>
-        rate ? `${Number(rate).toLocaleString()} €` : "Not set",
+        rate ? (
+          <AmountDisplay>{Number(rate).toLocaleString()} €</AmountDisplay>
+        ) : (
+          "Not set"
+        ),
     },
     {
       title: "Rate",
@@ -53,7 +58,11 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
 
         const total = record.count * dailyRate * (record.rate / 100);
 
-        return <Text strong>{total.toLocaleString()} €</Text>;
+        return (
+          <Text strong>
+            <AmountDisplay>{total.toLocaleString()} €</AmountDisplay>
+          </Text>
+        );
       },
     },
   ];
