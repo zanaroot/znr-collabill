@@ -187,4 +187,52 @@ export const dashboardRepository = {
             total: totalResult[0]?.count ?? 0,
         };
     },
+
+    async getImportantTickets(
+        organizationId: string,
+        userId: string,
+    ) {
+        const filters = and(
+            eq(
+                projects.organizationId,
+                organizationId,
+            ),
+            eq(
+                tasks.assignedTo,
+                userId,
+            ),
+            inArray(
+                tasks.status,
+                OPEN_TASK_STATUSES,
+            ),
+            inArray(
+                tasks.priority,
+                [1, 2, 3],
+            ),
+        );
+
+        const tickets = await db
+            .select({
+                id: tasks.id,
+                title: tasks.title,
+                priority: tasks.priority,
+                project: projects.name,
+                createdAt: tasks.createdAt,
+            })
+            .from(tasks)
+            .innerJoin(
+                projects,
+                eq(
+                    tasks.projectId,
+                    projects.id,
+                ),
+            )
+            .where(filters)
+            .orderBy(tasks.priority)
+            .limit(5);
+
+        return {
+            tickets,
+        };
+    },
 };

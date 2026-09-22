@@ -17,7 +17,6 @@ import {
     Col,
     Empty,
     Flex,
-    Progress,
     Row,
     Select,
     Space,
@@ -26,13 +25,14 @@ import {
     Typography,
 } from "antd";
 import { useState } from "react";
-
+import { getPriorityLabel, priorityTagColor } from "@/app/_utils/priority";
 import {
     useCurrentUser,
     useUsers,
 } from "@/app/(private)/team-management/_hooks/use-team";
-
 import {
+    useDashboardImportantTickets,
+    useDashboardInvoiceEstimate,
     useDashboardNewTickets,
     useDashboardStatistics,
 } from "../_hooks/usedasboard";
@@ -47,10 +47,15 @@ export default function Dashboard() {
 
     const isOwner = currentUser?.organizationRole === "OWNER";
 
-    // OWNER peut sélectionner un membre.
-    // Sans sélection, on affiche son propre dashboard.
     const dashboardUserId =
         isOwner && selectedUserId ? selectedUserId : currentUser?.id;
+
+    const {
+        data: invoiceEstimate,
+        isLoading: isInvoiceEstimateLoading,
+    } = useDashboardInvoiceEstimate(
+        isOwner ? selectedUserId : undefined,
+    );
 
     const {
         data: statistics,
@@ -65,26 +70,12 @@ export default function Dashboard() {
     const newTickets = newTicketsData?.tickets ?? [];
     const newTicketsCount = newTicketsData?.total ?? 0;
 
-    const importantTickets = [
-        {
-            id: "CLB-121",
-            title: "Invoice calculation is incorrect",
-            project: "Billing",
-            priority: "URGENT",
-        },
-        {
-            id: "CLB-115",
-            title: "Members cannot access project",
-            project: "Collabill",
-            priority: "IMPORTANT",
-        },
-        {
-            id: "CLB-104",
-            title: "Attendance settings issue",
-            project: "Collabill",
-            priority: "IMPORTANT",
-        },
-    ];
+    const {
+        data: importantTicketsData,
+    } = useDashboardImportantTickets(dashboardUserId);
+
+    const importantTickets = importantTicketsData?.tickets ?? [];
+
 
     return (
         <Space
@@ -357,81 +348,41 @@ export default function Dashboard() {
                 </Col>
 
                 {/* Current month invoice */}
-                <Col xs={24} lg={10}>
-                    <Card
-                        title={
-                            <Space>
-                                <FileTextOutlined />
-                                Current month invoice
-                            </Space>
-                        }
-                    >
-                        <Space
-                            orientation="vertical"
-                            size={20}
-                            style={{
-                                width: "100%",
-                            }}
-                        >
-                            <div>
-                                <Text type="secondary">
-                                    Estimated amount
-                                </Text>
+                <Col xs={24} sm={12} lg={6}>
+                    <Card loading={isInvoiceEstimateLoading}>
+                        <Typography.Text type="secondary">
+                            Estimated invoice
+                        </Typography.Text>
 
-                                <Title
-                                    level={1}
-                                    style={{
-                                        margin: "4px 0 0",
-                                        fontSize: 36,
-                                    }}
+                        <Typography.Title level={2} className="!mb-1">
+                            {invoiceEstimate
+                                ? new Intl.NumberFormat("fr-FR", {
+                                    style: "currency",
+                                    currency: "EUR",
+                                }).format(invoiceEstimate.amount)
+                                : "—"}
+                        </Typography.Title>
+
+                        <Space>
+                            <Typography.Text type="secondary">
+                                Current month
+                            </Typography.Text>
+
+                            {invoiceEstimate && (
+                                <Tag
+                                    color={
+                                        invoiceEstimate.status === "PAID"
+                                            ? "green"
+                                            : invoiceEstimate.status === "VALIDATED"
+                                                ? "blue"
+                                                : invoiceEstimate.status === "DRAFT"
+                                                    ? "orange"
+                                                    : "default"
+                                    }
                                 >
-                                    1,240 €
-                                </Title>
-                            </div>
-
-                            <Flex
-                                align="center"
-                                justify="space-between"
-                            >
-                                <Text type="secondary">
-                                    Invoice status
-                                </Text>
-
-                                <Tag color="processing">
-                                    DRAFT
+                                    {invoiceEstimate.status}
                                 </Tag>
-                            </Flex>
-
-                            <div>
-                                <Flex
-                                    align="center"
-                                    justify="space-between"
-                                    style={{
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    <Text type="secondary">
-                                        Billing progress
-                                    </Text>
-
-                                    <Text strong>
-                                        72%
-                                    </Text>
-                                </Flex>
-
-                                <Progress
-                                    percent={72}
-                                    showInfo={false}
-                                />
-                            </div>
-
-                            <Button
-                                block
-                                type="default"
-                                icon={<ArrowRightOutlined />}
-                            >
-                                View invoice
-                            </Button>
+                            )}
                         </Space>
                     </Card>
                 </Col>
@@ -498,15 +449,8 @@ export default function Dashboard() {
                                                     {ticket.id}
                                                 </Text>
 
-                                                <Tag
-                                                    color={
-                                                        ticket.priority ===
-                                                            "URGENT"
-                                                            ? "red"
-                                                            : "orange"
-                                                    }
-                                                >
-                                                    {ticket.priority}
+                                                <Tag color={priorityTagColor(ticket.priority)}>
+                                                    {getPriorityLabel(ticket.priority)}
                                                 </Tag>
                                             </Flex>
 

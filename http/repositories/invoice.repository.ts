@@ -46,7 +46,16 @@ export const findInvoiceByPeriodAndUser = async (
     .from(invoiceLines)
     .where(eq(invoiceLines.invoiceId, invoice.id));
 
-  return { ...invoice, lines };
+  const totalAmount = lines.reduce(
+    (total, line) => total + Number(line.total ?? 0),
+    0,
+  );
+
+  return {
+    ...invoice,
+    lines,
+    totalAmount,
+  };
 };
 
 export const createInvoiceWithLines = async (

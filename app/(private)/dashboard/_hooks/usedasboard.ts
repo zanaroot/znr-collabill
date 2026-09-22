@@ -36,3 +36,39 @@ export const useDashboardNewTickets = (userId?: string) => {
     enabled: !!userId,
   });
 };
+
+export const useDashboardInvoiceEstimate = (userId?: string) => {
+  return useQuery({
+    queryKey: ["dashboard", "invoice-estimate", userId],
+
+    queryFn: async () => {
+      const res = await client.api.dashboard["invoice-estimate"].$get({
+        query: userId ? { userId } : {},
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch invoice estimate");
+      }
+
+      return res.json();
+    },
+  });
+};
+
+export const useDashboardImportantTickets = (userId?: string) => {
+  return useQuery({
+    queryKey: ["dashboard", "important-tickets", userId],
+    queryFn: async () => {
+      const response = await client.api.dashboard["important-tickets"].$get({
+        query: userId ? { userId } : {},
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch important tickets");
+      }
+
+      return response.json();
+    },
+    enabled: !!userId,
+  });
+};
