@@ -4,6 +4,7 @@ import {
   ApartmentOutlined,
   CalendarOutlined,
   ContactsOutlined,
+  DashboardOutlined,
   DollarOutlined,
   FileTextOutlined,
   LeftOutlined,
@@ -129,6 +130,11 @@ export const PrivateLayout = ({
 
   const menuItems = [
     {
+      key: "dashboard",
+      icon: <DashboardOutlined />,
+      label: "Dashboard",
+    },
+    {
       key: "task-board",
       icon: <ContactsOutlined />,
       label: "Task Board",
@@ -160,12 +166,12 @@ export const PrivateLayout = ({
     },
     ...(hasAdminAccess
       ? [
-          {
-            key: "type-organization",
-            icon: <ApartmentOutlined />,
-            label: "Organizations",
-          },
-        ]
+        {
+          key: "type-organization",
+          icon: <ApartmentOutlined />,
+          label: "Organizations",
+        },
+      ]
       : []),
   ];
 
@@ -232,7 +238,7 @@ export const PrivateLayout = ({
                 className={cn(
                   "flex items-center gap-3 rounded-lg py-3 px-4 mb-1 no-underline transition-all bg-transparent dark:text-inherit! text-black! font-normal",
                   selectedKey === item.key &&
-                    "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
+                  "bg-[#e6f4ff]! dark:bg-[#1a3a5c]! font-medium",
                 )}
               >
                 <span style={{ fontSize: 16, display: "flex" }}>

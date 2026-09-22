@@ -27,7 +27,7 @@ export const SelectOrganizationForm = () => {
     onSuccess: (data) => {
       if ("success" in data && data.success) {
         message.success("Organization selected!");
-        router.push("/task-board");
+        router.push("/dashboard");
         router.refresh();
       } else {
         message.error(
