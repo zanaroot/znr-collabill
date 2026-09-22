@@ -4,6 +4,7 @@ export * from "./enums";
 export * from "./integration";
 export * from "./invoice";
 export * from "./invoice-comment";
+export * from "./job-run";
 export * from "./leave";
 export * from "./notification";
 export * from "./organization";

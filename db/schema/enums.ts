@@ -107,3 +107,9 @@ export const notificationEntityTypeEnum = pgEnum("notification_entity_type", [
   "MEMBER",
   "ORGANIZATION",
 ]);
+
+export const jobRunStatusEnum = pgEnum("job_run_status", [
+  "RUNNING",
+  "SUCCEEDED",
+  "FAILED",
+]);

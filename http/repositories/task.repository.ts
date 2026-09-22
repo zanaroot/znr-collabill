@@ -8,11 +8,13 @@ import {
   desc,
   eq,
   gte,
+  ilike,
   inArray,
   isNotNull,
   isNull,
   lte,
   ne,
+  not,
   or,
   sql,
 } from "drizzle-orm";
@@ -20,13 +22,16 @@ import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
   collaboratorRates,
+  notifications,
   organizationMembers,
   projects,
+  taskComments,
   tasks,
   users,
 } from "@/db/schema";
 import type {
   CreateTaskInput,
+  TaskStatus,
   UpdateTaskSystemInput,
 } from "@/http/models/task.model";
 
@@ -166,6 +171,81 @@ export const updateTask = async (id: string, input: UpdateTaskSystemInput) => {
 export const deleteTask = async (id: string) => {
   const [task] = await db.delete(tasks).where(eq(tasks.id, id)).returning();
   return task ?? null;
+};
+
+export const findTaskIdAndDescriptionByStatus = async (status: TaskStatus) => {
+  return await db
+    .select({ id: tasks.id, description: tasks.description })
+    .from(tasks)
+    .where(eq(tasks.status, status));
+};
+
+const escapeLikePattern = (value: string) =>
+  value.replace(/[\\%_]/g, (char) => `\\${char}`);
+
+export const findSurvivingContentsMentioningKeys = async (
+  keys: string[],
+  excludeTaskIds: string[],
+): Promise<string[]> => {
+  if (keys.length === 0) {
+    return [];
+  }
+
+  const patterns = keys.map((key) => `%${escapeLikePattern(key)}%`);
+
+  const excludeTasks =
+    excludeTaskIds.length > 0
+      ? not(inArray(tasks.id, excludeTaskIds))
+      : undefined;
+  const mentionTask = or(
+    ...patterns.map((pattern) => ilike(tasks.description, pattern)),
+  );
+
+  const taskRows = await db
+    .select({ content: tasks.description })
+    .from(tasks)
+    .where(and(excludeTasks, mentionTask));
+
+  const excludeComments =
+    excludeTaskIds.length > 0
+      ? not(inArray(taskComments.taskId, excludeTaskIds))
+      : undefined;
+  const mentionComment = or(
+    ...patterns.map((pattern) => ilike(taskComments.content, pattern)),
+  );
+
+  const commentRows = await db
+    .select({ content: taskComments.content })
+    .from(taskComments)
+    .where(and(excludeComments, mentionComment));
+
+  return [...taskRows, ...commentRows]
+    .map((row) => row.content)
+    .filter((content): content is string => typeof content === "string");
+};
+
+export const purgeTasksByIds = async (taskIds: string[]): Promise<number> => {
+  if (taskIds.length === 0) {
+    return 0;
+  }
+
+  return await db.transaction(async (tx) => {
+    await tx
+      .delete(notifications)
+      .where(
+        and(
+          eq(notifications.entityType, "TASK"),
+          inArray(notifications.entityId, taskIds),
+        ),
+      );
+
+    const deleted = await tx
+      .delete(tasks)
+      .where(inArray(tasks.id, taskIds))
+      .returning({ id: tasks.id });
+
+    return deleted.length;
+  });
 };
 
 export const countTasksByProjectId = async (projectId: string) => {

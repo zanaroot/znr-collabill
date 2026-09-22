@@ -183,6 +183,13 @@
       "when": 1787661830135,
       "tag": "0025_grey_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1790070914816,
+      "tag": "0026_wandering_mentallo",
+      "breakpoints": true
     }
   ]
 }
