@@ -15,8 +15,8 @@ type AmountsVisibilityContextType = {
 };
 
 const AmountsVisibilityContext = createContext<AmountsVisibilityContextType>({
-  hidden: false,
-  toggleHidden: () => {},
+  hidden: true,
+  toggleHidden: () => { },
 });
 
 export const AmountsVisibilityProvider = ({
@@ -24,7 +24,7 @@ export const AmountsVisibilityProvider = ({
 }: {
   children: ReactNode;
 }) => {
-  const [hidden, setHidden] = useState(false);
+  const [hidden, setHidden] = useState(true);
 
   const toggleHidden = useCallback(() => {
     setHidden((prev) => !prev);
