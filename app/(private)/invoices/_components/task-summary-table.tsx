@@ -1,7 +1,7 @@
 "use client";
 
 import { Table, Typography } from "antd";
-import { AmountDisplay } from "./amount-display";
+import { AmountDisplay } from "@/app/(private)/_components/amount-display";
 
 const { Text } = Typography;
 

@@ -16,7 +16,7 @@ type AmountsVisibilityContextType = {
 
 const AmountsVisibilityContext = createContext<AmountsVisibilityContextType>({
   hidden: true,
-  toggleHidden: () => { },
+  toggleHidden: () => {},
 });
 
 export const AmountsVisibilityProvider = ({

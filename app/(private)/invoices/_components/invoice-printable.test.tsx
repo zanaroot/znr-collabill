@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { AmountsVisibilityProvider } from "@/app/(private)/_components/amounts-visibility-provider";
+import { HideAmountsToggle } from "@/app/(private)/_components/hide-amounts-toggle";
 import {
   InvoicePrintable,
   type InvoicePrintableProps,
@@ -46,7 +48,12 @@ const createWrapper = () => {
     },
   });
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <AmountsVisibilityProvider>
+        <HideAmountsToggle />
+        {children}
+      </AmountsVisibilityProvider>
+    </QueryClientProvider>
   );
 };
 
@@ -104,6 +111,8 @@ describe("InvoicePrintable", () => {
 
   it("shows add custom field UI when isOwner and no existingInvoice", () => {
     render(<InvoicePrintable {...mockProps} />, { wrapper: createWrapper() });
+
+    fireEvent.click(screen.getByRole("button", { name: "Show amounts" }));
 
     expect(
       screen.getByPlaceholderText("Label (e.g. Bonus, Prime)"),

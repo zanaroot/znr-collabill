@@ -1,5 +1,6 @@
 "use client";
 
+import { AmountsVisibilityProvider } from "../_components/amounts-visibility-provider";
 import RateSettingsPanel from "./_components/rateSettingsPanel";
 import { useMyOrganizations } from "./hook/useMyOrganizations";
 
@@ -14,7 +15,9 @@ const RateSettingsPage = () => {
 
   return (
     <div className="h-full overflow-y-auto">
-      <RateSettingsPanel organizationId={organization.id} />
+      <AmountsVisibilityProvider>
+        <RateSettingsPanel organizationId={organization.id} />
+      </AmountsVisibilityProvider>
     </div>
   );
 };

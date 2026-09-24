@@ -120,6 +120,7 @@ export const findProjectsForCollaborator = async (
       description: projects.description,
       gitRepo: projects.gitRepo,
       baseRate: projects.baseRate,
+      reviewerRate: projects.reviewerRate,
       organizationId: projects.organizationId,
       createdBy: projects.createdBy,
       createdAt: projects.createdAt,

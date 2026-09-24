@@ -8,7 +8,7 @@ import {
 } from "@ant-design/icons";
 import { App, Button, Card, Flex, Table, Tooltip, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Project } from "@/http/models/project.model";
 import { useCurrentUser } from "../../team-management/_hooks/use-team";
 import { useDeleteProject, useProjects } from "../_hooks/use-projects";
@@ -18,8 +18,9 @@ import { ProjectDetailsDrawer } from "./project-details-drawer";
 const { Title } = Typography;
 
 export function ProjectList() {
-  const [selectedProjectForDetails, setSelectedProjectForDetails] =
-    useState<Project | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null,
+  );
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const { modal, message } = App.useApp();
@@ -27,6 +28,11 @@ export function ProjectList() {
   const { data: currentUser } = useCurrentUser();
   const { data: projects, isLoading: isFetching } = useProjects();
   const deleteProjectMutation = useDeleteProject();
+
+  const selectedProject = useMemo(
+    () => projects?.find((project) => project.id === selectedProjectId) ?? null,
+    [projects, selectedProjectId],
+  );
 
   const handleProjectCreated = () => {
     setIsCreateDrawerOpen(false);
@@ -134,7 +140,7 @@ export function ProjectList() {
             size="small"
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedProjectForDetails(record);
+              setSelectedProjectId(record.id);
             }}
           />
         </Flex>
@@ -193,7 +199,7 @@ export function ProjectList() {
                 ) {
                   return;
                 }
-                setSelectedProjectForDetails(record);
+                setSelectedProjectId(record.id);
               },
               style: { cursor: "pointer" },
             })}
@@ -207,9 +213,9 @@ export function ProjectList() {
         onCreated={handleProjectCreated}
       />
       <ProjectDetailsDrawer
-        project={selectedProjectForDetails}
-        open={!!selectedProjectForDetails}
-        onClose={() => setSelectedProjectForDetails(null)}
+        project={selectedProject}
+        open={!!selectedProjectId}
+        onClose={() => setSelectedProjectId(null)}
       />
     </>
   );

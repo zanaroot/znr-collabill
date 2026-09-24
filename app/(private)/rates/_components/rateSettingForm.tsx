@@ -23,6 +23,9 @@ import {
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { AmountDisplay } from "@/app/(private)/_components/amount-display";
+import { useAmountsVisibility } from "@/app/(private)/_components/amounts-visibility-provider";
+import { HideAmountsToggle } from "@/app/(private)/_components/hide-amounts-toggle";
 import type { Project } from "@/http/models/project.model";
 import type { UserWithRoles } from "@/http/models/user.model";
 
@@ -117,6 +120,11 @@ export default function RateSettingsForm({
   onSaveAll,
   isSaving,
 }: RateSettingsFormProps) {
+  const { hidden: amountsHidden } = useAmountsVisibility();
+
+  const maskValue = (display: string, node: React.ReactNode) =>
+    amountsHidden ? <AmountDisplay>{display}</AmountDisplay> : node;
+
   const handleBaseRateMChange = (value: string) => {
     const m = Number(value);
 
@@ -148,9 +156,13 @@ export default function RateSettingsForm({
   return (
     <div style={{ width: "99%" }}>
       <Flex vertical gap={4} style={{ marginBottom: 24 }}>
-        <Title level={3} style={{ margin: 0 }}>
-          Rate Settings
-        </Title>
+        <Flex justify="space-between" align="center" gap={8} wrap="wrap">
+          <Title level={3} style={{ margin: 0 }}>
+            Rate Settings
+          </Title>
+
+          <HideAmountsToggle />
+        </Flex>
 
         <Text type="secondary">
           Configure billing rates, attendance rates and leave policies for your
@@ -200,7 +212,10 @@ export default function RateSettingsForm({
             <Flex vertical gap={6}>
               <Text strong>XS</Text>
 
-              <Input suffix="€" value={rates.rateXs} readOnly />
+              {maskValue(
+                `${rates.rateXs} €`,
+                <Input suffix="€" value={rates.rateXs} readOnly />,
+              )}
             </Flex>
           </Col>
 
@@ -208,7 +223,10 @@ export default function RateSettingsForm({
             <Flex vertical gap={6}>
               <Text strong>S</Text>
 
-              <Input suffix="€" value={rates.rateS} readOnly />
+              {maskValue(
+                `${rates.rateS} €`,
+                <Input suffix="€" value={rates.rateS} readOnly />,
+              )}
             </Flex>
           </Col>
 
@@ -216,50 +234,62 @@ export default function RateSettingsForm({
             <Flex vertical gap={6}>
               <Text strong>M (Base)</Text>
 
-              <Input
-                suffix="€"
-                value={rates.rateM}
-                readOnly={!isOwner}
-                onChange={
-                  isOwner
-                    ? (e) => handleBaseRateMChange(e.target.value)
-                    : undefined
-                }
-              />
+              {maskValue(
+                `${rates.rateM} €`,
+                <Input
+                  suffix="€"
+                  value={rates.rateM}
+                  readOnly={!isOwner}
+                  onChange={
+                    isOwner
+                      ? (e) => handleBaseRateMChange(e.target.value)
+                      : undefined
+                  }
+                />,
+              )}
             </Flex>
           </Col>
           <Col xs={24} sm={12} md={8}>
             <Flex vertical gap={6}>
               <Text strong>L</Text>
 
-              <Input suffix="€" value={rates.rateL} readOnly />
+              {maskValue(
+                `${rates.rateL} €`,
+                <Input suffix="€" value={rates.rateL} readOnly />,
+              )}
             </Flex>
           </Col>
           <Col xs={24} sm={12} md={8}>
             <Flex vertical gap={6}>
               <Text strong>XL</Text>
 
-              <Input suffix="€" value={rates.rateXl} readOnly />
+              {maskValue(
+                `${rates.rateXl} €`,
+                <Input suffix="€" value={rates.rateXl} readOnly />,
+              )}
             </Flex>
           </Col>
           <Col xs={24} sm={12} md={8}>
             <Flex vertical gap={6}>
               <Text strong>Daily</Text>
 
-              <Input
-                suffix="€"
-                value={rates.dailyRate}
-                readOnly={!isOwner}
-                onChange={
-                  isOwner
-                    ? (e) =>
-                        setRates((prev) => ({
-                          ...prev,
-                          dailyRate: e.target.value,
-                        }))
-                    : undefined
-                }
-              />
+              {maskValue(
+                `${rates.dailyRate} €`,
+                <Input
+                  suffix="€"
+                  value={rates.dailyRate}
+                  readOnly={!isOwner}
+                  onChange={
+                    isOwner
+                      ? (e) =>
+                          setRates((prev) => ({
+                            ...prev,
+                            dailyRate: e.target.value,
+                          }))
+                      : undefined
+                  }
+                />,
+              )}
             </Flex>
           </Col>
         </Row>

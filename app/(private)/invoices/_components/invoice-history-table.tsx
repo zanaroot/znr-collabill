@@ -4,7 +4,7 @@ import { CalendarOutlined } from "@ant-design/icons";
 import { Button, Table, Typography } from "antd";
 import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
-import { AmountDisplay } from "./amount-display";
+import { AmountDisplay } from "@/app/(private)/_components/amount-display";
 import { StatusTagInvoice } from "./status-tag-invoice";
 
 const { Title } = Typography;

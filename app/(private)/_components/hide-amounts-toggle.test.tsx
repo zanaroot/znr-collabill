@@ -1,11 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { AmountDisplay } from "@/app/(private)/invoices/_components/amount-display";
+import { AmountDisplay } from "@/app/(private)/_components/amount-display";
 import {
   AmountsVisibilityProvider,
   useAmountsVisibility,
-} from "@/app/(private)/invoices/_components/amounts-visibility-provider";
-import { HideAmountsToggle } from "@/app/(private)/invoices/_components/hide-amounts-toggle";
+} from "@/app/(private)/_components/amounts-visibility-provider";
+import { HideAmountsToggle } from "@/app/(private)/_components/hide-amounts-toggle";
 
 const Probe = () => {
   const { hidden } = useAmountsVisibility();
@@ -28,12 +28,19 @@ const renderWithProvider = () =>
   );
 
 describe("HideAmountsToggle", () => {
-  it("shows amounts by default and hides them when toggled", () => {
+  it("hides amounts by default and shows them when toggled", () => {
     renderWithProvider();
 
     const amount = screen.getByTestId("amount");
-    expect(amount).toHaveTextContent("500 €");
+    expect(screen.getByText("••••")).toBeInTheDocument();
+    expect(amount.querySelector(".print\\:hidden")).toBeInTheDocument();
+    expect(screen.getByTestId("state")).toHaveTextContent("hidden");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show amounts" }));
+
+    expect(screen.queryByText("••••")).not.toBeInTheDocument();
     expect(amount.querySelector(".print\\:hidden")).not.toBeInTheDocument();
+    expect(amount).toHaveTextContent("500 €");
     expect(screen.getByTestId("state")).toHaveTextContent("visible");
 
     fireEvent.click(screen.getByRole("button", { name: "Hide amounts" }));
@@ -44,25 +51,18 @@ describe("HideAmountsToggle", () => {
     expect(mask).toBeInTheDocument();
     expect(printOnly).toHaveTextContent("500 €");
     expect(screen.getByTestId("state")).toHaveTextContent("hidden");
-
-    fireEvent.click(screen.getByRole("button", { name: "Show amounts" }));
-
-    expect(screen.queryByText("••••")).not.toBeInTheDocument();
-    expect(amount).toHaveTextContent("500 €");
-    expect(amount.querySelector(".print\\:hidden")).not.toBeInTheDocument();
-    expect(screen.getByTestId("state")).toHaveTextContent("visible");
   });
 
   it("reflects state via aria-pressed", () => {
     renderWithProvider();
 
-    const button = screen.getByRole("button", { name: "Hide amounts" });
-    expect(button).toHaveAttribute("aria-pressed", "false");
+    const button = screen.getByRole("button", { name: "Show amounts" });
+    expect(button).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(button);
 
     expect(
-      screen.getByRole("button", { name: "Show amounts" }),
-    ).toHaveAttribute("aria-pressed", "true");
+      screen.getByRole("button", { name: "Hide amounts" }),
+    ).toHaveAttribute("aria-pressed", "false");
   });
 });

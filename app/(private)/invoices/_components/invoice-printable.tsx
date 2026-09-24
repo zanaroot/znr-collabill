@@ -13,6 +13,8 @@ import {
 } from "antd";
 import { useMemo, useState } from "react";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
+import { AmountDisplay } from "@/app/(private)/_components/amount-display";
+import { useAmountsVisibility } from "@/app/(private)/_components/amounts-visibility-provider";
 import { StatusTagInvoice } from "@/app/(private)/invoices/_components/status-tag-invoice";
 import type {
   CreateInvoiceInput,
@@ -20,8 +22,6 @@ import type {
 } from "@/http/models/invoice.model";
 import { calculateReviewerAmount } from "@/lib/incoices/invoice-calculation";
 import { client } from "@/packages/hono";
-import { AmountDisplay } from "./amount-display";
-import { useAmountsVisibility } from "./amounts-visibility-provider";
 import type { PresenceSummary } from "./presence-summary-table";
 import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 

@@ -2,6 +2,8 @@ import { ArrowLeftOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AmountsVisibilityProvider } from "@/app/(private)/_components/amounts-visibility-provider";
+import { HideAmountsToggle } from "@/app/(private)/_components/hide-amounts-toggle";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
 import {
   findInvoiceByPeriodAndUser,
@@ -18,8 +20,6 @@ import {
 } from "@/http/repositories/task.repository";
 import { findUserById } from "@/http/repositories/user.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
-import { AmountsVisibilityProvider } from "./_components/amounts-visibility-provider";
-import { HideAmountsToggle } from "./_components/hide-amounts-toggle";
 import { InvoiceDetailView } from "./_components/invoice-detail-view";
 import { InvoiceHistoryTable } from "./_components/invoice-history-table";
 import type { PresenceSummary } from "./_components/presence-summary-table";

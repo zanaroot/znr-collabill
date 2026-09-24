@@ -283,6 +283,7 @@ export const MemberList = () => {
               disabled={
                 record.id === currentUser?.id || updateRoleMutation.isPending
               }
+              onClick={(e) => e.stopPropagation()}
               onChange={(value) => handleRoleChange(record.id, value)}
               style={{ width: "100%", minWidth: 100 }}
               options={[
