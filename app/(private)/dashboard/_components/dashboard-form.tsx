@@ -18,6 +18,7 @@ import {
   Tag,
   Typography,
 } from "antd";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getPriorityLabel, priorityTagColor } from "@/app/_utils/priority";
 import {
@@ -35,12 +36,17 @@ import { StatisticsRow } from "./statistics-row";
 const { Text, Title } = Typography;
 
 export default function Dashboard() {
+  const router = useRouter();
   const [selectedUserId, setSelectedUserId] = useState("");
 
   const { data: currentUser } = useCurrentUser();
   const { data: users } = useUsers();
 
   const isOwner = currentUser?.organizationRole === "OWNER";
+
+  const handleTicketClick = (ticketId: string) => {
+    router.push(`/task-board?taskId=${ticketId}`);
+  };
 
   useEffect(() => {
     if (isOwner && currentUser?.id && !selectedUserId) {
@@ -151,8 +157,11 @@ export default function Dashboard() {
                       key={ticket.id}
                       size="small"
                       variant="borderless"
+                      hoverable
+                      onClick={() => handleTicketClick(ticket.id)}
                       style={{
                         border: "1px solid #f0f0f0",
+                        cursor: "pointer",
                       }}
                     >
                       <Flex
@@ -202,9 +211,7 @@ export default function Dashboard() {
                               {ticket.project}
                               {" · "}
                               {ticket.createdAt
-                                ? new Date(
-                                  ticket.createdAt,
-                                ).toLocaleDateString()
+                                ? new Date(ticket.createdAt).toLocaleDateString()
                                 : "—"}
                             </Text>
                           </div>
@@ -223,8 +230,17 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card
             loading={isInvoiceEstimateLoading}
+            hoverable
+            onClick={() => {
+              if (!invoiceEstimate) return;
+
+              router.push(
+                `/invoices?periodStart=${invoiceEstimate.periodStart}&periodEnd=${invoiceEstimate.periodEnd}`,
+              );
+            }}
             style={{
               height: 220,
+              cursor: invoiceEstimate ? "pointer" : "default",
             }}
           >
             <Typography.Text type="secondary">
@@ -294,7 +310,15 @@ export default function Dashboard() {
               }}
             >
               {importantTickets.map((ticket) => (
-                <Card key={ticket.id} size="small">
+                <Card
+                  key={ticket.id}
+                  size="small"
+                  hoverable
+                  onClick={() => handleTicketClick(ticket.id)}
+                  style={{
+                    cursor: "pointer",
+                  }}
+                >
                   <Flex
                     align="center"
                     justify="space-between"
