@@ -7,6 +7,8 @@ const DashboardPage = () => {
       style={{
         height: "100%",
         overflowY: "auto",
+        overflowX: "hidden",
+        minWidth: 0,
       }}
     >
       <Dashboard />

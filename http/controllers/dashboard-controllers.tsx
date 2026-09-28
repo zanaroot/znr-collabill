@@ -182,7 +182,6 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
 
   const currentPeriod = getCurrentPeriod();
 
-  // Get organization + invoice data
   const { getOrganizationById } = await import(
     "@/http/repositories/organization.repository"
   );
@@ -256,10 +255,6 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
       : null,
   });
 
-  /**
-   * Use the stored invoice only when it is already validated or paid.
-   * Draft invoices must be recalculated.
-   */
   if (
     existingInvoice &&
     (existingInvoice.status === "VALIDATED" ||
@@ -284,9 +279,6 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
     key: string;
   }> = [];
 
-  /**
-   * Unused Leave - Paid as Worked
-   */
   if (organization.unusedLeavePolicy === "PAID_AS_WORKED") {
     const { getUserQuota } = await import(
       "@/http/repositories/leave.repository"

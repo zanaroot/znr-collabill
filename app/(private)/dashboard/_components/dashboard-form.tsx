@@ -8,7 +8,6 @@ import {
 import {
   Avatar,
   Badge,
-  Button,
   Card,
   Col,
   Empty,
@@ -19,7 +18,7 @@ import {
   Tag,
   Typography,
 } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getPriorityLabel, priorityTagColor } from "@/app/_utils/priority";
 import {
   useCurrentUser,
@@ -43,11 +42,19 @@ export default function Dashboard() {
 
   const isOwner = currentUser?.organizationRole === "OWNER";
 
+  useEffect(() => {
+    if (isOwner && currentUser?.id && !selectedUserId) {
+      setSelectedUserId(currentUser.id);
+    }
+  }, [isOwner, currentUser?.id, selectedUserId]);
+
   const dashboardUserId =
     isOwner && selectedUserId ? selectedUserId : currentUser?.id;
 
   const { data: invoiceEstimate, isLoading: isInvoiceEstimateLoading } =
-    useDashboardInvoiceEstimate(isOwner ? selectedUserId : undefined);
+    useDashboardInvoiceEstimate(
+      isOwner ? selectedUserId : undefined,
+    );
 
   const { data: statistics, isLoading: isLoadingStatistics } =
     useDashboardStatistics(dashboardUserId);
@@ -71,10 +78,8 @@ export default function Dashboard() {
         width: "100%",
         minHeight: "100%",
         paddingBottom: 32,
-        overflowY: "auto",
       }}
     >
-      {/* Header */}
       <Flex align="center" justify="space-between" wrap="wrap" gap={16}>
         <div>
           <Title level={2} style={{ margin: 0 }}>
@@ -92,7 +97,6 @@ export default function Dashboard() {
             allowClear
             value={selectedUserId || undefined}
             placeholder="Select a member"
-            optionFilterProp="label"
             onChange={(value) => setSelectedUserId(value ?? "")}
             style={{ width: 300 }}
             options={
@@ -105,29 +109,21 @@ export default function Dashboard() {
         )}
       </Flex>
 
-      {/* Statistics */}
-      <StatisticsRow statistics={statistics} loading={isLoadingStatistics} />
+      <StatisticsRow
+        statistics={statistics}
+        loading={isLoadingStatistics}
+      />
 
-      {/* Main content */}
       <Row gutter={[16, 16]}>
-        {/* New tickets */}
-        <Col xs={24} lg={14}>
+        <Col xs={24} lg={18}>
           <Card
             loading={isLoadingNewTickets}
             title={
-              <Flex align="center" justify="space-between">
-                <Space>
-                  <FileTextOutlined />
-                  <span>New tickets assigned to you</span>
-                </Space>
-
+              <Flex align="center" gap={8}>
+                <FileTextOutlined />
+                <span>New tickets assigned to you</span>
                 <Badge count={newTicketsCount} overflowCount={99} />
               </Flex>
-            }
-            extra={
-              <Button type="link" icon={<ArrowRightOutlined />}>
-                View all
-              </Button>
             }
           >
             {newTickets.length === 0 ? (
@@ -136,78 +132,101 @@ export default function Dashboard() {
                 description="No new tickets assigned to you"
               />
             ) : (
-              <Space
-                orientation="vertical"
-                size={0}
+              <div
                 style={{
-                  width: "100%",
+                  maxHeight: 250,
+                  overflowY: "auto",
+                  paddingRight: 4,
                 }}
               >
-                {newTickets.map((ticket) => (
-                  <Card
-                    key={ticket.id}
-                    size="small"
-                    variant="borderless"
-                    style={{
-                      borderBottom: "1px solid #f0f0f0",
-                      borderRadius: 0,
-                    }}
-                  >
-                    <Flex align="center" justify="space-between" gap={16}>
+                <Space
+                  orientation="vertical"
+                  size={8}
+                  style={{
+                    width: "100%",
+                  }}
+                >
+                  {newTickets.map((ticket) => (
+                    <Card
+                      key={ticket.id}
+                      size="small"
+                      variant="borderless"
+                      style={{
+                        border: "1px solid #f0f0f0",
+                      }}
+                    >
                       <Flex
                         align="center"
-                        gap={12}
-                        style={{
-                          minWidth: 0,
-                        }}
+                        justify="space-between"
+                        gap={16}
                       >
-                        <Avatar shape="square" icon={<FileTextOutlined />} />
-
-                        <div
+                        <Flex
+                          align="center"
+                          gap={12}
                           style={{
                             minWidth: 0,
+                            flex: 1,
                           }}
                         >
-                          <Flex align="center" gap={8} wrap="wrap">
-                            <Text strong>{ticket.id}</Text>
+                          <Avatar
+                            shape="square"
+                            icon={<FileTextOutlined />}
+                          />
 
-                            {ticket.priority !== null && (
-                              <Tag color="blue">Priority {ticket.priority}</Tag>
-                            )}
-                          </Flex>
-
-                          <Text
-                            ellipsis
+                          <div
                             style={{
-                              display: "block",
-                              maxWidth: 400,
+                              minWidth: 0,
+                              flex: 1,
                             }}
                           >
-                            {ticket.title}
-                          </Text>
+                            <Flex align="center" gap={8} wrap="wrap">
+                              <Text strong>{ticket.id}</Text>
 
-                          <Text type="secondary">
-                            {ticket.project}
-                            {" · "}
-                            {ticket.createdAt
-                              ? new Date(ticket.createdAt).toLocaleDateString()
-                              : "—"}
-                          </Text>
-                        </div>
+                              {ticket.priority !== null && (
+                                <Tag color="blue">
+                                  Priority {ticket.priority}
+                                </Tag>
+                              )}
+                            </Flex>
+
+                            <Text
+                              ellipsis
+                              style={{
+                                display: "block",
+                              }}
+                            >
+                              {ticket.title}
+                            </Text>
+
+                            <Text type="secondary">
+                              {ticket.project}
+                              {" · "}
+                              {ticket.createdAt
+                                ? new Date(
+                                  ticket.createdAt,
+                                ).toLocaleDateString()
+                                : "—"}
+                            </Text>
+                          </div>
+                        </Flex>
+
+                        <ArrowRightOutlined />
                       </Flex>
-
-                      <Button type="text" icon={<ArrowRightOutlined />} />
-                    </Flex>
-                  </Card>
-                ))}
-              </Space>
+                    </Card>
+                  ))}
+                </Space>
+              </div>
             )}
           </Card>
         </Col>
 
-        {/* Current month invoice */}
         <Col xs={24} sm={12} lg={6}>
-          <Card loading={isInvoiceEstimateLoading}>
+          <Card
+            loading={isInvoiceEstimateLoading}
+            style={{
+              height: 220,
+            }}
+          >
             <Typography.Text type="secondary">
               Estimated invoice
             </Typography.Text>
@@ -215,14 +234,16 @@ export default function Dashboard() {
             <Typography.Title level={2} className="!mb-1">
               {invoiceEstimate
                 ? new Intl.NumberFormat("fr-FR", {
-                    style: "currency",
-                    currency: "EUR",
-                  }).format(invoiceEstimate.amount)
+                  style: "currency",
+                  currency: "EUR",
+                }).format(invoiceEstimate.amount)
                 : "—"}
             </Typography.Title>
 
             <Space>
-              <Typography.Text type="secondary">Current month</Typography.Text>
+              <Typography.Text type="secondary">
+                Current month
+              </Typography.Text>
 
               {invoiceEstimate && (
                 <Tag
@@ -243,71 +264,91 @@ export default function Dashboard() {
           </Card>
         </Col>
       </Row>
-      {/* Important tickets */}
+
       <Card
         title={
-          <Space>
+          <Flex align="center" gap={8}>
             <ExclamationCircleOutlined />
-            Important & urgent tickets
-          </Space>
-        }
-        extra={
-          <Button type="link" icon={<ArrowRightOutlined />}>
-            View all
-          </Button>
+            <span>Important & urgent tickets</span>
+          </Flex>
         }
       >
-        <Space orientation="vertical" size={12} style={{ width: "100%" }}>
-          {importantTickets.length === 0 ? (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="No important or urgent tickets"
-            />
-          ) : (
-            importantTickets.map((ticket) => (
-              <Card key={ticket.id} size="small">
-                <Flex align="center" justify="space-between" gap={16}>
+        {importantTickets.length === 0 ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="No important or urgent tickets"
+          />
+        ) : (
+          <div
+            style={{
+              maxHeight: 380,
+              overflowY: "auto",
+              paddingRight: 4,
+            }}
+          >
+            <Space
+              orientation="vertical"
+              size={12}
+              style={{
+                width: "100%",
+              }}
+            >
+              {importantTickets.map((ticket) => (
+                <Card key={ticket.id} size="small">
                   <Flex
                     align="center"
-                    gap={12}
-                    style={{
-                      minWidth: 0,
-                    }}
+                    justify="space-between"
+                    gap={16}
                   >
-                    <Avatar
-                      shape="square"
-                      icon={<ExclamationCircleOutlined />}
-                    />
+                    <Flex
+                      align="center"
+                      gap={12}
+                      style={{
+                        minWidth: 0,
+                        flex: 1,
+                      }}
+                    >
+                      <Avatar
+                        shape="square"
+                        icon={<ExclamationCircleOutlined />}
+                      />
 
-                    <div>
-                      <Flex align="center" gap={8}>
-                        <Text strong>{ticket.id}</Text>
-
-                        <Tag color={priorityTagColor(ticket.priority)}>
-                          {getPriorityLabel(ticket.priority)}
-                        </Tag>
-                      </Flex>
-
-                      <Text
-                        ellipsis
+                      <div
                         style={{
-                          display: "block",
-                          maxWidth: 600,
+                          minWidth: 0,
+                          flex: 1,
                         }}
                       >
-                        {ticket.title}
-                      </Text>
+                        <Flex align="center" gap={8} wrap="wrap">
+                          <Text strong>{ticket.id}</Text>
 
-                      <Text type="secondary">{ticket.project}</Text>
-                    </div>
+                          <Tag color={priorityTagColor(ticket.priority)}>
+                            {getPriorityLabel(ticket.priority)}
+                          </Tag>
+                        </Flex>
+
+                        <Text
+                          ellipsis
+                          style={{
+                            display: "block",
+                          }}
+                        >
+                          {ticket.title}
+                        </Text>
+
+                        <Text type="secondary">
+                          {ticket.project}
+                        </Text>
+                      </div>
+                    </Flex>
+
+                    <ArrowRightOutlined />
                   </Flex>
-
-                  <Button type="text" icon={<ArrowRightOutlined />} />
-                </Flex>
-              </Card>
-            ))
-          )}
-        </Space>
+                </Card>
+              ))}
+            </Space>
+          </div>
+        )}
       </Card>
     </Space>
   );

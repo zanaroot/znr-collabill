@@ -1,9 +1,9 @@
-import { and, count, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, count, countDistinct, desc, eq, gte, inArray, lte } from "drizzle-orm";
 
 import { db } from "@/db";
 import { invoices } from "@/db/schema/invoice";
 import { notifications } from "@/db/schema/notification";
-import { projects } from "@/db/schema/project";
+import { projectMembers, projects } from "@/db/schema/project";
 import { tasks } from "@/db/schema/task";
 import { userRoles } from "@/db/schema/user";
 
@@ -31,13 +31,20 @@ export const dashboardRepository = {
       openedResult,
       closedResult,
     ] = await Promise.all([
-      // Projects in the organization
       db
-        .select({ count: count() })
-        .from(projects)
-        .where(eq(projects.organizationId, organizationId)),
+        .select({ count: countDistinct(projectMembers.projectId) })
+        .from(projectMembers)
+        .innerJoin(
+          projects,
+          eq(projectMembers.projectId, projects.id),
+        )
+        .where(
+          and(
+            eq(projects.organizationId, organizationId),
+            eq(projectMembers.userId, userId),
+          ),
+        ),
 
-      // Open tasks assigned to the selected user
       db
         .select({ count: count() })
         .from(tasks)
@@ -50,13 +57,11 @@ export const dashboardRepository = {
           ),
         ),
 
-      // Members in the organization
       db
         .select({ count: count() })
         .from(userRoles)
         .where(eq(userRoles.organizationId, organizationId)),
 
-      // Pending invoices in the organization
       db
         .select({ count: count() })
         .from(invoices)
@@ -67,7 +72,6 @@ export const dashboardRepository = {
           ),
         ),
 
-      // Tickets assigned to the user created during the period
       db
         .select({ count: count() })
         .from(tasks)
@@ -81,7 +85,6 @@ export const dashboardRepository = {
           ),
         ),
 
-      // Tickets assigned to the user validated during the period
       db
         .select({ count: count() })
         .from(tasks)
@@ -113,6 +116,9 @@ export const dashboardRepository = {
       eq(notifications.userId, userId),
       eq(notifications.type, "TASK_ASSIGNED"),
       eq(notifications.entityType, "TASK"),
+
+      eq(tasks.assignedTo, userId),
+
       eq(notifications.isRead, false),
       inArray(tasks.status, OPEN_TASK_STATUSES),
     );

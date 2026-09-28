@@ -33,56 +33,70 @@ const cards: Array<{
   footerIcon: ReactNode;
   description: string;
 }> = [
-  {
-    key: "activeProjects",
-    title: "Projects",
-    icon: <ProjectOutlined />,
-    footerIcon: <RiseOutlined />,
-    description: "Projects in your organization",
-  },
-  {
-    key: "openTasks",
-    title: "Open tasks",
-    icon: <ClockCircleOutlined />,
-    footerIcon: <ClockCircleOutlined />,
-    description: "Tasks waiting for action",
-  },
-  {
-    key: "teamMembers",
-    title: "Team members",
-    icon: <TeamOutlined />,
-    footerIcon: <TeamOutlined />,
-    description: "Members in your organization",
-  },
-  {
-    key: "pendingInvoices",
-    title: "Pending invoices",
-    icon: <FileTextOutlined />,
-    footerIcon: <ClockCircleOutlined />,
-    description: "Invoices awaiting payment",
-  },
-  {
-    key: "openedTasks",
-    title: "Opened this month",
-    icon: <PlusSquareOutlined />,
-    footerIcon: <PlusSquareOutlined />,
-    description: "Tickets created this month",
-  },
-  {
-    key: "closedTasks",
-    title: "Closed this month",
-    icon: <CheckCircleOutlined />,
-    footerIcon: <CheckCircleOutlined />,
-    description: "Tickets validated this month",
-  },
-];
+    {
+      key: "activeProjects",
+      title: "Projects",
+      icon: <ProjectOutlined />,
+      footerIcon: <RiseOutlined />,
+      description: "Projects in your organization",
+    },
+    {
+      key: "openTasks",
+      title: "Open tasks",
+      icon: <ClockCircleOutlined />,
+      footerIcon: <ClockCircleOutlined />,
+      description: "Tasks waiting for action",
+    },
+    {
+      key: "teamMembers",
+      title: "Team members",
+      icon: <TeamOutlined />,
+      footerIcon: <TeamOutlined />,
+      description: "Members in your organization",
+    },
+    {
+      key: "pendingInvoices",
+      title: "Pending invoices",
+      icon: <FileTextOutlined />,
+      footerIcon: <ClockCircleOutlined />,
+      description: "Invoices awaiting payment",
+    },
+    {
+      key: "openedTasks",
+      title: "Opened this month",
+      icon: <PlusSquareOutlined />,
+      footerIcon: <PlusSquareOutlined />,
+      description: "Tickets created this month",
+    },
+    {
+      key: "closedTasks",
+      title: "Closed this month",
+      icon: <CheckCircleOutlined />,
+      footerIcon: <CheckCircleOutlined />,
+      description: "Tickets validated this month",
+    },
+  ];
 
 export const StatisticsRow = ({ statistics, loading }: StatisticRowProps) => {
   return (
-    <Row gutter={[16, 16]}>
+    <Row gutter={[16, 16]} align="stretch">
       {cards.map((card) => (
-        <Col key={card.key} xs={24} sm={12} lg={4}>
-          <Card>
+        <Col key={card.key} xs={24} sm={12} lg={4} style={{ display: "flex" }}>
+          <Card
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            styles={{
+              body: {
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+              },
+            }}
+          >
             <Statistic
               title={card.title}
               value={statistics?.[card.key] ?? 0}
@@ -90,10 +104,25 @@ export const StatisticsRow = ({ statistics, loading }: StatisticRowProps) => {
               prefix={card.icon}
             />
 
-            <Flex align="center" gap={6} style={{ marginTop: 12 }}>
+            <Flex
+              align="center"
+              gap={6}
+              style={{
+                marginTop: "auto",
+                paddingTop: 16,
+                minHeight: 40,
+              }}
+            >
               {card.footerIcon}
 
-              <Text type="secondary">{card.description}</Text>
+              <Text
+                type="secondary"
+                style={{
+                  lineHeight: 1.4,
+                }}
+              >
+                {card.description}
+              </Text>
             </Flex>
           </Card>
         </Col>
