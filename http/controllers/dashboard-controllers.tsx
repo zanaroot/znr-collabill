@@ -177,42 +177,71 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
 
   const isOwner = user.organizationRole === "OWNER";
 
-  const targetUserId = isOwner && requestedUserId ? requestedUserId : user.id;
+  const targetUserId =
+    isOwner && requestedUserId ? requestedUserId : user.id;
 
   const currentPeriod = getCurrentPeriod();
 
-  const [presenceSummary, taskSummary, reviewerTaskSummary, existingInvoice] =
-    await Promise.all([
-      getPresenceSummaryByOrganization(
-        user.id,
-        user.organizationId,
-        targetUserId,
-        currentPeriod.startDate,
-        currentPeriod.endDate,
-      ),
+  // Get organization + invoice data
+  const { getOrganizationById } = await import(
+    "@/http/repositories/organization.repository"
+  );
 
-      getValidatedTaskSummaryByOrganization(
-        user.id,
-        user.organizationId,
-        targetUserId,
-        currentPeriod.startDate ? new Date(currentPeriod.startDate) : undefined,
-        currentPeriod.endDate ? new Date(currentPeriod.endDate) : undefined,
-      ),
+  const organization = await getOrganizationById(user.organizationId);
 
-      getValidatedTaskSummaryByReviewer(
-        targetUserId,
-        user.organizationId,
-        currentPeriod.startDate ? new Date(currentPeriod.startDate) : undefined,
-        currentPeriod.endDate ? new Date(currentPeriod.endDate) : undefined,
-      ),
+  if (!organization) {
+    return c.json(
+      {
+        error: "Organization not found",
+      },
+      404,
+    );
+  }
 
-      findInvoiceByPeriodAndUser(
-        currentPeriod.startDate,
-        currentPeriod.endDate,
-        targetUserId,
-        user.organizationId,
-      ),
-    ]);
+  const [
+    presenceSummary,
+    taskSummary,
+    reviewerTaskSummary,
+    existingInvoice,
+  ] = await Promise.all([
+    getPresenceSummaryByOrganization(
+      user.id,
+      user.organizationId,
+      targetUserId,
+      currentPeriod.startDate,
+      currentPeriod.endDate,
+    ),
+
+    getValidatedTaskSummaryByOrganization(
+      user.id,
+      user.organizationId,
+      targetUserId,
+      currentPeriod.startDate
+        ? new Date(currentPeriod.startDate)
+        : undefined,
+      currentPeriod.endDate
+        ? new Date(currentPeriod.endDate)
+        : undefined,
+    ),
+
+    getValidatedTaskSummaryByReviewer(
+      targetUserId,
+      user.organizationId,
+      currentPeriod.startDate
+        ? new Date(currentPeriod.startDate)
+        : undefined,
+      currentPeriod.endDate
+        ? new Date(currentPeriod.endDate)
+        : undefined,
+    ),
+
+    findInvoiceByPeriodAndUser(
+      currentPeriod.startDate,
+      currentPeriod.endDate,
+      targetUserId,
+      user.organizationId,
+    ),
+  ]);
 
   console.log("DASHBOARD INVOICE", {
     targetUserId,
@@ -220,17 +249,25 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
     periodEnd: currentPeriod.endDate,
     existingInvoice: existingInvoice
       ? {
-          id: existingInvoice.id,
-          totalAmount: existingInvoice.totalAmount,
-          status: existingInvoice.status,
-        }
+        id: existingInvoice.id,
+        totalAmount: existingInvoice.totalAmount,
+        status: existingInvoice.status,
+      }
       : null,
   });
 
-  if (existingInvoice) {
+  /**
+   * Use the stored invoice only when it is already validated or paid.
+   * Draft invoices must be recalculated.
+   */
+  if (
+    existingInvoice &&
+    (existingInvoice.status === "VALIDATED" ||
+      existingInvoice.status === "PAID")
+  ) {
     return c.json({
       amount: Number(existingInvoice.totalAmount ?? 0),
-      status: existingInvoice.status ?? "DRAFT",
+      status: existingInvoice.status,
       periodStart: currentPeriod.startDate,
       periodEnd: currentPeriod.endDate,
       source: "invoice",
@@ -241,11 +278,49 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
     (presence) => presence.userId === targetUserId,
   );
 
+  const customLines: Array<{
+    label: string;
+    amount: string;
+    key: string;
+  }> = [];
+
+  /**
+   * Unused Leave - Paid as Worked
+   */
+  if (organization.unusedLeavePolicy === "PAID_AS_WORKED") {
+    const { getUserQuota } = await import(
+      "@/http/repositories/leave.repository"
+    );
+
+    const quotaInfo = await getUserQuota(targetUserId, user.organizationId);
+
+    const remaining = Number(quotaInfo?.quota ?? 0);
+
+    if (remaining > 0) {
+      const memberRate = Number(
+        filteredPresenceSummary.find(
+          (presence) => presence.userId === targetUserId,
+        )?.dailyRate ?? 0,
+      );
+
+      const amount = memberRate * remaining;
+
+      if (amount > 0) {
+        customLines.push({
+          label: "Unused Leave (Paid as Worked)",
+          amount: amount.toString(),
+          key: `unused-leave-${targetUserId}`,
+        });
+      }
+    }
+  }
+
   const estimate = calculateEstimatedInvoice({
     targetUserId,
     presenceData: filteredPresenceSummary,
     taskData: taskSummary,
     reviewerTaskData: reviewerTaskSummary,
+    customLines,
   });
 
   return c.json({

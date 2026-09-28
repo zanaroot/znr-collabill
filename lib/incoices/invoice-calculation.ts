@@ -103,9 +103,9 @@ export const calculateEstimatedInvoice = ({
       `rate${size.charAt(0).toUpperCase() + size.slice(1)}` as keyof RawTaskSummary;
 
     const baseRate = Number((t[rateKey] as string | null) || 0);
-    const projectRate = Number(t.projectBaseRate || 0);
+    const projectRate = Number(t.projectBaseRate || 100);
 
-    const totalRate = baseRate * projectRate;
+    const totalRate = baseRate * (projectRate / 100);
     const amount = t.taskCount * totalRate;
 
     if (amount > 0) {
@@ -114,11 +114,8 @@ export const calculateEstimatedInvoice = ({
   }
 
   // Reviewer tasks
+  // reviewerTaskData is already filtered by reviewerId = targetUserId
   for (const rt of reviewerTaskData) {
-    if (rt.assignedTo !== targetUserId) {
-      continue;
-    }
-
     const { amount } = calculateReviewerAmount(rt);
 
     if (amount > 0) {
