@@ -58,9 +58,7 @@ export default function Dashboard() {
     isOwner && selectedUserId ? selectedUserId : currentUser?.id;
 
   const { data: invoiceEstimate, isLoading: isInvoiceEstimateLoading } =
-    useDashboardInvoiceEstimate(
-      isOwner ? selectedUserId : undefined,
-    );
+    useDashboardInvoiceEstimate(isOwner ? selectedUserId : undefined);
 
   const { data: statistics, isLoading: isLoadingStatistics } =
     useDashboardStatistics(dashboardUserId);
@@ -115,10 +113,7 @@ export default function Dashboard() {
         )}
       </Flex>
 
-      <StatisticsRow
-        statistics={statistics}
-        loading={isLoadingStatistics}
-      />
+      <StatisticsRow statistics={statistics} loading={isLoadingStatistics} />
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={18}>
@@ -164,11 +159,7 @@ export default function Dashboard() {
                         cursor: "pointer",
                       }}
                     >
-                      <Flex
-                        align="center"
-                        justify="space-between"
-                        gap={16}
-                      >
+                      <Flex align="center" justify="space-between" gap={16}>
                         <Flex
                           align="center"
                           gap={12}
@@ -177,10 +168,7 @@ export default function Dashboard() {
                             flex: 1,
                           }}
                         >
-                          <Avatar
-                            shape="square"
-                            icon={<FileTextOutlined />}
-                          />
+                          <Avatar shape="square" icon={<FileTextOutlined />} />
 
                           <div
                             style={{
@@ -211,7 +199,9 @@ export default function Dashboard() {
                               {ticket.project}
                               {" · "}
                               {ticket.createdAt
-                                ? new Date(ticket.createdAt).toLocaleDateString()
+                                ? new Date(
+                                    ticket.createdAt,
+                                  ).toLocaleDateString()
                                 : "—"}
                             </Text>
                           </div>
@@ -250,16 +240,14 @@ export default function Dashboard() {
             <Typography.Title level={2} className="!mb-1">
               {invoiceEstimate
                 ? new Intl.NumberFormat("fr-FR", {
-                  style: "currency",
-                  currency: "EUR",
-                }).format(invoiceEstimate.amount)
+                    style: "currency",
+                    currency: "EUR",
+                  }).format(invoiceEstimate.amount)
                 : "—"}
             </Typography.Title>
 
             <Space>
-              <Typography.Text type="secondary">
-                Current month
-              </Typography.Text>
+              <Typography.Text type="secondary">Current month</Typography.Text>
 
               {invoiceEstimate && (
                 <Tag
@@ -319,11 +307,7 @@ export default function Dashboard() {
                     cursor: "pointer",
                   }}
                 >
-                  <Flex
-                    align="center"
-                    justify="space-between"
-                    gap={16}
-                  >
+                  <Flex align="center" justify="space-between" gap={16}>
                     <Flex
                       align="center"
                       gap={12}
@@ -360,9 +344,7 @@ export default function Dashboard() {
                           {ticket.title}
                         </Text>
 
-                        <Text type="secondary">
-                          {ticket.project}
-                        </Text>
+                        <Text type="secondary">{ticket.project}</Text>
                       </div>
                     </Flex>
 

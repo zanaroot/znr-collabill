@@ -1,4 +1,13 @@
-import { and, count, countDistinct, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import {
+  and,
+  count,
+  countDistinct,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lte,
+} from "drizzle-orm";
 
 import { db } from "@/db";
 import { invoices } from "@/db/schema/invoice";
@@ -34,10 +43,7 @@ export const dashboardRepository = {
       db
         .select({ count: countDistinct(projectMembers.projectId) })
         .from(projectMembers)
-        .innerJoin(
-          projects,
-          eq(projectMembers.projectId, projects.id),
-        )
+        .innerJoin(projects, eq(projectMembers.projectId, projects.id))
         .where(
           and(
             eq(projects.organizationId, organizationId),

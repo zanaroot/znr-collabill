@@ -7,7 +7,11 @@ import { invoiceLines, invoices } from "@/db/schema/invoice";
 type CreateInvoiceInput = typeof invoices.$inferInsert;
 type CreateInvoiceLineInput = typeof invoiceLines.$inferInsert;
 
-export type InvoiceWithLines = typeof invoices.$inferSelect & {
+export type InvoiceWithLines = Omit<
+  typeof invoices.$inferSelect,
+  "totalAmount"
+> & {
+  totalAmount: number;
   lines: (typeof invoiceLines.$inferSelect)[];
 };
 

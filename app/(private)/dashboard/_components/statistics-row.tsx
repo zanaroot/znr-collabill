@@ -33,49 +33,49 @@ const cards: Array<{
   footerIcon: ReactNode;
   description: string;
 }> = [
-    {
-      key: "activeProjects",
-      title: "Projects",
-      icon: <ProjectOutlined />,
-      footerIcon: <RiseOutlined />,
-      description: "Projects in your organization",
-    },
-    {
-      key: "openTasks",
-      title: "Open tasks",
-      icon: <ClockCircleOutlined />,
-      footerIcon: <ClockCircleOutlined />,
-      description: "Tasks waiting for action",
-    },
-    {
-      key: "teamMembers",
-      title: "Team members",
-      icon: <TeamOutlined />,
-      footerIcon: <TeamOutlined />,
-      description: "Members in your organization",
-    },
-    {
-      key: "pendingInvoices",
-      title: "Pending invoices",
-      icon: <FileTextOutlined />,
-      footerIcon: <ClockCircleOutlined />,
-      description: "Invoices awaiting payment",
-    },
-    {
-      key: "openedTasks",
-      title: "Opened this month",
-      icon: <PlusSquareOutlined />,
-      footerIcon: <PlusSquareOutlined />,
-      description: "Tickets created this month",
-    },
-    {
-      key: "closedTasks",
-      title: "Closed this month",
-      icon: <CheckCircleOutlined />,
-      footerIcon: <CheckCircleOutlined />,
-      description: "Tickets validated this month",
-    },
-  ];
+  {
+    key: "activeProjects",
+    title: "Projects",
+    icon: <ProjectOutlined />,
+    footerIcon: <RiseOutlined />,
+    description: "Projects in your organization",
+  },
+  {
+    key: "openTasks",
+    title: "Open tasks",
+    icon: <ClockCircleOutlined />,
+    footerIcon: <ClockCircleOutlined />,
+    description: "Tasks waiting for action",
+  },
+  {
+    key: "teamMembers",
+    title: "Team members",
+    icon: <TeamOutlined />,
+    footerIcon: <TeamOutlined />,
+    description: "Members in your organization",
+  },
+  {
+    key: "pendingInvoices",
+    title: "Pending invoices",
+    icon: <FileTextOutlined />,
+    footerIcon: <ClockCircleOutlined />,
+    description: "Invoices awaiting payment",
+  },
+  {
+    key: "openedTasks",
+    title: "Opened this month",
+    icon: <PlusSquareOutlined />,
+    footerIcon: <PlusSquareOutlined />,
+    description: "Tickets created this month",
+  },
+  {
+    key: "closedTasks",
+    title: "Closed this month",
+    icon: <CheckCircleOutlined />,
+    footerIcon: <CheckCircleOutlined />,
+    description: "Tickets validated this month",
+  },
+];
 
 export const StatisticsRow = ({ statistics, loading }: StatisticRowProps) => {
   return (

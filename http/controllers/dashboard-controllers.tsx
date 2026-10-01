@@ -177,8 +177,7 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
 
   const isOwner = user.organizationRole === "OWNER";
 
-  const targetUserId =
-    isOwner && requestedUserId ? requestedUserId : user.id;
+  const targetUserId = isOwner && requestedUserId ? requestedUserId : user.id;
 
   const currentPeriod = getCurrentPeriod();
 
@@ -197,50 +196,38 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
     );
   }
 
-  const [
-    presenceSummary,
-    taskSummary,
-    reviewerTaskSummary,
-    existingInvoice,
-  ] = await Promise.all([
-    getPresenceSummaryByOrganization(
-      user.id,
-      user.organizationId,
-      targetUserId,
-      currentPeriod.startDate,
-      currentPeriod.endDate,
-    ),
+  const [presenceSummary, taskSummary, reviewerTaskSummary, existingInvoice] =
+    await Promise.all([
+      getPresenceSummaryByOrganization(
+        user.id,
+        user.organizationId,
+        targetUserId,
+        currentPeriod.startDate,
+        currentPeriod.endDate,
+      ),
 
-    getValidatedTaskSummaryByOrganization(
-      user.id,
-      user.organizationId,
-      targetUserId,
-      currentPeriod.startDate
-        ? new Date(currentPeriod.startDate)
-        : undefined,
-      currentPeriod.endDate
-        ? new Date(currentPeriod.endDate)
-        : undefined,
-    ),
+      getValidatedTaskSummaryByOrganization(
+        user.id,
+        user.organizationId,
+        targetUserId,
+        currentPeriod.startDate ? new Date(currentPeriod.startDate) : undefined,
+        currentPeriod.endDate ? new Date(currentPeriod.endDate) : undefined,
+      ),
 
-    getValidatedTaskSummaryByReviewer(
-      targetUserId,
-      user.organizationId,
-      currentPeriod.startDate
-        ? new Date(currentPeriod.startDate)
-        : undefined,
-      currentPeriod.endDate
-        ? new Date(currentPeriod.endDate)
-        : undefined,
-    ),
+      getValidatedTaskSummaryByReviewer(
+        targetUserId,
+        user.organizationId,
+        currentPeriod.startDate ? new Date(currentPeriod.startDate) : undefined,
+        currentPeriod.endDate ? new Date(currentPeriod.endDate) : undefined,
+      ),
 
-    findInvoiceByPeriodAndUser(
-      currentPeriod.startDate,
-      currentPeriod.endDate,
-      targetUserId,
-      user.organizationId,
-    ),
-  ]);
+      findInvoiceByPeriodAndUser(
+        currentPeriod.startDate,
+        currentPeriod.endDate,
+        targetUserId,
+        user.organizationId,
+      ),
+    ]);
 
   console.log("DASHBOARD INVOICE", {
     targetUserId,
@@ -248,10 +235,10 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
     periodEnd: currentPeriod.endDate,
     existingInvoice: existingInvoice
       ? {
-        id: existingInvoice.id,
-        totalAmount: existingInvoice.totalAmount,
-        status: existingInvoice.status,
-      }
+          id: existingInvoice.id,
+          totalAmount: existingInvoice.totalAmount,
+          status: existingInvoice.status,
+        }
       : null,
   });
 
