@@ -1,4 +1,4 @@
-import { Dashboard } from "@/app/(private)/dashboard/_components/dashboard-form";
+import Dashboard from "@/app/(private)/dashboard/_components/dashboard-form";
 
 const DashboardPage = () => {
   return (

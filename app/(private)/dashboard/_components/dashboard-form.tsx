@@ -200,8 +200,8 @@ export default function Dashboard() {
                               {" · "}
                               {ticket.createdAt
                                 ? new Date(
-                                    ticket.createdAt,
-                                  ).toLocaleDateString()
+                                  ticket.createdAt,
+                                ).toLocaleDateString()
                                 : "—"}
                             </Text>
                           </div>
@@ -240,9 +240,9 @@ export default function Dashboard() {
             <Typography.Title level={2} className="!mb-1">
               {invoiceEstimate
                 ? new Intl.NumberFormat("fr-FR", {
-                    style: "currency",
-                    currency: "EUR",
-                  }).format(invoiceEstimate.amount)
+                  style: "currency",
+                  currency: "EUR",
+                }).format(invoiceEstimate.amount)
                 : "—"}
             </Typography.Title>
 
@@ -360,4 +360,3 @@ export default function Dashboard() {
   );
 }
 
-export { Dashboard };
