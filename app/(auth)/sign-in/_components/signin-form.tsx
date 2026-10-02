@@ -33,12 +33,13 @@ export const SignInForm = () => {
     onSuccess: (data) => {
       if (data.success) {
         message.success("Sign in successful!");
+
         if (data.orgCount === 0) {
           router.push("/create-organization");
         } else if (data.orgCount && data.orgCount > 1) {
           router.push("/select-organization");
         } else {
-          router.push("/task-board");
+          router.push("/dashboard");
         }
       } else {
         message.error(data.error || "Something went wrong.");

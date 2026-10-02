@@ -7,7 +7,11 @@ import { invoiceLines, invoices } from "@/db/schema/invoice";
 type CreateInvoiceInput = typeof invoices.$inferInsert;
 type CreateInvoiceLineInput = typeof invoiceLines.$inferInsert;
 
-export type InvoiceWithLines = typeof invoices.$inferSelect & {
+export type InvoiceWithLines = Omit<
+  typeof invoices.$inferSelect,
+  "totalAmount"
+> & {
+  totalAmount: number;
   lines: (typeof invoiceLines.$inferSelect)[];
 };
 
@@ -46,7 +50,16 @@ export const findInvoiceByPeriodAndUser = async (
     .from(invoiceLines)
     .where(eq(invoiceLines.invoiceId, invoice.id));
 
-  return { ...invoice, lines };
+  const totalAmount = lines.reduce(
+    (total, line) => total + Number(line.total ?? 0),
+    0,
+  );
+
+  return {
+    ...invoice,
+    lines,
+    totalAmount,
+  };
 };
 
 export const createInvoiceWithLines = async (

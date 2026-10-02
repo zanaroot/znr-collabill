@@ -33,7 +33,7 @@ const OwnerStepContent = () => {
     onSuccess: (data) => {
       if (data.success) {
         message.success("Account and Organization created successfully!");
-        router.push("/task-board");
+        router.push("/dashboard");
       } else {
         message.error(data.error || "Error creating the account.");
       }

@@ -33,7 +33,7 @@ export const CreateOrganization = () => {
     onSuccess: (data) => {
       if (data.success) {
         message.success("Organization created successfully!");
-        router.push("/task-board");
+        router.push("/dashboard");
       } else {
         message.error(data.error || "Error creating the organization.");
       }

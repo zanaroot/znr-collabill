@@ -4,6 +4,7 @@ import {
   ApartmentOutlined,
   CalendarOutlined,
   ContactsOutlined,
+  DashboardOutlined,
   DollarOutlined,
   FileTextOutlined,
   LeftOutlined,
@@ -128,6 +129,11 @@ export const PrivateLayout = ({
     currentUser?.organizationRole === "ADMIN";
 
   const menuItems = [
+    {
+      key: "dashboard",
+      icon: <DashboardOutlined />,
+      label: "Dashboard",
+    },
     {
       key: "task-board",
       icon: <ContactsOutlined />,

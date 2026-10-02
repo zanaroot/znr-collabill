@@ -209,11 +209,13 @@ export const getUserQuota = async (
   organizationId: string,
 ): Promise<{ quota: number; role: string } | null> => {
   const orgRepo = await import("@/http/repositories/organization.repository");
+
   const org = await orgRepo.getOrganizationById(organizationId);
 
   if (!org) return null;
 
   const memberRepo = await import("@/http/repositories/user.repository");
+
   const member = await memberRepo.findOrganizationMember(
     organizationId,
     userId,
@@ -222,11 +224,14 @@ export const getUserQuota = async (
   if (!member) return null;
 
   const quota =
-    member.role === "ADMIN" || member.role === "OWNER"
+    member.role === "ADMIN"
       ? parseFloat(org.adminLeaveQuota)
       : parseFloat(org.collaboratorLeaveQuota);
 
-  return { quota, role: member.role };
+  return {
+    quota,
+    role: member.role,
+  };
 };
 
 export const validateLeaveBalance = async (
