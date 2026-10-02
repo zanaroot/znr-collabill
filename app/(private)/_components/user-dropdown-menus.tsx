@@ -70,7 +70,7 @@ export const UserDropdownMenus = ({
           ],
         }}
       >
-        <div>
+        <div className="mt-2">
           <AvatarProfile
             className="cursor-pointer"
             src={currentUser?.avatar}
