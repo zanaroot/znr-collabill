@@ -158,10 +158,6 @@ export const LeaveCalendar = ({
 
     const isTeamView = isAdmin && viewMode === "team";
 
-    const openCellPresence = () => {
-      setManageTarget({ date: dateStr });
-    };
-
     return (
       <div
         style={{
@@ -169,21 +165,7 @@ export const LeaveCalendar = ({
           height: "100%",
           padding: "2px 4px",
           borderRadius: "4px",
-          cursor: isTeamView ? "pointer" : undefined,
         }}
-        role={isTeamView ? "button" : undefined}
-        tabIndex={isTeamView ? 0 : undefined}
-        onClick={isTeamView ? openCellPresence : undefined}
-        onKeyDown={
-          isTeamView
-            ? (event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  openCellPresence();
-                }
-              }
-            : undefined
-        }
       >
         <ul
           className="events"
@@ -249,6 +231,12 @@ export const LeaveCalendar = ({
 
   const handlePanelChange = (value: Dayjs) => {
     setCurrentMonth(value);
+  };
+
+  const handleSelectDate = (date: Dayjs) => {
+    if (isAdmin && viewMode === "team") {
+      setManageTarget({ date: date.format("YYYY-MM-DD") });
+    }
   };
 
   const handleMarkPresence = () => {
@@ -330,7 +318,11 @@ export const LeaveCalendar = ({
           </Button>
         )}
       </Flex>
-      <Calendar cellRender={dateCellRender} onPanelChange={handlePanelChange} />
+      <Calendar
+        cellRender={dateCellRender}
+        onPanelChange={handlePanelChange}
+        onSelect={handleSelectDate}
+      />
 
       <ManagePresenceModal
         open={!!manageTarget}
