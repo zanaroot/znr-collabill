@@ -267,14 +267,8 @@ export default function RateSettingsPanel({
   useEffect(() => {
     if (!currentUser) return;
 
-    if (isOwner) {
-      const firstMember = users?.find((user) => user.id !== currentUser.id);
-
-      setSelectedUserId(firstMember?.id ?? currentUser.id);
-    } else {
-      setSelectedUserId(currentUser.id);
-    }
-  }, [currentUser, users, isOwner]);
+    setSelectedUserId(currentUser.id);
+  }, [currentUser]);
 
   const { data: selectedUserRates } = useCollaboratorRates(selectedUserId);
 
