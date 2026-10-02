@@ -135,6 +135,7 @@ export const dashboardRepository = {
           id: tasks.id,
           title: tasks.title,
           priority: tasks.priority,
+          projectId: tasks.projectId,
           project: projects.name,
           createdAt: tasks.createdAt,
         })
@@ -174,6 +175,7 @@ export const dashboardRepository = {
         id: tasks.id,
         title: tasks.title,
         priority: tasks.priority,
+        projectId: tasks.projectId,
         project: projects.name,
         createdAt: tasks.createdAt,
       })
