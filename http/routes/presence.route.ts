@@ -6,6 +6,7 @@ import {
   getMyPresences,
   getTodayPresence,
   markPresence,
+  updateMemberPresence,
 } from "@/http/controllers/presence.controller";
 import { adminMiddleware } from "@/http/middleware/auth.middleware";
 import { sundayMiddleware } from "@/http/middleware/sunday.middleware";
@@ -17,4 +18,5 @@ export const presenceRoutes = new Hono()
   .get("/all", adminMiddleware, ...getAllPresences)
   .post("/", ...markPresence)
   .get("/member/:userId", adminMiddleware, ...getMemberPresences)
-  .post("/member/:userId/absence", adminMiddleware, ...createMemberAbsence);
+  .post("/member/:userId/absence", adminMiddleware, ...createMemberAbsence)
+  .patch("/member/:userId", adminMiddleware, ...updateMemberPresence);

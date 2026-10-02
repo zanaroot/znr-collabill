@@ -20,3 +20,8 @@ export const markPresenceSchema = z.object({
   date: z.string().optional(),
   status: presenceStatusEnum.optional().default("OFFICE"),
 });
+
+export const updateMemberPresenceSchema = z.object({
+  date: z.string(),
+  status: presenceStatusEnum,
+});

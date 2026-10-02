@@ -5,6 +5,7 @@ import type { AuthEnv } from "@/http/models/auth.model";
 import {
   markPresenceSchema,
   type PresenceStatus,
+  updateMemberPresenceSchema,
 } from "@/http/models/presence.model";
 import { createNotification } from "@/http/repositories/notification.repository";
 import * as presenceRepository from "@/http/repositories/presence.repository";
@@ -166,5 +167,46 @@ export const createMemberAbsence = factory.createHandlers(
     });
 
     return c.json(absence, 201);
+  },
+);
+
+export const updateMemberPresence = factory.createHandlers(
+  zValidator("json", updateMemberPresenceSchema),
+  async (c) => {
+    const user = c.get("user");
+
+    if (!user.organizationId) {
+      return c.json({ error: "No organization found" }, 404);
+    }
+
+    const userId = c.req.param("userId");
+
+    if (!userId) {
+      return c.json({ error: "User ID is required" }, 400);
+    }
+
+    const { date, status } = c.req.valid("json");
+
+    const presence = await presenceRepository.markPresence(
+      userId,
+      user.organizationId,
+      status,
+      date,
+    );
+
+    await createNotification({
+      userId,
+      organizationId: user.organizationId,
+      actorId: user.id,
+      type: "PRESENCE_UPDATED",
+      title: "Presence updated",
+      message: `Your presence status for ${date} has been updated to ${status
+        .toLowerCase()
+        .replace("_", " ")}.`,
+      entityType: "PRESENCE",
+      entityId: presence.id,
+    });
+
+    return c.json(presence);
   },
 );
