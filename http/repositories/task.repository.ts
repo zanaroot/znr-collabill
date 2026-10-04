@@ -400,6 +400,112 @@ export const getValidatedTaskSummaryByOrganization = async (
     );
 };
 
+export const getDashboardTaskSummaryByOrganization = async (
+  userId: string,
+  organizationId: string,
+  targetUserId?: string,
+  startDate?: Date,
+  endDate?: Date,
+) => {
+  const whereClauses = [
+    eq(organizationMembers.userId, targetUserId ?? userId),
+    eq(organizationMembers.organizationId, organizationId),
+    eq(projects.organizationId, organizationId),
+
+    or(eq(tasks.status, "VALIDATED"), eq(tasks.status, "APPROVED")),
+  ];
+
+  if (startDate && endDate) {
+    whereClauses.push(
+      or(
+        and(
+          eq(tasks.status, "VALIDATED"),
+          isNotNull(tasks.validatedAt),
+          gte(tasks.validatedAt, startDate),
+          lte(tasks.validatedAt, endOfDay(endDate)),
+        ),
+
+        and(
+          eq(tasks.status, "VALIDATED"),
+          isNull(tasks.validatedAt),
+          gte(tasks.createdAt, startDate),
+          lte(tasks.createdAt, endOfDay(endDate)),
+        ),
+
+        and(
+          eq(tasks.status, "APPROVED"),
+          gte(tasks.createdAt, startDate),
+          lte(tasks.createdAt, endOfDay(endDate)),
+        ),
+      ),
+    );
+  }
+
+  const approvedTasks = await db
+    .select({
+      id: tasks.id,
+      title: tasks.title,
+      status: tasks.status,
+      assignedTo: tasks.assignedTo,
+      createdAt: tasks.createdAt,
+      projectId: tasks.projectId,
+    })
+    .from(tasks)
+    .innerJoin(projects, eq(tasks.projectId, projects.id))
+    .where(
+      and(
+        eq(tasks.assignedTo, targetUserId ?? userId),
+        eq(projects.organizationId, organizationId),
+        eq(tasks.status, "APPROVED"),
+      ),
+    );
+
+  console.log("=== ALL APPROVED TASKS FOR ADMIN ===");
+  console.log(approvedTasks);
+
+  return await db
+    .select({
+      userId: users.id,
+      userName: users.name,
+      projectId: projects.id,
+      projectName: projects.name,
+      projectBaseRate: projects.baseRate,
+      size: tasks.size,
+      status: tasks.status,
+      taskCount: count(tasks.id),
+      rateXs: collaboratorRates.rateXs,
+      rateS: collaboratorRates.rateS,
+      rateM: collaboratorRates.rateM,
+      rateL: collaboratorRates.rateL,
+      rateXl: collaboratorRates.rateXl,
+    })
+    .from(tasks)
+    .innerJoin(projects, eq(tasks.projectId, projects.id))
+    .innerJoin(users, eq(tasks.assignedTo, users.id))
+    .innerJoin(organizationMembers, eq(users.id, organizationMembers.userId))
+    .leftJoin(
+      collaboratorRates,
+      and(
+        eq(users.id, collaboratorRates.userId),
+        eq(collaboratorRates.organizationId, organizationId),
+      ),
+    )
+    .where(and(...whereClauses))
+    .groupBy(
+      users.id,
+      projects.id,
+      projects.name,
+      projects.baseRate,
+      tasks.size,
+      tasks.status,
+      collaboratorRates.rateXs,
+      collaboratorRates.rateS,
+      collaboratorRates.rateM,
+      collaboratorRates.rateL,
+      collaboratorRates.rateXl,
+    );
+};
+
 export const archiveTasksByIds = async (
   taskIds: string[],
   invoiceId: string,
