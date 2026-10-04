@@ -434,7 +434,9 @@ export const TaskForm = ({
               </Row>
               <Space className="mt-2">
                 <Text type="secondary" className="text-xs">
-                  <span className="text-blue-500 font-medium">Recommended:</span>{" "}
+                  <span className="text-blue-500 font-medium">
+                    Recommended:
+                  </span>{" "}
                   {generatedGitBranch || "enter title first"}
                 </Text>
 
