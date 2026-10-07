@@ -39,9 +39,10 @@ export const NotificationPopover = () => {
     >
       <Badge count={unreadCount} size="small" offset={[-2, 2]}>
         <Button
+          style={{ marginTop: 12 }}
           type="text"
           shape="circle"
-          icon={<BellOutlined style={{ fontSize: 20 }} />}
+          icon={<BellOutlined style={{ fontSize: 25 }} />}
         />
       </Badge>
     </Popover>
