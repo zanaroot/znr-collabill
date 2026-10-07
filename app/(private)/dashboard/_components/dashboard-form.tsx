@@ -44,8 +44,8 @@ export default function Dashboard() {
 
   const isOwner = currentUser?.organizationRole === "OWNER";
 
-  const handleTicketClick = (ticketId: string) => {
-    router.push(`/task-board?taskId=${ticketId}`);
+  const handleTicketClick = (ticketId: string, projectId: string) => {
+    router.push(`/task-board?projectId=${projectId}&taskId=${ticketId}`);
   };
 
   useEffect(() => {
@@ -153,7 +153,9 @@ export default function Dashboard() {
                       size="small"
                       variant="borderless"
                       hoverable
-                      onClick={() => handleTicketClick(ticket.id)}
+                      onClick={() =>
+                        handleTicketClick(ticket.id, ticket.projectId)
+                      }
                       style={{
                         border: "1px solid #f0f0f0",
                         cursor: "pointer",
@@ -302,7 +304,7 @@ export default function Dashboard() {
                   key={ticket.id}
                   size="small"
                   hoverable
-                  onClick={() => handleTicketClick(ticket.id)}
+                  onClick={() => handleTicketClick(ticket.id, ticket.projectId)}
                   style={{
                     cursor: "pointer",
                   }}
