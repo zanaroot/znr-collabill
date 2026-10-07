@@ -26,7 +26,7 @@ import {
   Typography,
 } from "antd";
 import dayjs from "dayjs";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { RichTextEditor } from "@/app/_components/editor/rich-text-editor";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
@@ -78,7 +78,6 @@ export const TaskForm = ({
   isEditing,
   members,
   projectId,
-  taskId,
   projectGitBranches = [],
   userRole,
   userId,
@@ -94,7 +93,6 @@ export const TaskForm = ({
   const [imageModalUrl, setImageModalUrl] = useState("");
   const [newBranchName, setNewBranchName] = useState("");
   const [sourceBranch, setSourceBranch] = useState("main");
-  const [hasInitializedGitBranch, setHasInitializedGitBranch] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -121,45 +119,6 @@ export const TaskForm = ({
       generateUniqueGitBranchFromTitle(formValues.title, existingBranchNames),
     [existingBranchNames, formValues.title],
   );
-
-  const isNewTask = !taskId;
-
-  useEffect(() => {
-    if (!isNewTask) {
-      setHasInitializedGitBranch(false);
-      return;
-    }
-
-    if (hasInitializedGitBranch) {
-      return;
-    }
-
-    if (!generatedGitBranch) {
-      return;
-    }
-
-    if (formValues.gitBranch.trim()) {
-      return;
-    }
-
-    updateField("gitBranch", generatedGitBranch);
-    setHasInitializedGitBranch(true);
-  }, [
-    generatedGitBranch,
-    isNewTask,
-    hasInitializedGitBranch,
-    formValues.gitBranch,
-    updateField,
-  ]);
-
-  const applyGeneratedGitBranch = () => {
-    if (!generatedGitBranch) {
-      message.warning("Enter a task title to generate a branch name");
-      return;
-    }
-    updateField("gitBranch", generatedGitBranch);
-    message.success("Git branch name applied");
-  };
 
   const handleCreateBranch = () => {
     if (!projectId || !newBranchName || !sourceBranch) return;
@@ -433,16 +392,6 @@ export const TaskForm = ({
               }
               className="shadow-sm border-slate-200 dark:border-gray-700"
               styles={{ body: { padding: 24 } }}
-              extra={
-                <Button
-                  type="link"
-                  size="small"
-                  onClick={applyGeneratedGitBranch}
-                  disabled={!generatedGitBranch}
-                >
-                  Generate from title
-                </Button>
-              }
             >
               <Row gutter={16} align="middle">
                 <Col flex="auto">
@@ -483,9 +432,24 @@ export const TaskForm = ({
                   </Form.Item>
                 </Col>
               </Row>
-              <Text type="secondary" className="text-xs mt-2 block">
-                Recommended: {generatedGitBranch || "enter title first"}
-              </Text>
+              <Space className="mt-2">
+                <Text type="secondary" className="text-xs">
+                  <span className="text-blue-500 font-medium">
+                    Recommended:
+                  </span>{" "}
+                  {generatedGitBranch || "enter title first"}
+                </Text>
+
+                {generatedGitBranch && (
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={() => updateField("gitBranch", generatedGitBranch)}
+                  >
+                    Copy
+                  </Button>
+                )}
+              </Space>
             </Card>
 
             <Card
