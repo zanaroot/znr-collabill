@@ -7,7 +7,9 @@ config();
 type ParsedServerEnv = z.infer<typeof serverEnvSchema>;
 
 const readServerEnv = (): ParsedServerEnv => {
-  const source = {
+   const source = {
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_S3_ENDPOINT: process.env.NEXT_PUBLIC_S3_ENDPOINT,
     DATABASE_URL: process.env.DATABASE_URL,
     MINIO_ROOT_USER: process.env.MINIO_ROOT_USER,
     MINIO_ROOT_PASSWORD: process.env.MINIO_ROOT_PASSWORD,
