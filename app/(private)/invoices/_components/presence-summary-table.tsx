@@ -67,7 +67,6 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
     },
   ];
 
-  console.log("PresenceSummaryTable", data);
 
   return (
     <Table
