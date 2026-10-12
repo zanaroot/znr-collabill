@@ -67,7 +67,6 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
     },
   ];
 
-
   return (
     <Table
       rowKey={(record) => `${record.userId}-${record.type}`}
