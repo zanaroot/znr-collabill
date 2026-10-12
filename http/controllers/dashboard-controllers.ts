@@ -210,12 +210,8 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
         user.id,
         user.organizationId,
         targetUserId,
-        currentPeriod.startDate
-          ? new Date(currentPeriod.startDate)
-          : undefined,
-        currentPeriod.endDate
-          ? new Date(currentPeriod.endDate)
-          : undefined,
+        currentPeriod.startDate ? new Date(currentPeriod.startDate) : undefined,
+        currentPeriod.endDate ? new Date(currentPeriod.endDate) : undefined,
       ),
 
       getValidatedTaskSummaryByReviewer(
@@ -232,7 +228,6 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
         user.organizationId,
       ),
     ]);
-
 
   if (
     existingInvoice &&
