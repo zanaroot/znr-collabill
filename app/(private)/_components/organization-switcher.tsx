@@ -62,7 +62,13 @@ export const OrganizationSwitcher = ({
 
   const abbreviation = getInitials(currentOrganization?.name);
 
-  const items: MenuProps["items"] = (organizations || []).map((org) => ({
+  const sortedOrganizations = [...(organizations || [])].sort((a, b) => {
+    if (a.id === currentOrganization?.id) return -1;
+    if (b.id === currentOrganization?.id) return 1;
+    return 0;
+  });
+
+  const items: MenuProps["items"] = sortedOrganizations.map((org) => ({
     key: org.id,
     label: (
       <Flex justify="space-between" align="center" style={{ minWidth: 160 }}>
