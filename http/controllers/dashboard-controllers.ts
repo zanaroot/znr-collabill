@@ -229,6 +229,7 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
       ),
     ]);
 
+
   if (
     existingInvoice &&
     (existingInvoice.status === "VALIDATED" ||
