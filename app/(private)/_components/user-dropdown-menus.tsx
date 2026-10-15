@@ -6,7 +6,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Dropdown } from "antd";
+import { Flex, Popover, Typography } from "antd";
 import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { client } from "@/packages/hono";
@@ -24,6 +24,8 @@ export const UserDropdownMenus = ({
 }: UserDropdownMenusProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
@@ -42,33 +44,72 @@ export const UserDropdownMenus = ({
     },
   });
 
+  const handleMenuClick = (key: string) => {
+    setPopoverOpen(false);
+
+    if (key === "profile") {
+      setDrawerOpen(true);
+    }
+
+    if (key === "settings") {
+      setSettingsOpen(true);
+    }
+
+    if (key === "logout") {
+      logout();
+    }
+  };
+
+  const menuItems = [
+    {
+      key: "profile",
+      icon: <UserOutlined />,
+      label: "Profile",
+    },
+    {
+      key: "settings",
+      icon: <SettingOutlined />,
+      label: "Settings",
+    },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Logout",
+    },
+  ];
+
   return (
     <>
-      <Dropdown
-        trigger={["click"]}
+      <Popover
+        trigger="click"
+        placement="bottomRight"
         arrow
-        menu={{
-          items: [
-            {
-              icon: <UserOutlined />,
-              key: "profile",
-              label: "Profile",
-              onClick: () => setDrawerOpen(true),
-            },
-            {
-              icon: <SettingOutlined />,
-              key: "settings",
-              label: "Settings",
-              onClick: () => setSettingsOpen(true),
-            },
-            {
-              icon: <LogoutOutlined />,
-              key: "logout",
-              label: "Logout",
-              onClick: () => logout(),
-            },
-          ],
+        open={popoverOpen}
+        onOpenChange={setPopoverOpen}
+        align={{
+          offset: [0, 15],
         }}
+        content={
+          <Flex vertical gap={4} style={{ minWidth: 90 }}>
+            {menuItems.map((item) => (
+              <Flex
+                key={item.key}
+                align="center"
+                gap={10}
+                onClick={() => handleMenuClick(item.key)}
+                style={{
+                  padding: "2px",
+                  cursor: "pointer",
+                  borderRadius: 6,
+                }}
+                className="hover:bg-gray-100"
+              >
+                {item.icon}
+                <Typography.Text>{item.label}</Typography.Text>
+              </Flex>
+            ))}
+          </Flex>
+        }
       >
         <div className="mt-2">
           <AvatarProfile
@@ -81,7 +122,7 @@ export const UserDropdownMenus = ({
             onPresenceClick={onPresenceClick}
           />
         </div>
-      </Dropdown>
+      </Popover>
 
       <ProfileDrawer
         open={drawerOpen}
