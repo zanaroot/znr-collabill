@@ -299,9 +299,8 @@ export const PrivateLayout = ({
                 </Suspense>
               </Col>
               <Col className="header-right">
-                <Space size={16}>
+                <Space size={20}>
                   <NotificationPopover />
-
                   <UserDropdownMenus
                     isPresent={isPresent}
                     onPresenceClick={handlePresenceClick}
