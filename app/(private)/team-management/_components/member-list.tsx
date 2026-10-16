@@ -7,16 +7,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 
-import {
-  App,
-  Button,
-  Card,
-  Flex,
-  Input,
-  Modal,
-  Table,
-  Typography,
-} from "antd";
+import { App, Button, Card, Flex, Input, Modal, Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
 import { useRouter } from "next/navigation";
@@ -331,34 +322,34 @@ export const MemberList = () => {
 
           {record.id === currentUser?.id
             ? !isOwner && (
-              <Button
-                danger
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleLeave();
-                }}
-                size="small"
-                loading={leaveMutation.isPending}
-              >
-                Leave
-              </Button>
-            )
+                <Button
+                  danger
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLeave();
+                  }}
+                  size="small"
+                  loading={leaveMutation.isPending}
+                >
+                  Leave
+                </Button>
+              )
             : canManageMembers && (
-              <Button
-                danger
-                type="text"
-                icon={<DeleteOutlined />}
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(record.id);
-                }}
-                loading={
-                  deleteMutation.isPending &&
-                  deleteMutation.variables === record.id
-                }
-              />
-            )}
+                <Button
+                  danger
+                  type="text"
+                  icon={<DeleteOutlined />}
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(record.id);
+                  }}
+                  loading={
+                    deleteMutation.isPending &&
+                    deleteMutation.variables === record.id
+                  }
+                />
+              )}
         </Flex>
       ),
     },

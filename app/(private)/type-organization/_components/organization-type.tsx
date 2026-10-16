@@ -12,16 +12,7 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TabsProps } from "antd";
-import {
-  App,
-  Button,
-  Card,
-  Form,
-  Input,
-  Result,
-  Tabs,
-  Typography,
-} from "antd";
+import { App, Button, Card, Form, Input, Result, Tabs, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MemberRole } from "@/app/(private)/team-management/_components/member-role";
@@ -546,20 +537,20 @@ export const OrganizationType = () => {
     },
     ...(isOwner
       ? [
-        {
-          key: "settings",
-          label: (
-            <span>
-              <SettingOutlined /> Settings
-            </span>
-          ),
-          children: (
-            <OrganizationSettingsPanel
-              organizationId={organizations?.[0]?.id ?? ""}
-            />
-          ),
-        },
-      ]
+          {
+            key: "settings",
+            label: (
+              <span>
+                <SettingOutlined /> Settings
+              </span>
+            ),
+            children: (
+              <OrganizationSettingsPanel
+                organizationId={organizations?.[0]?.id ?? ""}
+              />
+            ),
+          },
+        ]
       : []),
   ];
 
