@@ -14,9 +14,7 @@ import {
   Flex,
   Input,
   Modal,
-  Select,
   Table,
-  Tag,
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
@@ -26,6 +24,7 @@ import React, { useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { DetailMembers } from "@/app/(private)/team-management/_components/detail-mebers";
 import { InviteUserModal } from "@/app/(private)/team-management/_components/invite-user-modal";
+import { MemberRole } from "@/app/(private)/team-management/_components/member-role";
 import { OnlineStatusTag } from "@/app/(private)/team-management/_components/online-status-tag";
 import type {
   CollaboratorRate,
@@ -275,41 +274,15 @@ export const MemberList = () => {
       dataIndex: "role",
       key: "role",
       responsive: ["xs", "sm", "md", "lg", "xl"],
-      render: (role: Role, record) => {
-        if (isOwner) {
-          return (
-            <Select
-              value={role}
-              disabled={
-                record.id === currentUser?.id || updateRoleMutation.isPending
-              }
-              onClick={(e) => e.stopPropagation()}
-              onChange={(value) => handleRoleChange(record.id, value)}
-              style={{ width: "100%", minWidth: 100 }}
-              options={[
-                { value: "OWNER", label: "Owner" },
-                { value: "ADMIN", label: "Admin" },
-                { value: "COLLABORATOR", label: "Collaborator" },
-              ]}
-            />
-          );
-        } else {
-          const roleColors = {
-            OWNER: "gold",
-            ADMIN: "blue",
-            COLLABORATOR: "green",
-          };
-          return (
-            <Tag color={roleColors[role]}>
-              {role === "OWNER"
-                ? "Owner"
-                : role === "ADMIN"
-                  ? "Admin"
-                  : "Collaborator"}
-            </Tag>
-          );
-        }
-      },
+      render: (role: Role, record) => (
+        <MemberRole
+          role={role}
+          isOwner={isOwner}
+          isCurrentUser={record.id === currentUser?.id}
+          loading={updateRoleMutation.isPending}
+          onChange={(value) => handleRoleChange(record.id, value)}
+        />
+      ),
     },
     {
       title: "Status",
@@ -358,34 +331,34 @@ export const MemberList = () => {
 
           {record.id === currentUser?.id
             ? !isOwner && (
-                <Button
-                  danger
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLeave();
-                  }}
-                  size="small"
-                  loading={leaveMutation.isPending}
-                >
-                  Leave
-                </Button>
-              )
+              <Button
+                danger
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLeave();
+                }}
+                size="small"
+                loading={leaveMutation.isPending}
+              >
+                Leave
+              </Button>
+            )
             : canManageMembers && (
-                <Button
-                  danger
-                  type="text"
-                  icon={<DeleteOutlined />}
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(record.id);
-                  }}
-                  loading={
-                    deleteMutation.isPending &&
-                    deleteMutation.variables === record.id
-                  }
-                />
-              )}
+              <Button
+                danger
+                type="text"
+                icon={<DeleteOutlined />}
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(record.id);
+                }}
+                loading={
+                  deleteMutation.isPending &&
+                  deleteMutation.variables === record.id
+                }
+              />
+            )}
         </Flex>
       ),
     },

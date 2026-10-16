@@ -20,11 +20,11 @@ import {
   Input,
   Result,
   Tabs,
-  Tag,
   Typography,
 } from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { MemberRole } from "@/app/(private)/team-management/_components/member-role";
 import type {
   Integration,
   IntegrationFormValues,
@@ -398,23 +398,12 @@ export const OrganizationType = () => {
                       <br />
                       <Text type="secondary">{member.email}</Text>
                     </div>
-
-                    <Tag
-                      style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                      color={
-                        member.role === "OWNER"
-                          ? "gold"
-                          : member.role === "ADMIN"
-                            ? "purple"
-                            : "blue"
-                      }
-                    >
-                      {member.role}
-                    </Tag>
+                    <MemberRole
+                      role={member.role}
+                      isOwner={false}
+                      isCurrentUser={false}
+                      loading={false}
+                    />
                   </div>
                 ))}
               </Card>
@@ -557,20 +546,20 @@ export const OrganizationType = () => {
     },
     ...(isOwner
       ? [
-          {
-            key: "settings",
-            label: (
-              <span>
-                <SettingOutlined /> Settings
-              </span>
-            ),
-            children: (
-              <OrganizationSettingsPanel
-                organizationId={organizations?.[0]?.id ?? ""}
-              />
-            ),
-          },
-        ]
+        {
+          key: "settings",
+          label: (
+            <span>
+              <SettingOutlined /> Settings
+            </span>
+          ),
+          children: (
+            <OrganizationSettingsPanel
+              organizationId={organizations?.[0]?.id ?? ""}
+            />
+          ),
+        },
+      ]
       : []),
   ];
 
