@@ -12,19 +12,10 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TabsProps } from "antd";
-import {
-  App,
-  Button,
-  Card,
-  Form,
-  Input,
-  Result,
-  Tabs,
-  Tag,
-  Typography,
-} from "antd";
+import { App, Button, Card, Form, Input, Result, Tabs, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { MemberRole } from "@/app/(private)/team-management/_components/member-role";
 import type {
   Integration,
   IntegrationFormValues,
@@ -398,23 +389,12 @@ export const OrganizationType = () => {
                       <br />
                       <Text type="secondary">{member.email}</Text>
                     </div>
-
-                    <Tag
-                      style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                      color={
-                        member.role === "OWNER"
-                          ? "gold"
-                          : member.role === "ADMIN"
-                            ? "purple"
-                            : "blue"
-                      }
-                    >
-                      {member.role}
-                    </Tag>
+                    <MemberRole
+                      role={member.role}
+                      isOwner={false}
+                      isCurrentUser={false}
+                      loading={false}
+                    />
                   </div>
                 ))}
               </Card>
