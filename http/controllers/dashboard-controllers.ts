@@ -8,7 +8,7 @@ import type { AuthEnv } from "@/http/models/auth.model";
 import { findInvoiceByPeriodAndUser } from "@/http/repositories/invoice.repository";
 import { getPresenceSummaryByOrganization } from "@/http/repositories/presence.repository";
 import {
-  getValidatedTaskSummaryByOrganization,
+  getDashboardTaskSummaryByOrganization,
   getValidatedTaskSummaryByReviewer,
 } from "@/http/repositories/task.repository";
 import { calculateEstimatedInvoice } from "@/lib/incoices/invoice-calculation";
@@ -206,7 +206,7 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
         currentPeriod.endDate,
       ),
 
-      getValidatedTaskSummaryByOrganization(
+      getDashboardTaskSummaryByOrganization(
         user.id,
         user.organizationId,
         targetUserId,
@@ -228,19 +228,6 @@ export const getDashboardInvoiceEstimate = factory.createHandlers(async (c) => {
         user.organizationId,
       ),
     ]);
-
-  console.log("DASHBOARD INVOICE", {
-    targetUserId,
-    periodStart: currentPeriod.startDate,
-    periodEnd: currentPeriod.endDate,
-    existingInvoice: existingInvoice
-      ? {
-          id: existingInvoice.id,
-          totalAmount: existingInvoice.totalAmount,
-          status: existingInvoice.status,
-        }
-      : null,
-  });
 
   if (
     existingInvoice &&
