@@ -22,6 +22,9 @@ export const NotificationPopover = () => {
     <Popover
       trigger="click"
       placement="bottomRight"
+      align={{
+        offset: [0, 39],
+      }}
       onOpenChange={handleOpenChange}
       title={<Typography.Text strong>Notifications</Typography.Text>}
       content={
@@ -29,7 +32,7 @@ export const NotificationPopover = () => {
           style={{
             width: 380,
             maxWidth: "90vw",
-            maxHeight: 800,
+            height: 810,
             overflowY: "auto",
           }}
         >
@@ -39,7 +42,6 @@ export const NotificationPopover = () => {
     >
       <Badge count={unreadCount} size="small" offset={[-2, 2]}>
         <Button
-          style={{ marginTop: 12 }}
           type="text"
           shape="circle"
           icon={<BellOutlined style={{ fontSize: 25 }} />}
