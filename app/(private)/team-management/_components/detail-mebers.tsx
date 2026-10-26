@@ -20,7 +20,6 @@ import {
   Drawer,
   Empty,
   Flex,
-  List,
   Row,
   Select,
   Space,
@@ -345,34 +344,38 @@ export const DetailMembers = ({
                       description="No project"
                     />
                   ) : (
-                    <List
-                      dataSource={memberProjects}
-                      renderItem={(project) => (
-                        <List.Item
-                          actions={
-                            canView
-                              ? [
-                                  <Button
-                                    key="remove"
-                                    danger
-                                    type="text"
-                                    icon={<DeleteOutlined />}
-                                    loading={removeMemberMutation.isPending}
-                                    onClick={() =>
-                                      handleRemoveFromProject(project.id)
-                                    }
-                                  />,
-                                ]
-                              : undefined
-                          }
+                    <Flex vertical gap={12}>
+                      {memberProjects.map((project) => (
+                        <Flex
+                          key={project.id}
+                          align="center"
+                          justify="space-between"
+                          gap={12}
+                          style={{
+                            padding: "8px 0",
+                            borderBottom: "1px solid #f0f0f0",
+                          }}
                         >
-                          <List.Item.Meta
-                            avatar={<ProjectOutlined />}
-                            title={project.name}
-                          />
-                        </List.Item>
-                      )}
-                    />
+                          <Flex align="center" gap={8} style={{ minWidth: 0 }}>
+                            <ProjectOutlined />
+
+                            <Typography.Text ellipsis>
+                              {project.name}
+                            </Typography.Text>
+                          </Flex>
+
+                          {canView && (
+                            <Button
+                              danger
+                              type="text"
+                              icon={<DeleteOutlined />}
+                              loading={removeMemberMutation.isPending}
+                              onClick={() => handleRemoveFromProject(project.id)}
+                            />
+                          )}
+                        </Flex>
+                      ))}
+                    </Flex>
                   )}
                 </Card>
 
