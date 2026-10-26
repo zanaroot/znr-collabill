@@ -370,7 +370,9 @@ export const DetailMembers = ({
                               type="text"
                               icon={<DeleteOutlined />}
                               loading={removeMemberMutation.isPending}
-                              onClick={() => handleRemoveFromProject(project.id)}
+                              onClick={() =>
+                                handleRemoveFromProject(project.id)
+                              }
                             />
                           )}
                         </Flex>
