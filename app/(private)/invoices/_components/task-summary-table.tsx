@@ -2,6 +2,10 @@
 
 import { Table, Typography } from "antd";
 import { AmountDisplay } from "@/app/(private)/_components/amount-display";
+import type {
+  RawTaskSummary,
+  ReviewerTaskSummary,
+} from "@/http/models/task.model";
 
 const { Text } = Typography;
 
@@ -17,40 +21,6 @@ export interface TaskSummaryRow {
   L: number;
   XL: number;
   total: number;
-}
-
-export interface RawTaskSummary {
-  userId: string;
-  userName: string;
-  projectId: string;
-  projectName: string;
-  projectBaseRate: string | null;
-  size: "XS" | "S" | "M" | "L" | "XL";
-  taskCount: number;
-  rateXs: string | null;
-  rateS: string | null;
-  rateM: string | null;
-  rateL: string | null;
-  rateXl: string | null;
-}
-
-export interface ReviewerTaskSummary {
-  assignedTo: string;
-  assigneeName: string;
-  reviewerId: string;
-  reviewerName: string;
-  projectId: string;
-  projectName: string;
-  projectReviewerRate: string | null;
-
-  rateXs: string | null;
-  rateS: string | null;
-  rateM: string | null;
-  rateL: string | null;
-  rateXl: string | null;
-
-  size: "XS" | "S" | "M" | "L" | "XL";
-  taskCount: number;
 }
 
 const getRateForSize = (
@@ -82,8 +52,6 @@ const getRateForSize = (
 export interface ReviewerTaskSummaryRow {
   assignedTo: string;
   assigneeName: string;
-  reviewerId: string;
-  reviewerName: string;
   projectId: string;
   projectName: string;
   projectReviewerRate: number;
@@ -110,8 +78,6 @@ export const ReviewerTaskSummaryTable = ({
       rowsMap.set(key, {
         assignedTo: item.assignedTo,
         assigneeName: item.assigneeName,
-        reviewerId: item.reviewerId,
-        reviewerName: item.reviewerName,
         projectId: item.projectId,
         projectName: item.projectName,
         projectReviewerRate: reviewerRate,

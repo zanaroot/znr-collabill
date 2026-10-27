@@ -22,8 +22,6 @@ import { findUserById } from "@/http/repositories/user.repository";
 import { getCurrentPeriod, getPeriodById } from "@/lib/periods";
 import { InvoiceDetailView } from "./_components/invoice-detail-view";
 import { InvoiceHistoryTable } from "./_components/invoice-history-table";
-import type { PresenceSummary } from "./_components/presence-summary-table";
-import type { RawTaskSummary } from "./_components/task-summary-table";
 
 const InvoicesPage = async ({
   searchParams,
@@ -130,11 +128,9 @@ const InvoicesPage = async ({
           <InvoiceHistoryTable data={history} isOwner={isOwner} />
         ) : (
           <InvoiceDetailView
-            presenceSummary={presenceSummary as unknown as PresenceSummary[]}
-            taskSummary={taskSummary as unknown as RawTaskSummary[]}
-            reviewerTaskSummary={
-              reviewerTaskSummary as unknown as import("./_components/task-summary-table").ReviewerTaskSummary[]
-            }
+            presenceSummary={presenceSummary}
+            taskSummary={taskSummary}
+            reviewerTaskSummary={reviewerTaskSummary}
             user={user}
             targetUserName={targetUserName}
             targetUserId={targetUserId}

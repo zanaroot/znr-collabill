@@ -1,9 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import {
-  type PresenceSummary,
-  PresenceSummaryTable,
-} from "@/app/(private)/invoices/_components/presence-summary-table";
+import { PresenceSummaryTable } from "@/app/(private)/invoices/_components/presence-summary-table";
+import type { PresenceSummary } from "@/http/models/presence.model";
 
 describe("PresenceSummaryTable", () => {
   const summary: PresenceSummary = {
@@ -12,7 +10,7 @@ describe("PresenceSummaryTable", () => {
     type: "OFFICE",
     dailyRate: "100",
     count: 5,
-    rate: 100,
+    rate: "100",
   };
   const summary2: PresenceSummary = {
     userId: "456",
@@ -20,7 +18,7 @@ describe("PresenceSummaryTable", () => {
     type: "REMOTE",
     dailyRate: "150",
     count: 8,
-    rate: 100,
+    rate: "100",
   };
   const mockData: PresenceSummary[] = [summary, summary2];
 
@@ -80,7 +78,7 @@ describe("PresenceSummaryTable", () => {
         dailyRate: null,
         count: 5,
         type: "OFFICE",
-        rate: 100,
+        rate: "100",
       },
     ];
 
@@ -98,7 +96,7 @@ describe("PresenceSummaryTable", () => {
         dailyRate: "100",
         count: 0,
         type: "OFFICE",
-        rate: 100,
+        rate: "100",
       },
     ];
 

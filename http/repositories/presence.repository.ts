@@ -9,7 +9,10 @@ import {
   presences,
   users,
 } from "@/db/schema";
-import type { PresenceStatusValue } from "@/http/models/presence.model";
+import type {
+  PresenceStatusValue,
+  PresenceSummary,
+} from "@/http/models/presence.model";
 import { getISODate } from "@/lib/date";
 
 export const findPresenceByUserIdAndDate = async (
@@ -148,7 +151,7 @@ export const getPresenceSummaryByOrganization = async (
   targetUserId?: string,
   startDate?: string,
   endDate?: string,
-) => {
+): Promise<PresenceSummary[]> => {
   const presenceFilters = [
     eq(users.id, presences.userId),
     eq(presences.organizationId, organizationId),

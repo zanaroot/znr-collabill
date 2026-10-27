@@ -20,10 +20,13 @@ import type {
   CreateInvoiceInput,
   InvoiceStatus,
 } from "@/http/models/invoice.model";
+import type { PresenceSummary } from "@/http/models/presence.model";
+import type {
+  RawTaskSummary,
+  ReviewerTaskSummary,
+} from "@/http/models/task.model";
 import { calculateReviewerAmount } from "@/lib/incoices/invoice-calculation";
 import { client } from "@/packages/hono";
-import type { PresenceSummary } from "./presence-summary-table";
-import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 
 const { Title, Text, Paragraph } = Typography;
 

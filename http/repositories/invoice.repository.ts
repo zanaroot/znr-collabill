@@ -3,17 +3,13 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { invoiceLines, invoices } from "@/db/schema/invoice";
+import type {
+  InvoiceHistoryItem,
+  InvoiceWithLines,
+} from "@/http/models/invoice.model";
 
-type CreateInvoiceInput = typeof invoices.$inferInsert;
-type CreateInvoiceLineInput = typeof invoiceLines.$inferInsert;
-
-export type InvoiceWithLines = Omit<
-  typeof invoices.$inferSelect,
-  "totalAmount"
-> & {
-  totalAmount: number;
-  lines: (typeof invoiceLines.$inferSelect)[];
-};
+type InvoiceInsertInput = typeof invoices.$inferInsert;
+type InvoiceLineInsertInput = typeof invoiceLines.$inferInsert;
 
 export const findInvoiceById = async (id: string) => {
   const [invoice] = await db
@@ -29,7 +25,7 @@ export const findInvoiceByPeriodAndUser = async (
   periodEnd: string,
   userId: string,
   organizationId: string,
-) => {
+): Promise<InvoiceWithLines | null> => {
   const [invoice] = await db
     .select()
     .from(invoices)
@@ -63,8 +59,8 @@ export const findInvoiceByPeriodAndUser = async (
 };
 
 export const createInvoiceWithLines = async (
-  invoiceInput: Omit<CreateInvoiceInput, "id" | "createdAt">,
-  linesInput: Omit<CreateInvoiceLineInput, "id" | "invoiceId">[],
+  invoiceInput: Omit<InvoiceInsertInput, "id" | "createdAt">,
+  linesInput: Omit<InvoiceLineInsertInput, "id" | "invoiceId">[],
 ) => {
   return await db.transaction(async (tx) => {
     const [invoice] = await tx
@@ -95,7 +91,7 @@ export const findInvoicesByOrganizationId = async (organizationId: string) => {
 export const findInvoicesWithUsersByOrganizationId = async (
   organizationId: string,
   userId?: string,
-) => {
+): Promise<InvoiceHistoryItem[]> => {
   const { users } = await import("@/db/schema/user");
 
   const conditions = [

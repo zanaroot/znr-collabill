@@ -33,3 +33,43 @@ export const memberInvoiceQuerySchema = z.object({
 
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
+export type CreateInvoiceLineInput = z.infer<typeof invoiceLineSchema>;
+
+type InvoiceLine = {
+  id: string;
+  invoiceId: string;
+  type: string;
+  presenceType: string | null;
+  referenceId: string | null;
+  label: string;
+  quantity: number;
+  unitPrice: string | null;
+  total: string | null;
+};
+
+export type InvoiceWithLines = {
+  id: string;
+  userId: string;
+  organizationId: string;
+  periodStart: string;
+  periodEnd: string;
+  status: InvoiceStatus | null;
+  totalAmount: number;
+  validatedAt: Date | null;
+  paidAt: Date | null;
+  note: string | null;
+  draftKey: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  lines: InvoiceLine[];
+};
+
+export type InvoiceHistoryItem = {
+  id: string;
+  userId: string;
+  userName: string;
+  periodStart: string;
+  periodEnd: string;
+  status: InvoiceStatus | null;
+  totalAmount: string | null;
+};

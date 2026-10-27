@@ -9,21 +9,23 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { App, Button, Select, Typography } from "antd";
 import dayjs from "dayjs";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { z } from "zod";
 import type {
   CreateInvoiceInput,
-  invoiceLineSchema,
+  CreateInvoiceLineInput,
 } from "@/http/models/invoice.model";
 import type { LeaveBalance } from "@/http/models/leave.model";
 import type { Organization } from "@/http/models/organization.model";
+import type { PresenceSummary } from "@/http/models/presence.model";
+import type {
+  RawTaskSummary,
+  ReviewerTaskSummary,
+} from "@/http/models/task.model";
 import { client } from "@/packages/hono";
 
 const { Text } = Typography;
 
 import { calculateReviewerAmount } from "@/lib/incoices/invoice-calculation";
 import { getMonthlyPeriods } from "@/lib/periods";
-import type { PresenceSummary } from "./presence-summary-table";
-import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 
 type Member = {
   id: string;
@@ -191,7 +193,7 @@ export const InvoiceFilters = ({
     if (!targetUserId || !periodStart || !periodEnd) return;
 
     let totalAmount = 0;
-    const linesInput: z.infer<typeof invoiceLineSchema>[] = [];
+    const linesInput: CreateInvoiceLineInput[] = [];
 
     const userPresenceData = presenceData.filter(
       (p) => p.userId === targetUserId,

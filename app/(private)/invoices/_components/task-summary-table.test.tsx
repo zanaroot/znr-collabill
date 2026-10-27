@@ -1,9 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import {
-  type RawTaskSummary,
-  TaskSummaryTable,
-} from "@/app/(private)/invoices/_components/task-summary-table";
+import { TaskSummaryTable } from "@/app/(private)/invoices/_components/task-summary-table";
+import type { RawTaskSummary } from "@/http/models/task.model";
 
 describe("TaskSummaryTable", () => {
   const mockData: RawTaskSummary[] = [
