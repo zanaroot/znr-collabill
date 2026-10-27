@@ -100,6 +100,10 @@
   },
   "packageManager": "pnpm@10.26.0",
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@sentry/cli",
+      "esbuild"
+    ],
     "ignoredBuiltDependencies": [
       "sharp",
       "unrs-resolver"
