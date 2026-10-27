@@ -84,3 +84,33 @@ export type UpdateTaskSystemInput = UpdateTaskInput & {
   reviewerId?: string | null;
   archivedAt?: Date | null;
 };
+
+export type RawTaskSummary = {
+  userId: string;
+  userName: string;
+  projectId: string;
+  projectName: string;
+  projectBaseRate: string | null;
+  size: TaskSize;
+  taskCount: number;
+  rateXs: string | null;
+  rateS: string | null;
+  rateM: string | null;
+  rateL: string | null;
+  rateXl: string | null;
+};
+
+export type ReviewerTaskSummary = {
+  assignedTo: string;
+  assigneeName: string;
+  projectId: string;
+  projectName: string;
+  projectReviewerRate: string | null;
+  rateXs: string | null;
+  rateS: string | null;
+  rateM: string | null;
+  rateL: string | null;
+  rateXl: string | null;
+  size: TaskSize;
+  taskCount: number;
+};

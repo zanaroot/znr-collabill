@@ -31,6 +31,8 @@ import {
 } from "@/db/schema";
 import type {
   CreateTaskInput,
+  RawTaskSummary,
+  ReviewerTaskSummary,
   TaskStatus,
   UpdateTaskSystemInput,
 } from "@/http/models/task.model";
@@ -257,7 +259,7 @@ export const getValidatedTaskSummaryByReviewer = async (
   organizationId: string,
   startDate?: Date,
   endDate?: Date,
-) => {
+): Promise<ReviewerTaskSummary[]> => {
   const whereClauses = [
     eq(tasks.reviewerId, userId),
     ne(tasks.assignedTo, tasks.reviewerId),
@@ -331,7 +333,7 @@ export const getValidatedTaskSummaryByOrganization = async (
   targetUserId?: string,
   startDate?: Date,
   endDate?: Date,
-) => {
+): Promise<RawTaskSummary[]> => {
   const whereClauses = [
     eq(organizationMembers.userId, targetUserId ?? userId),
     eq(organizationMembers.organizationId, organizationId),

@@ -4,13 +4,16 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { Flex, Grid, Space, Tooltip, Typography } from "antd";
 import { useEffect } from "react";
 import type { AuthUser } from "@/http/models/auth.model";
+import type { InvoiceWithLines } from "@/http/models/invoice.model";
 import type { Period } from "@/http/models/period.model";
-import type { InvoiceWithLines } from "@/http/repositories/invoice.repository";
+import type { PresenceSummary } from "@/http/models/presence.model";
+import type {
+  RawTaskSummary,
+  ReviewerTaskSummary,
+} from "@/http/models/task.model";
 import { InvoiceComments } from "./invoice-comments";
 import { InvoicePrintable } from "./invoice-printable";
-import type { PresenceSummary } from "./presence-summary-table";
 import { PresenceSummaryTable } from "./presence-summary-table";
-import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 import {
   ReviewerTaskSummaryTable,
   TaskSummaryTable,

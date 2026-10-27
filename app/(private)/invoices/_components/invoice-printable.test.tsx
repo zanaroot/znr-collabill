@@ -66,7 +66,7 @@ describe("InvoicePrintable", () => {
         type: "OFFICE",
         count: 5,
         dailyRate: "100",
-        rate: 100,
+        rate: "100",
       },
     ],
     taskData: [],

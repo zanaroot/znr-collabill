@@ -5,19 +5,10 @@ import { Button, Table, Typography } from "antd";
 import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
 import { AmountDisplay } from "@/app/(private)/_components/amount-display";
+import type { InvoiceHistoryItem } from "@/http/models/invoice.model";
 import { StatusTagInvoice } from "./status-tag-invoice";
 
 const { Title } = Typography;
-
-export type InvoiceHistoryItem = {
-  id: string;
-  userId: string;
-  userName?: string;
-  periodStart: string;
-  periodEnd: string;
-  status: string | null;
-  totalAmount: string | null;
-};
 
 type InvoiceHistoryTableProps = {
   data: InvoiceHistoryItem[];

@@ -1,32 +1,14 @@
-import type { RawTaskSummary } from "@/app/(private)/invoices/_components/task-summary-table";
-
-type InvoicePresenceSummary = {
-  userId: string;
-  dailyRate: string | null;
-  rate: string | null;
-  count: number;
-};
-
-type InvoiceReviewerTaskSummary = {
-  assignedTo: string;
-  assigneeName: string;
-  projectId: string;
-  projectName: string;
-  projectReviewerRate: string | null;
-  rateXs: string | null;
-  rateS: string | null;
-  rateM: string | null;
-  rateL: string | null;
-  rateXl: string | null;
-  size: "XS" | "S" | "M" | "L" | "XL";
-  taskCount: number;
-};
+import type { PresenceSummary } from "@/http/models/presence.model";
+import type {
+  RawTaskSummary,
+  ReviewerTaskSummary,
+} from "@/http/models/task.model";
 
 type EstimateInvoiceParams = {
   targetUserId: string;
-  presenceData: InvoicePresenceSummary[];
+  presenceData: PresenceSummary[];
   taskData: RawTaskSummary[];
-  reviewerTaskData: InvoiceReviewerTaskSummary[];
+  reviewerTaskData: ReviewerTaskSummary[];
   customLines?: Array<{
     label: string;
     amount: string;
@@ -34,7 +16,7 @@ type EstimateInvoiceParams = {
   }>;
 };
 
-export function calculateReviewerAmount(task: InvoiceReviewerTaskSummary) {
+export function calculateReviewerAmount(task: ReviewerTaskSummary) {
   let sizeRate = 0;
 
   switch (task.size) {

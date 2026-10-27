@@ -3,14 +3,17 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { AuthUser } from "@/http/models/auth.model";
+import type { InvoiceWithLines } from "@/http/models/invoice.model";
 import type { Organization } from "@/http/models/organization.model";
 import type { Period } from "@/http/models/period.model";
-import type { InvoiceWithLines } from "@/http/repositories/invoice.repository";
+import type { PresenceSummary } from "@/http/models/presence.model";
+import type {
+  RawTaskSummary,
+  ReviewerTaskSummary,
+} from "@/http/models/task.model";
 import { client } from "@/packages/hono";
 import { InvoiceContentWrapper } from "./invoice-content-wrapper";
 import { InvoiceFilters } from "./invoice-filters";
-import type { PresenceSummary } from "./presence-summary-table";
-import type { RawTaskSummary, ReviewerTaskSummary } from "./task-summary-table";
 
 interface Member {
   id: string;

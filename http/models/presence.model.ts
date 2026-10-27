@@ -25,3 +25,12 @@ export const updateMemberPresenceSchema = z.object({
   date: z.string(),
   status: presenceStatusEnum,
 });
+
+export type PresenceSummary = {
+  userId: string;
+  userName: string;
+  type: PresenceStatus | null;
+  count: number;
+  dailyRate: string | null;
+  rate: string | null;
+};

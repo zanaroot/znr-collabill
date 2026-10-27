@@ -2,17 +2,9 @@
 
 import { Table, Typography } from "antd";
 import { AmountDisplay } from "@/app/(private)/_components/amount-display";
+import type { PresenceSummary } from "@/http/models/presence.model";
 
 const { Text } = Typography;
-
-export interface PresenceSummary {
-  userId: string;
-  userName: string;
-  type: "OFFICE" | "REMOTE" | "HALF_DAY" | "SICK" | "VACATION" | "ON_LEAVE";
-  count: number;
-  dailyRate: string | null;
-  rate: number;
-}
 
 export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
   const columns = [
@@ -48,7 +40,7 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
       title: "Rate",
       dataIndex: "rate",
       key: "rate",
-      render: (rate: number) => `${rate}%`,
+      render: (rate: string | null) => `${Number(rate ?? 0)}%`,
     },
     {
       title: "Total",
@@ -56,7 +48,8 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
       render: (_: unknown, record: PresenceSummary) => {
         const dailyRate = Number(record.dailyRate ?? 0);
 
-        const total = record.count * dailyRate * (record.rate / 100);
+        const total =
+          record.count * dailyRate * (Number(record.rate ?? 0) / 100);
 
         return (
           <Text strong>
