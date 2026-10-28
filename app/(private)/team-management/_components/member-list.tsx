@@ -14,6 +14,7 @@ import React, { useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { CallButtons } from "@/app/(private)/team-management/_components/call-buttons";
 import { EmailVerificationStatus } from "@/app/(private)/_components/email-verification-status";
+import { CallButtons } from "@/app/(private)/team-management/_components/call-buttons";
 import { DetailMembers } from "@/app/(private)/team-management/_components/detail-mebers";
 import { InviteUserModal } from "@/app/(private)/team-management/_components/invite-user-modal";
 import { MemberRole } from "@/app/(private)/team-management/_components/member-role";
@@ -211,7 +212,7 @@ export const MemberList = () => {
 
       message.success(
         result.message ||
-          "Verification email sent. Please check the member's inbox.",
+        "Verification email sent. Please check the member's inbox.",
       );
     } catch (error) {
       message.error(
@@ -390,34 +391,34 @@ export const MemberList = () => {
 
           {record.id === currentUser?.id
             ? !isOwner && (
-                <Button
-                  danger
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLeave();
-                  }}
-                  size="small"
-                  loading={leaveMutation.isPending}
-                >
-                  Leave
-                </Button>
-              )
+              <Button
+                danger
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLeave();
+                }}
+                size="small"
+                loading={leaveMutation.isPending}
+              >
+                Leave
+              </Button>
+            )
             : canManageMembers && (
-                <Button
-                  danger
-                  type="text"
-                  icon={<DeleteOutlined />}
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(record.id);
-                  }}
-                  loading={
-                    deleteMutation.isPending &&
-                    deleteMutation.variables === record.id
-                  }
-                />
-              )}
+              <Button
+                danger
+                type="text"
+                icon={<DeleteOutlined />}
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(record.id);
+                }}
+                loading={
+                  deleteMutation.isPending &&
+                  deleteMutation.variables === record.id
+                }
+              />
+            )}
         </Flex>
       ),
     },
