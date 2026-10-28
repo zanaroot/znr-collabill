@@ -462,9 +462,11 @@ export function ProjectDetailsDrawer({
                   const actions = isAdminOrOwner
                     ? [
                         item.projectRole !== "PRODUCT_OWNER" && (
-                          <Tooltip title="Make Product Owner">
+                          <Tooltip
+                            key={`make-po-${item.id}`}
+                            title="Make Product Owner"
+                          >
                             <Button
-                              key="make-po"
                               type="text"
                               icon={<UserSwitchOutlined />}
                               onClick={() =>
