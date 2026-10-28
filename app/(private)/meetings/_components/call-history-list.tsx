@@ -29,6 +29,7 @@ export const CallHistoryList = () => {
     {
       title: "Participants",
       key: "participants",
+      ellipsis: true,
       render: (_, record) => {
         const names = [
           record.initiator?.name,
@@ -43,12 +44,14 @@ export const CallHistoryList = () => {
       title: "Type",
       dataIndex: "type",
       key: "type",
+      width: 90,
       render: (type: CallDto["type"]) => TYPE_ICONS[type],
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
+      width: 120,
       render: (status: CallDto["status"]) => (
         <Tag color={STATUS_COLORS[status]}>{status}</Tag>
       ),
@@ -57,12 +60,14 @@ export const CallHistoryList = () => {
       title: "Started",
       dataIndex: "createdAt",
       key: "createdAt",
+      width: 190,
       responsive: ["sm", "md", "lg", "xl"],
       render: (value: string) => dayjs(value).format("MMM D, YYYY HH:mm"),
     },
     {
       title: "Duration",
       key: "duration",
+      width: 110,
       responsive: ["lg", "xl"],
       render: (_, record) => {
         if (!record.startedAt || !record.endedAt) return "-";
@@ -92,7 +97,8 @@ export const CallHistoryList = () => {
           rowKey="id"
           loading={isLoading}
           pagination={{ pageSize: 10, hideOnSinglePage: true }}
-          scroll={{ x: "max-content" }}
+          scroll={{ x: 720 }}
+          tableLayout="fixed"
           size="middle"
         />
       </div>

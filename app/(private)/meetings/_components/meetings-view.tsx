@@ -15,14 +15,29 @@ export const MeetingsView = () => {
   );
 
   return (
-    <div style={{ padding: 24, display: "grid", gap: 24 }}>
+    <div
+      style={{
+        height: "100%",
+        minHeight: 0,
+        padding: 24,
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr)",
+        alignContent: "start",
+        gap: 24,
+        overflowY: "auto",
+        overflowX: "hidden",
+        boxSizing: "border-box",
+      }}
+    >
       <MeetingList
         meetings={meetings ?? []}
         isLoading={isLoading}
         onCreate={() => setCreateOpen(true)}
         onOpenDetail={(meeting) => setSelectedMeetingId(meeting.id)}
       />
+
       <CallHistoryList />
+
       <CreateMeetingModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
@@ -31,6 +46,7 @@ export const MeetingsView = () => {
           setSelectedMeetingId(meetingId);
         }}
       />
+
       <MeetingDetailDrawer
         meetingId={selectedMeetingId}
         onClose={() => setSelectedMeetingId(null)}
