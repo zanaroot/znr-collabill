@@ -95,6 +95,9 @@ export const notificationTypeEnum = pgEnum("notification_type", [
 
   "MEMBER_ADDED",
   "MEMBER_REMOVED",
+
+  "CALL_INVITE",
+  "MEETING_INVITE",
 ]);
 
 export const notificationEntityTypeEnum = pgEnum("notification_entity_type", [
@@ -106,10 +109,44 @@ export const notificationEntityTypeEnum = pgEnum("notification_entity_type", [
   "PRESENCE",
   "MEMBER",
   "ORGANIZATION",
+  "CALL",
+  "MEETING",
 ]);
 
 export const jobRunStatusEnum = pgEnum("job_run_status", [
   "RUNNING",
   "SUCCEEDED",
   "FAILED",
+]);
+
+export const callTypeEnum = pgEnum("call_type", ["AUDIO", "VIDEO"]);
+
+export const callStatusEnum = pgEnum("call_status", [
+  "RINGING",
+  "ACTIVE",
+  "ENDED",
+  "MISSED",
+  "REJECTED",
+  "CANCELLED",
+]);
+
+export const callParticipantStatusEnum = pgEnum("call_participant_status", [
+  "INVITED",
+  "JOINED",
+  "LEFT",
+  "REJECTED",
+  "MISSED",
+]);
+
+export const meetingStatusEnum = pgEnum("meeting_status", [
+  "SCHEDULED",
+  "ACTIVE",
+  "ENDED",
+  "EXPIRED",
+  "CANCELLED",
+]);
+
+export const meetingInvitationTypeEnum = pgEnum("meeting_invitation_type", [
+  "MEMBER",
+  "GUEST",
 ]);

@@ -41,6 +41,8 @@ App URL: `http://localhost:3000`
 - `MINIO_ROOT_PASSWORD`: Root password for the MinIO container.
 - `S3_SECRET_KEY`: Secret key for S3/MinIO access.
 - `BREVO_API_KEY`: API key for Brevo (or another email provider) to send emails.
+- `LIVEKIT_API_KEY`: LiveKit Cloud (or self-hosted LiveKit) API key used to mint short-lived room tokens. Optional; audio/video calling and meetings return `503` until configured.
+- `LIVEKIT_API_SECRET`: LiveKit API secret used to sign tokens and verify webhooks. Optional.
 
 **Required Variables:**
 - `POSTGRES_DB`: Database name.
@@ -51,6 +53,7 @@ App URL: `http://localhost:3000`
 - `S3_REGION`: S3 region.
 - `S3_ENDPOINT`: Server-side S3/MinIO endpoint (never exposed to the browser).
 - `MAIL_FROM`: The "From" address for outgoing emails.
+- `LIVEKIT_URL`: LiveKit server URL (e.g. `wss://your-project.livekit.cloud`) used by browsers and the server SDK. Optional.
 
 **Development Seeds (optional):**
 - `SEED_OWNER_EMAIL`, `SEED_COLLABORATOR_EMAIL`, `SEED_PASSWORD`: Optional seed overrides for `pnpm db:seed` and `pnpm db:seed:dev`.
@@ -117,6 +120,8 @@ Production deployment is handled entirely through GitHub Actions. The workflow S
    - `S3_SECRET_KEY`
    - `ENCRYPTION_KEY`
    - `BREVO_API_KEY`
+   - `LIVEKIT_API_KEY`
+   - `LIVEKIT_API_SECRET`
    - `DROPLET_HOST`
    - `DROPLET_USER`
    - `DROPLET_SSH_KEY`
@@ -133,6 +138,7 @@ Production deployment is handled entirely through GitHub Actions. The workflow S
    - `S3_REGION`
    - `S3_ENDPOINT`
    - `MAIL_FROM`
+   - `LIVEKIT_URL` (e.g. `wss://your-project.livekit.cloud`)
 
 ### Deploy
 

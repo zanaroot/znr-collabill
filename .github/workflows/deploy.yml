@@ -110,12 +110,15 @@ jobs:
           S3_REGION=${{ vars.S3_REGION }}
           S3_ENDPOINT=${{ vars.S3_ENDPOINT }}
           MAIL_FROM=${{ vars.MAIL_FROM }}
+          LIVEKIT_URL=${{ vars.LIVEKIT_URL }}
           DATABASE_URL=${{ secrets.DATABASE_URL }}
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
           S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}
           ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
           BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}
+          LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
           EOF
           ENV_PAYLOAD_B64="$(base64 -w 0 deploy.env)"
           rm -f deploy.env

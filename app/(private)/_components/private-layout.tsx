@@ -12,6 +12,7 @@ import {
   ProjectOutlined,
   RightOutlined,
   UsergroupAddOutlined,
+  VideoCameraOutlined,
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -29,6 +30,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { type ReactNode, Suspense, useEffect, useState } from "react";
 import { cn } from "@/app/_utils/class-name";
+import { CallManager } from "@/app/(private)/_components/calls/call-manager";
 import { NotificationPopover } from "@/app/(private)/_components/notifications/_components/notification-popover";
 import { OrganizationSwitcher } from "@/app/(private)/_components/organization-switcher";
 import { UserDropdownMenus } from "@/app/(private)/_components/user-dropdown-menus";
@@ -50,6 +52,7 @@ const ROUTE_TITLES: Record<string, string> = {
   projects: "Projects",
   invoices: "Invoices",
   "leave-management": "Leaves",
+  meetings: "Meetings",
 };
 
 const DynamicBreadcrumb = ({ selectedKey }: { selectedKey: string }) => {
@@ -164,6 +167,11 @@ export const PrivateLayout = ({
       icon: <DollarOutlined />,
       label: "Rates",
     },
+    {
+      key: "meetings",
+      icon: <VideoCameraOutlined />,
+      label: "Meetings",
+    },
     ...(hasAdminAccess
       ? [
           {
@@ -191,6 +199,7 @@ export const PrivateLayout = ({
   return (
     <App>
       <Layout className="responsive-layout">
+        <CallManager />
         <PresenceModal
           open={showPresenceModal}
           organizationId={organization?.id}
