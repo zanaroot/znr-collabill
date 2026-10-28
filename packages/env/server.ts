@@ -21,6 +21,9 @@ const readServerEnv = (): ParsedServerEnv => {
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     BREVO_API_KEY: process.env.BREVO_API_KEY,
     MAIL_FROM: process.env.MAIL_FROM,
+    LIVEKIT_URL: process.env.LIVEKIT_URL,
+    LIVEKIT_API_KEY: process.env.LIVEKIT_API_KEY,
+    LIVEKIT_API_SECRET: process.env.LIVEKIT_API_SECRET,
     NODE_ENV: process.env.NODE_ENV ?? "development",
   };
 

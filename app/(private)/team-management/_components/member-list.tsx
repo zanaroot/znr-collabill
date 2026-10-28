@@ -13,6 +13,7 @@ import type { ColumnsType } from "antd/es/table";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { CallButtons } from "@/app/(private)/team-management/_components/call-buttons";
 import { DetailMembers } from "@/app/(private)/team-management/_components/detail-mebers";
 import { InviteUserModal } from "@/app/(private)/team-management/_components/invite-user-modal";
 import { MemberRole } from "@/app/(private)/team-management/_components/member-role";
@@ -307,6 +308,14 @@ export const MemberList = () => {
               openDetails(record);
             }}
           />
+
+          {record.id !== currentUser?.id && (
+            <CallButtons
+              memberUserId={record.id}
+              memberName={record.name}
+              currentUserId={currentUser?.id}
+            />
+          )}
 
           {(isOwner || record.id === currentUser?.id) && (
             <Button

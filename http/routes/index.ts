@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { authMiddleware } from "@/http/middleware/auth.middleware";
 import { notificationRoutes } from "@/http/routes/notification.routes";
 import { authRoutes } from "./auth.route";
+import { callRoutes } from "./call.route";
 import { dashboardRoutes } from "./dashboard";
 import { openAPIDocument } from "./docs/open-api.doc";
 import { integrationRoutes } from "./integration.route";
@@ -10,6 +11,9 @@ import { publicInvitationRoutes } from "./invitation.route";
 import { invoiceRoutes } from "./invoice.route";
 import { invoiceCommentRoutes } from "./invoice-comment.route";
 import { leaveRoutes } from "./leave.route";
+import { livekitWebhookRoutes } from "./livekit.route";
+import { meetingRoutes } from "./meeting.route";
+import { publicMeetingRoutes } from "./meeting-public.route";
 import { organizationRoutes } from "./organization.route";
 import { publicPasswordRoutes } from "./password.route";
 import { presenceRoutes } from "./presence.route";
@@ -23,6 +27,8 @@ export const app = new Hono()
   .route("/invitations/public", publicInvitationRoutes)
   .route("/password", publicPasswordRoutes)
   .route("/auth", authRoutes)
+  .route("/webhooks/livekit", livekitWebhookRoutes)
+  .route("/meetings/public", publicMeetingRoutes)
   .use("*", authMiddleware)
   .route("/invoice-comments", invoiceCommentRoutes)
   .route("/task-comments", taskCommentRoutes)
@@ -34,6 +40,8 @@ export const app = new Hono()
   .route("/leave-requests", leaveRoutes)
   .route("/projects", projectRoutes)
   .route("/tasks", taskRoutes)
+  .route("/calls", callRoutes)
+  .route("/meetings", meetingRoutes)
   .route("/notifications", notificationRoutes)
   .route("/dashboard", dashboardRoutes);
 

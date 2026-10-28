@@ -32,6 +32,9 @@ export const serverEnvSchema = publicEnvSchema.extend({
     .min(32, "ENCRYPTION_KEY must be at least 32 characters"),
   BREVO_API_KEY: z.string().trim().min(1, "BREVO_API_KEY is required"),
   MAIL_FROM: z.email().trim().min(1, "MAIL_FROM is required"),
+  LIVEKIT_URL: z.string().trim().optional(),
+  LIVEKIT_API_KEY: z.string().trim().optional(),
+  LIVEKIT_API_SECRET: z.string().trim().optional(),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development")
