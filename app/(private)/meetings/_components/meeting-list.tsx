@@ -24,11 +24,18 @@ export const MeetingList = ({
       title: "Title",
       dataIndex: "title",
       key: "title",
+      ellipsis: true,
       render: (title: string, record) => (
         <Button
           type="link"
+          title={title}
           onClick={() => onOpenDetail(record)}
-          style={{ padding: 0 }}
+          style={{
+            padding: 0,
+            maxWidth: "100%",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
         >
           {title}
         </Button>
@@ -38,6 +45,7 @@ export const MeetingList = ({
       title: "Status",
       dataIndex: "status",
       key: "status",
+      width: 110,
       render: (status: MeetingListItem["status"]) => (
         <MeetingStatusTag status={status} />
       ),
@@ -45,6 +53,7 @@ export const MeetingList = ({
     {
       title: "Created by",
       key: "createdBy",
+      width: 150,
       responsive: ["sm", "md", "lg", "xl"],
       render: (_, record) => record.creator?.name ?? "-",
     },
@@ -52,6 +61,7 @@ export const MeetingList = ({
       title: "Scheduled",
       dataIndex: "scheduledAt",
       key: "scheduledAt",
+      width: 170,
       responsive: ["md", "lg", "xl"],
       render: (value: string | null) =>
         value ? dayjs(value).format("MMM D, YYYY HH:mm") : "-",
@@ -60,6 +70,7 @@ export const MeetingList = ({
       title: "Guests",
       dataIndex: "guestAccess",
       key: "guestAccess",
+      width: 110,
       responsive: ["lg", "xl"],
       render: (enabled: boolean) => (enabled ? "Allowed" : "Disabled"),
     },
@@ -67,12 +78,14 @@ export const MeetingList = ({
       title: "Participants",
       dataIndex: "participantCount",
       key: "participantCount",
+      width: 120,
       responsive: ["lg", "xl"],
     },
     {
       title: "Created",
       dataIndex: "createdAt",
       key: "createdAt",
+      width: 120,
       responsive: ["xl"],
       render: (value: string) => dayjs(value).format("MMM D, YYYY"),
     },
@@ -99,7 +112,8 @@ export const MeetingList = ({
           rowKey="id"
           loading={isLoading}
           pagination={{ pageSize: 10, hideOnSinglePage: true }}
-          scroll={{ x: "max-content" }}
+          scroll={{ x: 940 }}
+          tableLayout="fixed"
           size="middle"
         />
       </div>
