@@ -1146,3 +1146,36 @@ h4 {
   max-width: 100%;
   height: auto;
 }
+
+
+/* Phone input - dark mode */
+.dark .react-international-phone-input-container .react-international-phone-country-selector-button,
+.dark .react-international-phone-input-container .react-international-phone-input {
+  background-color: #141414 !important;
+  color: #ffffff !important;
+  border-color: #424242 !important;
+}
+
+.dark .react-international-phone-input-container .react-international-phone-input::placeholder {
+  color: #a3a3a3 !important;
+}
+
+.dark .react-international-phone-country-selector-dropdown {
+  background-color: #1f1f1f !important;
+  border-color: #424242 !important;
+  color: #ffffff !important;
+}
+
+.dark .react-international-phone-country-selector-dropdown__list-item {
+  color: #ffffff !important;
+}
+
+.dark .react-international-phone-country-selector-dropdown__list-item:hover,
+.dark .react-international-phone-country-selector-dropdown__list-item--focused {
+  background-color: #303030 !important;
+}
+
+.dark .react-international-phone-country-selector-dropdown__list-item-dial-code {
+  color: #a3a3a3 !important;
+}
+

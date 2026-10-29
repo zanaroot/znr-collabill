@@ -1,18 +1,18 @@
+
 import { Button, Form, type FormInstance, Input } from "antd";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
+
+type ProfileFormValues = {
+  name: string;
+  email: string;
+  phoneNumber?: string;
+  phoneOwnerName?: string;
+};
 
 type ProfileFormProps = {
-  form: FormInstance<{
-    name: string;
-    email: string;
-    phoneNumber?: string;
-    phoneOwnerName?: string;
-  }>;
-  onFinish: (values: {
-    name: string;
-    email: string;
-    phoneNumber?: string;
-    phoneOwnerName?: string;
-  }) => void;
+  form: FormInstance<ProfileFormValues>;
+  onFinish: (values: ProfileFormValues) => void;
   isPending: boolean;
   isUploading: boolean;
   onCancel: () => void;
@@ -35,22 +35,46 @@ export const ProfileForm = ({
       <Form.Item
         name="name"
         label="Full Name"
-        rules={[{ required: true, message: "Please enter your name" }]}
+        rules={[
+          {
+            required: true,
+            message: "Please enter your name",
+          },
+        ]}
       >
         <Input placeholder="Enter your name" />
       </Form.Item>
 
       <Form.Item name="phoneNumber" label="Phone Number">
-        <Input placeholder="+261 34 00 000 00" />
+        <PhoneInput
+          defaultCountry="mg"
+          preferredCountries={["mg", "fr", "us", "ca"]}
+          style={{ width: "100%" }}
+          inputStyle={{
+            width: "100%",
+            height: 32,
+            fontSize: 14,
+          }}
+          countrySelectorStyleProps={{
+            buttonStyle: {
+              height: 32,
+            },
+          }}
+        />
       </Form.Item>
 
-      <Form.Item name="phoneOwnerName" label="Phone Owner Name">
-        <Input placeholder="Luc Rakotondrasoa" />
+      <Form.Item
+        name="phoneOwnerName"
+        label="Phone Owner Name"
+      >
+        <Input placeholder="Enter the phone owner's name" />
       </Form.Item>
+
       <div className="flex gap-2 mt-2 w-full">
         <Button block onClick={onCancel}>
           Cancel
         </Button>
+
         <Button
           type="primary"
           htmlType="submit"

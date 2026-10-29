@@ -15,6 +15,7 @@ import { organizations } from "./organization";
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull().unique(),
+  emailVerified: timestamp("email_verified_at"),
   passwordHash: text("password_hash").notNull(),
   name: text("name").notNull(),
   avatar: text("avatar"),
