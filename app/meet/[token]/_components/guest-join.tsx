@@ -2,6 +2,7 @@
 
 import {
   Alert,
+  App,
   Button,
   Card,
   Form,
@@ -10,6 +11,7 @@ import {
   Spin,
   Typography,
 } from "antd";
+import { Link2 } from "lucide-react";
 import { useState } from "react";
 import { LiveKitMeetingView } from "@/app/(private)/_components/calls/livekit-meeting-view";
 import {
@@ -22,11 +24,21 @@ export const GuestJoin = ({ token }: { token: string }) => {
   const guestJoin = useGuestJoinMeeting(token);
   const [joined, setJoined] = useState(false);
   const [form] = Form.useForm();
+  const { message } = App.useApp();
 
   const handleJoin = async () => {
     const values = await form.validateFields();
     await guestJoin.mutateAsync(values.name);
     setJoined(true);
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      message.success("Invite link copied");
+    } catch {
+      message.error("Failed to copy link");
+    }
   };
 
   if (error) {
@@ -71,7 +83,19 @@ export const GuestJoin = ({ token }: { token: string }) => {
   }
 
   return (
-    <Card style={{ maxWidth: 420, margin: "48px auto" }}>
+    <Card
+      style={{ maxWidth: 420, margin: "48px auto" }}
+      extra={
+        <Button
+          type="text"
+          size="small"
+          icon={<Link2 className="w-4 h-4" />}
+          onClick={handleCopyLink}
+        >
+          Copy invite link
+        </Button>
+      }
+    >
       <Typography.Title level={4} style={{ marginTop: 0 }}>
         {meetingInfo.title}
       </Typography.Title>

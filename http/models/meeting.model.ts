@@ -31,6 +31,13 @@ export const createMeetingSchema = z
   );
 export type CreateMeetingInput = z.infer<typeof createMeetingSchema>;
 
+export const createInstantMeetingSchema = z.object({
+  title: z.string().trim().min(1).max(200).default("Instant Meeting"),
+});
+export type CreateInstantMeetingInput = z.input<
+  typeof createInstantMeetingSchema
+>;
+
 export const inviteMeetingMembersSchema = z.object({
   userIds: z.array(z.uuid()).min(1).max(50),
 });
@@ -69,8 +76,8 @@ export type MeetingParticipantDto = {
 
 export type MeetingDto = {
   id: string;
-  organizationId: string;
-  createdBy: string;
+  organizationId: string | null;
+  createdBy: string | null;
   roomName: string;
   title: string;
   scheduledAt: string | null;
@@ -101,5 +108,10 @@ export type PublicMeetingInfo = {
 export type GuestLinkResponse = {
   token: string;
   expiresAt: string | null;
+  url: string;
+};
+
+export type InstantMeetingResponse = {
+  token: string;
   url: string;
 };

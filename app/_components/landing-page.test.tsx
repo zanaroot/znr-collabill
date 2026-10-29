@@ -1,11 +1,20 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import LandingPage from "@/app/_components/landing-page";
 import { ThemeProvider } from "@/app/_components/theme-provider";
 
-const renderWithProviders = (ui: ReactNode) =>
-  render(<ThemeProvider>{ui}</ThemeProvider>);
+const renderWithProviders = (ui: ReactNode) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>{ui}</ThemeProvider>
+    </QueryClientProvider>,
+  );
+};
 
 describe("LandingPage", () => {
   it("renders main title", () => {

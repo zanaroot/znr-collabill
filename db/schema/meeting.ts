@@ -17,17 +17,13 @@ export const meetings = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
 
-    organizationId: uuid("organization_id")
-      .notNull()
-      .references(() => organizations.id, {
-        onDelete: "cascade",
-      }),
+    organizationId: uuid("organization_id").references(() => organizations.id, {
+      onDelete: "cascade",
+    }),
 
-    createdBy: uuid("created_by")
-      .notNull()
-      .references(() => users.id, {
-        onDelete: "cascade",
-      }),
+    createdBy: uuid("created_by").references(() => users.id, {
+      onDelete: "cascade",
+    }),
 
     roomName: text("room_name").notNull(),
 

@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useCreateInstantMeeting } from "@/app/(private)/meetings/_hooks/use-meetings";
 import { useTheme } from "../_hooks/use-theme";
 import { cn } from "../_utils/class-name";
 import { LandingPageSEO } from "./landing-page-seo";
@@ -531,6 +532,7 @@ const InteractiveDashboardMockup = () => {
 // Hero Section
 const Hero = () => {
   const [meetingLink, setMeetingLink] = useState("");
+  const createInstant = useCreateInstantMeeting();
 
   const extractMeetingToken = (input: string): string | null => {
     const trimmed = input.trim();
@@ -549,6 +551,15 @@ const Hero = () => {
     const token = extractMeetingToken(meetingLink);
     if (token) {
       window.location.href = `/meet/${token}`;
+    }
+  };
+
+  const handleStartMeeting = async () => {
+    try {
+      const result = await createInstant.mutateAsync({});
+      window.location.href = `/meet/${result.token}`;
+    } catch {
+      // Error is surfaced via createInstant.error
     }
   };
 
@@ -635,13 +646,20 @@ const Hero = () => {
               <div className="mt-3 flex items-center gap-3 text-xs text-slate-500 dark:text-zinc-400">
                 <span>No account needed to join.</span>
                 <span className="text-slate-300 dark:text-zinc-700">|</span>
-                <a
-                  href="/sign-up"
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                <button
+                  type="button"
+                  onClick={handleStartMeeting}
+                  disabled={createInstant.isPending}
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Start a meeting →
-                </a>
+                  {createInstant.isPending ? "Starting…" : "Start a meeting →"}
+                </button>
               </div>
+              {createInstant.error && (
+                <p className="mt-2 text-xs text-red-500">
+                  {(createInstant.error as Error).message}
+                </p>
+              )}
             </div>
 
             <div className="mt-14 flex items-center gap-4">

@@ -2,13 +2,17 @@ import { zValidator } from "@hono/zod-validator";
 import { createFactory } from "hono/factory";
 import type { AuthEnv } from "@/http/models/auth.model";
 import {
+  createInstantMeetingSchema,
   guestJoinSchema,
+  type InstantMeetingResponse,
   type MeetingTokenResponse,
   type PublicMeetingInfo,
 } from "@/http/models/meeting.model";
 import {
   closeAllOpenMeetingParticipants,
   closeMeetingParticipantByIdentity,
+  createGuestInvitation,
+  createMeeting,
   expireMeetingIfDue,
   findMeetingByIdWithDetails,
   findValidGuestInvitationByTokenHash,
@@ -27,8 +31,11 @@ import { toMeetingDetailDto, toMeetingDto } from "@/http/services/meeting-dto";
 import {
   buildGuestIdentity,
   buildMemberIdentity,
+  generateGuestToken,
+  generateMeetingRoomName,
   hashInviteToken,
 } from "@/lib/call-utils";
+import { publicEnv } from "@/packages/env";
 
 const factory = createFactory<AuthEnv>();
 
@@ -54,6 +61,42 @@ const issueMeetingToken = async (
 
   return { serverUrl: getLiveKitServerUrl(), token };
 };
+
+const INSTANT_MEETING_VALIDITY_HOURS = 24;
+
+export const createInstantMeetingHandler = factory.createHandlers(
+  zValidator("json", createInstantMeetingSchema),
+  async (c) => {
+    if (!isLiveKitConfigured()) {
+      return c.json({ error: "LiveKit is not configured" }, 503);
+    }
+
+    const { title } = c.req.valid("json");
+    const expiresAt = new Date(
+      Date.now() + INSTANT_MEETING_VALIDITY_HOURS * 60 * 60 * 1000,
+    );
+
+    const meeting = await createMeeting({
+      roomName: generateMeetingRoomName(),
+      title,
+      expiresAt,
+      guestAccess: true,
+    });
+
+    const token = generateGuestToken();
+    await createGuestInvitation({
+      meetingId: meeting.id,
+      tokenHash: hashInviteToken(token),
+      expiresAt,
+    });
+
+    const response: InstantMeetingResponse = {
+      token,
+      url: `${publicEnv.NEXT_PUBLIC_APP_URL}/meet/${token}`,
+    };
+    return c.json(response, 201);
+  },
+);
 
 export const joinMeeting = factory.createHandlers(async (c) => {
   const user = c.get("user");

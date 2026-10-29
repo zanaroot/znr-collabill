@@ -2,8 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  CreateInstantMeetingInput,
   CreateMeetingInput,
   GuestLinkResponse,
+  InstantMeetingResponse,
   MeetingDto,
   MeetingInvitationDto,
   MeetingTokenResponse,
@@ -224,5 +226,19 @@ export const useGuestJoinMeeting = (token: string) =>
         throw new Error(error.error || "Failed to join meeting");
       }
       return (await res.json()) as MeetingTokenResponse;
+    },
+  });
+
+export const useCreateInstantMeeting = () =>
+  useMutation({
+    mutationFn: async (input?: CreateInstantMeetingInput) => {
+      const res = await client.api.meetings.public.$post({
+        json: input ?? {},
+      });
+      if (!res.ok) {
+        const error = (await res.json()) as { error?: string };
+        throw new Error(error.error || "Failed to create meeting");
+      }
+      return (await res.json()) as InstantMeetingResponse;
     },
   });
