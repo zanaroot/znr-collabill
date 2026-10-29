@@ -1,6 +1,14 @@
 "use client";
 
-import { Avatar, Button, ConfigProvider, Drawer, Layout, theme } from "antd";
+import {
+  Avatar,
+  Button,
+  ConfigProvider,
+  Drawer,
+  Input,
+  Layout,
+  theme,
+} from "antd";
 import {
   ArrowRight,
   Check,
@@ -18,6 +26,7 @@ import {
   Sparkles,
   TrendingUp,
   Users as UsersIcon,
+  Video,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -521,6 +530,28 @@ const InteractiveDashboardMockup = () => {
 
 // Hero Section
 const Hero = () => {
+  const [meetingLink, setMeetingLink] = useState("");
+
+  const extractMeetingToken = (input: string): string | null => {
+    const trimmed = input.trim();
+    if (!trimmed) return null;
+    try {
+      const url = new URL(trimmed);
+      const match = url.pathname.match(/^\/meet\/([^/]+)/);
+      if (match?.[1]) return match[1];
+    } catch {
+      // Not a URL — treat as a raw token
+    }
+    return /^[A-Za-z0-9_-]+$/.test(trimmed) ? trimmed : null;
+  };
+
+  const handleJoinMeeting = () => {
+    const token = extractMeetingToken(meetingLink);
+    if (token) {
+      window.location.href = `/meet/${token}`;
+    }
+  };
+
   return (
     <section className="relative pt-32 pb-24 px-6 md:px-12 overflow-hidden bg-transparent">
       {/* Decorative Blur Blobs */}
@@ -573,6 +604,44 @@ const Hero = () => {
               >
                 <Play className="w-4 h-4 fill-current stroke-[2]" /> Live Demo
               </Button>
+            </div>
+
+            {/* Join / Start Meeting Card */}
+            <div className="mt-8 max-w-md rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-sm p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Video className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                  Join or start a meeting
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Paste meeting link or code"
+                  value={meetingLink}
+                  onChange={(e) => setMeetingLink(e.target.value)}
+                  onPressEnter={handleJoinMeeting}
+                  allowClear
+                  className="rounded-xl"
+                />
+                <Button
+                  type="primary"
+                  onClick={handleJoinMeeting}
+                  disabled={!extractMeetingToken(meetingLink)}
+                  className="rounded-xl bg-blue-600 dark:bg-blue-500 hover:!bg-blue-700 font-semibold shrink-0"
+                >
+                  Join
+                </Button>
+              </div>
+              <div className="mt-3 flex items-center gap-3 text-xs text-slate-500 dark:text-zinc-400">
+                <span>No account needed to join.</span>
+                <span className="text-slate-300 dark:text-zinc-700">|</span>
+                <a
+                  href="/sign-up"
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                  Start a meeting →
+                </a>
+              </div>
             </div>
 
             <div className="mt-14 flex items-center gap-4">

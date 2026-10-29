@@ -25,7 +25,9 @@ export const config = {
      * - public folder
      * - auth routes (sign-in, sign-up, forgot-password, etc.)
      * - legal routes (privacy, terms)
+     * - meet (public guest meeting join pages)
+     * - assets (public assets like robots.txt)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|public|sign-in|sign-up|forgot-password|create-account|reset-password|privacy|terms).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|public|sign-in|sign-up|forgot-password|create-account|reset-password|privacy|terms|meet/|assets).+)",
   ],
 };
