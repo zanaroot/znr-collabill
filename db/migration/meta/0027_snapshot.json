@@ -3075,12 +3075,14 @@
           "primaryKey": false,
           "notNull": true
         },
+
         "email_verified_at": {
           "name": "email_verified_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
+
         "password_hash": {
           "name": "password_hash",
           "type": "text",

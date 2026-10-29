@@ -50,11 +50,15 @@ const OwnerStepContent = () => {
     },
     onSuccess: (data) => {
       setEmailSent(true);
-      message.success(data.message || "Verification email sent successfully.");
+      message.success(
+        data.message || "Verification email sent successfully.",
+      );
     },
     onError: (error: Error) => {
       setEmailSent(false);
-      message.error(error.message || "Unable to send the verification email.");
+      message.error(
+        error.message || "Unable to send the verification email.",
+      );
     },
   });
 
@@ -90,7 +94,9 @@ const OwnerStepContent = () => {
     return null;
   }
 
-  const onFinish = async (values: Omit<RegisterInput, "organizationName">) => {
+  const onFinish = async (
+    values: Omit<RegisterInput, "organizationName">,
+  ) => {
     try {
       const result = await register({
         ...values,
@@ -128,14 +134,19 @@ const OwnerStepContent = () => {
             {emailSent ? (
               <>
                 We sent a verification link to{" "}
-                <Typography.Text strong>{verificationEmail}</Typography.Text>.
-                Open the email and click the link to verify your address.
+                <Typography.Text strong>
+                  {verificationEmail}
+                </Typography.Text>
+                . Open the email and click the link to verify your address.
               </>
             ) : (
               <>
-                We couldn&apos;t confirm that the verification email was sent to{" "}
-                <Typography.Text strong>{verificationEmail}</Typography.Text>.
-                You can try again or continue to your dashboard.
+                We couldn&apos;t confirm that the verification email was sent
+                to{" "}
+                <Typography.Text strong>
+                  {verificationEmail}
+                </Typography.Text>
+                . You can try again or continue to your dashboard.
               </>
             )}
           </Typography.Paragraph>
@@ -164,8 +175,8 @@ const OwnerStepContent = () => {
 
         <div style={{ textAlign: "center", marginTop: 20 }}>
           <Typography.Text type="secondary">
-            Email verification is optional. You can continue using Collabill and
-            verify your email later.
+            Email verification is optional. You can continue using Collabill
+            and verify your email later.
           </Typography.Text>
         </div>
       </div>

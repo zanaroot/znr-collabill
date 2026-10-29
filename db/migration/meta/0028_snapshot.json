@@ -380,6 +380,8 @@
       "name": "email_verifications",
     "public.call_participants": {
       "name": "call_participants",
+    "public.email_verifications": {
+      "name": "email_verifications",
       "schema": "",
       "columns": {
         "id": {
@@ -444,7 +446,19 @@
           "name": "left_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
+        },
+        "token_hash": {
+          "name": "token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -474,6 +488,8 @@
         },
         "call_participants_user_idx": {
           "name": "call_participants_user_idx",
+        "email_verifications_user_id_idx": {
+          "name": "email_verifications_user_id_idx",
           "columns": [
             {
               "expression": "user_id",
@@ -508,6 +524,9 @@
         "call_participants_user_id_users_id_fk": {
           "name": "call_participants_user_id_users_id_fk",
           "tableFrom": "call_participants",
+        "email_verifications_user_id_users_id_fk": {
+          "name": "email_verifications_user_id_users_id_fk",
+          "tableFrom": "email_verifications",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
@@ -673,7 +692,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "email_verifications_token_hash_unique": {
+          "name": "email_verifications_token_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "token_hash"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
