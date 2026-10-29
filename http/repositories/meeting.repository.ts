@@ -13,8 +13,8 @@ import {
 type MeetingStatusValue = (typeof meetingStatusEnum.enumValues)[number];
 
 export const createMeeting = async (data: {
-  organizationId: string;
-  createdBy: string;
+  organizationId?: string;
+  createdBy?: string;
   roomName: string;
   title: string;
   scheduledAt?: Date;
@@ -202,7 +202,7 @@ export const findValidGuestInvitationByTokenHash = async (
         eq(meetingInvitations.tokenHash, tokenHash),
         eq(meetingInvitations.type, "GUEST"),
         isNull(meetingInvitations.revokedAt),
-        sql`(${meetingInvitations.expiresAt} IS NULL OR ${meetingInvitations.expiresAt} > ${now})`,
+        sql`(${meetingInvitations.expiresAt} IS NULL OR ${meetingInvitations.expiresAt} > ${now.toISOString()})`,
       ),
     )
     .limit(1);

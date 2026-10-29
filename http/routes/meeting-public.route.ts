@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import {
+  createInstantMeetingHandler,
   getPublicMeetingInfo,
   guestJoinMeeting,
 } from "@/http/controllers/meeting-room.controller";
@@ -12,6 +13,14 @@ const guestJoinLimit = rateLimit({
   keyBy: "ip",
 });
 
+const instantCreateLimit = rateLimit({
+  name: "meeting-instant-create",
+  limit: 5,
+  windowMs: 60_000,
+  keyBy: "ip",
+});
+
 export const publicMeetingRoutes = new Hono()
+  .post("/", instantCreateLimit, ...createInstantMeetingHandler)
   .get("/:token", ...getPublicMeetingInfo)
   .post("/:token/join", guestJoinLimit, ...guestJoinMeeting);
