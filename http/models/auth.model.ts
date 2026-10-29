@@ -25,6 +25,7 @@ export type AuthUser = {
   organizationId: string | null;
   organizationName: string | null;
   organizationRole: Role | null;
+  emailVerified: string | null;
 };
 
 export type AuthEnv = {

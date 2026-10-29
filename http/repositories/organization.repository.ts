@@ -179,6 +179,7 @@ export const getOrganizationMembers = async (organizationId: string) => {
       avatar: users.avatar,
       role: organizationMembers.role,
       joinedAt: organizationMembers.joinedAt,
+      emailVerified: users.emailVerified,
     })
     .from(organizationMembers)
     .innerJoin(users, eq(organizationMembers.userId, users.id))

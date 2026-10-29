@@ -98,14 +98,16 @@ export const UserDropdownMenus = ({
                 gap={10}
                 onClick={() => handleMenuClick(item.key)}
                 style={{
-                  padding: "2px",
+                  padding: "6px 8px",
                   cursor: "pointer",
                   borderRadius: 6,
                 }}
-                className="hover:bg-gray-100"
+                className="text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
               >
                 {item.icon}
-                <Typography.Text>{item.label}</Typography.Text>
+                <Typography.Text className="text-inherit">
+                  {item.label}
+                </Typography.Text>
               </Flex>
             ))}
           </Flex>

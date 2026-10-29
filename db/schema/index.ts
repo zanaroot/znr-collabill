@@ -1,5 +1,6 @@
 export * from "./audit";
 export * from "./auth";
+export * from "./email-verification";
 export * from "./enums";
 export * from "./integration";
 export * from "./invoice";

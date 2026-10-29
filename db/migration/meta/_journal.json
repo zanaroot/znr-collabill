@@ -190,6 +190,20 @@
       "when": 1790070914816,
       "tag": "0026_wandering_mentallo",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1793098429964,
+      "tag": "0027_colossal_jigsaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793107450073,
+      "tag": "0028_daffy_mandroid",
+      "breakpoints": true
     }
   ]
 }

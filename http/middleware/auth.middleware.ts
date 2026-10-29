@@ -48,6 +48,7 @@ export const authMiddleware = createMiddleware<AuthEnv>(
       avatar: result.user.avatar ?? null,
       phoneNumber: result.user.phoneNumber ?? null,
       phoneOwnerName: result.user.phoneOwnerName ?? null,
+      emailVerified: result.user.emailVerified ?? null,
       organizationId: result.organization?.id ?? null,
       organizationName: result.organization?.name ?? null,
       organizationRole,

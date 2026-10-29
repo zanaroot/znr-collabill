@@ -4,11 +4,22 @@ import { useMutation } from "@tanstack/react-query";
 import { App, Button, Form, Input, Typography } from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import type { RegisterInput } from "@/http/models/auth.model";
 import { client } from "@/packages/hono";
 
 const { Title } = Typography;
+
+type RegisterResponse = {
+  success?: boolean;
+  error?: string;
+};
+
+type VerificationResponse = {
+  success?: boolean;
+  message?: string;
+  error?: string;
+};
 
 const OwnerStepContent = () => {
   const router = useRouter();
@@ -16,24 +27,59 @@ const OwnerStepContent = () => {
   const searchParams = useSearchParams();
   const orgName = searchParams.get("orgName");
 
+  const [step, setStep] = useState<"register" | "verification">("register");
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+
+  const {
+    mutateAsync: sendVerificationEmail,
+    isPending: isSendingVerification,
+  } = useMutation({
+    mutationFn: async () => {
+      const res = await client.api.auth["email-verification"].send.$post();
+
+      const result = (await res.json()) as VerificationResponse;
+
+      if (!res.ok) {
+        throw new Error(
+          result.error || "Unable to send the verification email.",
+        );
+      }
+
+      return result;
+    },
+    onSuccess: (data) => {
+      setEmailSent(true);
+      message.success(
+        data.message || "Verification email sent successfully.",
+      );
+    },
+    onError: (error: Error) => {
+      setEmailSent(false);
+      message.error(
+        error.message || "Unable to send the verification email.",
+      );
+    },
+  });
+
   const { mutateAsync: register, isPending } = useMutation({
     mutationFn: async (values: RegisterInput) => {
       const res = await client.api.auth.register.$post({
         json: values,
       });
-      const result = (await res.json()) as {
-        success?: boolean;
-        error?: string;
-      };
+
+      const result = (await res.json()) as RegisterResponse;
+
       if (!res.ok) {
         throw new Error(result.error || "Error creating the account.");
       }
+
       return result;
     },
     onSuccess: (data) => {
       if (data.success) {
         message.success("Account and Organization created successfully!");
-        router.push("/dashboard");
+        setStep("verification");
       } else {
         message.error(data.error || "Error creating the account.");
       }
@@ -48,12 +94,94 @@ const OwnerStepContent = () => {
     return null;
   }
 
-  const onFinish = async (values: Omit<RegisterInput, "organizationName">) => {
-    await register({
-      ...values,
-      organizationName: orgName,
-    });
+  const onFinish = async (
+    values: Omit<RegisterInput, "organizationName">,
+  ) => {
+    try {
+      const result = await register({
+        ...values,
+        organizationName: orgName,
+      });
+
+      if (result.success) {
+        setVerificationEmail(values.email);
+        await sendVerificationEmail();
+      }
+    } catch {
+      // Les mutations affichent déjà les erreurs avec onError.
+    }
   };
+
+  const handleSkipVerification = () => {
+    router.push("/dashboard");
+  };
+
+  if (step === "verification") {
+    return (
+      <div className="auth-card">
+        <div className="auth-card-header">
+          <Title level={2} className="auth-card-title">
+            Verify your email
+          </Title>
+
+          <Typography.Text type="secondary" className="auth-card-subtitle">
+            Your account and organization have been created successfully.
+          </Typography.Text>
+        </div>
+
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <Typography.Paragraph>
+            {emailSent ? (
+              <>
+                We sent a verification link to{" "}
+                <Typography.Text strong>
+                  {verificationEmail}
+                </Typography.Text>
+                . Open the email and click the link to verify your address.
+              </>
+            ) : (
+              <>
+                We couldn&apos;t confirm that the verification email was sent
+                to{" "}
+                <Typography.Text strong>
+                  {verificationEmail}
+                </Typography.Text>
+                . You can try again or continue to your dashboard.
+              </>
+            )}
+          </Typography.Paragraph>
+        </div>
+
+        <Button
+          type="primary"
+          block
+          size="large"
+          loading={isSendingVerification}
+          onClick={() => void sendVerificationEmail()}
+          className="auth-submit-btn"
+        >
+          {emailSent ? "Resend verification email" : "Send verification email"}
+        </Button>
+
+        <Button
+          block
+          size="large"
+          onClick={handleSkipVerification}
+          disabled={isSendingVerification}
+          style={{ marginTop: 12 }}
+        >
+          Skip for now
+        </Button>
+
+        <div style={{ textAlign: "center", marginTop: 20 }}>
+          <Typography.Text type="secondary">
+            Email verification is optional. You can continue using Collabill
+            and verify your email later.
+          </Typography.Text>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-card">
@@ -75,12 +203,15 @@ const OwnerStepContent = () => {
               <path d="M20 6 9 17l-5-5" />
             </svg>
           </div>
+
           <div className="auth-step-line completed" />
           <div className="auth-step active">2</div>
         </div>
+
         <Title level={2} className="auth-card-title">
           Create your account
         </Title>
+
         <Typography.Text type="secondary" className="auth-card-subtitle">
           Setting up owner for <strong>{orgName}</strong>
         </Typography.Text>
@@ -194,6 +325,7 @@ const OwnerStepContent = () => {
         <Typography.Text type="secondary">
           Already have an account?{" "}
         </Typography.Text>
+
         <Link href="/sign-in" className="auth-link-bold">
           Sign in
         </Link>

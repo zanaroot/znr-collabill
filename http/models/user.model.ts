@@ -23,6 +23,7 @@ export type UserWithRoles = {
   createdAt: string | Date | null;
   role: Role;
   joinedAt: string | Date | null;
+  emailVerified: string | null;
 };
 
 export type Invitation = {
