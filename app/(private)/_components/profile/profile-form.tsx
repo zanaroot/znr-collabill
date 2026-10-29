@@ -1,6 +1,7 @@
+
 import { Button, Form, type FormInstance, Input } from "antd";
 import { PhoneInput } from "react-international-phone";
-import "react-international-phone/style.css";
+
 
 type ProfileFormValues = {
   name: string;
