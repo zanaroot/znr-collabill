@@ -1,14 +1,8 @@
-
 "use client";
 
 import { UploadOutlined } from "@ant-design/icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  App,
-  Button,
-  Upload,
-  type UploadProps,
-} from "antd";
+import { App, Button, Upload, type UploadProps } from "antd";
 import ImgCrop from "antd-img-crop";
 import { useEffect } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
@@ -60,8 +54,7 @@ export const AvatarSection = ({
     isPending: isSendingVerification,
   } = useMutation({
     mutationFn: async () => {
-      const res =
-        await client.api.auth["email-verification"].send.$post();
+      const res = await client.api.auth["email-verification"].send.$post();
 
       const result = (await res.json()) as VerificationResponse;
 
@@ -85,8 +78,7 @@ export const AvatarSection = ({
       const result = await sendVerificationEmail();
 
       message.success(
-        result.message ||
-        "Verification email sent. Please check your inbox.",
+        result.message || "Verification email sent. Please check your inbox.",
       );
     } catch (error) {
       message.error(

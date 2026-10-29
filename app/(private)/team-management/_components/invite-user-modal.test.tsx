@@ -48,6 +48,7 @@ const createMockUser = (
   avatar: null,
   phoneNumber: null,
   phoneOwnerName: null,
+  emailVerified: null,
   organizationId: "org-1",
   organizationName: "Test Org",
   organizationRole: role,

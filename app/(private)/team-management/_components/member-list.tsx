@@ -186,9 +186,9 @@ export const MemberList = () => {
     variables: verificationUserId,
   } = useMutation({
     mutationFn: async (userId: string) => {
-      const res = await client.api.auth["email-verification"][
-        "send-member"
-      ][":userId"].$post({
+      const res = await client.api.auth["email-verification"]["send-member"][
+        ":userId"
+      ].$post({
         param: { userId },
       });
 
@@ -210,7 +210,7 @@ export const MemberList = () => {
 
       message.success(
         result.message ||
-        "Verification email sent. Please check the member's inbox.",
+          "Verification email sent. Please check the member's inbox.",
       );
     } catch (error) {
       message.error(
@@ -222,7 +222,6 @@ export const MemberList = () => {
       throw error;
     }
   };
-
 
   const handleSave = async () => {
     if (!selectedUser || !currentUser?.organizationId) return;
@@ -316,10 +315,7 @@ export const MemberList = () => {
           email={email}
           emailVerified={record.emailVerified}
           onVerify={() => handleVerifyEmail(record.id)}
-          loading={
-            isSendingVerification &&
-            verificationUserId === record.id
-          }
+          loading={isSendingVerification && verificationUserId === record.id}
         />
       ),
     },
@@ -385,34 +381,34 @@ export const MemberList = () => {
 
           {record.id === currentUser?.id
             ? !isOwner && (
-              <Button
-                danger
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleLeave();
-                }}
-                size="small"
-                loading={leaveMutation.isPending}
-              >
-                Leave
-              </Button>
-            )
+                <Button
+                  danger
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLeave();
+                  }}
+                  size="small"
+                  loading={leaveMutation.isPending}
+                >
+                  Leave
+                </Button>
+              )
             : canManageMembers && (
-              <Button
-                danger
-                type="text"
-                icon={<DeleteOutlined />}
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(record.id);
-                }}
-                loading={
-                  deleteMutation.isPending &&
-                  deleteMutation.variables === record.id
-                }
-              />
-            )}
+                <Button
+                  danger
+                  type="text"
+                  icon={<DeleteOutlined />}
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(record.id);
+                  }}
+                  loading={
+                    deleteMutation.isPending &&
+                    deleteMutation.variables === record.id
+                  }
+                />
+              )}
         </Flex>
       ),
     },

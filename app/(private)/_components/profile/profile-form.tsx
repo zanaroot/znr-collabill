@@ -1,4 +1,3 @@
-
 import { Button, Form, type FormInstance, Input } from "antd";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
@@ -63,10 +62,7 @@ export const ProfileForm = ({
         />
       </Form.Item>
 
-      <Form.Item
-        name="phoneOwnerName"
-        label="Phone Owner Name"
-      >
+      <Form.Item name="phoneOwnerName" label="Phone Owner Name">
         <Input placeholder="Enter the phone owner's name" />
       </Form.Item>
 
