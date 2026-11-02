@@ -24,6 +24,18 @@ const generateVerificationToken = () => {
 const hashVerificationToken = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (char) => {
+    const entities: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return entities[char] ?? char;
+  });
+
 const getVerificationResultUrl = (
   requestUrl: string,
   status: "verified" | "expired" | "invalid",
@@ -133,7 +145,7 @@ export const sendEmailVerification = createFactory().createHandlers(
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2>Verify your email address</h2>
-              <p>Hello ${user.name ?? ""},</p>
+              <p>Hello ${escapeHtml(user.name ?? "")},</p>
               <p>Please click the button below to verify your email address.</p>
               <p>
                 <a
@@ -395,7 +407,7 @@ export const sendMemberEmailVerification = createFactory().createHandlers(
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2>Verify your email address</h2>
-              <p>Hello ${user.name ?? ""},</p>
+              <p>Hello ${escapeHtml(user.name ?? "")},</p>
               <p>An organization administrator has requested that you verify your email address.</p>
               <p>
                 <a

@@ -23,17 +23,15 @@ export const EmailVerificationStatus = ({
 
   const isVerified = Boolean(emailVerified);
 
-  console.log("Email verification status:", {
-    email,
-    emailVerified,
-    isVerified,
-  });
-
   const handleVerify = async () => {
     if (isVerified) return;
 
-    await onVerify?.();
-    setModalOpen(false);
+    try {
+      await onVerify?.();
+      setModalOpen(false);
+    } catch {
+      // Parent surfaces the error via message; keep modal open to retry.
+    }
   };
 
   return (
