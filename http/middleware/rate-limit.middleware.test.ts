@@ -13,6 +13,7 @@ const buildUser = (id: string) => ({
   avatar: null,
   phoneNumber: null,
   phoneOwnerName: null,
+  emailVerified: null,
   organizationId: "org-1",
   organizationName: "Org",
   organizationRole: "COLLABORATOR" as const,
