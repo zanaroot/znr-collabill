@@ -10,6 +10,8 @@ export const emailVerifications = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
 
+    email: text("email"),
+
     tokenHash: text("token_hash").notNull().unique(),
 
     expiresAt: timestamp("expires_at").notNull(),

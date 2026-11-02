@@ -128,6 +128,7 @@ export const sendEmailVerification = createFactory().createHandlers(
 
       await db.insert(emailVerifications).values({
         userId: user.id,
+        email: user.email,
         tokenHash,
         expiresAt,
       });
@@ -220,20 +221,38 @@ export const verifyEmail = createFactory().createHandlers(
           )
           .returning({
             userId: emailVerifications.userId,
+            email: emailVerifications.email,
           });
 
-        if (!verification) {
+        if (!verification?.email) {
           return "not-found" as const;
         }
 
-        await tx
+        const [updated] = await tx
           .update(users)
           .set({ emailVerified: now })
           .where(
-            and(eq(users.id, verification.userId), isNull(users.emailVerified)),
-          );
+            and(
+              eq(users.id, verification.userId),
+              eq(users.email, verification.email),
+              isNull(users.emailVerified),
+            ),
+          )
+          .returning({ id: users.id });
 
-        return "verified" as const;
+        if (updated) {
+          return "verified" as const;
+        }
+
+        const [currentUser] = await tx
+          .select({ email: users.email })
+          .from(users)
+          .where(eq(users.id, verification.userId))
+          .limit(1);
+
+        return currentUser?.email === verification.email
+          ? ("verified" as const)
+          : ("not-found" as const);
       });
 
       if (result === "verified") {
@@ -390,6 +409,7 @@ export const sendMemberEmailVerification = createFactory().createHandlers(
 
       await db.insert(emailVerifications).values({
         userId: user.id,
+        email: user.email,
         tokenHash,
         expiresAt,
       });
