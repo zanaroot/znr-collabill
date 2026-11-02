@@ -1,6 +1,7 @@
 export * from "./audit";
 export * from "./auth";
 export * from "./call";
+export * from "./email-verification";
 export * from "./enums";
 export * from "./integration";
 export * from "./invoice";

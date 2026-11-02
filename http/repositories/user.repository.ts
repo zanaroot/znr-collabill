@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
   collaboratorRates,
+  emailVerifications,
   organizationMembers,
   organizations,
   userRoles,
@@ -93,12 +94,37 @@ export const updateUser = async (
     phoneOwnerName?: string | null;
   },
 ) => {
-  const [user] = await db
-    .update(users)
-    .set(data)
-    .where(eq(users.id, id))
-    .returning();
-  return user;
+  return db.transaction(async (tx) => {
+    if (data.email !== undefined) {
+      const [current] = await tx
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+
+      if (current && current.email !== data.email) {
+        await tx
+          .delete(emailVerifications)
+          .where(eq(emailVerifications.userId, id));
+
+        const [user] = await tx
+          .update(users)
+          .set({ ...data, emailVerified: null })
+          .where(eq(users.id, id))
+          .returning();
+
+        return user;
+      }
+    }
+
+    const [user] = await tx
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
+
+    return user;
+  });
 };
 
 export const updateUserLastSeen = async (userId: string) => {
