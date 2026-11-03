@@ -10,7 +10,6 @@ import {
   gte,
   ilike,
   inArray,
-  isNotNull,
   lte,
   ne,
   not,
@@ -36,6 +35,10 @@ import type {
   TaskStatus,
   UpdateTaskSystemInput,
 } from "@/http/models/task.model";
+import {
+  buildBillingPeriodCondition,
+  findEligibleBillingTaskIds,
+} from "@/http/repositories/billing.repository";
 
 const taskSelectFields = {
   id: tasks.id,
@@ -254,42 +257,30 @@ export const countTasksByProjectId = async (projectId: string) => {
   return await db.$count(tasks, eq(tasks.projectId, projectId));
 };
 
-const billingPeriodDateKey = (date: Date) => date.toISOString().slice(0, 10);
-
-const buildBillingPeriodCondition = (startDate?: Date, endDate?: Date) => {
-  if (!startDate || !endDate) {
-    return or(
-      eq(tasks.status, "VALIDATED"),
-      and(eq(tasks.status, "ARCHIVED"), isNotNull(tasks.invoiceId)),
-    );
-  }
-
-  return or(
-    and(
-      eq(tasks.status, "VALIDATED"),
-      gte(tasks.createdAt, startDate),
-      lte(tasks.createdAt, endOfDay(endDate)),
-    ),
-    and(
-      eq(tasks.status, "ARCHIVED"),
-      isNotNull(tasks.invoiceId),
-      eq(invoices.periodStart, billingPeriodDateKey(startDate)),
-      eq(invoices.periodEnd, billingPeriodDateKey(endDate)),
-    ),
-  );
-};
-
 export const getValidatedTaskSummaryByReviewer = async (
   userId: string,
   organizationId: string,
   startDate?: Date,
   endDate?: Date,
 ): Promise<ReviewerTaskSummary[]> => {
+  const eligibleUnarchivedTaskIds =
+    startDate && endDate
+      ? await findEligibleBillingTaskIds(
+          [
+            eq(tasks.reviewerId, userId),
+            ne(tasks.assignedTo, tasks.reviewerId),
+          ],
+          userId,
+          organizationId,
+          startDate,
+        )
+      : [];
+
   const whereClauses = [
     eq(tasks.reviewerId, userId),
     ne(tasks.assignedTo, tasks.reviewerId),
     eq(projects.organizationId, organizationId),
-    buildBillingPeriodCondition(startDate, endDate),
+    buildBillingPeriodCondition(startDate, endDate, eligibleUnarchivedTaskIds),
   ];
 
   const assignee = alias(users, "assignee");
@@ -340,11 +331,23 @@ export const getValidatedTaskSummaryByOrganization = async (
   startDate?: Date,
   endDate?: Date,
 ): Promise<RawTaskSummary[]> => {
+  const invoiceUserId = targetUserId ?? userId;
+
+  const eligibleUnarchivedTaskIds =
+    startDate && endDate
+      ? await findEligibleBillingTaskIds(
+          [eq(tasks.assignedTo, invoiceUserId)],
+          invoiceUserId,
+          organizationId,
+          startDate,
+        )
+      : [];
+
   const whereClauses = [
-    eq(organizationMembers.userId, targetUserId ?? userId),
+    eq(organizationMembers.userId, invoiceUserId),
     eq(organizationMembers.organizationId, organizationId),
     eq(projects.organizationId, organizationId),
-    buildBillingPeriodCondition(startDate, endDate),
+    buildBillingPeriodCondition(startDate, endDate, eligibleUnarchivedTaskIds),
   ];
 
   return await db
@@ -479,18 +482,6 @@ export const getDashboardTaskSummaryByOrganization = async (
     );
 };
 
-export const archiveTasksByIds = async (
-  taskIds: string[],
-  invoiceId: string,
-) => {
-  if (taskIds.length === 0) return [];
-  return await db
-    .update(tasks)
-    .set({ status: "ARCHIVED", archivedAt: new Date(), invoiceId })
-    .where(and(inArray(tasks.id, taskIds), eq(tasks.status, "VALIDATED")))
-    .returning();
-};
-
 export const unarchiveTasksByInvoice = async (invoiceId: string) => {
   return await db
     .update(tasks)
@@ -501,41 +492,30 @@ export const unarchiveTasksByInvoice = async (invoiceId: string) => {
 
 export const getValidatedTaskIdsByPeriodAndUser = async (
   userId: string,
+  organizationId: string,
   startDate: Date,
-  endDate: Date,
+  _endDate: Date,
 ) => {
-  const result = await db
-    .select({ id: tasks.id })
-    .from(tasks)
-    .where(
-      and(
-        eq(tasks.assignedTo, userId),
-        eq(tasks.status, "VALIDATED"),
-        gte(tasks.createdAt, startDate),
-        lte(tasks.createdAt, endOfDay(endDate)),
-      ),
-    );
-  return result.map((r) => r.id);
+  return await findEligibleBillingTaskIds(
+    [eq(tasks.assignedTo, userId)],
+    userId,
+    organizationId,
+    startDate,
+  );
 };
 
 export const getValidatedTaskIdsByPeriodAndReviewer = async (
   userId: string,
+  organizationId: string,
   startDate: Date,
-  endDate: Date,
+  _endDate: Date,
 ) => {
-  const result = await db
-    .select({ id: tasks.id })
-    .from(tasks)
-    .where(
-      and(
-        eq(tasks.reviewerId, userId),
-        ne(tasks.assignedTo, tasks.reviewerId),
-        eq(tasks.status, "VALIDATED"),
-        gte(tasks.createdAt, startDate),
-        lte(tasks.createdAt, endOfDay(endDate)),
-      ),
-    );
-  return result.map((r) => r.id);
+  return await findEligibleBillingTaskIds(
+    [eq(tasks.reviewerId, userId), ne(tasks.assignedTo, tasks.reviewerId)],
+    userId,
+    organizationId,
+    startDate,
+  );
 };
 
 const _getArchivedTaskIdsByPeriodAndUser = async (

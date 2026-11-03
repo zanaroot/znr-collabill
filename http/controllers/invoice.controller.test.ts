@@ -7,14 +7,12 @@ const mocks = vi.hoisted(() => ({
   findInvoiceById: vi.fn(),
   findInvoiceByPeriodAndUser: vi.fn(),
   findInvoicesByOrganizationId: vi.fn(),
-  createInvoiceWithLines: vi.fn(),
-  replaceInvoiceWithLines: vi.fn(),
+  upsertInvoiceForPeriod: vi.fn(),
   updateInvoice: vi.fn(),
   deleteInvoiceLines: vi.fn(),
   deleteInvoice: vi.fn(),
   getValidatedTaskIdsByPeriodAndUser: vi.fn(),
   getValidatedTaskIdsByPeriodAndReviewer: vi.fn(),
-  archiveTasksByIds: vi.fn(),
   unarchiveTasksByInvoice: vi.fn(),
   logAudit: vi.fn(),
   createNotification: vi.fn(),
@@ -25,7 +23,6 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/http/repositories/invoice.repository", () => mocks);
 vi.mock("@/http/repositories/task.repository", () => ({
-  archiveTasksByIds: mocks.archiveTasksByIds,
   getValidatedTaskIdsByPeriodAndReviewer:
     mocks.getValidatedTaskIdsByPeriodAndReviewer,
   getValidatedTaskIdsByPeriodAndUser: mocks.getValidatedTaskIdsByPeriodAndUser,
@@ -98,16 +95,20 @@ beforeEach(() => {
 });
 
 describe("createInvoice", () => {
-  it("creates an invoice for the requested period and archives that period's validated tickets", async () => {
+  it("creates an invoice for the requested period and archives that period's eligible tickets", async () => {
     mocks.findInvoiceByPeriodAndUser.mockResolvedValue(null);
-    mocks.createInvoiceWithLines.mockResolvedValue({
-      id: "inv-oct",
-      status: "VALIDATED",
-      userId: targetUserId,
-      organizationId: owner.organizationId,
-      periodStart: "2025-10-01",
-      periodEnd: "2025-10-31",
-      totalAmount: "150.00",
+    mocks.upsertInvoiceForPeriod.mockResolvedValue({
+      conflict: false,
+      invoice: {
+        id: "inv-oct",
+        status: "VALIDATED",
+        userId: targetUserId,
+        organizationId: owner.organizationId,
+        periodStart: "2025-10-01",
+        periodEnd: "2025-10-31",
+        totalAmount: "150.00",
+      },
+      archivedTaskIds: ["task-oct-late", "task-oct-review"],
     });
     mocks.getValidatedTaskIdsByPeriodAndUser.mockResolvedValue([
       "task-oct-late",
@@ -115,7 +116,6 @@ describe("createInvoice", () => {
     mocks.getValidatedTaskIdsByPeriodAndReviewer.mockResolvedValue([
       "task-oct-review",
     ]);
-    mocks.archiveTasksByIds.mockResolvedValue([]);
 
     const res = await postInvoice();
 
@@ -126,25 +126,31 @@ describe("createInvoice", () => {
       targetUserId,
       owner.organizationId,
     );
-    expect(mocks.createInvoiceWithLines).toHaveBeenCalledTimes(1);
-    expect(mocks.replaceInvoiceWithLines).not.toHaveBeenCalled();
     expect(mocks.getValidatedTaskIdsByPeriodAndUser).toHaveBeenCalledWith(
       targetUserId,
+      owner.organizationId,
       new Date("2025-10-01"),
       new Date("2025-10-31"),
     );
     expect(mocks.getValidatedTaskIdsByPeriodAndReviewer).toHaveBeenCalledWith(
       targetUserId,
+      owner.organizationId,
       new Date("2025-10-01"),
       new Date("2025-10-31"),
     );
-    expect(mocks.archiveTasksByIds).toHaveBeenCalledWith(
+    expect(mocks.upsertInvoiceForPeriod).toHaveBeenCalledTimes(1);
+    expect(mocks.upsertInvoiceForPeriod).toHaveBeenCalledWith(
+      expect.objectContaining({
+        periodStart: "2025-10-01",
+        periodEnd: "2025-10-31",
+        status: "VALIDATED",
+      }),
+      [taskLine],
       ["task-oct-late", "task-oct-review"],
-      "inv-oct",
     );
   });
 
-  it("adds newly validated tickets to an existing draft invoice instead of creating a duplicate", async () => {
+  it("adds newly eligible tickets to an existing draft invoice instead of creating a duplicate", async () => {
     mocks.findInvoiceByPeriodAndUser.mockResolvedValue({
       id: "inv-oct-draft",
       status: "DRAFT",
@@ -154,38 +160,36 @@ describe("createInvoice", () => {
       periodEnd: "2025-10-31",
       lines: [],
     });
-    mocks.replaceInvoiceWithLines.mockResolvedValue({
-      id: "inv-oct-draft",
-      status: "VALIDATED",
-      userId: targetUserId,
-      organizationId: owner.organizationId,
-      periodStart: "2025-10-01",
-      periodEnd: "2025-10-31",
-      totalAmount: "150.00",
+    mocks.upsertInvoiceForPeriod.mockResolvedValue({
+      conflict: false,
+      invoice: {
+        id: "inv-oct-draft",
+        status: "VALIDATED",
+        userId: targetUserId,
+        organizationId: owner.organizationId,
+        periodStart: "2025-10-01",
+        periodEnd: "2025-10-31",
+        totalAmount: "150.00",
+      },
+      archivedTaskIds: ["task-validated-in-november"],
     });
     mocks.getValidatedTaskIdsByPeriodAndUser.mockResolvedValue([
       "task-validated-in-november",
     ]);
     mocks.getValidatedTaskIdsByPeriodAndReviewer.mockResolvedValue([]);
-    mocks.archiveTasksByIds.mockResolvedValue([]);
 
     const res = await postInvoice();
 
     expect(res.status).toBe(201);
-    expect(mocks.replaceInvoiceWithLines).toHaveBeenCalledTimes(1);
-    expect(mocks.replaceInvoiceWithLines).toHaveBeenCalledWith(
-      "inv-oct-draft",
+    expect(mocks.upsertInvoiceForPeriod).toHaveBeenCalledTimes(1);
+    expect(mocks.upsertInvoiceForPeriod).toHaveBeenCalledWith(
       expect.objectContaining({
         periodStart: "2025-10-01",
         periodEnd: "2025-10-31",
         status: "VALIDATED",
       }),
       [taskLine],
-    );
-    expect(mocks.createInvoiceWithLines).not.toHaveBeenCalled();
-    expect(mocks.archiveTasksByIds).toHaveBeenCalledWith(
       ["task-validated-in-november"],
-      "inv-oct-draft",
     );
   });
 
@@ -203,9 +207,19 @@ describe("createInvoice", () => {
     const res = await postInvoice();
 
     expect(res.status).toBe(409);
-    expect(mocks.createInvoiceWithLines).not.toHaveBeenCalled();
-    expect(mocks.replaceInvoiceWithLines).not.toHaveBeenCalled();
-    expect(mocks.archiveTasksByIds).not.toHaveBeenCalled();
+    expect(mocks.upsertInvoiceForPeriod).not.toHaveBeenCalled();
+    expect(mocks.logAudit).not.toHaveBeenCalled();
+  });
+
+  it("rejects creation when the period is validated concurrently by another request", async () => {
+    mocks.findInvoiceByPeriodAndUser.mockResolvedValue(null);
+    mocks.getValidatedTaskIdsByPeriodAndUser.mockResolvedValue([]);
+    mocks.getValidatedTaskIdsByPeriodAndReviewer.mockResolvedValue([]);
+    mocks.upsertInvoiceForPeriod.mockResolvedValue({ conflict: true });
+
+    const res = await postInvoice();
+
+    expect(res.status).toBe(409);
     expect(mocks.logAudit).not.toHaveBeenCalled();
   });
 
@@ -216,8 +230,7 @@ describe("createInvoice", () => {
     });
 
     expect(res.status).toBe(403);
-    expect(mocks.createInvoiceWithLines).not.toHaveBeenCalled();
-    expect(mocks.replaceInvoiceWithLines).not.toHaveBeenCalled();
+    expect(mocks.upsertInvoiceForPeriod).not.toHaveBeenCalled();
   });
 });
 

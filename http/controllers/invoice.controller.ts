@@ -11,7 +11,6 @@ import {
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
 import { createNotification } from "@/http/repositories/notification.repository";
 import {
-  archiveTasksByIds,
   getValidatedTaskIdsByPeriodAndReviewer,
   getValidatedTaskIdsByPeriodAndUser,
   unarchiveTasksByInvoice,
@@ -221,13 +220,44 @@ export const createInvoice = factory.createHandlers(
       );
     }
 
-    const invoice = existingInvoice
-      ? await invoiceRepository.replaceInvoiceWithLines(
-          existingInvoice.id,
-          invoiceData,
-          lines,
-        )
-      : await invoiceRepository.createInvoiceWithLines(invoiceData, lines);
+    const validatedTaskIds = await getValidatedTaskIdsByPeriodAndUser(
+      invoiceData.userId,
+      invoiceData.organizationId,
+      new Date(invoiceData.periodStart),
+      new Date(invoiceData.periodEnd),
+    );
+
+    const validatedReviewerTaskIds =
+      await getValidatedTaskIdsByPeriodAndReviewer(
+        invoiceData.userId,
+        invoiceData.organizationId,
+        new Date(invoiceData.periodStart),
+        new Date(invoiceData.periodEnd),
+      );
+
+    const taskIdsToArchive = Array.from(
+      new Set([...validatedTaskIds, ...validatedReviewerTaskIds]),
+    );
+
+    console.log(
+      `Found ${validatedTaskIds.length} validated tasks and ${validatedReviewerTaskIds.length} validated reviewer tasks eligible for invoice ${invoiceData.userId}:`,
+      taskIdsToArchive,
+    );
+
+    const result = await invoiceRepository.upsertInvoiceForPeriod(
+      invoiceData,
+      lines,
+      taskIdsToArchive,
+    );
+
+    if (result.conflict) {
+      return c.json(
+        { error: "An invoice already exists for this period" },
+        409,
+      );
+    }
+
+    const { invoice, archivedTaskIds } = result;
 
     if (invoice.status === "VALIDATED") {
       console.log("Invoice validated - sending finance email");
@@ -251,43 +281,10 @@ export const createInvoice = factory.createHandlers(
       });
     }
 
-    const validatedTaskIds = await getValidatedTaskIdsByPeriodAndUser(
-      invoiceData.userId,
-      new Date(invoiceData.periodStart),
-      new Date(invoiceData.periodEnd),
-    );
-
-    const validatedReviewerTaskIds =
-      await getValidatedTaskIdsByPeriodAndReviewer(
-        invoiceData.userId,
-        new Date(invoiceData.periodStart),
-        new Date(invoiceData.periodEnd),
-      );
-
-    const taskIdsToArchive = Array.from(
-      new Set([...validatedTaskIds, ...validatedReviewerTaskIds]),
-    );
-
     console.log(
-      `Found ${validatedTaskIds.length} validated tasks and ${validatedReviewerTaskIds.length} validated reviewer tasks to archive for invoice ${invoice.id}:`,
-      taskIdsToArchive,
+      `Archived ${archivedTaskIds.length} tasks for invoice ${invoice.id}:`,
+      archivedTaskIds,
     );
-
-    if (taskIdsToArchive.length > 0) {
-      const archivedTasks = await archiveTasksByIds(
-        taskIdsToArchive,
-        invoice.id,
-      );
-
-      console.log(
-        `Successfully archived ${archivedTasks.length} tasks for invoice ${invoice.id}:`,
-        archivedTasks.map((t) => ({
-          id: t.id,
-          status: t.status,
-          archivedAt: t.archivedAt,
-        })),
-      );
-    }
 
     await logAudit({
       organizationId: user.organizationId,
