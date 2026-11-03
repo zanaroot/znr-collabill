@@ -25,4 +25,4 @@ export const invoiceRoutes = new Hono()
   .post("/draft", ownerMiddleware, saveInvoiceDraft)
   .delete("/draft/:invoiceId", ownerMiddleware, deleteInvoiceDraft)
   .post("/", ownerMiddleware, ...createInvoice)
-  .patch("/:id/status", ownerMiddleware, ...updateInvoiceStatus);
+  .patch("/:id/status", ...updateInvoiceStatus);

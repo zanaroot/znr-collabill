@@ -81,6 +81,37 @@ export const createInvoiceWithLines = async (
   });
 };
 
+export const replaceInvoiceWithLines = async (
+  invoiceId: string,
+  invoiceInput: Partial<InvoiceInsertInput>,
+  linesInput: Omit<InvoiceLineInsertInput, "id" | "invoiceId">[],
+) => {
+  return await db.transaction(async (tx) => {
+    const [invoice] = await tx
+      .update(invoices)
+      .set({ ...invoiceInput, updatedAt: new Date() })
+      .where(eq(invoices.id, invoiceId))
+      .returning();
+
+    if (!invoice) {
+      throw new Error("Invoice not found");
+    }
+
+    await tx.delete(invoiceLines).where(eq(invoiceLines.invoiceId, invoiceId));
+
+    if (linesInput.length > 0) {
+      await tx.insert(invoiceLines).values(
+        linesInput.map((line) => ({
+          ...line,
+          invoiceId: invoice.id,
+        })),
+      );
+    }
+
+    return invoice;
+  });
+};
+
 export const findInvoicesByOrganizationId = async (organizationId: string) => {
   return await db
     .select()

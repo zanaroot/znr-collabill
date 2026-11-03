@@ -79,6 +79,30 @@ export const updateInvoiceStatus = factory.createHandlers(
       return c.json({ error: "Unauthorized" }, 403);
     }
 
+    const isOrgOwner = user.organizationRole === "OWNER";
+    const isInvoicedMember = invoice.userId === user.id;
+
+    if (status === "PAID") {
+      if (invoice.status !== "VALIDATED") {
+        return c.json(
+          { error: "Invoice must be validated before marking as paid" },
+          409,
+        );
+      }
+
+      if (!isOrgOwner && !isInvoicedMember) {
+        return c.json(
+          {
+            error:
+              "Forbidden: Only the organization owner or the invoice member can mark an invoice as paid",
+          },
+          403,
+        );
+      }
+    } else if (!isOrgOwner) {
+      return c.json({ error: "Forbidden: Owner role required" }, 403);
+    }
+
     const updateParams: Partial<typeof invoices.$inferInsert> = { status };
 
     if (status === "PAID") {
@@ -86,26 +110,12 @@ export const updateInvoiceStatus = factory.createHandlers(
 
       await notifyInvoicePaidEmail(id);
 
-      try {
-        const invoice = await invoiceRepository.findInvoiceById(id);
-
-        if (invoice) {
-          if (status === "PAID") {
-            updateParams.paidAt = new Date();
-
-            await notifyInvoicePaidEmail(id);
-
-            sendFinanceInvoiceNotification(id, "PAID").catch((err) => {
-              console.error(
-                "[Finance notification] Failed to send paid invoice email:",
-                err,
-              );
-            });
-          }
-        }
-      } catch (err) {
-        console.error("[Finance notification] Unexpected error:", err);
-      }
+      sendFinanceInvoiceNotification(id, "PAID").catch((err) => {
+        console.error(
+          "[Finance notification] Failed to send paid invoice email:",
+          err,
+        );
+      });
     } else if (status === "VALIDATED") {
       updateParams.validatedAt = new Date();
 
@@ -154,7 +164,11 @@ export const updateInvoiceStatus = factory.createHandlers(
     });
 
     if (updated && user.organizationId) {
-      if (status === "PAID" && invoice.status !== "PAID") {
+      if (
+        status === "PAID" &&
+        invoice.status !== "PAID" &&
+        invoice.userId !== user.id
+      ) {
         await createNotification({
           userId: invoice.userId,
           organizationId: user.organizationId,
@@ -193,10 +207,27 @@ export const createInvoice = factory.createHandlers(
 
     const { lines, ...invoiceData } = payload;
 
-    const invoice = await invoiceRepository.createInvoiceWithLines(
-      invoiceData,
-      lines,
+    const existingInvoice = await invoiceRepository.findInvoiceByPeriodAndUser(
+      invoiceData.periodStart,
+      invoiceData.periodEnd,
+      invoiceData.userId,
+      invoiceData.organizationId,
     );
+
+    if (existingInvoice?.status && existingInvoice.status !== "DRAFT") {
+      return c.json(
+        { error: "An invoice already exists for this period" },
+        409,
+      );
+    }
+
+    const invoice = existingInvoice
+      ? await invoiceRepository.replaceInvoiceWithLines(
+          existingInvoice.id,
+          invoiceData,
+          lines,
+        )
+      : await invoiceRepository.createInvoiceWithLines(invoiceData, lines);
 
     if (invoice.status === "VALIDATED") {
       console.log("Invoice validated - sending finance email");

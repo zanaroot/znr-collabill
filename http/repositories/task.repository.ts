@@ -11,7 +11,6 @@ import {
   ilike,
   inArray,
   isNotNull,
-  isNull,
   lte,
   ne,
   not,
@@ -22,6 +21,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
   collaboratorRates,
+  invoices,
   notifications,
   organizationMembers,
   projects,
@@ -254,6 +254,31 @@ export const countTasksByProjectId = async (projectId: string) => {
   return await db.$count(tasks, eq(tasks.projectId, projectId));
 };
 
+const billingPeriodDateKey = (date: Date) => date.toISOString().slice(0, 10);
+
+const buildBillingPeriodCondition = (startDate?: Date, endDate?: Date) => {
+  if (!startDate || !endDate) {
+    return or(
+      eq(tasks.status, "VALIDATED"),
+      and(eq(tasks.status, "ARCHIVED"), isNotNull(tasks.invoiceId)),
+    );
+  }
+
+  return or(
+    and(
+      eq(tasks.status, "VALIDATED"),
+      gte(tasks.createdAt, startDate),
+      lte(tasks.createdAt, endOfDay(endDate)),
+    ),
+    and(
+      eq(tasks.status, "ARCHIVED"),
+      isNotNull(tasks.invoiceId),
+      eq(invoices.periodStart, billingPeriodDateKey(startDate)),
+      eq(invoices.periodEnd, billingPeriodDateKey(endDate)),
+    ),
+  );
+};
+
 export const getValidatedTaskSummaryByReviewer = async (
   userId: string,
   organizationId: string,
@@ -264,28 +289,8 @@ export const getValidatedTaskSummaryByReviewer = async (
     eq(tasks.reviewerId, userId),
     ne(tasks.assignedTo, tasks.reviewerId),
     eq(projects.organizationId, organizationId),
-    or(
-      and(eq(tasks.status, "VALIDATED"), ne(tasks.status, "ARCHIVED")),
-      and(eq(tasks.status, "ARCHIVED"), isNotNull(tasks.invoiceId)),
-    ),
+    buildBillingPeriodCondition(startDate, endDate),
   ];
-
-  if (startDate && endDate) {
-    whereClauses.push(
-      or(
-        and(
-          isNotNull(tasks.validatedAt),
-          gte(tasks.validatedAt, startDate),
-          lte(tasks.validatedAt, endOfDay(endDate)),
-        ),
-        and(
-          isNull(tasks.validatedAt),
-          gte(tasks.createdAt, startDate),
-          lte(tasks.createdAt, endOfDay(endDate)),
-        ),
-      ),
-    );
-  }
 
   const assignee = alias(users, "assignee");
   const reviewer = alias(users, "reviewer");
@@ -311,6 +316,7 @@ export const getValidatedTaskSummaryByReviewer = async (
     .innerJoin(projects, eq(tasks.projectId, projects.id))
     .innerJoin(users, eq(tasks.reviewerId, users.id))
     .leftJoin(collaboratorRates, eq(tasks.reviewerId, collaboratorRates.userId))
+    .leftJoin(invoices, eq(tasks.invoiceId, invoices.id))
     .where(and(...whereClauses))
     .groupBy(
       assignee.id,
@@ -338,28 +344,8 @@ export const getValidatedTaskSummaryByOrganization = async (
     eq(organizationMembers.userId, targetUserId ?? userId),
     eq(organizationMembers.organizationId, organizationId),
     eq(projects.organizationId, organizationId),
-    or(
-      and(eq(tasks.status, "VALIDATED"), ne(tasks.status, "ARCHIVED")),
-      and(eq(tasks.status, "ARCHIVED"), isNotNull(tasks.invoiceId)),
-    ),
+    buildBillingPeriodCondition(startDate, endDate),
   ];
-
-  if (startDate && endDate) {
-    whereClauses.push(
-      or(
-        and(
-          isNotNull(tasks.validatedAt),
-          gte(tasks.validatedAt, startDate),
-          lte(tasks.validatedAt, endOfDay(endDate)),
-        ),
-        and(
-          isNull(tasks.validatedAt),
-          gte(tasks.createdAt, startDate),
-          lte(tasks.createdAt, endOfDay(endDate)),
-        ),
-      ),
-    );
-  }
 
   return await db
     .select({
@@ -387,6 +373,7 @@ export const getValidatedTaskSummaryByOrganization = async (
         eq(collaboratorRates.organizationId, organizationId),
       ),
     )
+    .leftJoin(invoices, eq(tasks.invoiceId, invoices.id))
     .where(and(...whereClauses))
     .groupBy(
       users.id,
@@ -419,26 +406,10 @@ export const getDashboardTaskSummaryByOrganization = async (
 
   if (startDate && endDate) {
     whereClauses.push(
-      or(
-        and(
-          eq(tasks.status, "VALIDATED"),
-          isNotNull(tasks.validatedAt),
-          gte(tasks.validatedAt, startDate),
-          lte(tasks.validatedAt, endOfDay(endDate)),
-        ),
-
-        and(
-          eq(tasks.status, "VALIDATED"),
-          isNull(tasks.validatedAt),
-          gte(tasks.createdAt, startDate),
-          lte(tasks.createdAt, endOfDay(endDate)),
-        ),
-
-        and(
-          eq(tasks.status, "APPROVED"),
-          gte(tasks.createdAt, startDate),
-          lte(tasks.createdAt, endOfDay(endDate)),
-        ),
+      and(
+        or(eq(tasks.status, "VALIDATED"), eq(tasks.status, "APPROVED")),
+        gte(tasks.createdAt, startDate),
+        lte(tasks.createdAt, endOfDay(endDate)),
       ),
     );
   }
@@ -540,18 +511,8 @@ export const getValidatedTaskIdsByPeriodAndUser = async (
       and(
         eq(tasks.assignedTo, userId),
         eq(tasks.status, "VALIDATED"),
-        or(
-          and(
-            isNotNull(tasks.validatedAt),
-            gte(tasks.validatedAt, startDate),
-            lte(tasks.validatedAt, endOfDay(endDate)),
-          ),
-          and(
-            isNull(tasks.validatedAt),
-            gte(tasks.createdAt, startDate),
-            lte(tasks.createdAt, endOfDay(endDate)),
-          ),
-        ),
+        gte(tasks.createdAt, startDate),
+        lte(tasks.createdAt, endOfDay(endDate)),
       ),
     );
   return result.map((r) => r.id);
@@ -570,18 +531,8 @@ export const getValidatedTaskIdsByPeriodAndReviewer = async (
         eq(tasks.reviewerId, userId),
         ne(tasks.assignedTo, tasks.reviewerId),
         eq(tasks.status, "VALIDATED"),
-        or(
-          and(
-            isNotNull(tasks.validatedAt),
-            gte(tasks.validatedAt, startDate),
-            lte(tasks.validatedAt, endOfDay(endDate)),
-          ),
-          and(
-            isNull(tasks.validatedAt),
-            gte(tasks.createdAt, startDate),
-            lte(tasks.createdAt, endOfDay(endDate)),
-          ),
-        ),
+        gte(tasks.createdAt, startDate),
+        lte(tasks.createdAt, endOfDay(endDate)),
       ),
     );
   return result.map((r) => r.id);

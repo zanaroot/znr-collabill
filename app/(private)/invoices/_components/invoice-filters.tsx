@@ -370,26 +370,30 @@ export const InvoiceFilters = ({
                   Validate Invoice
                 </Button>
               )}
-            {existingInvoice?.status === "VALIDATED" && isOwner && (
+            {existingInvoice?.status === "VALIDATED" && (
               <>
-                <Button
-                  variant="solid"
-                  loading={isUnvalidating}
-                  icon={<CloseCircleOutlined />}
-                  onClick={() => unvalidateInvoice(existingInvoice.id)}
-                  color="orange"
-                >
-                  Unvalidate
-                </Button>
-                <Button
-                  variant="solid"
-                  loading={isMarkingPaid}
-                  icon={<CheckCircleOutlined />}
-                  onClick={() => markAsPaid(existingInvoice.id)}
-                  color="purple"
-                >
-                  Mark as Paid
-                </Button>
+                {isOwner && (
+                  <Button
+                    variant="solid"
+                    loading={isUnvalidating}
+                    icon={<CloseCircleOutlined />}
+                    onClick={() => unvalidateInvoice(existingInvoice.id)}
+                    color="orange"
+                  >
+                    Unvalidate
+                  </Button>
+                )}
+                {(isOwner || targetUserId === currentUserId) && (
+                  <Button
+                    variant="solid"
+                    loading={isMarkingPaid}
+                    icon={<CheckCircleOutlined />}
+                    onClick={() => markAsPaid(existingInvoice.id)}
+                    color="purple"
+                  >
+                    Mark as Paid
+                  </Button>
+                )}
               </>
             )}
             {existingInvoice?.status !== "PAID" && (
