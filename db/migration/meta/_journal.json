@@ -225,6 +225,34 @@
       "when": 1793619130261,
       "tag": "0031_blue_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793786145423,
+      "tag": "0032_curved_the_initiative",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793787619254,
+      "tag": "0033_bitter_lilandra",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793868304474,
+      "tag": "0034_gifted_omega_red",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793872038845,
+      "tag": "0035_nice_golden_guardian",
+      "breakpoints": true
     }
   ]
 }

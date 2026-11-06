@@ -12,6 +12,7 @@ import {
 import { createNotification } from "@/http/repositories/notification.repository";
 import * as projectRepository from "@/http/repositories/project.repository";
 import * as taskRepository from "@/http/repositories/task.repository";
+import { runWithResourceLimit } from "@/http/services/entitlement.service";
 
 const factory = createFactory<AuthEnv>();
 
@@ -226,19 +227,31 @@ export const createProject = factory.createHandlers(
   async (c) => {
     const user = c.get("user");
     const data = c.req.valid("json");
+    const organizationId = user.organizationId;
 
-    if (!user.organizationId) {
+    if (!organizationId) {
       return c.json({ error: "No organization found" }, 404);
     }
 
-    const project = await projectRepository.createProject({
-      ...data,
-      createdBy: user.id,
-      organizationId: user.organizationId,
-    });
+    const result = await runWithResourceLimit(
+      organizationId,
+      "projects",
+      (tx) =>
+        projectRepository.createProjectInTx(tx, {
+          ...data,
+          createdBy: user.id,
+          organizationId,
+        }),
+    );
+
+    if (!result.allowed) {
+      return c.json(result.denial, 402);
+    }
+
+    const project = result.value;
 
     await logAudit({
-      organizationId: user.organizationId,
+      organizationId,
       actorId: user.id,
       action: "CREATE",
       entity: "PROJECT",

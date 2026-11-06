@@ -31,6 +31,7 @@ import {
   updateUserLastSeen,
   upsertCollaboratorRate,
 } from "@/http/repositories/user.repository";
+import { checkResourceLimit } from "@/http/services/entitlement.service";
 import { ACTIVE_THRESHOLD_MS } from "@/lib/online-presence";
 import { sendRateUpdatedEmail } from "@/packages/email/send-rate-updated-email";
 import { serverEnv } from "@/packages/env/server";
@@ -216,6 +217,13 @@ export const createInvitation = factory.createHandlers(
 
     if (!isAdmin) {
       return c.json({ error: "Forbidden" }, 403);
+    }
+
+    const denial = currentUser.organizationId
+      ? await checkResourceLimit(currentUser.organizationId, "members")
+      : null;
+    if (denial) {
+      return c.json(denial, 402);
     }
 
     const data = c.req.valid("json");

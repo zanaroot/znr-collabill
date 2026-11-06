@@ -1,6 +1,6 @@
 "server only";
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
@@ -31,36 +31,58 @@ const normalizeProject = <
   reviewerRate: Number(project.reviewerRate ?? "0"),
 });
 
-export const createProject = async (
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export const createProjectInTx = async (
+  tx: Transaction,
   input: CreateProjectInput & {
     createdBy: string;
     organizationId: string;
   },
 ): Promise<Project> => {
-  return await db.transaction(async (tx) => {
-    const [project] = await tx
-      .insert(projects)
-      .values({
-        name: input.name,
-        description: input.description,
-        gitRepo: input.gitRepo,
-        baseRate: input.baseRate.toString(),
-        reviewerRate: (input.reviewerRate ?? 0).toString(),
-        organizationId: input.organizationId,
-        createdBy: input.createdBy,
-      })
-      .returning();
+  const [project] = await tx
+    .insert(projects)
+    .values({
+      name: input.name,
+      description: input.description,
+      gitRepo: input.gitRepo,
+      baseRate: input.baseRate.toString(),
+      reviewerRate: (input.reviewerRate ?? 0).toString(),
+      organizationId: input.organizationId,
+      createdBy: input.createdBy,
+    })
+    .returning();
 
-    await tx.insert(projectMembers).values({
-      projectId: project.id,
-      userId: input.createdBy,
-    });
-
-    return {
-      ...normalizeProject(project),
-      memberCount: 0,
-    };
+  await tx.insert(projectMembers).values({
+    projectId: project.id,
+    userId: input.createdBy,
   });
+
+  return {
+    ...normalizeProject(project),
+    memberCount: 0,
+  };
+};
+
+export const countProjectsByOrganizationId = async (
+  organizationId: string,
+): Promise<number> => {
+  const rows = await db
+    .select({ value: count() })
+    .from(projects)
+    .where(eq(projects.organizationId, organizationId));
+  return Number(rows[0]?.value ?? 0);
+};
+
+export const countProjectsByOrganizationIdInTx = async (
+  tx: Transaction,
+  organizationId: string,
+): Promise<number> => {
+  const rows = await tx
+    .select({ value: count() })
+    .from(projects)
+    .where(eq(projects.organizationId, organizationId));
+  return Number(rows[0]?.value ?? 0);
 };
 
 export const findProjectById = async (id: string): Promise<Project | null> => {

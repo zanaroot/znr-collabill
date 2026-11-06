@@ -15,6 +15,7 @@ import {
   saveIntegration,
   toggleIntegration,
 } from "@/http/repositories/integration.repository";
+import { checkFeatureEnabled } from "@/http/services/entitlement.service";
 import { decrypt } from "@/lib/crypto";
 
 const factory = createFactory<AuthEnv>();
@@ -71,6 +72,11 @@ export const saveIntegrationHandler = factory.createHandlers(
       return c.json({ error: "Forbidden" }, 403);
     }
 
+    const denial = await checkFeatureEnabled(organizationId, "integrations");
+    if (denial) {
+      return c.json(denial, 402);
+    }
+
     const payload = c.req.valid("json");
     const { type, credentials, config } = payload;
 
@@ -87,6 +93,11 @@ export const updateIntegration = factory.createHandlers(
     const organizationId = getOrganizationId(c);
     if (!organizationId) {
       return c.json({ error: "Forbidden" }, 403);
+    }
+
+    const denial = await checkFeatureEnabled(organizationId, "integrations");
+    if (denial) {
+      return c.json(denial, 402);
     }
 
     const { type } = c.req.valid("param");

@@ -126,6 +126,7 @@ export const login = factory.createHandlers(
         success: true,
         orgCount,
         redirectToOrganization: orgCount === 0,
+        platformAdmin: user.platformRole === "PLATFORM_ADMIN",
       });
     } catch (error) {
       logError(error, {

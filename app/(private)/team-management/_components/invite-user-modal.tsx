@@ -1,8 +1,9 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { App, Button, Form, Input, Modal, Select } from "antd";
+import { Alert, App, Button, Form, Input, Modal, Select } from "antd";
 import { useState } from "react";
+import { billingKeys, useEntitlements } from "@/app/_hooks/use-billing";
 import type { CreateInvitationInput } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 import { teamKeys, useCurrentUser } from "../_hooks/use-team";
@@ -12,6 +13,7 @@ export const InviteUserModal = () => {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
   const { data: currentUser } = useCurrentUser();
+  const { data: entitlements } = useEntitlements({ enabled: isOpen });
 
   const { message } = App.useApp();
 
@@ -19,8 +21,8 @@ export const InviteUserModal = () => {
     mutationFn: async (data: CreateInvitationInput) => {
       const res = await client.api.users.invitations.$post({ json: data });
       if (!res.ok) {
-        const error = (await res.json()) as { error?: string };
-        throw new Error(error.error || "Failed to send invitation");
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error || "Failed to send invitation");
       }
       return res.json();
     },
@@ -29,6 +31,7 @@ export const InviteUserModal = () => {
       setIsOpen(false);
       message.success("Invitation sent successfully");
       queryClient.invalidateQueries({ queryKey: teamKeys.invitations() });
+      queryClient.invalidateQueries({ queryKey: billingKeys.usage() });
     },
     onError: (error: Error) => {
       message.error(error.message);
@@ -48,6 +51,9 @@ export const InviteUserModal = () => {
     return null;
   }
 
+  const isOwner = currentUser.organizationRole === "OWNER";
+  const memberLimitReached = entitlements?.reached.members ?? false;
+
   return (
     <>
       <Button type="primary" onClick={() => setIsOpen(true)}>
@@ -62,6 +68,18 @@ export const InviteUserModal = () => {
         onCancel={() => setIsOpen(false)}
         centered
       >
+        {memberLimitReached && (
+          <Alert
+            type="warning"
+            showIcon
+            className="mb-4"
+            message={
+              isOwner
+                ? "You've reached the member limit on your current plan. Upgrade to Pro to invite more members."
+                : "Your organization has reached its member limit."
+            }
+          />
+        )}
         <Form
           form={form}
           onFinish={handleFinish}
@@ -88,7 +106,13 @@ export const InviteUserModal = () => {
             />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block loading={isPending}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              loading={isPending}
+              disabled={memberLimitReached}
+            >
               Invite
             </Button>
           </Form.Item>

@@ -35,6 +35,12 @@ export const serverEnvSchema = publicEnvSchema.extend({
   LIVEKIT_URL: z.string().trim().optional(),
   LIVEKIT_API_KEY: z.string().trim().optional(),
   LIVEKIT_API_SECRET: z.string().trim().optional(),
+  PAYMENT_PROVIDER: z.preprocess(
+    (value) =>
+      typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.enum(["mock"]).default("mock"),
+  ),
+  PAYMENT_WEBHOOK_SECRET: z.string().trim().optional(),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development")

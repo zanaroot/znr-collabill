@@ -24,6 +24,7 @@ export const SignInForm = () => {
         success?: boolean;
         error?: string;
         orgCount?: number;
+        platformAdmin?: boolean;
       };
       if (!res.ok) {
         throw new Error(result.error || "Something went wrong.");
@@ -34,7 +35,9 @@ export const SignInForm = () => {
       if (data.success) {
         message.success("Sign in successful!");
 
-        if (data.orgCount === 0) {
+        if (data.platformAdmin) {
+          router.push("/back-office");
+        } else if (data.orgCount === 0) {
           router.push("/create-organization");
         } else if (data.orgCount && data.orgCount > 1) {
           router.push("/select-organization");
