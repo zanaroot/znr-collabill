@@ -55,6 +55,7 @@ const buildUser = (overrides: Partial<TestUser> = {}): TestUser => ({
   avatar: null,
   phoneNumber: null,
   phoneOwnerName: null,
+  platformRole: null,
   emailVerified: null,
   organizationId: "org-1",
   organizationName: "Org",

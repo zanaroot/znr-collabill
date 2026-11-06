@@ -65,6 +65,22 @@ export const openAPIDocument = {
         type: "string",
         enum: ["GITHUB", "SLACK"],
       },
+      SubscriptionPlanCode: {
+        type: "string",
+        enum: ["FREE", "PRO"],
+      },
+      SubscriptionInterval: {
+        type: "string",
+        enum: ["MONTHLY", "YEARLY"],
+      },
+      SubscriptionStatus: {
+        type: "string",
+        enum: ["TRIALING", "ACTIVE", "PAST_DUE", "CANCELED", "EXPIRED"],
+      },
+      PaymentStatus: {
+        type: "string",
+        enum: ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"],
+      },
     },
   },
   security: [{ cookieAuth: [] }],
@@ -1523,6 +1539,661 @@ export const openAPIDocument = {
             },
           },
           400: { description: "Invalid image type or size" },
+        },
+      },
+    },
+    "/api/billing/public/plans": {
+      get: {
+        tags: ["Billing"],
+        summary: "List subscription plans (public)",
+        description:
+          "Get the subscription plan catalog for the public pricing page; no session required",
+        security: [],
+        responses: {
+          200: { description: "List of subscription plans" },
+        },
+      },
+    },
+    "/api/billing/plans": {
+      get: {
+        tags: ["Billing"],
+        summary: "List subscription plans",
+        description: "Get all available subscription plans for the catalog",
+        responses: {
+          200: { description: "List of subscription plans" },
+          400: { description: "Organization required" },
+        },
+      },
+    },
+    "/api/billing/subscription": {
+      get: {
+        tags: ["Billing"],
+        summary: "Get current subscription",
+        description:
+          "Get the current organization subscription, provisioning the default FREE plan on first access",
+        responses: {
+          200: { description: "Current subscription with plan" },
+          400: { description: "Organization required" },
+          404: { description: "Plan not found" },
+        },
+      },
+    },
+    "/api/billing/usage": {
+      get: {
+        tags: ["Billing"],
+        summary: "Get organization usage and limits",
+        description:
+          "Get the plan, entitlement features, resource limits, current usage and reached flags for the current organization (any member)",
+        responses: {
+          200: { description: "Organization usage and limits" },
+          400: { description: "Organization required" },
+        },
+      },
+    },
+    "/api/billing/payments": {
+      get: {
+        tags: ["Billing"],
+        summary: "List payment history",
+        description:
+          "Get payment history for the current organization (owner only)",
+        responses: {
+          200: { description: "List of payments" },
+          400: { description: "Organization required" },
+          403: { description: "Owner role required" },
+        },
+      },
+    },
+    "/api/billing/payments/{paymentId}/status": {
+      get: {
+        tags: ["Billing"],
+        summary: "Reconcile payment status",
+        description:
+          "Fetch the payment status from the payment provider and apply verified transitions (owner only)",
+        security: [{ cookieAuth: [] }],
+        parameters: [
+          {
+            name: "paymentId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Current payment record" },
+          400: { description: "Organization required or amount mismatch" },
+          403: { description: "Owner role required" },
+          404: { description: "Payment not found" },
+          502: { description: "Provider status retrieval failed" },
+          503: { description: "Payment provider is not configured" },
+        },
+      },
+    },
+    "/api/billing/checkout": {
+      post: {
+        tags: ["Billing"],
+        summary: "Initiate checkout",
+        description:
+          "Create a pending payment for the selected plan and billing period (owner only)",
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["planCode", "interval"],
+                properties: {
+                  planCode: {
+                    $ref: "#/components/schemas/SubscriptionPlanCode",
+                  },
+                  interval: {
+                    $ref: "#/components/schemas/SubscriptionInterval",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: { description: "Pending checkout payment created" },
+          400: {
+            description:
+              "Organization required, plan not purchasable or invalid interval",
+          },
+          403: { description: "Owner role required" },
+          404: { description: "Plan not found" },
+          409: {
+            description:
+              "Already subscribed to this plan or checkout in progress",
+          },
+        },
+      },
+    },
+    "/api/billing/change-plan": {
+      post: {
+        tags: ["Billing"],
+        summary: "Change subscription plan",
+        description:
+          "Switch to a different or cheaper plan immediately; upgrades require checkout (owner only)",
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["planCode"],
+                properties: {
+                  planCode: {
+                    $ref: "#/components/schemas/SubscriptionPlanCode",
+                  },
+                  interval: {
+                    $ref: "#/components/schemas/SubscriptionInterval",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Subscription updated with plan" },
+          400: { description: "Organization required or invalid interval" },
+          403: { description: "Owner role required" },
+          404: { description: "Plan not found" },
+          409: {
+            description: "No active subscription, same plan or upgrade attempt",
+          },
+        },
+      },
+    },
+    "/api/billing/cancel": {
+      post: {
+        tags: ["Billing"],
+        summary: "Cancel subscription",
+        description:
+          "Cancel immediately or at the end of the current billing period (owner only)",
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  atPeriodEnd: { type: "boolean" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Subscription canceled" },
+          400: { description: "Organization required or no billing period" },
+          403: { description: "Owner role required" },
+          409: {
+            description:
+              "No active subscription or cancellation already scheduled",
+          },
+        },
+      },
+    },
+    "/api/billing/reactivate": {
+      post: {
+        tags: ["Billing"],
+        summary: "Reactivate subscription",
+        description:
+          "Restore a canceled subscription to ACTIVE; expired paid periods require checkout (owner only)",
+        responses: {
+          200: { description: "Subscription reactivated" },
+          400: { description: "Organization required" },
+          403: { description: "Owner role required" },
+          409: {
+            description: "No subscription, already active or period ended",
+          },
+        },
+      },
+    },
+    "/api/back-office/billing/overview": {
+      get: {
+        tags: ["Back Office"],
+        summary: "Billing dashboard",
+        description:
+          "Platform administrator billing overview: organization counts, subscription status counts, MRR/ARR per currency and recent payments and events",
+        responses: {
+          200: { description: "Billing dashboard data" },
+          403: { description: "Platform administrator access required" },
+        },
+      },
+    },
+    "/api/back-office/billing/plans": {
+      get: {
+        tags: ["Back Office"],
+        summary: "List plans",
+        description:
+          "List all plans including inactive ones with subscription counts",
+        responses: {
+          200: { description: "List of plans" },
+          403: { description: "Platform administrator access required" },
+        },
+      },
+      post: {
+        tags: ["Back Office"],
+        summary: "Create plan",
+        description:
+          "Create a plan with monthly and/or yearly prices; the interval is derived from the provided prices",
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["code", "name", "amountMinor", "currency"],
+                properties: {
+                  code: { type: "string" },
+                  name: { type: "string" },
+                  description: { type: "string" },
+                  amountMinor: { type: "integer", minimum: 0 },
+                  amountMinorYearly: { type: "integer", minimum: 1 },
+                  currency: { type: "string" },
+                  supportedCurrencies: {
+                    type: "array",
+                    items: { type: "string" },
+                  },
+                  maxMembers: { type: "integer" },
+                  maxProjects: { type: "integer" },
+                  features: {
+                    type: "array",
+                    items: {
+                      type: "string",
+                      enum: ["integrations", "finance"],
+                    },
+                  },
+                  active: { type: "boolean" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: { description: "Plan created" },
+          400: { description: "Invalid plan values" },
+          403: { description: "Platform administrator access required" },
+          409: { description: "Plan code already exists" },
+        },
+      },
+    },
+    "/api/back-office/billing/plans/{planId}": {
+      patch: {
+        tags: ["Back Office"],
+        summary: "Update plan",
+        description:
+          "Update plan values and activation; plans are never deleted, and the Free plan cannot be deactivated",
+        parameters: [
+          {
+            name: "planId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Plan updated" },
+          400: { description: "Invalid values or Free plan deactivation" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Plan not found" },
+        },
+      },
+    },
+    "/api/back-office/billing/organizations": {
+      get: {
+        tags: ["Back Office"],
+        summary: "List organizations",
+        description:
+          "Searchable, paginated organizations with owner, latest subscription plan and status and latest payment status",
+        parameters: [
+          { name: "search", in: "query", schema: { type: "string" } },
+          { name: "planCode", in: "query", schema: { type: "string" } },
+          {
+            name: "status",
+            in: "query",
+            schema: {
+              type: "string",
+              enum: [
+                "TRIALING",
+                "ACTIVE",
+                "PAST_DUE",
+                "SUSPENDED",
+                "CANCELED",
+                "EXPIRED",
+              ],
+            },
+          },
+          { name: "page", in: "query", schema: { type: "integer" } },
+          { name: "pageSize", in: "query", schema: { type: "integer" } },
+        ],
+        responses: {
+          200: { description: "Paginated organizations" },
+          403: { description: "Platform administrator access required" },
+        },
+      },
+    },
+    "/api/back-office/billing/organizations/{organizationId}": {
+      get: {
+        tags: ["Back Office"],
+        summary: "Organization billing detail",
+        description:
+          "Organization owner and member count, subscriptions, payments, events, admin notes and entitlement usage",
+        parameters: [
+          {
+            name: "organizationId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Organization billing detail" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Organization not found" },
+        },
+      },
+    },
+    "/api/back-office/billing/organizations/{organizationId}/notes": {
+      post: {
+        tags: ["Back Office"],
+        summary: "Add admin note",
+        description: "Record an internal billing note for an organization",
+        parameters: [
+          {
+            name: "organizationId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["body"],
+                properties: {
+                  body: { type: "string" },
+                  subscriptionId: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: { description: "Note created" },
+          400: { description: "Invalid note body" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Organization or subscription not found" },
+        },
+      },
+    },
+    "/api/back-office/billing/payments": {
+      get: {
+        tags: ["Back Office"],
+        summary: "List payments",
+        description: "Paginated payment list with organization and plan names",
+        parameters: [
+          {
+            name: "status",
+            in: "query",
+            schema: {
+              type: "string",
+              enum: ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"],
+            },
+          },
+          { name: "organizationId", in: "query", schema: { type: "string" } },
+          { name: "provider", in: "query", schema: { type: "string" } },
+          { name: "from", in: "query", schema: { type: "string" } },
+          { name: "to", in: "query", schema: { type: "string" } },
+          { name: "page", in: "query", schema: { type: "integer" } },
+          { name: "pageSize", in: "query", schema: { type: "integer" } },
+        ],
+        responses: {
+          200: { description: "Paginated payments" },
+          403: { description: "Platform administrator access required" },
+        },
+      },
+    },
+    "/api/back-office/billing/payments/{paymentId}": {
+      get: {
+        tags: ["Back Office"],
+        summary: "Payment detail",
+        description:
+          "Payment with organization, plan, subscription, related provider events and refund capability flags",
+        parameters: [
+          {
+            name: "paymentId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Payment detail" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Payment not found" },
+        },
+      },
+    },
+    "/api/back-office/billing/payments/{paymentId}/refund": {
+      post: {
+        tags: ["Back Office"],
+        summary: "Refund payment",
+        description:
+          "Refund a succeeded payment through the configured provider; the refund is only recorded after the provider confirms it",
+        parameters: [
+          {
+            name: "paymentId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Payment refunded" },
+          400: { description: "Provider does not support refunds" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Payment not found" },
+          409: {
+            description: "Payment not succeeded or missing provider reference",
+          },
+          502: { description: "Provider refund failed or unconfirmed" },
+          503: { description: "Payment provider is not configured" },
+        },
+      },
+    },
+    "/api/back-office/billing/subscriptions/{subscriptionId}/activate": {
+      post: {
+        tags: ["Back Office"],
+        summary: "Activate subscription",
+        description:
+          "Activate a non-live subscription and open a new billing period when the previous one ended",
+        parameters: [
+          {
+            name: "subscriptionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Subscription activated" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Subscription not found" },
+          409: { description: "Subscription is already active" },
+        },
+      },
+    },
+    "/api/back-office/billing/subscriptions/{subscriptionId}/suspend": {
+      post: {
+        tags: ["Back Office"],
+        summary: "Suspend subscription",
+        description:
+          "Suspend a live subscription; suspended organizations drop to Free entitlements",
+        parameters: [
+          {
+            name: "subscriptionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Subscription suspended" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Subscription not found" },
+          409: { description: "Only an active subscription can be suspended" },
+        },
+      },
+    },
+    "/api/back-office/billing/subscriptions/{subscriptionId}/reactivate": {
+      post: {
+        tags: ["Back Office"],
+        summary: "Reactivate subscription",
+        description: "Reactivate a non-live subscription outside checkout",
+        parameters: [
+          {
+            name: "subscriptionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Subscription reactivated" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Subscription not found" },
+          409: { description: "Subscription is already active" },
+        },
+      },
+    },
+    "/api/back-office/billing/subscriptions/{subscriptionId}/extend": {
+      post: {
+        tags: ["Back Office"],
+        summary: "Extend subscription period",
+        description: "Extend the current period of a live subscription",
+        parameters: [
+          {
+            name: "subscriptionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["days"],
+                properties: { days: { type: "integer", minimum: 1 } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Period extended" },
+          400: { description: "Invalid days" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Subscription not found" },
+          409: { description: "Only an active subscription can be extended" },
+        },
+      },
+    },
+    "/api/back-office/billing/subscriptions/{subscriptionId}/cancel": {
+      post: {
+        tags: ["Back Office"],
+        summary: "Cancel subscription",
+        description: "Cancel a live subscription immediately or at period end",
+        parameters: [
+          {
+            name: "subscriptionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: { atPeriodEnd: { type: "boolean" } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Subscription canceled" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Subscription not found" },
+          409: {
+            description:
+              "No active subscription or cancellation already scheduled",
+          },
+        },
+      },
+    },
+    "/api/back-office/billing/subscriptions/{subscriptionId}/change-plan": {
+      post: {
+        tags: ["Back Office"],
+        summary: "Change subscription plan",
+        description:
+          "Switch a live subscription to another plan, including upgrades that bypass checkout",
+        parameters: [
+          {
+            name: "subscriptionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["planCode"],
+                properties: {
+                  planCode: { type: "string" },
+                  interval: { type: "string", enum: ["MONTHLY", "YEARLY"] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Plan changed" },
+          400: { description: "Plan unavailable or unsupported interval" },
+          403: { description: "Platform administrator access required" },
+          404: { description: "Subscription or plan not found" },
+          409: {
+            description: "Not active or already subscribed to this plan",
+          },
+        },
+      },
+    },
+    "/api/webhooks/payments": {
+      post: {
+        tags: ["Webhooks"],
+        summary: "Payment provider webhook",
+        description:
+          "Receive signed payment events from the configured provider; verified events update the matching payment and subscription idempotently",
+        security: [],
+        parameters: [
+          {
+            name: "X-Payment-Signature",
+            in: "header",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Event received" },
+          400: {
+            description: "Malformed payload, amount or organization mismatch",
+          },
+          401: { description: "Missing or invalid webhook signature" },
+          503: { description: "Payment provider is not configured" },
         },
       },
     },

@@ -15,6 +15,10 @@ export const registerSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 
+const platformRoleSchema = z.enum(["PLATFORM_ADMIN"]);
+
+type PlatformRole = z.infer<typeof platformRoleSchema>;
+
 export type AuthUser = {
   id: string;
   email: string;
@@ -25,6 +29,7 @@ export type AuthUser = {
   organizationId: string | null;
   organizationName: string | null;
   organizationRole: Role | null;
+  platformRole: PlatformRole | null;
   emailVerified: string | null;
 };
 

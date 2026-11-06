@@ -52,7 +52,23 @@ export const authMiddleware = createMiddleware<AuthEnv>(
       organizationId: result.organization?.id ?? null,
       organizationName: result.organization?.name ?? null,
       organizationRole,
+      platformRole: result.user.platformRole ?? null,
     });
+
+    await next();
+  },
+);
+
+export const platformAdminMiddleware = createMiddleware<AuthEnv>(
+  async (c: Context, next: Next) => {
+    const user = c.get("user");
+
+    if (!user || user.platformRole !== "PLATFORM_ADMIN") {
+      return c.json(
+        { error: "Forbidden: platform administrator access required" },
+        403,
+      );
+    }
 
     await next();
   },

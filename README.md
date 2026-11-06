@@ -43,6 +43,7 @@ App URL: `http://localhost:3000`
 - `BREVO_API_KEY`: API key for Brevo (or another email provider) to send emails.
 - `LIVEKIT_API_KEY`: LiveKit Cloud (or self-hosted LiveKit) API key used to mint short-lived room tokens. Optional; audio/video calling and meetings return `503` until configured.
 - `LIVEKIT_API_SECRET`: LiveKit API secret used to sign tokens and verify webhooks. Optional.
+- `PAYMENT_WEBHOOK_SECRET`: Secret used to sign and verify payment webhooks (`X-Payment-Signature`, `sha256=<hex>` HMAC-SHA256 over the raw body). Optional; checkout, payment status reconciliation, and webhook processing return `503` until configured.
 
 **Required Variables:**
 - `POSTGRES_DB`: Database name.
@@ -54,9 +55,51 @@ App URL: `http://localhost:3000`
 - `S3_ENDPOINT`: Server-side S3/MinIO endpoint (never exposed to the browser).
 - `MAIL_FROM`: The "From" address for outgoing emails.
 - `LIVEKIT_URL`: LiveKit server URL (e.g. `wss://your-project.livekit.cloud`) used by browsers and the server SDK. Optional.
+- `PAYMENT_PROVIDER`: Payment provider id. Optional; defaults to `mock`. The mock provider is disabled when `NODE_ENV=production`, so production must point this at a real provider once one exists.
 
 **Development Seeds (optional):**
 - `SEED_OWNER_EMAIL`, `SEED_COLLABORATOR_EMAIL`, `SEED_PASSWORD`: Optional seed overrides for `pnpm db:seed` and `pnpm db:seed:dev`.
+
+### Payment provider (local development)
+
+Billing uses a provider abstraction in `packages/payment`. The bundled `mock`
+provider implements the full lifecycle without external services:
+
+1. Configure the webhook secret locally:
+
+   ```bash
+   pnpm env:set -- PAYMENT_WEBHOOK_SECRET "local-dev-secret"
+   pnpm env:set -- PAYMENT_PROVIDER "mock"   # default value
+   ```
+
+2. Start the app (`pnpm dev`) and sign in as the seeded owner.
+3. Start a checkout from billing. The response contains a `checkoutUrl`
+   pointing at `/api/payments/mock/checkout/<checkoutId>`.
+4. Open the mock checkout page and choose **Pay successfully** or **Fail
+   payment**. The page posts the outcome to the same route, which signs and
+   processes the provider event exactly like a real webhook; a succeeded
+   payment moves the subscription to `ACTIVE` with a fresh billing period.
+   `POST /api/payments/mock/checkout/<checkoutId>/refund` refunds a succeeded
+   payment. The mock pages return `404` outside development.
+5. Signed webhooks arrive at `POST /api/webhooks/payments` with the
+   `X-Payment-Signature` header. To replay one manually:
+
+   ```bash
+   BODY='{"eventId":"evt_demo","type":"payment.succeeded","providerPaymentId":"<checkoutId>","amountMinor":1900,"currency":"USD","organizationId":"<orgId>","failureReason":null,"occurredAt":"2026-01-02T00:00:00.000Z"}'
+   SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "local-dev-secret" -hex | awk '{print $NF}')"
+   curl -sS -X POST http://localhost:3000/api/webhooks/payments \
+     -H "X-Payment-Signature: $SIG" -H "Content-Type: application/json" -d "$BODY"
+   ```
+
+6. `GET /api/billing/payments/<paymentId>/status` (owner only) reconciles a
+   payment against the provider and applies verified transitions; it never
+   trusts the browser redirect. Duplicate and out-of-order events are
+   recorded once and cannot regress a settled payment.
+
+Real-provider work (checkout sessions, webhook signing scheme, refunds,
+recurring renewals) starts by implementing the `PaymentProvider` interface in
+`packages/payment` and extending `PAYMENT_PROVIDER` in
+`packages/env/shared.ts`.
 
 ### Adding a new env var
 

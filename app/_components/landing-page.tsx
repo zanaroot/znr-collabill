@@ -74,6 +74,7 @@ const Navbar = () => {
     { label: "Features", href: "#features" },
     { label: "How it works", href: "#how-it-works" },
     { label: "FAQ", href: "#faq" },
+    { label: "Pricing", href: "/pricing" },
   ];
 
   return (
@@ -1414,7 +1415,7 @@ const MainFooter = () => {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/pricing"
                   className="text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   Pricing

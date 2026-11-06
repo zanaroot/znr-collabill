@@ -52,6 +52,7 @@ const createMockUser = (
   organizationId: "org-1",
   organizationName: "Test Org",
   organizationRole: role,
+  platformRole: null,
 });
 
 describe("InviteUserModal permissions", () => {

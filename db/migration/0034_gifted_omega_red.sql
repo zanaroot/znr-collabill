@@ -1,0 +1,1 @@
+ALTER TABLE "subscription_plans" ADD COLUMN "features" text[] DEFAULT '{}' NOT NULL;

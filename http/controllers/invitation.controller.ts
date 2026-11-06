@@ -4,12 +4,14 @@ import { createFactory } from "hono/factory";
 import type { AuthEnv } from "@/http/models/auth.model";
 import { createPasswordSchema } from "@/http/models/invitation.model";
 import {
-  acceptInvitation,
-  createUserFromInvitation,
   deleteInvitationById,
   findValidInvitationByToken,
 } from "@/http/repositories/invitation.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
+import {
+  acceptInvitationWithMemberLimit,
+  createInvitedUserWithMemberLimit,
+} from "@/http/services/entitlement.service";
 
 const factory = createFactory<AuthEnv>();
 
@@ -46,7 +48,7 @@ export const createPassword = factory.createHandlers(
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await createUserFromInvitation({
+    const result = await createInvitedUserWithMemberLimit({
       email: invitation.email,
       name,
       passwordHash: hashedPassword,
@@ -55,7 +57,11 @@ export const createPassword = factory.createHandlers(
       organizationId: invitation.organizationId,
     });
 
-    if (!newUser) {
+    if (!result.allowed) {
+      return c.json(result.denial, 402);
+    }
+
+    if (!result.value) {
       return c.json({ error: "A user with this email already exists" }, 400);
     }
 
@@ -77,12 +83,16 @@ export const acceptInvitationHandler = factory.createHandlers(async (c) => {
     return c.json({ error: "User not found" }, 404);
   }
 
-  await acceptInvitation({
+  const result = await acceptInvitationWithMemberLimit({
     userId: existingUser.id,
     organizationId: invitation.organizationId,
     role: invitation.role,
     invitationId: invitation.id,
   });
+
+  if (!result.allowed) {
+    return c.json(result.denial, 402);
+  }
 
   return c.json({ message: "Invitation accepted successfully" });
 });

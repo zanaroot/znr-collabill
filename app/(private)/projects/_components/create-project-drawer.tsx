@@ -1,12 +1,23 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { App, Button, Drawer, Flex, Form, Input, InputNumber } from "antd";
+import {
+  Alert,
+  App,
+  Button,
+  Drawer,
+  Flex,
+  Form,
+  Input,
+  InputNumber,
+} from "antd";
 import { Controller, useForm } from "react-hook-form";
+import { useEntitlements } from "@/app/_hooks/use-billing";
 import {
   type CreateProjectInput,
   createProjectSchema,
 } from "@/http/models/project.model";
+import { useCurrentUser } from "../../team-management/_hooks/use-team";
 import { useCreateProject } from "../_hooks/use-projects";
 
 const { TextArea } = Input;
@@ -24,6 +35,8 @@ export function CreateProjectDrawer({
 }: CreateProjectDrawerProps) {
   const { message } = App.useApp();
   const createProjectMutation = useCreateProject();
+  const { data: currentUser } = useCurrentUser();
+  const { data: entitlements } = useEntitlements({ enabled: open });
   const [form] = Form.useForm();
 
   const {
@@ -46,6 +59,9 @@ export function CreateProjectDrawer({
     reset();
     onClose();
   };
+
+  const isOwner = currentUser?.organizationRole === "OWNER";
+  const projectLimitReached = entitlements?.reached.projects ?? false;
 
   const onSubmit = (data: CreateProjectInput) => {
     createProjectMutation.mutate(data, {
@@ -75,12 +91,25 @@ export function CreateProjectDrawer({
             type="primary"
             onClick={handleSubmit(onSubmit)}
             loading={createProjectMutation.isPending}
+            disabled={projectLimitReached}
           >
             Create
           </Button>
         </Flex>
       }
     >
+      {projectLimitReached && (
+        <Alert
+          type="warning"
+          showIcon
+          className="mb-4"
+          message={
+            isOwner
+              ? "You've reached the project limit on your current plan. Upgrade to Pro to create more projects."
+              : "Your organization has reached its project limit."
+          }
+        />
+      )}
       <Form form={form} layout="vertical">
         <Form.Item
           label="Project Name"

@@ -43,5 +43,6 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     organizationId: result.organization?.id ?? null,
     organizationName: result.organization?.name ?? null,
     organizationRole,
+    platformRole: result.user.platformRole ?? null,
   };
 };

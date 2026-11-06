@@ -12,6 +12,7 @@ import {
   organizations,
   projectMembers,
   projects,
+  subscriptionPlans,
   tasks,
   userRoles,
   users,
@@ -27,6 +28,8 @@ const seedOwnerEmail = process.env.SEED_OWNER_EMAIL ?? "owner@collabill.local";
 const seedAdminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@collabill.local";
 const seedCollaboratorEmail =
   process.env.SEED_COLLABORATOR_EMAIL ?? "collab@collabill.local";
+const seedPlatformAdminEmail =
+  process.env.SEED_PLATFORM_ADMIN_EMAIL ?? "platform@collabill.local";
 const seedPassword = process.env.SEED_PASSWORD ?? "password123";
 
 export type CoreSeedResult = {
@@ -76,6 +79,47 @@ async function getOrCreateUser(input: SeedUserInput, passwordHash: string) {
 
   if (!created) {
     throw new Error(`Failed to create user ${input.email}`);
+  }
+
+  return created;
+}
+
+async function ensurePlatformAdmin(passwordHash: string) {
+  const existing = await db.query.users.findFirst({
+    where: eq(users.email, seedPlatformAdminEmail),
+  });
+
+  if (existing) {
+    if (existing.platformRole === "PLATFORM_ADMIN") {
+      return existing;
+    }
+    const [updated] = await db
+      .update(users)
+      .set({ platformRole: "PLATFORM_ADMIN" })
+      .where(eq(users.id, existing.id))
+      .returning();
+    if (!updated) {
+      throw new Error(
+        `Failed to grant platform admin to ${seedPlatformAdminEmail}`,
+      );
+    }
+    return updated;
+  }
+
+  const [created] = await db
+    .insert(users)
+    .values({
+      email: seedPlatformAdminEmail,
+      name: "Seed Platform Admin",
+      passwordHash,
+      platformRole: "PLATFORM_ADMIN",
+    })
+    .returning();
+
+  if (!created) {
+    throw new Error(
+      `Failed to create platform admin ${seedPlatformAdminEmail}`,
+    );
   }
 
   return created;
@@ -243,6 +287,62 @@ async function seedOrganizationIntegration(organizationId: string) {
       repos: ["example/collabill-seed", "example/collabill-seed-v2"],
     }),
   });
+}
+
+async function seedSubscriptionPlans() {
+  const plans = [
+    {
+      code: "FREE" as const,
+      name: "Free",
+      description: "Starter plan for small teams",
+      amountMinor: 0,
+      amountMinorYearly: null as number | null,
+      currency: "USD",
+      supportedCurrencies: ["USD"],
+      interval: null,
+      maxMembers: 5,
+      maxProjects: 3,
+      features: [] as string[],
+      active: true,
+    },
+    {
+      code: "PRO" as const,
+      name: "Pro",
+      description: "Unlimited members and projects",
+      amountMinor: 1900,
+      amountMinorYearly: 19000 as number | null,
+      currency: "USD",
+      supportedCurrencies: ["USD"],
+      interval: "MONTHLY" as const,
+      maxMembers: null,
+      maxProjects: null,
+      features: ["integrations", "finance"] as string[],
+      active: true,
+    },
+  ];
+
+  for (const plan of plans) {
+    await db
+      .insert(subscriptionPlans)
+      .values(plan)
+      .onConflictDoUpdate({
+        target: subscriptionPlans.code,
+        set: {
+          name: plan.name,
+          description: plan.description,
+          amountMinor: plan.amountMinor,
+          amountMinorYearly: plan.amountMinorYearly,
+          currency: plan.currency,
+          supportedCurrencies: plan.supportedCurrencies,
+          interval: plan.interval,
+          maxMembers: plan.maxMembers,
+          maxProjects: plan.maxProjects,
+          features: plan.features,
+          active: plan.active,
+          updatedAt: new Date(),
+        },
+      });
+  }
 }
 
 async function getOrCreateSeedProject(ownerId: string, organizationId: string) {
@@ -494,6 +594,8 @@ export const seedCore = async (): Promise<CoreSeedResult> => {
   const collaborator = await getOrCreateUser(collaboratorInput, passwordHash);
   const admin = await getOrCreateUser(adminInput, passwordHash);
 
+  await ensurePlatformAdmin(passwordHash);
+
   await uploadSeedAvatar(owner.id);
   await uploadSeedAvatar(collaborator.id);
   await uploadSeedAvatar(admin.id);
@@ -512,6 +614,8 @@ export const seedCore = async (): Promise<CoreSeedResult> => {
     ownerRole: ownerInput.role,
     organizationId: organization.id,
   });
+
+  await seedSubscriptionPlans();
 
   await seedLeaveBalances(collaborator.id, organization.id);
   await seedOrganizationIntegration(organization.id);

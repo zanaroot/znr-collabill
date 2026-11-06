@@ -7,7 +7,7 @@ import {
 } from "@/http/repositories/audit.repository";
 
 export const logAudit = async (data: {
-  organizationId: string;
+  organizationId: string | null;
   actorId?: string;
   action: AuditAction;
   entity: AuditEntity;

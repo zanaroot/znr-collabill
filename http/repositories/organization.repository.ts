@@ -1,6 +1,6 @@
 "server only";
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   auditLogs,
@@ -186,6 +186,29 @@ export const getOrganizationMembers = async (organizationId: string) => {
     .where(eq(organizationMembers.organizationId, organizationId));
 
   return members;
+};
+
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export const countOrganizationMembers = async (
+  organizationId: string,
+): Promise<number> => {
+  const rows = await db
+    .select({ value: count() })
+    .from(organizationMembers)
+    .where(eq(organizationMembers.organizationId, organizationId));
+  return Number(rows[0]?.value ?? 0);
+};
+
+export const countOrganizationMembersInTx = async (
+  tx: Transaction,
+  organizationId: string,
+): Promise<number> => {
+  const rows = await tx
+    .select({ value: count() })
+    .from(organizationMembers)
+    .where(eq(organizationMembers.organizationId, organizationId));
+  return Number(rows[0]?.value ?? 0);
 };
 
 export const isUserInOrganization = async (

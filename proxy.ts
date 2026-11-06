@@ -24,11 +24,12 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      * - auth routes (sign-in, sign-up, forgot-password, etc.)
+     * - pricing (public plan catalog page)
      * - verify-email result page (must stay public for email links)
      * - legal routes (privacy, terms)
      * - meet (public guest meeting join pages)
      * - assets (public assets like robots.txt)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|public|sign-in|sign-up|forgot-password|create-account|reset-password|verify-email|privacy|terms|meet/|assets).+)",
+    "/((?!api|_next/static|_next/image|favicon.ico|public|sign-in|sign-up|forgot-password|create-account|reset-password|verify-email|privacy|terms|pricing|meet/|assets).+)",
   ],
 };
