@@ -1615,7 +1615,7 @@ export const openAPIDocument = {
         tags: ["Invoices"],
         summary: "Update invoice status",
         description:
-          "Update invoice status (owner only); setting DRAFT deletes the invoice and unarchives its tasks",
+          "Update invoice status (validate/unvalidate: owner only; mark as paid: owner or the invoice member, and only from VALIDATED). Setting DRAFT deletes the invoice and unarchives its tasks",
         parameters: [
           {
             name: "id",
@@ -1641,6 +1641,7 @@ export const openAPIDocument = {
           200: { description: "Updated invoice" },
           403: { description: "Unauthorized" },
           404: { description: "Invoice not found" },
+          409: { description: "Invalid status transition" },
         },
       },
     },

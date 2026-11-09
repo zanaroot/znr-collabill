@@ -11,7 +11,6 @@ import {
 import * as invoiceRepository from "@/http/repositories/invoice.repository";
 import { createNotification } from "@/http/repositories/notification.repository";
 import {
-  archiveTasksByIds,
   getValidatedTaskIdsByPeriodAndReviewer,
   getValidatedTaskIdsByPeriodAndUser,
   unarchiveTasksByInvoice,
@@ -79,6 +78,30 @@ export const updateInvoiceStatus = factory.createHandlers(
       return c.json({ error: "Unauthorized" }, 403);
     }
 
+    const isOrgOwner = user.organizationRole === "OWNER";
+    const isInvoicedMember = invoice.userId === user.id;
+
+    if (status === "PAID") {
+      if (invoice.status !== "VALIDATED") {
+        return c.json(
+          { error: "Invoice must be validated before marking as paid" },
+          409,
+        );
+      }
+
+      if (!isOrgOwner && !isInvoicedMember) {
+        return c.json(
+          {
+            error:
+              "Forbidden: Only the organization owner or the invoice member can mark an invoice as paid",
+          },
+          403,
+        );
+      }
+    } else if (!isOrgOwner) {
+      return c.json({ error: "Forbidden: Owner role required" }, 403);
+    }
+
     const updateParams: Partial<typeof invoices.$inferInsert> = { status };
 
     if (status === "PAID") {
@@ -86,26 +109,12 @@ export const updateInvoiceStatus = factory.createHandlers(
 
       await notifyInvoicePaidEmail(id);
 
-      try {
-        const invoice = await invoiceRepository.findInvoiceById(id);
-
-        if (invoice) {
-          if (status === "PAID") {
-            updateParams.paidAt = new Date();
-
-            await notifyInvoicePaidEmail(id);
-
-            sendFinanceInvoiceNotification(id, "PAID").catch((err) => {
-              console.error(
-                "[Finance notification] Failed to send paid invoice email:",
-                err,
-              );
-            });
-          }
-        }
-      } catch (err) {
-        console.error("[Finance notification] Unexpected error:", err);
-      }
+      sendFinanceInvoiceNotification(id, "PAID").catch((err) => {
+        console.error(
+          "[Finance notification] Failed to send paid invoice email:",
+          err,
+        );
+      });
     } else if (status === "VALIDATED") {
       updateParams.validatedAt = new Date();
 
@@ -154,7 +163,11 @@ export const updateInvoiceStatus = factory.createHandlers(
     });
 
     if (updated && user.organizationId) {
-      if (status === "PAID" && invoice.status !== "PAID") {
+      if (
+        status === "PAID" &&
+        invoice.status !== "PAID" &&
+        invoice.userId !== user.id
+      ) {
         await createNotification({
           userId: invoice.userId,
           organizationId: user.organizationId,
@@ -193,10 +206,58 @@ export const createInvoice = factory.createHandlers(
 
     const { lines, ...invoiceData } = payload;
 
-    const invoice = await invoiceRepository.createInvoiceWithLines(
+    const existingInvoice = await invoiceRepository.findInvoiceByPeriodAndUser(
+      invoiceData.periodStart,
+      invoiceData.periodEnd,
+      invoiceData.userId,
+      invoiceData.organizationId,
+    );
+
+    if (existingInvoice?.status && existingInvoice.status !== "DRAFT") {
+      return c.json(
+        { error: "An invoice already exists for this period" },
+        409,
+      );
+    }
+
+    const validatedTaskIds = await getValidatedTaskIdsByPeriodAndUser(
+      invoiceData.userId,
+      invoiceData.organizationId,
+      new Date(invoiceData.periodStart),
+      new Date(invoiceData.periodEnd),
+    );
+
+    const validatedReviewerTaskIds =
+      await getValidatedTaskIdsByPeriodAndReviewer(
+        invoiceData.userId,
+        invoiceData.organizationId,
+        new Date(invoiceData.periodStart),
+        new Date(invoiceData.periodEnd),
+      );
+
+    const taskIdsToArchive = Array.from(
+      new Set([...validatedTaskIds, ...validatedReviewerTaskIds]),
+    );
+
+    console.log(
+      `Found ${validatedTaskIds.length} validated tasks and ${validatedReviewerTaskIds.length} validated reviewer tasks eligible for invoice ${invoiceData.userId}:`,
+      taskIdsToArchive,
+    );
+
+    const result = await invoiceRepository.upsertInvoiceForPeriod(
       invoiceData,
       lines,
+      taskIdsToArchive,
     );
+
+    if (result.conflict) {
+      return c.json(
+        { error: "An invoice already exists for this period" },
+        409,
+      );
+    }
+
+    const { invoice, archivedTaskIds } = result;
 
     if (invoice.status === "VALIDATED") {
       console.log("Invoice validated - sending finance email");
@@ -220,43 +281,10 @@ export const createInvoice = factory.createHandlers(
       });
     }
 
-    const validatedTaskIds = await getValidatedTaskIdsByPeriodAndUser(
-      invoiceData.userId,
-      new Date(invoiceData.periodStart),
-      new Date(invoiceData.periodEnd),
-    );
-
-    const validatedReviewerTaskIds =
-      await getValidatedTaskIdsByPeriodAndReviewer(
-        invoiceData.userId,
-        new Date(invoiceData.periodStart),
-        new Date(invoiceData.periodEnd),
-      );
-
-    const taskIdsToArchive = Array.from(
-      new Set([...validatedTaskIds, ...validatedReviewerTaskIds]),
-    );
-
     console.log(
-      `Found ${validatedTaskIds.length} validated tasks and ${validatedReviewerTaskIds.length} validated reviewer tasks to archive for invoice ${invoice.id}:`,
-      taskIdsToArchive,
+      `Archived ${archivedTaskIds.length} tasks for invoice ${invoice.id}:`,
+      archivedTaskIds,
     );
-
-    if (taskIdsToArchive.length > 0) {
-      const archivedTasks = await archiveTasksByIds(
-        taskIdsToArchive,
-        invoice.id,
-      );
-
-      console.log(
-        `Successfully archived ${archivedTasks.length} tasks for invoice ${invoice.id}:`,
-        archivedTasks.map((t) => ({
-          id: t.id,
-          status: t.status,
-          archivedAt: t.archivedAt,
-        })),
-      );
-    }
 
     await logAudit({
       organizationId: user.organizationId,
