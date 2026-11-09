@@ -67,15 +67,15 @@ export const EmailVerificationStatus = ({
           </Button>,
           ...(!isVerified
             ? [
-              <Button
-                key="verify"
-                type="primary"
-                loading={loading}
-                onClick={handleVerify}
-              >
-                Send verification link
-              </Button>,
-            ]
+                <Button
+                  key="verify"
+                  type="primary"
+                  loading={loading}
+                  onClick={handleVerify}
+                >
+                  Send verification link
+                </Button>,
+              ]
             : []),
         ]}
       >
