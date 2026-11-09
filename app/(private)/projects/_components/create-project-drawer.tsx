@@ -22,7 +22,9 @@ export function CreateProjectDrawer({
   onClose,
   onCreated,
 }: CreateProjectDrawerProps) {
-  const { message } = App.useApp();
+  const { message } = App.useApp();  
+  console.log();
+  
   const createProjectMutation = useCreateProject();
   const [form] = Form.useForm();
 
