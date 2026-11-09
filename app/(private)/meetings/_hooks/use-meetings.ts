@@ -88,6 +88,7 @@ export const useInviteMeetingMembers = (meetingId: string) => {
       queryClient.invalidateQueries({
         queryKey: meetingKeys.detail(meetingId),
       });
+      queryClient.invalidateQueries({ queryKey: meetingKeys.list() });
     },
   });
 };
@@ -112,6 +113,7 @@ export const useRevokeMeetingInvitation = (meetingId: string) => {
       queryClient.invalidateQueries({
         queryKey: meetingKeys.detail(meetingId),
       });
+      queryClient.invalidateQueries({ queryKey: meetingKeys.list() });
     },
   });
 };
@@ -134,12 +136,15 @@ export const useCreateGuestLink = (meetingId: string) => {
       queryClient.invalidateQueries({
         queryKey: meetingKeys.detail(meetingId),
       });
+      queryClient.invalidateQueries({ queryKey: meetingKeys.list() });
     },
   });
 };
 
-export const useJoinMeeting = () =>
-  useMutation({
+export const useJoinMeeting = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
     mutationFn: async (meetingId: string) => {
       const res = await client.api.meetings[":id"].join.$post({
         param: { id: meetingId },
@@ -150,7 +155,14 @@ export const useJoinMeeting = () =>
       }
       return (await res.json()) as MeetingTokenResponse;
     },
+    onSuccess: (_, meetingId) => {
+      queryClient.invalidateQueries({
+        queryKey: meetingKeys.detail(meetingId),
+      });
+      queryClient.invalidateQueries({ queryKey: meetingKeys.list() });
+    },
   });
+};
 
 export const useLeaveMeeting = (meetingId: string) => {
   const queryClient = useQueryClient();
@@ -170,6 +182,7 @@ export const useLeaveMeeting = (meetingId: string) => {
       queryClient.invalidateQueries({
         queryKey: meetingKeys.detail(meetingId),
       });
+      queryClient.invalidateQueries({ queryKey: meetingKeys.list() });
     },
   });
 };
@@ -214,8 +227,10 @@ export const usePublicMeetingInfo = (token: string) =>
     retry: false,
   });
 
-export const useGuestJoinMeeting = (token: string) =>
-  useMutation({
+export const useGuestJoinMeeting = (token: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
     mutationFn: async (name: string) => {
       const res = await client.api.meetings.public[":token"].join.$post({
         param: { token },
@@ -227,7 +242,13 @@ export const useGuestJoinMeeting = (token: string) =>
       }
       return (await res.json()) as MeetingTokenResponse;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: meetingKeys.publicInfo(token),
+      });
+    },
   });
+};
 
 export const useCreateInstantMeeting = () =>
   useMutation({

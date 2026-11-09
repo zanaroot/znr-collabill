@@ -1,9 +1,10 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { App, Button, Flex, Modal, Radio, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { getGreeting } from "@/app/_utils/get-greeting";
+import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import type { PresenceStatus } from "@/http/models/presence.model";
 import { client } from "@/packages/hono";
 import { useOrganizationAttendanceSettings } from "../type-organization/_components/hooks/use-organization-attendance-settings";
@@ -26,6 +27,7 @@ export const PresenceModal = ({
   userName,
 }: PresenceModalProps) => {
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
 
   const [isVisible, setIsVisible] = useState(false);
   const [status, setStatus] = useState<PresenceStatus>();
@@ -81,7 +83,17 @@ export const PresenceModal = ({
       return result;
     },
 
-    onSuccess: () => {
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["today-presence"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-presences"] }),
+        queryClient.invalidateQueries({ queryKey: ["all-presences"] }),
+        queryClient.invalidateQueries({ queryKey: ["member-presences"] }),
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardKeys.statistics,
+        }),
+      ]);
       message.success("Presence marked successfully!");
       setIsVisible(false);
       onSuccess();

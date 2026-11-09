@@ -98,6 +98,7 @@ export const useRejectCall = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: callKeys.active() });
+      queryClient.invalidateQueries({ queryKey: callKeys.history() });
     },
   });
 };
@@ -118,6 +119,7 @@ export const useCancelCall = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: callKeys.active() });
+      queryClient.invalidateQueries({ queryKey: callKeys.history() });
     },
   });
 };

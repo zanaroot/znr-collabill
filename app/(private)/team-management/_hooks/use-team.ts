@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import type { AuthUser } from "@/http/models/auth.model";
 import type {
   CollaboratorRate,
@@ -133,6 +134,13 @@ export function useDeleteUser() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: teamKeys.users() });
+      queryClient.invalidateQueries({ queryKey: teamKeys.onlineStatus() });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["member-projects"] });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: dashboardKeys.statistics,
+      });
     },
   });
 }
@@ -154,6 +162,7 @@ export function useLeaveOrganization() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: teamKeys.currentUser() });
       queryClient.invalidateQueries({ queryKey: teamKeys.users() });
+      queryClient.invalidateQueries({ queryKey: ["userOrganizations"] });
     },
   });
 }
@@ -176,6 +185,9 @@ export function useUpdateUserRole() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: teamKeys.users() });
       queryClient.invalidateQueries({ queryKey: teamKeys.currentUser() });
+      queryClient.invalidateQueries({
+        queryKey: dashboardKeys.invoiceEstimate,
+      });
     },
   });
 }
@@ -224,6 +236,9 @@ export function useUpdateCollaboratorRates() {
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({
         queryKey: teamKeys.collaboratorRates(userId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: dashboardKeys.invoiceEstimate,
       });
     },
   });

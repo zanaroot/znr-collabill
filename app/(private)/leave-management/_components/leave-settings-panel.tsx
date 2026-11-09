@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Card, Form, InputNumber, message, Radio } from "antd";
+import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import type { OrganizationLeaveSettings } from "@/http/models/leave.model";
 import { client } from "@/packages/hono";
 
@@ -42,11 +43,18 @@ export const LeaveSettingsPanel = () => {
 
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       message.success("Settings updated successfully");
-      queryClient.invalidateQueries({
-        queryKey: ["current-organization-settings"],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["current-organization-settings"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["my-leave-balance"] }),
+        queryClient.invalidateQueries({ queryKey: ["leave-balance"] }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardKeys.invoiceEstimate,
+        }),
+      ]);
     },
     onError: (error: Error) => {
       message.error(error.message);
