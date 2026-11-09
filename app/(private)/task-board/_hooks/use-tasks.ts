@@ -12,7 +12,7 @@ type ErrorResponse = {
   message?: string;
 };
 
-export const taskKeys = {
+const taskKeys = {
   all: ["tasks"] as const,
   project: (projectId: string) =>
     [...taskKeys.all, "project", projectId] as const,
