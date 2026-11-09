@@ -17,7 +17,6 @@ const buildUser = (id: string) => ({
   organizationId: "org-1",
   organizationName: "Org",
   organizationRole: "COLLABORATOR" as const,
-  emailVerified: null,
 });
 
 const buildApp = (options: {
