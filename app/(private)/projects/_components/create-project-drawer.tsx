@@ -34,6 +34,8 @@ export function CreateProjectDrawer({
   onCreated,
 }: CreateProjectDrawerProps) {
   const { message } = App.useApp();
+  console.log();
+
   const createProjectMutation = useCreateProject();
   const { data: currentUser } = useCurrentUser();
   const { data: entitlements } = useEntitlements({ enabled: open });
