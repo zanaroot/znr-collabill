@@ -112,6 +112,7 @@ jobs:
           MAIL_FROM=${{ vars.MAIL_FROM }}
           LIVEKIT_URL=${{ vars.LIVEKIT_URL }}
           PAYMENT_PROVIDER=${{ vars.PAYMENT_PROVIDER }}
+          NOWPAYMENTS_BASE_URL=${{ vars.NOWPAYMENTS_BASE_URL }}
           DATABASE_URL=${{ secrets.DATABASE_URL }}
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
@@ -121,6 +122,8 @@ jobs:
           LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
           LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
           PAYMENT_WEBHOOK_SECRET=${{ secrets.PAYMENT_WEBHOOK_SECRET }}
+          NOWPAYMENTS_API_KEY=${{ secrets.NOWPAYMENTS_API_KEY }}
+          NOWPAYMENTS_IPN_SECRET=${{ secrets.NOWPAYMENTS_IPN_SECRET }}
           EOF
           ENV_PAYLOAD_B64="$(base64 -w 0 deploy.env)"
           rm -f deploy.env

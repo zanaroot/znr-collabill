@@ -51,7 +51,7 @@ export type PaymentWebhookEvent = {
 };
 
 export type WebhookVerification =
-  | { ok: true; event: PaymentWebhookEvent }
+  | { ok: true; event: PaymentWebhookEvent | null }
   | {
       ok: false;
       reason: "missing_signature" | "invalid_signature" | "malformed_payload";

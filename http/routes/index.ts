@@ -18,6 +18,7 @@ import { livekitWebhookRoutes } from "./livekit.route";
 import { meetingRoutes } from "./meeting.route";
 import { publicMeetingRoutes } from "./meeting-public.route";
 import { mockCheckoutRoutes } from "./mock-payment.route";
+import { nowpaymentsWebhookRoutes } from "./nowpayments.route";
 import { organizationRoutes } from "./organization.route";
 import { publicPasswordRoutes } from "./password.route";
 import { paymentWebhookRoutes } from "./payment-webhook.route";
@@ -35,6 +36,7 @@ export const app = new Hono()
   .route("/webhooks/livekit", livekitWebhookRoutes)
   .route("/webhooks/payments", paymentWebhookRoutes)
   .route("/payments/mock", mockCheckoutRoutes)
+  .route("/payments/nowpayments", nowpaymentsWebhookRoutes)
   .route("/meetings/public", publicMeetingRoutes)
   .route("/billing/public", publicBillingRoutes)
   .use("*", authMiddleware)

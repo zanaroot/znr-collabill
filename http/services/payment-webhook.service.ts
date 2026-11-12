@@ -126,5 +126,8 @@ export const processPaymentWebhook = async (
   if (!verification.ok) {
     throw verificationError(verification.reason);
   }
+  if (!verification.event) {
+    return { outcome: "unknown_payment" };
+  }
   return await processPaymentEvent(verification.event, provider.name);
 };

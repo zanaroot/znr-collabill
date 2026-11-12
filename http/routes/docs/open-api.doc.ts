@@ -2197,6 +2197,33 @@ export const openAPIDocument = {
         },
       },
     },
+    "/api/payments/nowpayments/webhook": {
+      post: {
+        tags: ["Webhooks"],
+        summary: "NOWPayments IPN webhook",
+        description:
+          "Receive NOWPayments instant payment notifications; the x-nowpayments-sig HMAC-SHA512 signature is verified over the key-sorted JSON payload before any payment or subscription is updated, idempotently",
+        security: [],
+        parameters: [
+          {
+            name: "x-nowpayments-sig",
+            in: "header",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "Notification received or safely ignored" },
+          400: {
+            description: "Malformed payload or payment reference mismatch",
+          },
+          401: { description: "Missing or invalid IPN signature" },
+          404: { description: "Payment reference not found" },
+          500: { description: "Unexpected processing failure" },
+          503: { description: "NOWPayments IPN is not configured" },
+        },
+      },
+    },
     "/api/invoices": {
       get: {
         tags: ["Invoices"],

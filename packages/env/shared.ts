@@ -14,7 +14,7 @@ export const publicEnvSchema = z.object({
     : z.string().trim().min(1).default("http://localhost:3000"),
 });
 
-export const serverEnvSchema = publicEnvSchema.extend({
+const baseServerEnvSchema = publicEnvSchema.extend({
   DATABASE_URL: z.string().trim().min(1, "DATABASE_URL is required"),
   MINIO_ROOT_USER: z.string().trim().min(1, "MINIO_ROOT_USER is required"),
   MINIO_ROOT_PASSWORD: z
@@ -38,13 +38,61 @@ export const serverEnvSchema = publicEnvSchema.extend({
   PAYMENT_PROVIDER: z.preprocess(
     (value) =>
       typeof value === "string" && value.trim() === "" ? undefined : value,
-    z.enum(["mock"]).default("mock"),
+    z.enum(["mock", "nowpayments"]).default("mock"),
   ),
   PAYMENT_WEBHOOK_SECRET: z.string().trim().optional(),
+  NOWPAYMENTS_API_KEY: z.string().trim().optional(),
+  NOWPAYMENTS_BASE_URL: z.preprocess(
+    (value) =>
+      typeof value === "string" && value.trim() === "" ? undefined : value,
+    z
+      .string()
+      .trim()
+      .url("NOWPAYMENTS_BASE_URL must be a valid URL")
+      .default("https://api.nowpayments.io/v1"),
+  ),
+  NOWPAYMENTS_IPN_SECRET: z.string().trim().optional(),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development")
     .optional(),
+});
+
+export const serverEnvSchema = baseServerEnvSchema.superRefine((env, ctx) => {
+  if (env.PAYMENT_PROVIDER !== "nowpayments") {
+    return;
+  }
+
+  if (!env.NOWPAYMENTS_API_KEY) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["NOWPAYMENTS_API_KEY"],
+      message:
+        "NOWPAYMENTS_API_KEY is required when PAYMENT_PROVIDER is nowpayments",
+    });
+  }
+  if (!env.NOWPAYMENTS_IPN_SECRET) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["NOWPAYMENTS_IPN_SECRET"],
+      message:
+        "NOWPAYMENTS_IPN_SECRET is required when PAYMENT_PROVIDER is nowpayments",
+    });
+  }
+  if (env.NODE_ENV === "production") {
+    const appUrl = env.NEXT_PUBLIC_APP_URL;
+    const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:|$)/.test(
+      appUrl,
+    );
+    if (!appUrl.startsWith("https://") && !isLocalhost) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["NEXT_PUBLIC_APP_URL"],
+        message:
+          "NEXT_PUBLIC_APP_URL must use https in production so the NOWPayments IPN callback URL is HTTPS",
+      });
+    }
+  }
 });
 
 export const parseEnv = <TSchema extends z.ZodTypeAny>(

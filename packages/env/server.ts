@@ -26,6 +26,9 @@ const readServerEnv = (): ParsedServerEnv => {
     LIVEKIT_API_SECRET: process.env.LIVEKIT_API_SECRET,
     PAYMENT_PROVIDER: process.env.PAYMENT_PROVIDER,
     PAYMENT_WEBHOOK_SECRET: process.env.PAYMENT_WEBHOOK_SECRET,
+    NOWPAYMENTS_API_KEY: process.env.NOWPAYMENTS_API_KEY,
+    NOWPAYMENTS_BASE_URL: process.env.NOWPAYMENTS_BASE_URL,
+    NOWPAYMENTS_IPN_SECRET: process.env.NOWPAYMENTS_IPN_SECRET,
     NODE_ENV: process.env.NODE_ENV ?? "development",
   };
 
