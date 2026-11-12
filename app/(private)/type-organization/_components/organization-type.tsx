@@ -2,6 +2,7 @@
 
 import {
   ApartmentOutlined,
+  CreditCardOutlined,
   DeleteOutlined,
   GithubOutlined,
   InfoCircleOutlined,
@@ -22,6 +23,7 @@ import type {
 } from "@/app/(private)/type-organization/_components/integration-card-form";
 import { IntegrationCard } from "@/app/(private)/type-organization/_components/integration-card-form";
 import { IntegrationHelpModal } from "@/app/(private)/type-organization/_components/integration-help-modal";
+import { OrganizationBillingPanel } from "@/app/(private)/type-organization/_components/organization-billing-panel";
 import { OrganizationFinancePanel } from "@/app/(private)/type-organization/_components/organization-finance-panel";
 import { OrganizationSettingsPanel } from "@/app/(private)/type-organization/_components/organization-settings-panel";
 import type { IntegrationType } from "@/http/models/integration.model";
@@ -534,6 +536,15 @@ export const OrganizationType = () => {
           onDelete={(id) => deleteFinanceEmailMutation.mutate(id)}
         />
       ),
+    },
+    {
+      key: "billing",
+      label: (
+        <span>
+          <CreditCardOutlined /> Billing
+        </span>
+      ),
+      children: <OrganizationBillingPanel isOwner={isOwner} />,
     },
     ...(isOwner
       ? [

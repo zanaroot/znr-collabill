@@ -8,7 +8,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { roleEnum } from "./enums";
+import { platformRoleEnum, roleEnum } from "./enums";
 import { notifications } from "./notification";
 import { organizations } from "./organization";
 
@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   phoneNumber: text("phone_number"),
   phoneOwnerName: text("phone_owner_name"),
   lastSeenAt: timestamp("last_seen_at"),
+  platformRole: platformRoleEnum("platform_role"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -43,6 +43,9 @@ App URL: `http://localhost:3000`
 - `BREVO_API_KEY`: API key for Brevo (or another email provider) to send emails.
 - `LIVEKIT_API_KEY`: LiveKit Cloud (or self-hosted LiveKit) API key used to mint short-lived room tokens. Optional; audio/video calling and meetings return `503` until configured.
 - `LIVEKIT_API_SECRET`: LiveKit API secret used to sign tokens and verify webhooks. Optional.
+- `PAYMENT_WEBHOOK_SECRET`: Secret used to sign and verify payment webhooks (`X-Payment-Signature`, `sha256=<hex>` HMAC-SHA256 over the raw body). Optional; checkout, payment status reconciliation, and webhook processing return `503` until configured.
+- `NOWPAYMENTS_API_KEY`: NOWPayments API key used to create payments. Required when `PAYMENT_PROVIDER=nowpayments`.
+- `NOWPAYMENTS_IPN_SECRET`: NOWPayments IPN secret key used to verify `x-nowpayments-sig` (HMAC-SHA512 over the key-sorted JSON payload). Required when `PAYMENT_PROVIDER=nowpayments`.
 
 **Required Variables:**
 - `POSTGRES_DB`: Database name.
@@ -54,9 +57,154 @@ App URL: `http://localhost:3000`
 - `S3_ENDPOINT`: Server-side S3/MinIO endpoint (never exposed to the browser).
 - `MAIL_FROM`: The "From" address for outgoing emails.
 - `LIVEKIT_URL`: LiveKit server URL (e.g. `wss://your-project.livekit.cloud`) used by browsers and the server SDK. Optional.
+- `PAYMENT_PROVIDER`: Payment provider id. Optional; defaults to `mock`. Supported values: `mock`, `nowpayments`. The mock provider is disabled when `NODE_ENV=production`, so production must use `nowpayments` (or another real provider) to accept payments.
+- `NOWPAYMENTS_BASE_URL`: NOWPayments API base URL. Optional; defaults to `https://api.nowpayments.io/v1`. Use `https://api-sandbox.nowpayments.io/v1` with sandbox credentials for testing.
 
 **Development Seeds (optional):**
 - `SEED_OWNER_EMAIL`, `SEED_COLLABORATOR_EMAIL`, `SEED_PASSWORD`: Optional seed overrides for `pnpm db:seed` and `pnpm db:seed:dev`.
+
+### Payment provider (local development)
+
+Billing uses a provider abstraction in `packages/payment`. The bundled `mock`
+provider implements the full lifecycle without external services:
+
+1. Configure the webhook secret locally:
+
+   ```bash
+   pnpm env:set -- PAYMENT_WEBHOOK_SECRET "local-dev-secret"
+   pnpm env:set -- PAYMENT_PROVIDER "mock"   # default value
+   ```
+
+2. Start the app (`pnpm dev`) and sign in as the seeded owner.
+3. Start a checkout from billing. The response contains a `checkoutUrl`
+   pointing at `/api/payments/mock/checkout/<checkoutId>`.
+4. Open the mock checkout page and choose **Pay successfully** or **Fail
+   payment**. The page posts the outcome to the same route, which signs and
+   processes the provider event exactly like a real webhook; a succeeded
+   payment moves the subscription to `ACTIVE` with a fresh billing period.
+   `POST /api/payments/mock/checkout/<checkoutId>/refund` refunds a succeeded
+   payment. The mock pages return `404` outside development.
+5. Signed webhooks arrive at `POST /api/webhooks/payments` with the
+   `X-Payment-Signature` header. To replay one manually:
+
+   ```bash
+   BODY='{"eventId":"evt_demo","type":"payment.succeeded","providerPaymentId":"<checkoutId>","amountMinor":1900,"currency":"USD","organizationId":"<orgId>","failureReason":null,"occurredAt":"2026-01-02T00:00:00.000Z"}'
+   SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "local-dev-secret" -hex | awk '{print $NF}')"
+   curl -sS -X POST http://localhost:3000/api/webhooks/payments \
+     -H "X-Payment-Signature: $SIG" -H "Content-Type: application/json" -d "$BODY"
+   ```
+
+6. `GET /api/billing/payments/<paymentId>/status` (owner only) reconciles a
+   payment against the provider and applies verified transitions; it never
+   trusts the browser redirect. Duplicate and out-of-order events are
+   recorded once and cannot regress a settled payment.
+
+Real-provider work for additional providers (recurring renewals, refunds for
+providers without a refund API) starts by implementing the `PaymentProvider`
+interface in `packages/payment` and extending `PAYMENT_PROVIDER` in
+`packages/env/shared.ts`.
+
+### NOWPayments (IPN webhook)
+
+CollaBill creates NOWPayments payments through `POST <NOWPAYMENTS_BASE_URL>/payment`
+and receives status updates via an IPN (Instant Payment Notification) webhook.
+
+#### Environment variables
+
+```bash
+pnpm env:set -- PAYMENT_PROVIDER "nowpayments"
+pnpm env:set -- NOWPAYMENTS_API_KEY "<api-key>"
+pnpm env:set -- NOWPAYMENTS_IPN_SECRET "<ipn-secret>"
+pnpm env:set -- NOWPAYMENTS_BASE_URL "https://api.nowpayments.io/v1"   # optional, this is the default
+pnpm env:set -- PAYMENT_WEBHOOK_SECRET "<webhook-secret>"              # still required by the provider gate
+```
+
+When `PAYMENT_PROVIDER=nowpayments`, the server refuses to boot without
+`NOWPAYMENTS_API_KEY` and `NOWPAYMENTS_IPN_SECRET` (validated in
+`packages/env/shared.ts`), and in production `NEXT_PUBLIC_APP_URL` must be an
+`https://` URL (localhost is exempt for local builds) so the IPN callback URL
+is always HTTPS in production.
+
+#### NOWPayments dashboard configuration
+
+1. In the NOWPayments dashboard, generate an **API key** (Payment Settings) and
+   store it as `NOWPAYMENTS_API_KEY`.
+2. Generate the **IPN secret key** in the Payment Settings tab and store it as
+   `NOWPAYMENTS_IPN_SECRET`. Webhooks are not sent at all if this key is
+   missing, and signature verification fails if it does not match the value
+   configured in CollaBill. Sandbox and production secrets are separate — never
+   mix them.
+3. The callback URL is passed automatically on every payment creation as
+   `ipn_callback_url`, built from `NEXT_PUBLIC_APP_URL`:
+
+   ```
+   https://<your-domain>/api/payments/nowpayments/webhook
+   ```
+
+   You do not need to hardcode the domain anywhere; for local development it
+   becomes `http://localhost:3000/api/payments/nowpayments/webhook`, which
+   NOWPayments cannot reach (no localhost callbacks) — see local testing below.
+4. Ensure your firewall allows NOWPayments notification IPs
+   (`51.89.194.21`, `51.75.77.69`, `138.201.172.58`, `65.21.158.36`) and that
+   the endpoint responds within 3000 ms.
+
+#### Status mapping
+
+| NOWPayments status | CollaBill effect |
+| --- | --- |
+| `waiting`, `confirming`, `confirmed`, `sending` | Acknowledged (`200`), payment stays `PENDING` |
+| `partially_paid` | Acknowledged (`200`), payment stays `PENDING` — a partial payment is never marked as paid |
+| `finished` | Payment → `SUCCEEDED`, subscription activated (only `finished` marks a payment as paid) |
+| `failed` | Payment → `FAILED` with failure reason `failed` |
+| `expired` | Payment → `FAILED` with failure reason `expired` (unblocks a new checkout) |
+| `refunded` | Payment → `REFUNDED` |
+
+Notifications are idempotent: each `payment_id` + `payment_status` pair is
+recorded once (`nowpayments:<payment_id>:<status>`), so retries and replays
+return `200` without reprocessing. Signature verification happens before any
+database access; invalid or missing signatures return `401`, malformed payloads
+`400`, unknown payment references `404` (so NOWPayments can retry), and
+unexpected failures `500`.
+
+#### Testing the webhook locally
+
+NOWPayments cannot deliver IPNs to localhost. Two options:
+
+**1. Replay a signed IPN yourself** (no real transaction). With
+`NOWPAYMENTS_IPN_SECRET` set locally, craft a payload whose `order_id` is the
+UUID of a `PENDING` nowpayments payment in your database and `payment_id` is
+that payment's provider id, then sign it:
+
+```bash
+BODY='{"payment_id":123456789,"payment_status":"finished","price_amount":19,"price_currency":"usd","order_id":"<payment-uuid>","updated_at":"2026-01-02T00:00:00.000Z"}'
+SIG="$(node -e '
+const { createHmac } = require("crypto");
+const sort = (v) => Array.isArray(v) ? v.map(sort)
+  : (v && typeof v === "object"
+      ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sort(v[k])]))
+      : v);
+process.stdout.write(
+  createHmac("sha512", process.env.NOWPAYMENTS_IPN_SECRET)
+    .update(JSON.stringify(sort(JSON.parse(process.argv[1]))))
+    .digest("hex"),
+);
+' "$BODY")"
+curl -sS -X POST http://localhost:3000/api/payments/nowpayments/webhook \
+  -H "x-nowpayments-sig: $SIG" \
+  -H "Content-Type: application/json" \
+  -d "$BODY"
+```
+
+Expected responses: `200` with `{"received":true,"outcome":"processed"}` for a
+valid `finished` IPN, `401` when the signature is missing or wrong, `400` for
+a malformed payload, `404` for an unknown payment reference.
+
+**2. Receive real IPNs through a tunnel** — start `ngrok http 3000` (or
+equivalent), point `NEXT_PUBLIC_APP_URL` at the tunnel URL, and use the NOWPayments
+**sandbox** (`NOWPAYMENTS_BASE_URL=https://api-sandbox.nowpayments.io/v1` with
+sandbox API key + sandbox IPN secret). Create a checkout; status changes on the
+sandbox payment are delivered to the tunnelled
+`/api/payments/nowpayments/webhook` endpoint.
 
 ### Adding a new env var
 
@@ -122,6 +270,8 @@ Production deployment is handled entirely through GitHub Actions. The workflow S
    - `BREVO_API_KEY`
    - `LIVEKIT_API_KEY`
    - `LIVEKIT_API_SECRET`
+   - `NOWPAYMENTS_API_KEY` (required when `PAYMENT_PROVIDER=nowpayments`)
+   - `NOWPAYMENTS_IPN_SECRET` (required when `PAYMENT_PROVIDER=nowpayments`)
    - `DROPLET_HOST`
    - `DROPLET_USER`
    - `DROPLET_SSH_KEY`
@@ -139,6 +289,8 @@ Production deployment is handled entirely through GitHub Actions. The workflow S
    - `S3_ENDPOINT`
    - `MAIL_FROM`
    - `LIVEKIT_URL` (e.g. `wss://your-project.livekit.cloud`)
+   - `PAYMENT_PROVIDER` (e.g. `nowpayments` in production)
+   - `NOWPAYMENTS_BASE_URL` (defaults to `https://api.nowpayments.io/v1` when unset)
 
 ### Deploy
 

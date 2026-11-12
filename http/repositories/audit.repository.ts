@@ -21,10 +21,13 @@ export type AuditEntity =
   | "INVOICE"
   | "INVITATION"
   | "SESSION"
-  | "SETTINGS";
+  | "SETTINGS"
+  | "SUBSCRIPTION"
+  | "PAYMENT"
+  | "PLAN";
 
 export const createAuditLog = async (data: {
-  organizationId: string;
+  organizationId: string | null;
   actorId?: string;
   action: AuditAction;
   entity: AuditEntity;
