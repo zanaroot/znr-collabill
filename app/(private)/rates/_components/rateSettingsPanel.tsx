@@ -5,7 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { InputNumber, message } from "antd";
 import { useEffect, useState } from "react";
-
+import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import {
   useProjects,
   useUpdateProject,
@@ -184,10 +184,15 @@ export default function RateSettingsPanel({
       return response.json();
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["organization-attendance-settings", organizationId],
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["organization-attendance-settings", organizationId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardKeys.invoiceEstimate,
+        }),
+      ]);
     },
   });
 
@@ -216,10 +221,17 @@ export default function RateSettingsPanel({
       return response.json();
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["current-organization-settings"],
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["current-organization-settings"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["my-leave-balance"] }),
+        queryClient.invalidateQueries({ queryKey: ["leave-balance"] }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardKeys.invoiceEstimate,
+        }),
+      ]);
     },
   });
 

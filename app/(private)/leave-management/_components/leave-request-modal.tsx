@@ -71,9 +71,13 @@ export const LeaveRequestModal = ({
 
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       message.success("Leave request submitted successfully");
-      queryClient.invalidateQueries({ queryKey: ["my-leave-requests"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["my-leave-requests"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-leave-balance"] }),
+        queryClient.invalidateQueries({ queryKey: ["leave-balance"] }),
+      ]);
       form.resetFields();
       onClose();
     },

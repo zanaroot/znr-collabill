@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { App, Button, DatePicker, Form, Modal, Select } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
+import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import { useUsers } from "@/app/(private)/team-management/_hooks/use-team";
 import type { PresenceStatus } from "@/http/models/presence.model";
 import { toReadable } from "@/lib/text";
@@ -70,12 +71,18 @@ export const ManagePresenceModal = ({
       return result;
     },
 
-    onSuccess: () => {
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["all-presences"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-presences"] }),
+        queryClient.invalidateQueries({ queryKey: ["member-presences"] }),
+        queryClient.invalidateQueries({ queryKey: ["today-presence"] }),
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardKeys.statistics,
+        }),
+      ]);
       message.success("Presence updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["all-presences"] });
-      queryClient.invalidateQueries({ queryKey: ["my-presences"] });
-      queryClient.invalidateQueries({ queryKey: ["member-presences"] });
-      queryClient.invalidateQueries({ queryKey: ["today-presence"] });
       onClose();
     },
 

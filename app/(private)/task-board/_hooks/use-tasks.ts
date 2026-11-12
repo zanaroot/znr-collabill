@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import type {
   CreateTaskInput,
   Task,
@@ -11,7 +12,7 @@ type ErrorResponse = {
   message?: string;
 };
 
-export const taskKeys = {
+const taskKeys = {
   all: ["tasks"] as const,
   project: (projectId: string) =>
     [...taskKeys.all, "project", projectId] as const,
@@ -81,6 +82,10 @@ export function useCreateTask() {
           queryKey: [...taskKeys.all, "period", task.projectId],
         });
       }
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: dashboardKeys.statistics,
+      });
     },
   });
 }
@@ -110,6 +115,10 @@ export function useUpdateTask() {
       });
       queryClient.invalidateQueries({
         queryKey: [...taskKeys.all, "period", task.projectId],
+      });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: dashboardKeys.statistics,
       });
     },
   });
@@ -145,6 +154,10 @@ export function useDeleteTask() {
       });
       queryClient.invalidateQueries({
         queryKey: [...taskKeys.all, "period", projectId],
+      });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: dashboardKeys.statistics,
       });
     },
   });

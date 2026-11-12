@@ -63,10 +63,14 @@ export const LeaveAdminPanel = ({ mode }: LeaveAdminPanelProps) => {
 
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       message.success("Leave request status updated");
-      queryClient.invalidateQueries({ queryKey: ["my-leave-requests"] });
-      queryClient.invalidateQueries({ queryKey: ["org-leave-requests"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["my-leave-requests"] }),
+        queryClient.invalidateQueries({ queryKey: ["org-leave-requests"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-leave-balance"] }),
+        queryClient.invalidateQueries({ queryKey: ["leave-balance"] }),
+      ]);
     },
     onError: (error: Error) => {
       message.error(error.message);

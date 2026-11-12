@@ -260,8 +260,11 @@ export const OrganizationType = () => {
       return await res.json();
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organizations", "all"] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["organizations", "all"] }),
+        queryClient.invalidateQueries({ queryKey: ["userOrganizations"] }),
+      ]);
     },
   });
 
@@ -295,6 +298,7 @@ export const OrganizationType = () => {
               : "Organization deleted",
           );
           router.push("/select-organization");
+          router.refresh();
         } catch (error) {
           message.error((error as Error).message || "Delete failed");
         }

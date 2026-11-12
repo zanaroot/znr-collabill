@@ -10,9 +10,9 @@ import {
   message,
   Typography,
 } from "antd";
+import { useRouter } from "next/navigation";
 import { getInitials } from "@/app/_utils/get-initials-text";
 import { CreateOrganization } from "@/app/(private)/_components/create-organization";
-import { taskKeys } from "@/app/(private)/task-board/_hooks/use-tasks";
 import { client } from "@/packages/hono";
 import { queryClient } from "@/packages/react-query";
 
@@ -31,6 +31,8 @@ export const OrganizationSwitcher = ({
   currentOrganization?: Organization | null;
   collapsed: boolean;
 }) => {
+  const router = useRouter();
+
   const { data: organizations } = useQuery({
     queryKey: ["userOrganizations"],
     queryFn: async () => {
@@ -46,12 +48,12 @@ export const OrganizationSwitcher = ({
       });
       return await res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if ("success" in data && data.success) {
         message.success("Organization switched!");
 
-        queryClient.invalidateQueries({ queryKey: taskKeys.all });
-        window.location.reload();
+        await queryClient.invalidateQueries();
+        router.refresh();
       } else {
         message.error(
           ("error" in data ? data.error : null) || "Something went wrong.",
@@ -91,8 +93,9 @@ export const OrganizationSwitcher = ({
     label: (
       <div style={{ minWidth: 160 }}>
         <CreateOrganization
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["userOrganizations"] });
+          onSuccess={async () => {
+            await queryClient.invalidateQueries();
+            router.refresh();
           }}
         />
       </div>

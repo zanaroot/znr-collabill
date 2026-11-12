@@ -1,7 +1,7 @@
 "use client";
 
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   App,
   Button,
@@ -11,6 +11,7 @@ import {
   Space,
   Typography,
 } from "antd";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { AmountDisplay } from "@/app/(private)/_components/amount-display";
@@ -79,6 +80,8 @@ export const InvoicePrintable = ({
   onCustomLinesChange,
 }: InvoicePrintableProps) => {
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const { hidden: amountsHidden } = useAmountsVisibility();
   const [clientInvoiceDate] = useState(() =>
     new Date().toLocaleDateString("en-US", {
@@ -119,9 +122,16 @@ export const InvoicePrintable = ({
       }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       message.success("Invoice validated successfully!");
-      window.location.reload();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["member-invoice"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["dashboard-statistics"],
+        }),
+      ]);
+      router.refresh();
     },
     onError: (error: Error) => {
       message.error(error.message);

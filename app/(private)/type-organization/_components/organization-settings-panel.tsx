@@ -14,6 +14,7 @@ import {
   Typography,
 } from "antd";
 import { useEffect, useState } from "react";
+import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import { client } from "@/packages/hono";
 import { queryClient } from "@/packages/react-query";
 
@@ -132,12 +133,17 @@ export const OrganizationSettingsPanel = ({
       return response.json();
     },
 
-    onSuccess: () => {
+    onSuccess: async () => {
       message.success("Settings saved");
 
-      queryClient.invalidateQueries({
-        queryKey: ["organization-attendance-settings", organizationId],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["organization-attendance-settings", organizationId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardKeys.invoiceEstimate,
+        }),
+      ]);
     },
 
     onError: (error) => {

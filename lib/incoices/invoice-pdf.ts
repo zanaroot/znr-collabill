@@ -22,6 +22,25 @@ export const generateInvoicePdf = async (invoiceId: string) => {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
+    const pageBottom = () => doc.page.height - doc.page.margins.bottom;
+    const drawLinesHeader = () => {
+      const headerY = doc.y;
+
+      doc.rect(50, headerY - 4, 500, 24).fill("#F2F2F2");
+      doc.fillColor("black").font("Helvetica-Bold").fontSize(11);
+      doc.text("Description", 55, headerY + 2);
+      doc.text("Type", 260, headerY + 2);
+      doc.text("Qty", 320, headerY + 2);
+      doc.text("Unit", 380, headerY + 2);
+      doc.text("Total", 470, headerY + 2);
+      doc.y = headerY + 30;
+      doc.font("Helvetica").fontSize(10);
+    };
+    const addPageWithLinesHeader = () => {
+      doc.addPage();
+      drawLinesHeader();
+    };
+
     doc
       .fillColor("#1F4E79")
       .font("Helvetica-Bold")
@@ -90,59 +109,110 @@ export const generateInvoicePdf = async (invoiceId: string) => {
 
     doc.moveDown();
 
-    const headerY = doc.y;
-
-    doc.rect(50, headerY - 4, 500, 24).fill("#F2F2F2");
-
-    doc.fillColor("black").font("Helvetica-Bold").fontSize(11);
-
-    doc.text("Description", 55, headerY + 2);
-    doc.text("Type", 260, headerY + 2);
-    doc.text("Qty", 320, headerY + 2);
-    doc.text("Unit", 380, headerY + 2);
-    doc.text("Total", 470, headerY + 2);
-
-    doc.moveDown(2);
-
+    if (doc.y + 30 > pageBottom()) {
+      doc.addPage();
+    }
+    drawLinesHeader();
     doc.font("Helvetica").fontSize(10);
 
     invoice.lines.forEach((line) => {
-      const y = doc.y;
+      const description = line.label || " ";
+      const descriptionWidth = 250;
+      const lineGap = 4;
+      const maxDescriptionHeight =
+        pageBottom() - (doc.page.margins.top + 30 + 16);
+      const descriptionChunks: string[] = [];
+      let chunk = "";
 
-      doc.text(line.label, 50, y, {
-        width: 250,
-        lineGap: 4,
+      for (const word of description.match(/\S+\s*/g) ?? [description]) {
+        const candidate = chunk + word;
+        if (
+          chunk &&
+          doc.heightOfString(candidate, {
+            width: descriptionWidth,
+            lineGap,
+          }) > maxDescriptionHeight
+        ) {
+          descriptionChunks.push(chunk);
+          chunk = word;
+        } else {
+          chunk = candidate;
+        }
+
+        while (
+          doc.heightOfString(chunk, {
+            width: descriptionWidth,
+            lineGap,
+          }) > maxDescriptionHeight
+        ) {
+          let splitAt = chunk.length;
+          while (
+            splitAt > 1 &&
+            doc.heightOfString(chunk.slice(0, splitAt), {
+              width: descriptionWidth,
+              lineGap,
+            }) > maxDescriptionHeight
+          ) {
+            splitAt = Math.floor(splitAt / 2);
+          }
+          descriptionChunks.push(chunk.slice(0, splitAt));
+          chunk = chunk.slice(splitAt);
+        }
+      }
+
+      if (chunk) {
+        descriptionChunks.push(chunk);
+      }
+
+      descriptionChunks.forEach((descriptionChunk, index) => {
+        const descriptionHeight = doc.heightOfString(descriptionChunk, {
+          width: descriptionWidth,
+          lineGap,
+        });
+        const rowHeight = Math.max(descriptionHeight, 12) + 16;
+
+        if (doc.y + rowHeight > pageBottom()) {
+          addPageWithLinesHeader();
+        }
+
+        const rowY = doc.y;
+
+        doc.text(descriptionChunk, 50, rowY, {
+          width: descriptionWidth,
+          lineGap,
+        });
+
+        if (index === 0) {
+          doc.text(line.presenceType ?? "", 260, rowY);
+          doc.text(String(line.quantity), 320, rowY);
+          doc.text(`${formatAmount(line.unitPrice)} €`, 380, rowY, {
+            width: 70,
+            align: "right",
+          });
+          doc.text(`${formatAmount(line.total)} €`, 470, rowY, {
+            width: 70,
+            align: "right",
+          });
+        }
+
+        const rowBottom = rowY + rowHeight;
+        doc
+          .strokeColor("#E5E5E5")
+          .lineWidth(0.5)
+          .moveTo(50, rowBottom - 4)
+          .lineTo(550, rowBottom - 4)
+          .stroke();
+        doc.y = rowBottom;
       });
-
-      doc.text(line.presenceType ?? "", 260, y);
-
-      doc.text(String(line.quantity), 320, y);
-
-      doc.text(`${formatAmount(line.unitPrice)} €`, 380, y, {
-        width: 70,
-        align: "right",
-      });
-
-      doc.text(`${formatAmount(line.total)} €`, 470, y, {
-        width: 70,
-        align: "right",
-      });
-
-      doc
-        .strokeColor("#E5E5E5")
-        .lineWidth(0.5)
-        .moveTo(50, doc.y + 8)
-        .lineTo(550, doc.y + 8)
-        .stroke();
-
-      doc.moveDown(1.8);
     });
 
-    doc.moveDown();
+    const totalY = doc.y + 8;
+    if (totalY + 35 > pageBottom()) {
+      doc.addPage();
+    }
+    const finalTotalY = doc.y + 8;
 
-    const totalY = doc.y;
-
-    doc.roundedRect(330, totalY, 220, 35, 5).fill("#F5F5F5");
+    doc.roundedRect(330, finalTotalY, 220, 35, 5).fill("#F5F5F5");
 
     doc
       .fillColor("#1F4E79")
@@ -151,14 +221,12 @@ export const generateInvoicePdf = async (invoiceId: string) => {
       .text(
         `TOTAL : ${formatAmount(invoice.invoice.totalAmount)} €`,
         340,
-        totalY + 8,
+        finalTotalY + 8,
         {
           width: 200,
           align: "right",
         },
       );
-
-    doc.moveDown(4);
 
     doc.end();
   });

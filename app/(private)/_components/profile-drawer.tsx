@@ -98,7 +98,9 @@ export const ProfileDrawer = ({
     },
     onSuccess: () => {
       message.success("Profile updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      queryClient.invalidateQueries({ queryKey: teamKeys.currentUser() });
+      queryClient.invalidateQueries({ queryKey: teamKeys.users() });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       setEditing(false);
     },
     onError: (error: Error) => message.error(error.message),

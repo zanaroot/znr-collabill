@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { App, Button, Form, Input, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { client } from "@/packages/hono";
@@ -14,6 +14,7 @@ interface OrganizationForm {
 export const CreateOrganization = () => {
   const router = useRouter();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
 
   const { mutateAsync: createOrg, isPending: loading } = useMutation({
     mutationFn: async (values: OrganizationForm) => {
@@ -30,10 +31,12 @@ export const CreateOrganization = () => {
       }
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.success) {
         message.success("Organization created successfully!");
+        await queryClient.invalidateQueries();
         router.push("/dashboard");
+        router.refresh();
       } else {
         message.error(data.error || "Error creating the organization.");
       }
