@@ -6,6 +6,7 @@ import { Badge, Button, Calendar, Flex, Segmented, Tooltip } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { useMemo, useState } from "react";
 import type { PresenceStatus } from "@/http/models/presence.model";
+import { PRESENCE_STATUS_COLORS } from "@/lib/presence";
 import { toReadable } from "@/lib/text";
 import { client } from "@/packages/hono";
 import {
@@ -18,15 +19,6 @@ interface LeaveCalendarProps {
   isAdmin?: boolean;
   isLeaveDisabled?: boolean;
 }
-
-const STATUS_COLORS: Record<string, string> = {
-  OFFICE: "#52c41a",
-  REMOTE: "#1890ff",
-  HALF_DAY: "#722ed1",
-  SICK: "#fa541c",
-  VACATION: "#eb2f96",
-  ON_LEAVE: "#faad14",
-};
 
 export const LeaveCalendar = ({
   onRequestLeave,
@@ -118,7 +110,7 @@ export const LeaveCalendar = ({
         id: `${dateStr}-${idx}`,
         type: "warning" as const,
         content: `${p.userName} (${toReadable(p.status)})`,
-        color: STATUS_COLORS[p.status] ?? "#1890ff",
+        color: PRESENCE_STATUS_COLORS[p.status],
         userId: p.userId,
         userName: p.userName,
         status: p.status,
@@ -282,7 +274,7 @@ export const LeaveCalendar = ({
           )}
           {isAdmin && viewMode === "team" && (
             <Flex gap="middle">
-              {Object.entries(STATUS_COLORS).map(([status, color]) => (
+              {Object.entries(PRESENCE_STATUS_COLORS).map(([status, color]) => (
                 <Flex key={status} gap={4} align="center">
                   <div
                     style={{

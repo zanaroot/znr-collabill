@@ -1,8 +1,9 @@
 "use client";
 
-import { Table, Typography } from "antd";
+import { Table, Tag, Typography } from "antd";
 import { AmountDisplay } from "@/app/(private)/_components/amount-display";
 import type { PresenceSummary } from "@/http/models/presence.model";
+import { PRESENCE_STATUS_COLORS } from "@/lib/presence";
 
 const { Text } = Typography;
 
@@ -17,7 +18,12 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
       title: "Type",
       dataIndex: "type",
       key: "type",
-      render: (type: string) => <span>{type}</span>,
+      render: (type: PresenceSummary["type"]) =>
+        type ? (
+          <Tag color={PRESENCE_STATUS_COLORS[type]}>
+            {type.replace("_", " ")}
+          </Tag>
+        ) : null,
     },
     {
       title: "Count",
