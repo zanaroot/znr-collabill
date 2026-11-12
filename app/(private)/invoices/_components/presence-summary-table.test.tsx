@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PresenceSummaryTable } from "@/app/(private)/invoices/_components/presence-summary-table";
 import type { PresenceSummary } from "@/http/models/presence.model";
+import { PRESENCE_STATUS_COLORS } from "@/lib/presence";
 
 describe("PresenceSummaryTable", () => {
   const summary: PresenceSummary = {
@@ -27,6 +28,24 @@ describe("PresenceSummaryTable", () => {
 
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+  });
+
+  it("renders every supported presence type as a colored tag", () => {
+    const presenceTypes = Object.keys(PRESENCE_STATUS_COLORS);
+    const data = presenceTypes.map((type, index) => ({
+      ...summary,
+      userId: `user-${index}`,
+      type: type as PresenceSummary["type"],
+    }));
+
+    render(<PresenceSummaryTable data={data} />);
+
+    for (const [type, color] of Object.entries(PRESENCE_STATUS_COLORS)) {
+      const tag = screen.getByText(type.replace("_", " ")).closest(".ant-tag");
+
+      expect(tag).toBeInTheDocument();
+      expect(tag).toHaveStyle({ color });
+    }
   });
 
   it("renders column headers", () => {
