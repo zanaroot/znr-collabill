@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { billingKeys } from "@/app/_hooks/use-billing";
 import type {
   CreateProjectInput,
   Project,
@@ -189,6 +190,7 @@ export function useCreateProject() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
+      queryClient.invalidateQueries({ queryKey: billingKeys.usage() });
     },
   });
 }

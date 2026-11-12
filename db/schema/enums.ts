@@ -150,3 +150,29 @@ export const meetingInvitationTypeEnum = pgEnum("meeting_invitation_type", [
   "MEMBER",
   "GUEST",
 ]);
+
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "TRIALING",
+  "ACTIVE",
+  "PAST_DUE",
+  "SUSPENDED",
+  "CANCELED",
+  "EXPIRED",
+]);
+
+export const platformRoleEnum = pgEnum("platform_role", ["PLATFORM_ADMIN"]);
+
+export const subscriptionIntervalEnum = pgEnum("subscription_interval", [
+  "MONTHLY",
+  "YEARLY",
+]);
+
+export const subscriptionPaymentStatusEnum = pgEnum(
+  "subscription_payment_status",
+  ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"],
+);
+
+export const providerReferenceEntityTypeEnum = pgEnum(
+  "provider_reference_entity_type",
+  ["ORGANIZATION", "SUBSCRIPTION", "PAYMENT", "PLAN"],
+);

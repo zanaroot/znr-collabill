@@ -129,6 +129,57 @@ export const getAllInvitations = async (organizationId?: string) => {
   return query;
 };
 
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export const createUserFromInvitationInTx = async (
+  tx: Transaction,
+  data: {
+    email: string;
+    name: string;
+    passwordHash: string;
+    role: Role;
+    invitationId: string;
+    organizationId: string;
+  },
+) => {
+  const [existingUser] = await tx
+    .select()
+    .from(users)
+    .where(eq(users.email, data.email))
+    .limit(1);
+
+  if (existingUser) return null;
+
+  const [newUser] = await tx
+    .insert(users)
+    .values({
+      email: data.email,
+      name: data.name,
+      passwordHash: data.passwordHash,
+    })
+    .returning();
+
+  // Add to organization
+  await tx.insert(organizationMembers).values({
+    userId: newUser.id,
+    organizationId: data.organizationId,
+    role: data.role,
+  });
+
+  // Also add to global roles for backward compatibility if needed,
+  // but preferably organizationMembers is enough.
+  // However, existing code checks userRoles. So we keep it.
+  await tx.insert(userRoles).values({
+    userId: newUser.id,
+    role: data.role,
+    organizationId: data.organizationId,
+  });
+
+  await tx.delete(invitations).where(eq(invitations.id, data.invitationId));
+
+  return newUser;
+};
+
 export const createUserFromInvitation = async (data: {
   email: string;
   name: string;
@@ -137,44 +188,33 @@ export const createUserFromInvitation = async (data: {
   invitationId: string;
   organizationId: string;
 }) => {
-  return db.transaction(async (tx) => {
-    const [existingUser] = await tx
-      .select()
-      .from(users)
-      .where(eq(users.email, data.email))
-      .limit(1);
+  return db.transaction((tx) => createUserFromInvitationInTx(tx, data));
+};
 
-    if (existingUser) return null;
-
-    const [newUser] = await tx
-      .insert(users)
-      .values({
-        email: data.email,
-        name: data.name,
-        passwordHash: data.passwordHash,
-      })
-      .returning();
-
-    // Add to organization
-    await tx.insert(organizationMembers).values({
-      userId: newUser.id,
-      organizationId: data.organizationId,
-      role: data.role,
-    });
-
-    // Also add to global roles for backward compatibility if needed,
-    // but preferably organizationMembers is enough.
-    // However, existing code checks userRoles. So we keep it.
-    await tx.insert(userRoles).values({
-      userId: newUser.id,
-      role: data.role,
-      organizationId: data.organizationId,
-    });
-
-    await tx.delete(invitations).where(eq(invitations.id, data.invitationId));
-
-    return newUser;
+export const acceptInvitationInTx = async (
+  tx: Transaction,
+  data: {
+    userId: string;
+    organizationId: string;
+    role: Role;
+    invitationId: string;
+  },
+) => {
+  // Add to organization
+  await tx.insert(organizationMembers).values({
+    userId: data.userId,
+    organizationId: data.organizationId,
+    role: data.role,
   });
+
+  // Also add to global roles for backward compatibility
+  await tx.insert(userRoles).values({
+    userId: data.userId,
+    role: data.role,
+    organizationId: data.organizationId,
+  });
+
+  await tx.delete(invitations).where(eq(invitations.id, data.invitationId));
 };
 
 export const acceptInvitation = async (data: {
@@ -183,21 +223,5 @@ export const acceptInvitation = async (data: {
   role: Role;
   invitationId: string;
 }) => {
-  return db.transaction(async (tx) => {
-    // Add to organization
-    await tx.insert(organizationMembers).values({
-      userId: data.userId,
-      organizationId: data.organizationId,
-      role: data.role,
-    });
-
-    // Also add to global roles for backward compatibility
-    await tx.insert(userRoles).values({
-      userId: data.userId,
-      role: data.role,
-      organizationId: data.organizationId,
-    });
-
-    await tx.delete(invitations).where(eq(invitations.id, data.invitationId));
-  });
+  return db.transaction((tx) => acceptInvitationInTx(tx, data));
 };

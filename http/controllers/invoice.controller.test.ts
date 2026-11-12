@@ -50,6 +50,7 @@ const owner: AuthUser = {
   organizationId: "00000000-0000-4000-8000-0000000000bb",
   organizationName: "Acme",
   organizationRole: "OWNER",
+  platformRole: null,
   emailVerified: null,
 };
 

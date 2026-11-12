@@ -3,6 +3,9 @@ import { Hono } from "hono";
 import { authMiddleware } from "@/http/middleware/auth.middleware";
 import { notificationRoutes } from "@/http/routes/notification.routes";
 import { authRoutes } from "./auth.route";
+import { backOfficeRoutes } from "./back-office.route";
+import { billingRoutes } from "./billing.route";
+import { publicBillingRoutes } from "./billing-public.route";
 import { callRoutes } from "./call.route";
 import { dashboardRoutes } from "./dashboard";
 import { openAPIDocument } from "./docs/open-api.doc";
@@ -14,8 +17,11 @@ import { leaveRoutes } from "./leave.route";
 import { livekitWebhookRoutes } from "./livekit.route";
 import { meetingRoutes } from "./meeting.route";
 import { publicMeetingRoutes } from "./meeting-public.route";
+import { mockCheckoutRoutes } from "./mock-payment.route";
+import { nowpaymentsWebhookRoutes } from "./nowpayments.route";
 import { organizationRoutes } from "./organization.route";
 import { publicPasswordRoutes } from "./password.route";
+import { paymentWebhookRoutes } from "./payment-webhook.route";
 import { presenceRoutes } from "./presence.route";
 import { projectRoutes } from "./project.route";
 import { taskRoutes } from "./task.route";
@@ -28,8 +34,14 @@ export const app = new Hono()
   .route("/password", publicPasswordRoutes)
   .route("/auth", authRoutes)
   .route("/webhooks/livekit", livekitWebhookRoutes)
+  .route("/webhooks/payments", paymentWebhookRoutes)
+  .route("/payments/mock", mockCheckoutRoutes)
+  .route("/payments/nowpayments", nowpaymentsWebhookRoutes)
   .route("/meetings/public", publicMeetingRoutes)
+  .route("/billing/public", publicBillingRoutes)
   .use("*", authMiddleware)
+  .route("/back-office", backOfficeRoutes)
+  .route("/billing", billingRoutes)
   .route("/invoice-comments", invoiceCommentRoutes)
   .route("/task-comments", taskCommentRoutes)
   .route("/invoices", invoiceRoutes)

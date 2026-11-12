@@ -8,6 +8,7 @@ import {
   getUserOrganizationsWithMembers,
   removeOrganizationMember,
 } from "@/http/repositories/organization.repository";
+import { checkFeatureEnabled } from "@/http/services/entitlement.service";
 
 const factory = createFactory<AuthEnv>();
 
@@ -239,6 +240,19 @@ export const addFinanceEmail = factory.createHandlers(
   ),
   async (c) => {
     const { organizationId } = c.req.valid("param");
+    const currentUser = c.get("user");
+
+    if (
+      !currentUser.organizationId ||
+      currentUser.organizationId !== organizationId
+    ) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    const denial = await checkFeatureEnabled(organizationId, "finance");
+    if (denial) {
+      return c.json(denial, 402);
+    }
 
     // 1. normalisation (IMPORTANT)
     const email = c.req.valid("json").email.toLowerCase().trim();
