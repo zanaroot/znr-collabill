@@ -5,7 +5,7 @@ import {
   CloseCircleOutlined,
   PrinterOutlined,
 } from "@ant-design/icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { App, Button, Select, Typography } from "antd";
 import dayjs from "dayjs";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -69,6 +69,7 @@ export const InvoiceFilters = ({
   organization,
 }: InvoiceFiltersProps) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const periodId = searchParams.get("periodId");
   const selectedMemberId = searchParams.get("memberId") || currentUserId;
@@ -116,9 +117,16 @@ export const InvoiceFilters = ({
         }
         return res.json();
       },
-      onSuccess: () => {
+      onSuccess: async () => {
         message.success("Invoice validated successfully!");
-        window.location.reload();
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["member-invoice"] }),
+          queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+          queryClient.invalidateQueries({
+            queryKey: ["dashboard-statistics"],
+          }),
+        ]);
+        router.refresh();
       },
       onError: (error: Error) => {
         message.error(error.message);
@@ -139,9 +147,16 @@ export const InvoiceFilters = ({
       }
       return result;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       message.success("Invoice marked as paid!");
-      window.location.reload();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["member-invoice"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["dashboard-statistics"],
+        }),
+      ]);
+      router.refresh();
     },
     onError: (error: Error) => {
       message.error(error.message);
@@ -162,9 +177,16 @@ export const InvoiceFilters = ({
         }
         return result;
       },
-      onSuccess: () => {
+      onSuccess: async () => {
         message.success("Invoice unvalidated successfully!");
-        window.location.reload();
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["member-invoice"] }),
+          queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+          queryClient.invalidateQueries({
+            queryKey: ["dashboard-statistics"],
+          }),
+        ]);
+        router.refresh();
       },
       onError: (error: Error) => {
         message.error(error.message);

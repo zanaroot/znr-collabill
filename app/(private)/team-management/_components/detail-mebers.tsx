@@ -7,7 +7,7 @@ import {
   PlusOutlined,
   ProjectOutlined,
 } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   App,
   Badge,
@@ -30,6 +30,7 @@ import {
 import dayjs, { type Dayjs } from "dayjs";
 import { useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import {
   useAddProjectMember,
   useMemberProjects,
@@ -75,6 +76,7 @@ export const DetailMembers = ({
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [invoiceMonth, setInvoiceMonth] = useState(dayjs());
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
 
   const { data: attendanceSettings } = useQuery({
     queryKey: ["organization-attendance-settings", currentUser?.organizationId],
@@ -130,6 +132,18 @@ export const DetailMembers = ({
         },
       });
 
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["member-presences", member.id],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["all-presences"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-presences"] }),
+        queryClient.invalidateQueries({ queryKey: ["today-presence"] }),
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardKeys.statistics,
+        }),
+      ]);
       message.success("Absence added");
     } catch (error) {
       message.error((error as Error).message || "Failed to add absence");

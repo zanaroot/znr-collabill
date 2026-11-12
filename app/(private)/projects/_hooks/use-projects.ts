@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { billingKeys } from "@/app/_hooks/use-billing";
+import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import type {
   CreateProjectInput,
   Project,
@@ -135,6 +136,7 @@ export function useAddProjectMember() {
       queryClient.invalidateQueries({
         queryKey: projectKeys.lists(),
       });
+      queryClient.invalidateQueries({ queryKey: ["member-projects"] });
     },
   });
 }
@@ -168,6 +170,7 @@ export function useRemoveProjectMember() {
       queryClient.invalidateQueries({
         queryKey: projectKeys.lists(),
       });
+      queryClient.invalidateQueries({ queryKey: ["member-projects"] });
     },
   });
 }
@@ -191,6 +194,11 @@ export function useCreateProject() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
       queryClient.invalidateQueries({ queryKey: billingKeys.usage() });
+      queryClient.invalidateQueries({ queryKey: ["member-projects"] });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: dashboardKeys.statistics,
+      });
     },
   });
 }
@@ -213,6 +221,11 @@ export function useDeleteProject() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["member-projects"] });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: dashboardKeys.statistics,
+      });
     },
   });
 }
@@ -242,6 +255,11 @@ export function useUpdateProject() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["member-projects"] });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: dashboardKeys.statistics,
+      });
     },
   });
 }

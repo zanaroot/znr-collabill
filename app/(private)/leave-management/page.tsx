@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, Tabs, Typography } from "antd";
 import { useState } from "react";
+import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
 import type { OrganizationLeaveSettings } from "@/http/models/leave.model";
 import { client } from "@/packages/hono";
 import { LeaveAdminPanel } from "./_components/leave-admin-panel";
@@ -16,13 +17,7 @@ export default function LeaveManagementPage() {
   const [activeTab, setActiveTab] = useState("calendar");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: user } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const res = await client.api.users.me.$get();
-      return res.json();
-    },
-  });
+  const { data: user } = useCurrentUser();
 
   const { data: orgSettings } = useQuery({
     queryKey: ["current-organization-settings"],

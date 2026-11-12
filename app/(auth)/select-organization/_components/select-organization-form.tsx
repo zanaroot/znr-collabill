@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { App, Button, List, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { client } from "@/packages/hono";
@@ -8,6 +8,7 @@ import { client } from "@/packages/hono";
 export const SelectOrganizationForm = () => {
   const { message } = App.useApp();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data: organizations, isLoading } = useQuery({
     queryKey: ["userOrganizations"],
@@ -24,9 +25,10 @@ export const SelectOrganizationForm = () => {
       });
       return await res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if ("success" in data && data.success) {
         message.success("Organization selected!");
+        await queryClient.invalidateQueries();
         router.push("/dashboard");
         router.refresh();
       } else {

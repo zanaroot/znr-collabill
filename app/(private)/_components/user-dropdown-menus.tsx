@@ -5,10 +5,11 @@ import {
   SettingOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Flex, Popover, Typography } from "antd";
 import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
 import { client } from "@/packages/hono";
 import { ProfileDrawer } from "./profile-drawer";
 import { SettingsModal } from "./settings-modal";
@@ -26,13 +27,7 @@ export const UserDropdownMenus = ({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const { data: currentUser } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const res = await client.api.users.me.$get();
-      return await res.json();
-    },
-  });
+  const { data: currentUser } = useCurrentUser();
 
   const { mutateAsync: logout } = useMutation({
     mutationFn: async () => {
