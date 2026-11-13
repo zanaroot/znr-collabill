@@ -17,8 +17,10 @@ import {
   ownerMiddleware,
   projectAdminMiddleware,
 } from "@/http/middleware/auth.middleware";
+import { projectFileRoutes } from "@/http/routes/project-file.route";
 
 export const projectRoutes = new Hono()
+  .route("/:projectId/files", projectFileRoutes)
   .get("/", ...getProjects)
   .get("/:id", ...getProject)
   .get("/:id/branches", ...getProjectBranches)

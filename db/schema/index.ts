@@ -13,6 +13,7 @@ export * from "./notification";
 export * from "./organization";
 export * from "./presence";
 export * from "./project";
+export * from "./project-file";
 export * from "./task";
 export * from "./task-comment";
 export * from "./user";

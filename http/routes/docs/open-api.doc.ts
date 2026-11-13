@@ -1038,6 +1038,237 @@ export const openAPIDocument = {
         },
       },
     },
+    "/api/projects/{projectId}/files": {
+      get: {
+        tags: ["Project files"],
+        summary: "List project files",
+        description:
+          "List file metadata for a project. Members can read; storage keys are never returned.",
+        parameters: [
+          {
+            name: "projectId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", minimum: 1, default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+          },
+        ],
+        responses: {
+          200: {
+            description:
+              "Paginated project file metadata, including uploader names and total count",
+          },
+          403: { description: "Forbidden" },
+          404: { description: "Project not found" },
+        },
+      },
+      post: {
+        tags: ["Project files"],
+        summary: "Upload a project file",
+        description:
+          "Upload a file for a project member. File bytes are stored in private object storage; only metadata is stored in PostgreSQL.",
+        parameters: [
+          {
+            name: "projectId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                required: ["file"],
+                properties: {
+                  file: { type: "string", format: "binary" },
+                  isSensitive: { type: "string", enum: ["true", "false"] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Uploaded file metadata, including the uploader name",
+          },
+          400: { description: "Invalid file or form data" },
+          403: { description: "Forbidden" },
+          404: { description: "Project not found" },
+          502: { description: "File storage unavailable" },
+        },
+      },
+    },
+    "/api/projects/{projectId}/files/{fileId}": {
+      get: {
+        tags: ["Project files"],
+        summary: "Get project file metadata",
+        parameters: [
+          {
+            name: "projectId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "fileId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Project file metadata, including the uploader name",
+          },
+          403: { description: "Forbidden" },
+          404: { description: "Project or file not found" },
+        },
+      },
+      put: {
+        tags: ["Project files"],
+        summary: "Replace a project file",
+        description:
+          "Replace file contents and metadata. Requires organization admin/owner or project product owner.",
+        parameters: [
+          {
+            name: "projectId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "fileId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                required: ["file"],
+                properties: {
+                  file: { type: "string", format: "binary" },
+                  isSensitive: { type: "string", enum: ["true", "false"] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Updated file metadata, including the uploader name",
+          },
+          400: { description: "Invalid file or form data" },
+          403: { description: "Forbidden" },
+          404: { description: "Project or file not found" },
+          502: { description: "File storage unavailable" },
+        },
+      },
+      delete: {
+        tags: ["Project files"],
+        summary: "Delete a project file",
+        description:
+          "Requires organization admin/owner or project product owner.",
+        parameters: [
+          {
+            name: "projectId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "fileId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          204: { description: "File deleted" },
+          403: { description: "Forbidden" },
+          404: { description: "Project or file not found" },
+          502: { description: "File storage unavailable" },
+        },
+      },
+    },
+    "/api/projects/{projectId}/files/{fileId}/download": {
+      get: {
+        tags: ["Project files"],
+        summary: "Download a project file",
+        parameters: [
+          {
+            name: "projectId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "fileId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: {
+            description: "File content",
+            content: {
+              "application/octet-stream": {
+                schema: { type: "string", format: "binary" },
+              },
+            },
+          },
+          403: { description: "Forbidden" },
+          404: { description: "Project or file not found" },
+          502: { description: "File storage unavailable" },
+        },
+      },
+    },
+    "/api/projects/{projectId}/files/{fileId}/preview": {
+      get: {
+        tags: ["Project files"],
+        summary: "Preview a project file",
+        description:
+          "Inline preview is limited to PDF, common raster images, and plain text.",
+        parameters: [
+          {
+            name: "projectId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "fileId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: { description: "Preview content" },
+          403: { description: "Forbidden" },
+          404: { description: "Project or file not found" },
+          415: { description: "File type does not support preview" },
+          502: { description: "File storage unavailable" },
+        },
+      },
+    },
     "/api/projects/{id}": {
       get: {
         tags: ["Projects"],

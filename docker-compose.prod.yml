@@ -8,6 +8,7 @@ x-next-env: &next-env
   S3_ACCESS_KEY: ${S3_ACCESS_KEY}
   S3_SECRET_KEY: ${S3_SECRET_KEY}
   S3_BUCKET: ${S3_BUCKET}
+  S3_PROJECT_FILES_BUCKET: ${S3_PROJECT_FILES_BUCKET}
   S3_REGION: ${S3_REGION}
   NODE_ENV: production
   MINIO_ROOT_USER: ${MINIO_ROOT_USER}
@@ -44,6 +45,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_KMS_SECRET_KEY: ${MINIO_KMS_SECRET_KEY:?MINIO_KMS_SECRET_KEY must be configured}
     expose:
       - "9000"
       - "9001"
@@ -66,15 +68,20 @@ services:
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_BUCKET: ${S3_BUCKET}
+      S3_PROJECT_FILES_BUCKET: ${S3_PROJECT_FILES_BUCKET:?S3_PROJECT_FILES_BUCKET must be configured}
     entrypoint: >
       /bin/sh -c "
+      set -e;
       mc alias set myminio http://minio:9000 \"${MINIO_ROOT_USER}\" \"${MINIO_ROOT_PASSWORD}\";
       if [ \"${S3_ACCESS_KEY}\" != \"${MINIO_ROOT_USER}\" ]; then
-      mc admin user add myminio \"${S3_ACCESS_KEY}\" \"${S3_SECRET_KEY}\";
+      mc admin user info myminio \"${S3_ACCESS_KEY}\" >/dev/null 2>&1 || mc admin user add myminio \"${S3_ACCESS_KEY}\" \"${S3_SECRET_KEY}\";
       mc admin policy attach myminio readwrite --user \"${S3_ACCESS_KEY}\";
       fi;
-      mc mb myminio/\"${S3_BUCKET}\" || true;
+      mc mb --ignore-existing myminio/\"${S3_BUCKET}\";
       mc anonymous set download myminio/\"${S3_BUCKET}\";
+      mc mb --ignore-existing myminio/\"${S3_PROJECT_FILES_BUCKET}\";
+      mc anonymous set none myminio/\"${S3_PROJECT_FILES_BUCKET}\";
+      mc encrypt set sse-s3 myminio/\"${S3_PROJECT_FILES_BUCKET}\";
       exit 0;
       "
 
@@ -95,6 +102,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     environment: *next-env
     expose:
       - "3000"

@@ -36,9 +36,16 @@ App URL: `http://localhost:3000`
 
 **Required Secrets:**
 - `DATABASE_URL`: PostgreSQL connection string.
-- `ENCRYPTION_KEY`: Required 32+ character key used by the app.
+- `ENCRYPTION_KEY`: Required secret key used by the app and as the input to
+  HKDF-derived AES-256-GCM application-layer encryption for project-file
+  contents. Generate a high-entropy value with `openssl rand -base64 32` and
+  store it outside the database and object store.
 - `POSTGRES_PASSWORD`: Password for the Postgres database user.
 - `MINIO_ROOT_PASSWORD`: Root password for the MinIO container.
+- `MINIO_KMS_SECRET_KEY`: MinIO SSE-S3 key in `key-name:base64-encoded-key`
+  format. Generate a production key with `openssl rand -base64 32`, store it
+  as a GitHub Environment Secret, and keep a protected backup. Losing this key
+  makes encrypted project files unreadable.
 - `S3_SECRET_KEY`: Secret key for S3/MinIO access.
 - `BREVO_API_KEY`: API key for Brevo (or another email provider) to send emails.
 - `LIVEKIT_API_KEY`: LiveKit Cloud (or self-hosted LiveKit) API key used to mint short-lived room tokens. Optional; audio/video calling and meetings return `503` until configured.
@@ -50,6 +57,8 @@ App URL: `http://localhost:3000`
 - `MINIO_ROOT_USER`: MinIO root username.
 - `S3_ACCESS_KEY`: Access key for S3/MinIO.
 - `S3_BUCKET`: S3 bucket name.
+- `S3_PROJECT_FILES_BUCKET`: Private bucket dedicated to project files. It
+  defaults to `collabill-project-files` and must differ from `S3_BUCKET`.
 - `S3_REGION`: S3 region.
 - `S3_ENDPOINT`: Server-side S3/MinIO endpoint (never exposed to the browser).
 - `MAIL_FROM`: The "From" address for outgoing emails.
@@ -117,6 +126,7 @@ Production deployment is handled entirely through GitHub Actions. The workflow S
    - `DATABASE_URL`
    - `POSTGRES_PASSWORD`
    - `MINIO_ROOT_PASSWORD`
+   - `MINIO_KMS_SECRET_KEY` (format: `project-files-key:<base64 output of openssl rand -base64 32>`)
    - `S3_SECRET_KEY`
    - `ENCRYPTION_KEY`
    - `BREVO_API_KEY`
@@ -135,6 +145,7 @@ Production deployment is handled entirely through GitHub Actions. The workflow S
    - `MINIO_ROOT_USER`
    - `S3_ACCESS_KEY`
    - `S3_BUCKET`
+   - `S3_PROJECT_FILES_BUCKET` (must differ from `S3_BUCKET`)
    - `S3_REGION`
    - `S3_ENDPOINT`
    - `MAIL_FROM`
@@ -215,6 +226,13 @@ DNS required before certificate issuance:
 - If you use the bundled `postgres` service with a persisted volume, changing `POSTGRES_PASSWORD` later does not rotate the existing database user's password. In that case, update `DATABASE_URL` to the real live credential or rotate the Postgres role password manually before rerunning migrations.
 - `next` is no longer exposed on public port `3000`; `nginx` is the public entrypoint on `80/443`.
 - `postgres` and `minio` are internal-only in production. Browser file/avatar access goes through the app's `/api/storage` proxy, which forwards to `S3_ENDPOINT` server-side.
+- Project files use a separate private MinIO bucket with SSE-S3 default
+  encryption and are additionally encrypted by the application with
+  AES-256-GCM before upload, regardless of the `isSensitive` metadata flag.
+  The application derives a project-file key from `ENCRYPTION_KEY` using
+  HKDF; the key is never written to PostgreSQL or MinIO. Keep both
+  `ENCRYPTION_KEY` and `MINIO_KMS_SECRET_KEY` backed up securely; do not rotate
+  or replace either without first migrating existing encrypted objects.
 
 ## Project Structure
 

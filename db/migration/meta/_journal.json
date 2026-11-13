@@ -225,6 +225,13 @@
       "when": 1793619130261,
       "tag": "0031_blue_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794493904134,
+      "tag": "0032_nebulous_iron_lad",
+      "breakpoints": true
     }
   ]
 }

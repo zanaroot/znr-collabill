@@ -11,6 +11,7 @@ import {
 import { roleEnum } from "./enums";
 import { notifications } from "./notification";
 import { organizations } from "./organization";
+import { projectFiles } from "./project-file";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -69,6 +70,7 @@ export const collaboratorRates = pgTable(
 export const usersRelations = relations(users, ({ many }) => ({
   roles: many(userRoles),
   collaboratorRates: many(collaboratorRates),
+  uploadedProjectFiles: many(projectFiles),
 
   receivedNotifications: many(notifications, {
     relationName: "receivedNotifications",
