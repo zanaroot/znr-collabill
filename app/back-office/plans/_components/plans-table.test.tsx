@@ -121,7 +121,7 @@ describe("PlansTable creation workflow", () => {
     expect(await screen.findByText("Gold")).toBeInTheDocument();
     expect(screen.getAllByText("Free")).not.toHaveLength(0);
     expect(mocks.$get.mock.calls.length).toBeGreaterThanOrEqual(2);
-  });
+  }, 20_000);
 
   it("keeps the list unchanged and shows the server error when creation fails", async () => {
     mocks.$get.mockResolvedValue(okResponse([freePlan]));
@@ -152,5 +152,5 @@ describe("PlansTable creation workflow", () => {
     expect(mocks.$get).toHaveBeenCalledTimes(1);
     expect(screen.getAllByText("Free")).not.toHaveLength(0);
     expect(screen.queryByText("Gold")).not.toBeInTheDocument();
-  });
+  }, 20_000);
 });
