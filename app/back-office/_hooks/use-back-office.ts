@@ -161,9 +161,21 @@ export type PaymentDetail = {
 
 const readError = async (res: Response, fallback: string): Promise<string> => {
   const body = (await res.json().catch(() => null)) as {
-    error?: string;
+    error?: string | { issues?: Array<{ message?: string }> };
   } | null;
-  return body?.error || fallback;
+  const error = body?.error;
+  if (typeof error === "string" && error.length > 0) {
+    return error;
+  }
+  if (error && typeof error === "object" && Array.isArray(error.issues)) {
+    const messages = error.issues
+      .map((issue) => issue.message)
+      .filter((message): message is string => !!message);
+    if (messages.length > 0) {
+      return messages.join(", ");
+    }
+  }
+  return fallback;
 };
 
 export const useBackOfficeOverview = () =>

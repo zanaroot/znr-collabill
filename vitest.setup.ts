@@ -58,3 +58,14 @@ Object.defineProperty(global, "matchMedia", {
     dispatchEvent: vi.fn(),
   })),
 });
+
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+Object.defineProperty(global, "ResizeObserver", {
+  writable: true,
+  value: ResizeObserverMock,
+});
