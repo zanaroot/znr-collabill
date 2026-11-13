@@ -14,7 +14,7 @@ import {
   Typography,
 } from "antd";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import type { CreatePlanInput } from "@/http/models/back-office.model";
 import { createPlanSchema } from "@/http/models/back-office.model";
 import type { AdminPlan } from "../../_hooks/use-back-office";
@@ -77,7 +77,7 @@ export const PlanFormDrawer = ({
   const isEdit = plan !== null;
 
   const {
-    register,
+    control,
     handleSubmit,
     reset,
     watch,
@@ -102,12 +102,16 @@ export const PlanFormDrawer = ({
   const supportedCurrencies = watch("supportedCurrencies");
 
   const onSubmit = handleSubmit(async (values) => {
-    if (plan) {
-      await updatePlan.mutateAsync({ planId: plan.id, values });
-    } else {
-      await createPlan.mutateAsync(values);
+    try {
+      if (plan) {
+        await updatePlan.mutateAsync({ planId: plan.id, values });
+      } else {
+        await createPlan.mutateAsync(values);
+      }
+      onClose();
+    } catch (error) {
+      console.error(error);
     }
-    onClose();
   });
 
   const yearlyIntervalHint =
@@ -143,33 +147,55 @@ export const PlanFormDrawer = ({
         style={{ marginBottom: 16 }}
       />
       <RForm layout="vertical" id="plan-form" onFinish={onSubmit}>
-        {isEdit && <input type="hidden" {...register("code")} />}
+        {isEdit && (
+          <Controller
+            name="code"
+            control={control}
+            render={({ field }) => <input type="hidden" {...field} />}
+          />
+        )}
         {!isEdit && (
           <RForm.Item
             label="Code"
             validateStatus={errors.code ? "error" : ""}
-            help={errors.code?.message as string | undefined}
+            help={errors.code?.message}
           >
-            <Input
-              {...register("code")}
-              placeholder="GOLD"
-              autoComplete="off"
+            <Controller
+              name="code"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} placeholder="GOLD" autoComplete="off" />
+              )}
             />
           </RForm.Item>
         )}
         <RForm.Item
           label="Name"
           validateStatus={errors.name ? "error" : ""}
-          help={errors.name?.message as string | undefined}
+          help={errors.name?.message}
         >
-          <Input {...register("name")} placeholder="Gold" />
+          <Controller
+            name="name"
+            control={control}
+            render={({ field }) => <Input {...field} placeholder="Gold" />}
+          />
         </RForm.Item>
         <RForm.Item
           label="Description"
           validateStatus={errors.description ? "error" : ""}
-          help={errors.description?.message as string | undefined}
+          help={errors.description?.message}
         >
-          <Input {...register("description")} placeholder="Optional" />
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                value={field.value ?? ""}
+                placeholder="Optional"
+              />
+            )}
+          />
         </RForm.Item>
         <Space size={16} align="start">
           <RForm.Item
@@ -218,9 +244,15 @@ export const PlanFormDrawer = ({
           <RForm.Item
             label="Currency"
             validateStatus={errors.currency ? "error" : ""}
-            help={errors.currency?.message as string | undefined}
+            help={errors.currency?.message}
           >
-            <Select {...register("currency")} options={CURRENCY_OPTIONS} />
+            <Controller
+              name="currency"
+              control={control}
+              render={({ field }) => (
+                <Select {...field} options={CURRENCY_OPTIONS} />
+              )}
+            />
           </RForm.Item>
           <RForm.Item
             label="Supported currencies"
