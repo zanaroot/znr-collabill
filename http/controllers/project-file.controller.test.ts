@@ -65,6 +65,7 @@ const user: AuthUser = {
   organizationId: "00000000-0000-4000-8000-000000000002",
   organizationName: "Acme",
   organizationRole: "COLLABORATOR",
+  platformRole: null,
   emailVerified: null,
 };
 const projectId = "00000000-0000-4000-8000-000000000003";
