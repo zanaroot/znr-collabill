@@ -12,3 +12,13 @@ export const buildStorageProxyUrl = (
   url.search = search;
   return url;
 };
+
+export const isProjectFileBucketPath = (pathname: string, bucket: string) => {
+  try {
+    return pathname
+      .split("/")
+      .some((segment) => decodeURIComponent(segment) === bucket);
+  } catch {
+    return true;
+  }
+};

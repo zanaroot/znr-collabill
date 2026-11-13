@@ -17,6 +17,7 @@ const readServerEnv = (): ParsedServerEnv => {
     S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
     S3_SECRET_KEY: process.env.S3_SECRET_KEY,
     S3_BUCKET: process.env.S3_BUCKET,
+    S3_PROJECT_FILES_BUCKET: process.env.S3_PROJECT_FILES_BUCKET,
     S3_REGION: process.env.S3_REGION,
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     BREVO_API_KEY: process.env.BREVO_API_KEY,

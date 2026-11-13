@@ -10,6 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { projectRoleEnum } from "./enums";
 import { organizations } from "./organization";
+import { projectFiles } from "./project-file";
 import { users } from "./user";
 
 export const projects = pgTable("projects", {
@@ -56,6 +57,7 @@ export const projectsRelations = relations(projects, ({ many, one }) => ({
     references: [users.id],
   }),
   members: many(projectMembers),
+  files: many(projectFiles),
 }));
 
 export const projectMembersRelations = relations(projectMembers, ({ one }) => ({

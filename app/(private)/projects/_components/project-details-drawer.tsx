@@ -20,6 +20,7 @@ import {
   Select,
   Space,
   Spin,
+  Tabs,
   Tag,
   Tooltip,
   Typography,
@@ -27,6 +28,7 @@ import {
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { ProjectFilesTab } from "@/app/(private)/projects/_components/project-files-tab";
 import { ProjectSlackSettingsForm } from "@/app/(private)/projects/_components/project-slack-settings-form";
 import {
   useCurrentUser,
@@ -360,231 +362,258 @@ export function ProjectDetailsDrawer({
           </Form.Item>
         </Form>
       ) : project ? (
-        <Space orientation="vertical" size="large" style={{ width: "100%" }}>
-          <section>
-            <Title level={4}>{project.name}</Title>
-            <Paragraph type="secondary">
-              {project.description || "No description provided."}
-            </Paragraph>
-            {project.gitRepo && (
-              <Text type="secondary">
-                Git Repo:{" "}
-                <Typography.Link href={project.gitRepo} target="_blank">
-                  {project.gitRepo}
-                </Typography.Link>
-              </Text>
-            )}
-          </section>
-
-          <Divider />
-
-          <section>
-            <Title level={5} style={{ marginBottom: 16 }}>
-              Slack Notifications
-            </Title>
-            <ProjectSlackSettingsForm project={project} />
-          </section>
-
-          <Divider />
-
-          <section>
-            <Flex
-              justify="space-between"
-              align="center"
-              style={{ marginBottom: 16 }}
-            >
-              <Title level={5} style={{ margin: 0 }}>
-                Team Members
-              </Title>
-              {!isGrantingAccess && isAdminOrOwner && (
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  size="small"
-                  onClick={() => setIsGrantingAccess(true)}
+        <Tabs
+          items={[
+            {
+              key: "details",
+              label: "Details",
+              children: (
+                <Space
+                  orientation="vertical"
+                  size="large"
+                  style={{ width: "100%" }}
                 >
-                  Grant Access
-                </Button>
-              )}
-            </Flex>
+                  <section>
+                    <Title level={4}>{project.name}</Title>
+                    <Paragraph type="secondary">
+                      {project.description || "No description provided."}
+                    </Paragraph>
+                    {project.gitRepo && (
+                      <Text type="secondary">
+                        Git Repo:{" "}
+                        <Typography.Link href={project.gitRepo} target="_blank">
+                          {project.gitRepo}
+                        </Typography.Link>
+                      </Text>
+                    )}
+                  </section>
 
-            {isGrantingAccess && (
-              <Card size="small">
-                <Space orientation="vertical" style={{ width: "100%" }}>
-                  <Select
-                    showSearch={{
-                      filterOption: (input, option) =>
-                        (
-                          (option as { label: string; value: string })?.label ??
-                          ""
-                        )
-                          .toLowerCase()
-                          .includes(input.toLowerCase()),
-                    }}
-                    placeholder="Select a user to grant access"
-                    style={{ width: "100%" }}
-                    loading={isLoadingUsers}
-                    onChange={setSelectedUserId}
-                    value={selectedUserId}
-                    options={availableUsers.map((u) => ({
-                      label: `${u.name} (${u.email})`,
-                      value: u.id,
-                    }))}
-                  />
-                  <Flex gap={8} justify="end">
-                    <Button
-                      size="small"
-                      onClick={() => setIsGrantingAccess(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="small"
-                      type="primary"
-                      onClick={handleGrantAccess}
-                      loading={addMemberMutation.isPending}
-                      disabled={!selectedUserId}
-                    >
-                      Confirm
-                    </Button>
-                  </Flex>
-                </Space>
-              </Card>
-            )}
+                  <Divider />
 
-            {isLoadingMembers ? (
-              <Flex justify="center" align="center" style={{ padding: 24 }}>
-                <Spin />
-              </Flex>
-            ) : members && members.length > 0 ? (
-              <Flex vertical gap={12}>
-                {members.map((item) => {
-                  const actions = isAdminOrOwner
-                    ? [
-                        item.projectRole !== "PRODUCT_OWNER" && (
-                          <Tooltip
-                            key={`make-po-${item.id}`}
-                            title="Make Product Owner"
-                          >
-                            <Button
-                              type="text"
-                              icon={<UserSwitchOutlined />}
-                              onClick={() =>
-                                updateMemberRoleMutation.mutate(
-                                  {
-                                    projectId: project.id,
-                                    userId: item.id,
-                                    role: "PRODUCT_OWNER",
-                                  },
-                                  {
-                                    onSuccess: () =>
-                                      message.success(
-                                        `${item.name} is now Product Owner`,
-                                      ),
-                                    onError: (error) =>
-                                      message.error(
-                                        (error as Error).message ||
-                                          "Failed to update role",
-                                      ),
-                                  },
-                                )
-                              }
-                            />
-                          </Tooltip>
-                        ),
+                  <section>
+                    <Title level={5} style={{ marginBottom: 16 }}>
+                      Slack Notifications
+                    </Title>
+                    <ProjectSlackSettingsForm project={project} />
+                  </section>
 
-                        item.projectRole === "PRODUCT_OWNER" && (
-                          <Button
-                            key="remove-po"
-                            type="text"
-                            onClick={() =>
-                              updateMemberRoleMutation.mutate(
-                                {
-                                  projectId: project.id,
-                                  userId: item.id,
-                                  role: "MEMBER",
-                                },
-                                {
-                                  onSuccess: () =>
-                                    message.success(
-                                      `Removed Product Owner from ${item.name}`,
-                                    ),
-                                  onError: (error) =>
-                                    message.error(
-                                      (error as Error).message ||
-                                        "Failed to update role",
-                                    ),
-                                },
-                              )
-                            }
-                          >
-                            Remove PO
-                          </Button>
-                        ),
+                  <Divider />
 
-                        canRemoveUser(item.id) && (
-                          <Button
-                            key="remove"
-                            type="text"
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() =>
-                              handleRemoveAccess(item.id, item.name)
-                            }
-                          />
-                        ),
-                      ].filter(Boolean)
-                    : [];
-
-                  return (
+                  <section>
                     <Flex
-                      key={item.id}
-                      align="center"
                       justify="space-between"
-                      gap={16}
-                      style={{
-                        padding: "12px 0",
-                        borderBottom: "1px solid #f0f0f0",
-                      }}
+                      align="center"
+                      style={{ marginBottom: 16 }}
                     >
-                      <Flex align="center" gap={12} style={{ minWidth: 0 }}>
-                        <AvatarProfile
-                          src={item.avatar}
-                          userName={item.name}
-                          userEmail={item.email}
-                        />
-
-                        <Flex vertical style={{ minWidth: 0 }}>
-                          <Flex align="center" gap={8}>
-                            <Typography.Text strong ellipsis>
-                              {item.name}
-                            </Typography.Text>
-
-                            {item.projectRole === "PRODUCT_OWNER" && (
-                              <Tag color="gold">Product Owner</Tag>
-                            )}
-                          </Flex>
-
-                          <Typography.Text type="secondary" ellipsis>
-                            {item.email}
-                          </Typography.Text>
-                        </Flex>
-                      </Flex>
-
-                      {actions.length > 0 && (
-                        <Flex align="center" gap={4}>
-                          {actions}
-                        </Flex>
+                      <Title level={5} style={{ margin: 0 }}>
+                        Team Members
+                      </Title>
+                      {!isGrantingAccess && isAdminOrOwner && (
+                        <Button
+                          type="primary"
+                          icon={<PlusOutlined />}
+                          size="small"
+                          onClick={() => setIsGrantingAccess(true)}
+                        >
+                          Grant Access
+                        </Button>
                       )}
                     </Flex>
-                  );
-                })}
-              </Flex>
-            ) : (
-              <Empty description="No members found" />
-            )}
-          </section>
-        </Space>
+
+                    {isGrantingAccess && (
+                      <Card size="small">
+                        <Space orientation="vertical" style={{ width: "100%" }}>
+                          <Select
+                            showSearch={{
+                              filterOption: (input, option) =>
+                                (
+                                  (option as { label: string; value: string })
+                                    ?.label ?? ""
+                                )
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase()),
+                            }}
+                            placeholder="Select a user to grant access"
+                            style={{ width: "100%" }}
+                            loading={isLoadingUsers}
+                            onChange={setSelectedUserId}
+                            value={selectedUserId}
+                            options={availableUsers.map((u) => ({
+                              label: `${u.name} (${u.email})`,
+                              value: u.id,
+                            }))}
+                          />
+                          <Flex gap={8} justify="end">
+                            <Button
+                              size="small"
+                              onClick={() => setIsGrantingAccess(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="small"
+                              type="primary"
+                              onClick={handleGrantAccess}
+                              loading={addMemberMutation.isPending}
+                              disabled={!selectedUserId}
+                            >
+                              Confirm
+                            </Button>
+                          </Flex>
+                        </Space>
+                      </Card>
+                    )}
+
+                    {isLoadingMembers ? (
+                      <Flex
+                        justify="center"
+                        align="center"
+                        style={{ padding: 24 }}
+                      >
+                        <Spin />
+                      </Flex>
+                    ) : members && members.length > 0 ? (
+                      <Flex vertical gap={12}>
+                        {members.map((item) => {
+                          const actions = isAdminOrOwner
+                            ? [
+                                item.projectRole !== "PRODUCT_OWNER" && (
+                                  <Tooltip
+                                    key={`make-po-${item.id}`}
+                                    title="Make Product Owner"
+                                  >
+                                    <Button
+                                      type="text"
+                                      icon={<UserSwitchOutlined />}
+                                      onClick={() =>
+                                        updateMemberRoleMutation.mutate(
+                                          {
+                                            projectId: project.id,
+                                            userId: item.id,
+                                            role: "PRODUCT_OWNER",
+                                          },
+                                          {
+                                            onSuccess: () =>
+                                              message.success(
+                                                `${item.name} is now Product Owner`,
+                                              ),
+                                            onError: (error) =>
+                                              message.error(
+                                                (error as Error).message ||
+                                                  "Failed to update role",
+                                              ),
+                                          },
+                                        )
+                                      }
+                                    />
+                                  </Tooltip>
+                                ),
+
+                                item.projectRole === "PRODUCT_OWNER" && (
+                                  <Button
+                                    key="remove-po"
+                                    type="text"
+                                    onClick={() =>
+                                      updateMemberRoleMutation.mutate(
+                                        {
+                                          projectId: project.id,
+                                          userId: item.id,
+                                          role: "MEMBER",
+                                        },
+                                        {
+                                          onSuccess: () =>
+                                            message.success(
+                                              `Removed Product Owner from ${item.name}`,
+                                            ),
+                                          onError: (error) =>
+                                            message.error(
+                                              (error as Error).message ||
+                                                "Failed to update role",
+                                            ),
+                                        },
+                                      )
+                                    }
+                                  >
+                                    Remove PO
+                                  </Button>
+                                ),
+
+                                canRemoveUser(item.id) && (
+                                  <Button
+                                    key="remove"
+                                    type="text"
+                                    danger
+                                    icon={<DeleteOutlined />}
+                                    onClick={() =>
+                                      handleRemoveAccess(item.id, item.name)
+                                    }
+                                  />
+                                ),
+                              ].filter(Boolean)
+                            : [];
+
+                          return (
+                            <Flex
+                              key={item.id}
+                              align="center"
+                              justify="space-between"
+                              gap={16}
+                              style={{
+                                padding: "12px 0",
+                                borderBottom: "1px solid #f0f0f0",
+                              }}
+                            >
+                              <Flex
+                                align="center"
+                                gap={12}
+                                style={{ minWidth: 0 }}
+                              >
+                                <AvatarProfile
+                                  src={item.avatar}
+                                  userName={item.name}
+                                  userEmail={item.email}
+                                />
+
+                                <Flex vertical style={{ minWidth: 0 }}>
+                                  <Flex align="center" gap={8}>
+                                    <Typography.Text strong ellipsis>
+                                      {item.name}
+                                    </Typography.Text>
+
+                                    {item.projectRole === "PRODUCT_OWNER" && (
+                                      <Tag color="gold">Product Owner</Tag>
+                                    )}
+                                  </Flex>
+
+                                  <Typography.Text type="secondary" ellipsis>
+                                    {item.email}
+                                  </Typography.Text>
+                                </Flex>
+                              </Flex>
+
+                              {actions.length > 0 && (
+                                <Flex align="center" gap={4}>
+                                  {actions}
+                                </Flex>
+                              )}
+                            </Flex>
+                          );
+                        })}
+                      </Flex>
+                    ) : (
+                      <Empty description="No members found" />
+                    )}
+                  </section>
+                </Space>
+              ),
+            },
+            {
+              key: "files",
+              label: "Files",
+              children: <ProjectFilesTab projectId={project.id} />,
+            },
+          ]}
+        />
       ) : (
         <Empty />
       )}

@@ -26,12 +26,14 @@ jobs:
       S3_ACCESS_KEY: ${{ vars.S3_ACCESS_KEY }}
       SENTRY_DSN: ${{ vars.SENTRY_DSN }}
       S3_BUCKET: ${{ vars.S3_BUCKET }}
+      S3_PROJECT_FILES_BUCKET: ${{ vars.S3_PROJECT_FILES_BUCKET }}
       S3_REGION: ${{ vars.S3_REGION }}
       S3_ENDPOINT: ${{ vars.S3_ENDPOINT }}
       MAIL_FROM: ${{ vars.MAIL_FROM }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+      MINIO_KMS_SECRET_KEY: ${{ secrets.MINIO_KMS_SECRET_KEY }}
       S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
@@ -71,12 +73,14 @@ jobs:
           check_required "variable" "S3_ACCESS_KEY" "$S3_ACCESS_KEY"
           check_required "variable" "SENTRY_DSN" "$SENTRY_DSN"
           check_required "variable" "S3_BUCKET" "$S3_BUCKET"
+          check_required "variable" "S3_PROJECT_FILES_BUCKET" "$S3_PROJECT_FILES_BUCKET"
           check_required "variable" "S3_REGION" "$S3_REGION"
           check_required "variable" "S3_ENDPOINT" "$S3_ENDPOINT"
           check_required "variable" "MAIL_FROM" "$MAIL_FROM"
           check_required "secret" "DATABASE_URL" "$DATABASE_URL"
           check_required "secret" "POSTGRES_PASSWORD" "$POSTGRES_PASSWORD"
           check_required "secret" "MINIO_ROOT_PASSWORD" "$MINIO_ROOT_PASSWORD"
+          check_required "secret" "MINIO_KMS_SECRET_KEY" "$MINIO_KMS_SECRET_KEY"
           check_required "secret" "S3_SECRET_KEY" "$S3_SECRET_KEY"
           check_required "secret" "ENCRYPTION_KEY" "$ENCRYPTION_KEY"
           check_required "secret" "BREVO_API_KEY" "$BREVO_API_KEY"
@@ -85,6 +89,16 @@ jobs:
           check_required "secret" "DROPLET_HOST" "$DROPLET_HOST"
           check_required "secret" "DROPLET_USER" "$DROPLET_USER"
           check_required "secret" "DROPLET_SSH_KEY" "$DROPLET_SSH_KEY"
+
+          if [ "$S3_BUCKET" = "$S3_PROJECT_FILES_BUCKET" ]; then
+            echo "::error::S3_PROJECT_FILES_BUCKET must differ from S3_BUCKET"
+            missing=1
+          fi
+
+          if [[ ! "$MINIO_KMS_SECRET_KEY" =~ ^[a-zA-Z0-9._-]+:[A-Za-z0-9+/]{43}=$ ]]; then
+            echo "::error::MINIO_KMS_SECRET_KEY must use key-name:base64-encoded-32-byte-key format"
+            missing=1
+          fi
 
           if [ "$missing" -ne 0 ]; then
             exit 1
@@ -103,6 +117,7 @@ jobs:
       S3_ACCESS_KEY: user
       S3_SECRET_KEY: password
       S3_BUCKET: my-buckets
+      S3_PROJECT_FILES_BUCKET: collabill-project-files
       S3_REGION: us-east-1
       BREVO_API_KEY: CI_BREVO_API_KEY_12345678901234567890123456789012
       MAIL_FROM: MAIL_FROM_@CI.COM

@@ -25,6 +25,11 @@ const baseServerEnvSchema = publicEnvSchema.extend({
   S3_ACCESS_KEY: z.string().trim().min(1, "S3_ACCESS_KEY is required"),
   S3_SECRET_KEY: z.string().trim().min(1, "S3_SECRET_KEY is required"),
   S3_BUCKET: z.string().trim().min(1, "S3_BUCKET is required"),
+  S3_PROJECT_FILES_BUCKET: z
+    .string()
+    .trim()
+    .min(1, "S3_PROJECT_FILES_BUCKET must not be empty")
+    .default("collabill-project-files"),
   S3_REGION: z.string().trim().min(1, "S3_REGION is required"),
   ENCRYPTION_KEY: z
     .string()
@@ -59,6 +64,14 @@ const baseServerEnvSchema = publicEnvSchema.extend({
 });
 
 export const serverEnvSchema = baseServerEnvSchema.superRefine((env, ctx) => {
+  if (env.S3_BUCKET === env.S3_PROJECT_FILES_BUCKET) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["S3_PROJECT_FILES_BUCKET"],
+      message: "Project files must use a bucket separate from S3_BUCKET",
+    });
+  }
+
   if (env.PAYMENT_PROVIDER !== "nowpayments") {
     return;
   }

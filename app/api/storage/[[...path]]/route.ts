@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { buildStorageProxyUrl } from "@/lib/storage-proxy";
+import {
+  buildStorageProxyUrl,
+  isProjectFileBucketPath,
+} from "@/lib/storage-proxy";
 import { serverEnv } from "@/packages/env/server";
 
 export const runtime = "nodejs";
@@ -21,6 +24,18 @@ const proxyStorageRequest = async (request: NextRequest) => {
     request.nextUrl.search,
     serverEnv.S3_ENDPOINT,
   );
+
+  if (
+    isProjectFileBucketPath(
+      upstreamUrl.pathname,
+      serverEnv.S3_PROJECT_FILES_BUCKET,
+    )
+  ) {
+    return new NextResponse(null, {
+      status: 404,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
 
   const upstream = await fetch(upstreamUrl, {
     method: request.method,
