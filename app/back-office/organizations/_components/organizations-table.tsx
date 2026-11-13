@@ -1,6 +1,6 @@
 "use client";
 
-import { Col, Input, Row, Select, Table } from "antd";
+import { Col, Input, Row, Select, Table, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import {
@@ -73,7 +73,12 @@ export const OrganizationsTable = () => {
       title: "Plan",
       key: "plan",
       width: 140,
-      render: (_, row) => row.planCode ?? "FREE",
+      render: (_, row) =>
+        row.paymentExempt || row.isPaymentExempt ? (
+          <Tag color="green">Free Plan</Tag>
+        ) : (
+          (row.planCode ?? "FREE")
+        ),
     },
     {
       title: "Status",

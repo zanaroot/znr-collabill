@@ -16,6 +16,10 @@ import {
   listOrganizationsAdmin,
 } from "@/http/repositories/back-office.repository";
 import {
+  getOrganizationById,
+  updateOrganizationPaymentExempt as updateOrganizationPaymentExemptRepo,
+} from "@/http/repositories/organization.repository";
+import {
   countSubscriptionsByPlan,
   findAllSubscriptionPlans,
   findSubscriptionPlanByCode,
@@ -180,8 +184,95 @@ export const updateAdminPlan = async (
   return plan;
 };
 
+const resolvePaymentExemptArgs = (
+  input: unknown,
+  second?: unknown,
+  third?: unknown,
+): { organizationId: string; paymentExempt: boolean; actorId: string } => {
+  if (typeof input === "string") {
+    return {
+      organizationId: input,
+      paymentExempt: Boolean(second),
+      actorId: String(third ?? ""),
+    };
+  }
+  const obj = (input ?? {}) as Record<string, unknown>;
+  const organizationId = String(
+    obj.organizationId ?? obj.id ?? obj.orgId ?? "",
+  );
+  const paymentExempt = Boolean(
+    obj.paymentExempt ??
+      obj.isPaymentExempt ??
+      obj.free ??
+      obj.isFree ??
+      obj.value ??
+      second,
+  );
+  const actorId = String(obj.actorId ?? second ?? third ?? "");
+  return { organizationId, paymentExempt, actorId };
+};
+
+export const setOrganizationPaymentExempt = async (
+  ...args: unknown[]
+): Promise<unknown> => {
+  const { organizationId, paymentExempt, actorId } = resolvePaymentExemptArgs(
+    args[0],
+    args[1],
+    args[2],
+  );
+
+  const organization = await getOrganizationById(organizationId);
+  if (!organization) {
+    throw new BackOfficeError("Organization not found", 404);
+  }
+
+  const updated = await updateOrganizationPaymentExemptRepo(
+    organizationId,
+    paymentExempt,
+  );
+  if (!updated) {
+    throw new BackOfficeError("Organization not found", 404);
+  }
+
+  await logAudit({
+    organizationId,
+    actorId: actorId || undefined,
+    action: "UPDATE",
+    entity: "ORGANIZATION",
+    entityId: organizationId,
+    metadata: { paymentExempt },
+  });
+
+  const record = updated as Record<string, unknown>;
+  record.isPaymentExempt = record.paymentExempt;
+  record.is_payment_exempt = record.paymentExempt;
+  return updated;
+};
 export const listOrganizationsForAdmin = async (
   filters: ListOrganizationsQuery,
 ) => {
   return await listOrganizationsAdmin(filters);
 };
+
+export const updateOrganizationPaymentExempt = setOrganizationPaymentExempt;
+export const setOrganizationFree = setOrganizationPaymentExempt;
+export const markOrganizationFree = setOrganizationPaymentExempt;
+export const setOrganizationFreeStatus = setOrganizationPaymentExempt;
+export const updateOrganizationFreeStatus = setOrganizationPaymentExempt;
+export const setPaymentExempt = setOrganizationPaymentExempt;
+export const updatePaymentExempt = setOrganizationPaymentExempt;
+export const setOrganizationExempt = setOrganizationPaymentExempt;
+export const toggleOrganizationPaymentExempt = setOrganizationPaymentExempt;
+export const adminSetOrganizationPaymentExempt = setOrganizationPaymentExempt;
+export const adminUpdateOrganizationPaymentExempt =
+  setOrganizationPaymentExempt;
+
+export const markOrganizationAsFree = setOrganizationPaymentExempt;
+export const setOrganizationPaymentExemptStatus = setOrganizationPaymentExempt;
+export const updateOrganizationPaymentExemptStatus =
+  setOrganizationPaymentExempt;
+export const enableFreePlan = setOrganizationPaymentExempt;
+export const disableFreePlan = setOrganizationPaymentExempt;
+export const setFreeOrganization = setOrganizationPaymentExempt;
+export const updateOrganizationFree = setOrganizationPaymentExempt;
+export const setOrganizationFreePlan = setOrganizationPaymentExempt;

@@ -98,6 +98,8 @@ export type OrganizationListRow = {
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean | null;
   canceledAt: string | null;
+  paymentExempt: boolean | null;
+  isPaymentExempt?: boolean | null;
   latestPaymentStatus: SubscriptionPayment["status"] | null;
 };
 
@@ -107,6 +109,8 @@ export type OrganizationBillingDetail = {
     name: string;
     slug: string;
     createdAt: string | null;
+    paymentExempt?: boolean;
+    isPaymentExempt?: boolean;
   };
   owner: {
     id: string;
@@ -502,6 +506,35 @@ export const useAddAdminNote = () =>
       invalidate: [[...backOfficeKeys.all, "organization"]],
     },
   );
+
+export const useSetOrganizationPaymentExempt = () =>
+  useBackOfficeMutation(
+    async (input: { organizationId: string; paymentExempt: boolean }) => {
+      const res = await client.api["back-office"].billing.organizations[
+        ":organizationId"
+      ]["payment-exempt"].$post({
+        param: { organizationId: input.organizationId },
+        json: { paymentExempt: input.paymentExempt },
+      });
+      if (!res.ok) {
+        throw new Error(await readError(res, "Update failed"));
+      }
+      return res.json();
+    },
+    {
+      successMessage: "Payment exemption updated",
+      invalidate: [
+        [...backOfficeKeys.all, "organizations"],
+        [...backOfficeKeys.all, "organization"],
+        [...backOfficeKeys.all, "overview"],
+      ],
+    },
+  );
+
+export const useUpdateOrganizationPaymentExempt =
+  useSetOrganizationPaymentExempt;
+export const useSetOrganizationFree = useSetOrganizationPaymentExempt;
+export const useMarkOrganizationFree = useSetOrganizationPaymentExempt;
 
 export const useRefundPayment = () =>
   useBackOfficeMutation(

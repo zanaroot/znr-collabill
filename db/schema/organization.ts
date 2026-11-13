@@ -36,6 +36,7 @@ export const organizations = pgTable("organizations", {
   presenceSelectionEnabled: boolean("presence_selection_enabled")
     .default(false)
     .notNull(),
+  paymentExempt: boolean("payment_exempt").default(false).notNull(),
 });
 
 export const organizationMembers = pgTable(

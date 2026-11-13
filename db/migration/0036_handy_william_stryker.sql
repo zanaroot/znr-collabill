@@ -1,0 +1,1 @@
+ALTER TABLE "organizations" ADD COLUMN "payment_exempt" boolean DEFAULT false NOT NULL;

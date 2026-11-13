@@ -18,6 +18,7 @@ import {
   Select,
   Space,
   Spin,
+  Switch,
   Table,
   Tag,
   Typography,
@@ -45,6 +46,7 @@ import {
   useChangeAdminPlan,
   useExtendSubscription,
   useReactivateSubscription,
+  useSetOrganizationPaymentExempt,
   useSuspendSubscription,
 } from "../../_hooks/use-back-office";
 
@@ -73,6 +75,7 @@ export const OrganizationDrawer = ({
   const extend = useExtendSubscription();
   const changePlan = useChangeAdminPlan();
   const addNote = useAddAdminNote();
+  const setPaymentExempt = useSetOrganizationPaymentExempt();
 
   const [extendTarget, setExtendTarget] = useState<SubscriptionRow | null>(
     null,
@@ -391,6 +394,31 @@ export const OrganizationDrawer = ({
                 : ` / ${data.usage.limits.maxProjects}`
             }`}
           />
+
+          <Divider titlePlacement="left">Payment exemption</Divider>
+          <Space style={{ marginBottom: 12 }}>
+            <Switch
+              checked={
+                data.organization.paymentExempt ??
+                data.organization.isPaymentExempt ??
+                false
+              }
+              loading={setPaymentExempt.isPending}
+              onChange={(checked) => {
+                if (!organizationId) return;
+                setPaymentExempt.mutateAsync({
+                  organizationId,
+                  paymentExempt: checked,
+                });
+              }}
+            />
+            <Text>
+              {data.organization.paymentExempt ||
+              data.organization.isPaymentExempt
+                ? "Free Plan (Payment Exempt)"
+                : "Standard paid billing"}
+            </Text>
+          </Space>
 
           <Divider titlePlacement="left">Subscriptions</Divider>
           <Table

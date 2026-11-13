@@ -163,9 +163,9 @@ export const buildNowpaymentsIpnEvent = (
   };
 };
 
-const createPaymentResponseSchema = z.object({
-  payment_id: z.union([z.string().min(1), z.number()]),
-  payment_url: z.string().min(1),
+const createInvoiceResponseSchema = z.object({
+  id: z.union([z.string().min(1), z.number()]),
+  invoice_url: z.string().min(1),
 });
 
 const paymentStatusResponseSchema = z.object({
@@ -204,7 +204,7 @@ export class NowPaymentsProvider implements PaymentProvider {
   createCheckoutSession = async (
     input: CreateCheckoutSessionInput,
   ): Promise<PaymentCheckoutSession> => {
-    const response = await fetch(`${this.baseUrl}/payment`, {
+    const response = await fetch(`${this.baseUrl}/invoice`, {
       method: "POST",
       headers: {
         "x-api-key": this.apiKey,
@@ -220,19 +220,19 @@ export class NowPaymentsProvider implements PaymentProvider {
     });
 
     if (!response.ok) {
-      throw new Error(`NOWPayments create payment failed (${response.status})`);
+      throw new Error(`NOWPayments create invoice failed (${response.status})`);
     }
 
-    const parsed = createPaymentResponseSchema.safeParse(await response.json());
+    const parsed = createInvoiceResponseSchema.safeParse(await response.json());
     if (!parsed.success) {
       throw new Error(
-        "NOWPayments create payment returned an invalid response",
+        "NOWPayments create invoice returned an invalid response",
       );
     }
 
     return {
-      providerCheckoutId: String(parsed.data.payment_id),
-      url: parsed.data.payment_url,
+      providerCheckoutId: String(parsed.data.id),
+      url: parsed.data.invoice_url,
       expiresAt: null,
     };
   };

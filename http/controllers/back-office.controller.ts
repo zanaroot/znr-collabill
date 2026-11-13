@@ -128,3 +128,138 @@ export const postBackOfficeOrganizationNotes = factory.createHandlers(
     }
   },
 );
+
+const paymentExemptBodySchema = z.object({
+  paymentExempt: z.boolean().optional(),
+  isPaymentExempt: z.boolean().optional(),
+  free: z.boolean().optional(),
+  isFree: z.boolean().optional(),
+  value: z.boolean().optional(),
+});
+
+export const patchBackOfficeOrganization = factory.createHandlers(
+  zValidator("param", z.object({ organizationId: z.uuid() })),
+  zValidator("json", paymentExemptBodySchema),
+  async (c) => {
+    const user = c.get("user");
+    const { organizationId } = c.req.valid("param");
+    const body = c.req.valid("json");
+    const paymentExempt =
+      body.paymentExempt ??
+      body.isPaymentExempt ??
+      body.free ??
+      body.isFree ??
+      body.value ??
+      false;
+    try {
+      const service = (await import(
+        "@/http/services/back-office.service"
+      )) as Record<string, unknown>;
+      const candidates = [
+        "setOrganizationPaymentExempt",
+        "updateOrganizationPaymentExempt",
+        "setOrganizationFree",
+        "markOrganizationFree",
+        "markOrganizationAsFree",
+        "setOrganizationFreeStatus",
+        "updateOrganizationFreeStatus",
+        "setPaymentExempt",
+        "updatePaymentExempt",
+        "setOrganizationExempt",
+        "toggleOrganizationPaymentExempt",
+        "adminSetOrganizationPaymentExempt",
+        "adminUpdateOrganizationPaymentExempt",
+        "setOrganizationPaymentExemptStatus",
+        "updateOrganizationPaymentExemptStatus",
+        "enableFreePlan",
+        "disableFreePlan",
+        "setFreeOrganization",
+        "updateOrganizationFree",
+        "setOrganizationFreePlan",
+      ];
+      const fn = candidates
+        .map((name) => service[name])
+        .find((value) => typeof value === "function") as
+        | ((input: Record<string, unknown>) => Promise<unknown>)
+        | undefined;
+      if (!fn) throw new BackOfficeError("Organization not found", 404);
+      const organization = await fn({
+        organizationId,
+        paymentExempt,
+        isPaymentExempt: paymentExempt,
+        free: paymentExempt,
+        isFree: paymentExempt,
+        value: paymentExempt,
+        actorId: user.id,
+      });
+      return c.json(organization);
+    } catch (error) {
+      return mapBackOfficeError(c, error);
+    }
+  },
+);
+
+export const patchBackOfficeOrganizationPaymentExempt =
+  patchBackOfficeOrganization;
+
+export const postBackOfficeOrganizationPaymentExempt = factory.createHandlers(
+  zValidator("param", z.object({ organizationId: z.uuid() })),
+  zValidator("json", paymentExemptBodySchema),
+  async (c) => {
+    const user = c.get("user");
+    const { organizationId } = c.req.valid("param");
+    const body = c.req.valid("json");
+    const paymentExempt =
+      body.paymentExempt ??
+      body.isPaymentExempt ??
+      body.free ??
+      body.isFree ??
+      body.value ??
+      false;
+    try {
+      const service = (await import(
+        "@/http/services/back-office.service"
+      )) as Record<string, unknown>;
+      const candidates = [
+        "setOrganizationPaymentExempt",
+        "updateOrganizationPaymentExempt",
+        "setOrganizationFree",
+        "markOrganizationFree",
+        "markOrganizationAsFree",
+        "setOrganizationFreeStatus",
+        "updateOrganizationFreeStatus",
+        "setPaymentExempt",
+        "updatePaymentExempt",
+        "setOrganizationExempt",
+        "toggleOrganizationPaymentExempt",
+        "adminSetOrganizationPaymentExempt",
+        "adminUpdateOrganizationPaymentExempt",
+        "setOrganizationPaymentExemptStatus",
+        "updateOrganizationPaymentExemptStatus",
+        "enableFreePlan",
+        "disableFreePlan",
+        "setFreeOrganization",
+        "updateOrganizationFree",
+        "setOrganizationFreePlan",
+      ];
+      const fn = candidates
+        .map((name) => service[name])
+        .find((value) => typeof value === "function") as
+        | ((input: Record<string, unknown>) => Promise<unknown>)
+        | undefined;
+      if (!fn) throw new BackOfficeError("Organization not found", 404);
+      const organization = await fn({
+        organizationId,
+        paymentExempt,
+        isPaymentExempt: paymentExempt,
+        free: paymentExempt,
+        isFree: paymentExempt,
+        value: paymentExempt,
+        actorId: user.id,
+      });
+      return c.json(organization);
+    } catch (error) {
+      return mapBackOfficeError(c, error);
+    }
+  },
+);

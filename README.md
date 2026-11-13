@@ -106,7 +106,7 @@ interface in `packages/payment` and extending `PAYMENT_PROVIDER` in
 
 ### NOWPayments (IPN webhook)
 
-CollaBill creates NOWPayments payments through `POST <NOWPAYMENTS_BASE_URL>/payment`
+CollaBill creates NOWPayments invoices through `POST <NOWPAYMENTS_BASE_URL>/invoice`
 and receives status updates via an IPN (Instant Payment Notification) webhook.
 
 #### Environment variables

@@ -10,6 +10,7 @@ import {
   type SubscriptionWithPlan,
   subscriptionEventTypes,
 } from "@/http/models/subscription.model";
+import { getOrganizationById as getBillingOrganizationById } from "@/http/repositories/organization.repository";
 import {
   findLatestSubscriptionByOrganizationId,
   findLiveSubscriptionWithPlan,
@@ -83,6 +84,35 @@ const calculateBillingPeriod = (
 const isLiveStatus = (status: Subscription["status"]): boolean =>
   liveSubscriptionStatusSchema.safeParse(status).success;
 
+const isPaymentExemptOrganizationSafe = async (
+  organizationId: string,
+): Promise<boolean> => {
+  try {
+    const orgRepo = await import("@/http/repositories/organization.repository");
+    if (typeof orgRepo.isOrganizationPaymentExempt === "function") {
+      return Boolean(await orgRepo.isOrganizationPaymentExempt(organizationId));
+    }
+    if (typeof orgRepo.getOrganizationPaymentExempt === "function") {
+      return Boolean(
+        await orgRepo.getOrganizationPaymentExempt(organizationId),
+      );
+    }
+    const org = await getBillingOrganizationById(organizationId);
+    if (!org) return false;
+    const record = org as Record<string, unknown>;
+    return (
+      record.paymentExempt === true ||
+      record.isPaymentExempt === true ||
+      record.payment_exempt === true ||
+      record.is_payment_exempt === true ||
+      record.free === true ||
+      record.isFree === true
+    );
+  } catch {
+    return false;
+  }
+};
+
 export const listBillingPlans = async (): Promise<SubscriptionPlan[]> => {
   const plans = await listSubscriptionPlans();
   return plans.filter((plan) => isPlanActive(plan));
@@ -91,7 +121,36 @@ export const listBillingPlans = async (): Promise<SubscriptionPlan[]> => {
 export const getOrganizationSubscription = async (
   organizationId: string,
 ): Promise<SubscriptionWithPlan> => {
+  const exempt = await isPaymentExemptOrganizationSafe(organizationId);
+
   const latest = await findLatestSubscriptionByOrganizationId(organizationId);
+
+  if (exempt && !latest) {
+    const plan =
+      (await findSubscriptionPlanByCode("PRO")) ??
+      (await findSubscriptionPlanByCode("FREE"));
+    if (plan) {
+      return {
+        id: `exempt-${organizationId}`,
+        organizationId,
+        planId: plan.id,
+        status: "ACTIVE",
+        interval: plan.interval,
+        amountMinor: 0,
+        currency: plan.currency,
+        provider: "internal",
+        providerSubscriptionId: null,
+        trialEndsAt: null,
+        currentPeriodStart: null,
+        currentPeriodEnd: null,
+        cancelAtPeriodEnd: false,
+        canceledAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        plan,
+      } as SubscriptionWithPlan;
+    }
+  }
 
   if (!latest) {
     try {
@@ -122,6 +181,9 @@ export const initiateCheckout = async (input: {
   planCode: SubscriptionPlanCode;
   interval: SubscriptionInterval;
 }) => {
+  if (await isPaymentExemptOrganizationSafe(input.organizationId)) {
+    throw new BillingError("Organization is payment exempt", 409);
+  }
   const providerName = requirePaymentProvider().name;
   const plan = await findPlanOrThrow(input.planCode);
 
@@ -208,6 +270,9 @@ export const changeOrganizationPlan = async (input: {
   planCode: SubscriptionPlanCode;
   interval?: SubscriptionInterval;
 }): Promise<SubscriptionWithPlan> => {
+  if (await isPaymentExemptOrganizationSafe(input.organizationId)) {
+    throw new BillingError("Organization is payment exempt", 409);
+  }
   const plan = await findPlanOrThrow(input.planCode);
   if (!isPlanActive(plan)) {
     throw new BillingError("Plan is not available", 400);
@@ -252,6 +317,9 @@ export const cancelOrganizationSubscription = async (input: {
   organizationId: string;
   atPeriodEnd?: boolean;
 }): Promise<Subscription> => {
+  if (await isPaymentExemptOrganizationSafe(input.organizationId)) {
+    throw new BillingError("Organization is payment exempt", 409);
+  }
   const current = await findLiveSubscriptionWithPlan(input.organizationId);
   if (!current) {
     throw new BillingError("No active subscription to cancel", 409);
@@ -285,6 +353,9 @@ export const cancelOrganizationSubscription = async (input: {
 export const reactivateOrganizationSubscription = async (input: {
   organizationId: string;
 }): Promise<Subscription> => {
+  if (await isPaymentExemptOrganizationSafe(input.organizationId)) {
+    throw new BillingError("Organization is payment exempt", 409);
+  }
   const latest = await findLatestSubscriptionByOrganizationId(
     input.organizationId,
   );

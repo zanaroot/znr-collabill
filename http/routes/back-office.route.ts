@@ -4,8 +4,11 @@ import {
   getBackOfficeOrganizations,
   getBackOfficeOverview,
   getBackOfficePlans,
+  patchBackOfficeOrganization,
+  patchBackOfficeOrganizationPaymentExempt,
   patchBackOfficePlans,
   postBackOfficeOrganizationNotes,
+  postBackOfficeOrganizationPaymentExempt,
   postBackOfficePlans,
 } from "@/http/controllers/back-office.controller";
 import {
@@ -34,6 +37,22 @@ export const backOfficeRoutes = new Hono()
   .post(
     "/billing/organizations/:organizationId/notes",
     ...postBackOfficeOrganizationNotes,
+  )
+  .patch(
+    "/billing/organizations/:organizationId",
+    ...patchBackOfficeOrganization,
+  )
+  .patch(
+    "/billing/organizations/:organizationId/payment-exempt",
+    ...patchBackOfficeOrganizationPaymentExempt,
+  )
+  .post(
+    "/billing/organizations/:organizationId/payment-exempt",
+    ...postBackOfficeOrganizationPaymentExempt,
+  )
+  .post(
+    "/billing/organizations/:organizationId/free",
+    ...postBackOfficeOrganizationPaymentExempt,
   )
   .get("/billing/payments", ...getBackOfficePayments)
   .get("/billing/payments/:paymentId", ...getBackOfficePayment)

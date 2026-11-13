@@ -69,6 +69,7 @@ const buildOrganizationAdminQuery = () => {
       name: organizations.name,
       slug: organizations.slug,
       createdAt: organizations.createdAt,
+      paymentExempt: organizations.paymentExempt,
       ownerName: users.name,
       ownerEmail: users.email,
       subscriptionId: latestSubscriptionRank.id,

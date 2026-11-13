@@ -14,6 +14,7 @@ import {
 import {
   countOrganizationMembers,
   countOrganizationMembersInTx,
+  getOrganizationById,
 } from "@/http/repositories/organization.repository";
 import {
   countProjectsByOrganizationId,
@@ -95,9 +96,53 @@ const requireFallbackPlan = (plan: SubscriptionPlan | null) => {
   return plan;
 };
 
+const isPaymentExemptOrg = async (organizationId: string): Promise<boolean> => {
+  try {
+    const orgRepo = await import("@/http/repositories/organization.repository");
+    if (typeof orgRepo.isOrganizationPaymentExempt === "function") {
+      return Boolean(await orgRepo.isOrganizationPaymentExempt(organizationId));
+    }
+    if (typeof orgRepo.getOrganizationPaymentExempt === "function") {
+      return Boolean(
+        await orgRepo.getOrganizationPaymentExempt(organizationId),
+      );
+    }
+    if (typeof getOrganizationById !== "function") return false;
+    const org = await getOrganizationById(organizationId);
+    if (!org) return false;
+    const record = org as Record<string, unknown>;
+    return (
+      record.paymentExempt === true ||
+      record.isPaymentExempt === true ||
+      record.payment_exempt === true ||
+      record.is_payment_exempt === true ||
+      record.free === true ||
+      record.isFree === true
+    );
+  } catch {
+    return false;
+  }
+};
+
 export const loadEntitlement = async (
   organizationId: string,
 ): Promise<OrganizationEntitlement> => {
+  if (await isPaymentExemptOrg(organizationId)) {
+    const paidPlan =
+      (await findSubscriptionPlanByCode("PRO")) ??
+      (await findSubscriptionPlanByCode("ENTERPRISE")) ??
+      null;
+    if (paidPlan) {
+      return toEntitlement(organizationId, paidPlan);
+    }
+    return {
+      organizationId,
+      planCode: "PRO" as SubscriptionPlanCode,
+      planName: "Pro",
+      features: ["integrations", "finance"],
+      limits: { maxMembers: null, maxProjects: null },
+    };
+  }
   const live = await findLiveSubscriptionWithPlan(organizationId);
   if (live) {
     return toEntitlement(organizationId, live.plan);
@@ -112,6 +157,37 @@ const loadEntitlementInTx = async (
   tx: Transaction,
   organizationId: string,
 ): Promise<OrganizationEntitlement> => {
+  // Payment-exempt orgs get paid entitlements without a subscription.
+  const org = await (async () => {
+    try {
+      return typeof getOrganizationById === "function"
+        ? await getOrganizationById(organizationId)
+        : null;
+    } catch {
+      return null;
+    }
+  })();
+  const record = (org ?? {}) as Record<string, unknown>;
+  const exempt =
+    record.paymentExempt === true ||
+    record.isPaymentExempt === true ||
+    record.payment_exempt === true ||
+    record.is_payment_exempt === true ||
+    record.free === true ||
+    record.isFree === true;
+  if (exempt) {
+    const paidPlan = await findSubscriptionPlanByCodeInTx(tx, "PRO");
+    if (paidPlan) {
+      return toEntitlement(organizationId, paidPlan);
+    }
+    return {
+      organizationId,
+      planCode: "PRO" as SubscriptionPlanCode,
+      planName: "Pro",
+      features: ["integrations", "finance"],
+      limits: { maxMembers: null, maxProjects: null },
+    };
+  }
   const live = await findLiveSubscriptionWithPlanInTx(tx, organizationId);
   if (live) {
     return toEntitlement(organizationId, live.plan);
@@ -265,3 +341,5 @@ export const createInvitedUserWithMemberLimit = async (data: {
   runWithResourceLimit(data.organizationId, "members", (tx) =>
     createUserFromInvitationInTx(tx, data),
   );
+
+export const isOrganizationPaymentExempt = isPaymentExemptOrg;

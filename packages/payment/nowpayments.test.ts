@@ -309,9 +309,8 @@ describe("NowPaymentsProvider.createCheckoutSession", () => {
       ok: true,
       status: 201,
       json: async () => ({
-        payment_id: 123456789,
-        payment_status: "waiting",
-        payment_url: "https://nowpayments.io/payment/abc",
+        id: 123456789,
+        invoice_url: "https://nowpayments.io/payment/abc",
       }),
     });
 
@@ -326,7 +325,7 @@ describe("NowPaymentsProvider.createCheckoutSession", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.nowpayments.io/v1/payment",
+      "https://api.nowpayments.io/v1/invoice",
       expect.objectContaining({
         method: "POST",
         headers: {
@@ -364,7 +363,7 @@ describe("NowPaymentsProvider.createCheckoutSession", () => {
           planCode: "PRO",
         },
       }),
-    ).rejects.toThrow("NOWPayments create payment failed (400)");
+    ).rejects.toThrow("NOWPayments create invoice failed (400)");
   });
 });
 

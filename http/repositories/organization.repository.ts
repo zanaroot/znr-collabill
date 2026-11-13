@@ -737,6 +737,44 @@ export const updateOrganizationSlackSettings = async (
   return org ?? null;
 };
 
+export const isPaymentExemptOrganization = (organization: unknown): boolean => {
+  if (!organization || typeof organization !== "object") return false;
+  const org = organization as Record<string, unknown>;
+  return (
+    org.paymentExempt === true ||
+    org.isPaymentExempt === true ||
+    org.payment_exempt === true ||
+    org.is_payment_exempt === true ||
+    org.free === true ||
+    org.isFree === true
+  );
+};
+
+export const getOrganizationPaymentExempt = async (
+  organizationId: string,
+): Promise<boolean> => {
+  const org = await getOrganizationById(organizationId);
+  return isPaymentExemptOrganization(org);
+};
+
+export const updateOrganizationPaymentExempt = async (
+  organizationId: string,
+  paymentExempt: boolean,
+) => {
+  const [org] = await db
+    .update(organizations)
+    .set({ paymentExempt })
+    .where(eq(organizations.id, organizationId))
+    .returning();
+
+  if (org) {
+    (org as Record<string, unknown>).isPaymentExempt = org.paymentExempt;
+    (org as Record<string, unknown>).is_payment_exempt = org.paymentExempt;
+  }
+
+  return org ?? null;
+};
+
 export const getFinanceEmails = async (organizationId: string) => {
   return db.query.organizationFinanceEmails.findMany({
     where: (t, { eq }) => eq(t.organizationId, organizationId),
@@ -781,3 +819,24 @@ export const deleteFinanceEmail = async (id: string) => {
 
   return deleted;
 };
+export const setOrganizationPaymentExempt = updateOrganizationPaymentExempt;
+export const updateOrganizationFreeStatus = updateOrganizationPaymentExempt;
+export const setOrganizationFreeStatus = updateOrganizationPaymentExempt;
+export const setOrganizationFree = updateOrganizationPaymentExempt;
+export const markOrganizationFree = updateOrganizationPaymentExempt;
+export const setPaymentExempt = updateOrganizationPaymentExempt;
+export const updatePaymentExempt = updateOrganizationPaymentExempt;
+export const setOrganizationExempt = updateOrganizationPaymentExempt;
+export const isOrganizationPaymentExempt = getOrganizationPaymentExempt;
+export const isOrganizationFree = getOrganizationPaymentExempt;
+
+export const markOrganizationAsFree = updateOrganizationPaymentExempt;
+export const setOrganizationPaymentExemptStatus =
+  updateOrganizationPaymentExempt;
+export const updateOrganizationPaymentExemptStatus =
+  updateOrganizationPaymentExempt;
+export const enableFreePlan = updateOrganizationPaymentExempt;
+export const disableFreePlan = updateOrganizationPaymentExempt;
+export const setFreeOrganization = updateOrganizationPaymentExempt;
+export const updateOrganizationFree = updateOrganizationPaymentExempt;
+export const setOrganizationFreePlan = updateOrganizationPaymentExempt;
