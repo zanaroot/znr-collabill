@@ -23,8 +23,10 @@ const mocks = vi.hoisted(() => {
     recordSubscriptionEvent: vi.fn(),
     setSubscriptionStatus: vi.fn(),
     requirePaymentProvider: vi.fn(() => ({ name: "mock" })),
+    getPaymentStatusForOrganization: vi.fn(),
     createCheckoutSession: vi.fn(async () => ({
       providerCheckoutId: "cs_mock_123",
+      providerPaymentId: "cs_mock_123",
       checkoutUrl:
         "http://localhost:3000/api/payments/mock/checkout/cs_mock_123",
     })),
@@ -56,6 +58,7 @@ vi.mock("@/http/services/subscription.service", () => ({
 
 vi.mock("@/http/services/payment.service", () => ({
   requirePaymentProvider: mocks.requirePaymentProvider,
+  getPaymentStatusForOrganization: mocks.getPaymentStatusForOrganization,
   createCheckoutSession: mocks.createCheckoutSession,
 }));
 
@@ -150,6 +153,8 @@ const paymentRow = {
   amountMinor: 1900,
   currency: "USD",
   provider: "mock",
+  providerCheckoutId: null,
+  checkoutUrl: null,
   providerPaymentId: null,
   paidAt: null,
   failureReason: null,
@@ -238,6 +243,9 @@ describe("initiateCheckout", () => {
     expect(result.payment).toEqual({
       ...paymentRow,
       provider: "mock",
+      providerCheckoutId: "cs_mock_123",
+      checkoutUrl:
+        "http://localhost:3000/api/payments/mock/checkout/cs_mock_123",
       providerPaymentId: "cs_mock_123",
     });
     expect(result.plan).toEqual(proPlan);
@@ -275,6 +283,29 @@ describe("initiateCheckout", () => {
       result.billingPeriod.startsAt.getTime();
     expect(duration).toBeGreaterThan(27 * day);
     expect(duration).toBeLessThan(32 * day);
+  });
+
+  it("maps a concurrent pending checkout insert to a conflict", async () => {
+    mocks.findSubscriptionPlanByCode.mockResolvedValue(proPlan);
+    mocks.findLiveSubscriptionWithPlan.mockResolvedValue(freeSubscription);
+    mocks.findPendingPaymentByOrganizationId.mockResolvedValue(null);
+    mocks.insertSubscriptionPayment.mockRejectedValue(
+      Object.assign(new Error("duplicate key value"), { code: "23505" }),
+    );
+
+    await expect(
+      initiateCheckout({
+        organizationId,
+        planCode: "PRO",
+        interval: "MONTHLY",
+      }),
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof BillingError &&
+        error.statusCode === 409 &&
+        error.message === "A checkout is already in progress",
+    );
+    expect(mocks.createCheckoutSession).not.toHaveBeenCalled();
   });
 
   it("ensures a subscription first when the organization has none", async () => {
@@ -375,6 +406,7 @@ describe("initiateCheckout", () => {
     mocks.findSubscriptionPlanByCode.mockResolvedValue(proPlan);
     mocks.findLiveSubscriptionWithPlan.mockResolvedValue(freeSubscription);
     mocks.findPendingPaymentByOrganizationId.mockResolvedValue(paymentRow);
+    mocks.getPaymentStatusForOrganization.mockResolvedValue(paymentRow);
 
     await expect(
       initiateCheckout({
@@ -385,6 +417,62 @@ describe("initiateCheckout", () => {
     ).rejects.toSatisfy(
       (error: unknown) =>
         error instanceof BillingError && error.statusCode === 409,
+    );
+    expect(mocks.insertSubscriptionPayment).not.toHaveBeenCalled();
+  });
+
+  it("allows a new checkout after the pending invoice expired", async () => {
+    mocks.findSubscriptionPlanByCode.mockResolvedValue(proPlan);
+    mocks.findLiveSubscriptionWithPlan.mockResolvedValue(freeSubscription);
+    mocks.findPendingPaymentByOrganizationId.mockResolvedValue(paymentRow);
+    mocks.getPaymentStatusForOrganization.mockResolvedValue({
+      ...paymentRow,
+      status: "FAILED",
+      failureReason: "expired",
+    });
+    mocks.insertSubscriptionPayment.mockResolvedValue({
+      row: paymentRow,
+      created: true,
+    });
+    mocks.recordSubscriptionEvent.mockResolvedValue({
+      row: {},
+      created: true,
+    });
+
+    const result = await initiateCheckout({
+      organizationId,
+      planCode: "PRO",
+      interval: "MONTHLY",
+    });
+
+    expect(mocks.getPaymentStatusForOrganization).toHaveBeenCalledWith({
+      organizationId,
+      paymentId: paymentRow.id,
+    });
+    expect(result.checkoutUrl).toContain("/checkout/");
+    expect(mocks.insertSubscriptionPayment).toHaveBeenCalled();
+  });
+
+  it("does not start a second checkout after a pending payment succeeded", async () => {
+    mocks.findSubscriptionPlanByCode.mockResolvedValue(proPlan);
+    mocks.findLiveSubscriptionWithPlan.mockResolvedValue(freeSubscription);
+    mocks.findPendingPaymentByOrganizationId.mockResolvedValue(paymentRow);
+    mocks.getPaymentStatusForOrganization.mockResolvedValue({
+      ...paymentRow,
+      status: "SUCCEEDED",
+    });
+
+    await expect(
+      initiateCheckout({
+        organizationId,
+        planCode: "PRO",
+        interval: "MONTHLY",
+      }),
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof BillingError &&
+        error.statusCode === 409 &&
+        error.message.includes("refresh billing"),
     );
     expect(mocks.insertSubscriptionPayment).not.toHaveBeenCalled();
   });

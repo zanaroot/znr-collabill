@@ -162,6 +162,8 @@ export const recordSubscriptionPayment = async (
     amountMinor: parsed.amountMinor,
     currency: parsed.currency,
     provider: parsed.provider,
+    providerCheckoutId: parsed.providerCheckoutId ?? null,
+    checkoutUrl: parsed.checkoutUrl ?? null,
     providerPaymentId: parsed.providerPaymentId ?? null,
     paidAt: parsed.paidAt ?? null,
     failureReason: parsed.failureReason ?? null,

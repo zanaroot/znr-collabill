@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Alert,
   Button,
   Card,
   Descriptions,
@@ -25,6 +26,9 @@ export const PaymentHistoryTable = () => {
   const { data: payments, isLoading, isError, refetch } = usePayments();
   const reconcile = useReconcilePayment();
   const [receipt, setReceipt] = useState<PaymentHistoryRow | null>(null);
+  const pendingPayment = payments?.find(
+    (payment) => payment.status === "PENDING",
+  );
 
   const columns: ColumnsType<PaymentHistoryRow> = [
     {
@@ -66,7 +70,8 @@ export const PaymentHistoryTable = () => {
       title: "Reference",
       key: "reference",
       render: (_: unknown, payment: PaymentHistoryRow) => {
-        const reference = payment.providerPaymentId ?? payment.id;
+        const reference =
+          payment.providerPaymentId ?? payment.providerCheckoutId ?? payment.id;
         return (
           <Text
             code
@@ -82,20 +87,34 @@ export const PaymentHistoryTable = () => {
     {
       title: "Actions",
       key: "actions",
-      width: 150,
+      width: 220,
       render: (_: unknown, payment: PaymentHistoryRow) => (
-        <Space size={4}>
-          {payment.status === "PENDING" ? (
-            <Button
-              size="small"
-              loading={
-                reconcile.isPending && reconcile.variables === payment.id
-              }
-              onClick={() => reconcile.mutate(payment.id)}
-            >
-              Check status
-            </Button>
-          ) : (
+        <Space size={4} wrap>
+          {payment.status === "PENDING" && (
+            <>
+              {payment.checkoutUrl && (
+                <Button
+                  size="small"
+                  type="primary"
+                  href={payment.checkoutUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Complete payment
+                </Button>
+              )}
+              <Button
+                size="small"
+                loading={
+                  reconcile.isPending && reconcile.variables === payment.id
+                }
+                onClick={() => reconcile.mutate(payment.id)}
+              >
+                Check status
+              </Button>
+            </>
+          )}
+          {payment.status !== "PENDING" && (
             <Button size="small" onClick={() => setReceipt(payment)}>
               {payment.status === "FAILED" ? "Details" : "Receipt"}
             </Button>
@@ -107,6 +126,47 @@ export const PaymentHistoryTable = () => {
 
   return (
     <Card title="Payment history" style={{ marginBottom: 16 }}>
+      {pendingPayment && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message={`${pendingPayment.planCode} payment pending`}
+          description={
+            <>
+              {formatMoney(pendingPayment.amountMinor, pendingPayment.currency)}{" "}
+              is waiting for confirmation. Complete the checkout to activate
+              your plan. Access is activated only after the payment provider
+              confirms the payment.
+            </>
+          }
+          action={
+            <Space direction="vertical" size={4}>
+              {pendingPayment.checkoutUrl && (
+                <Button
+                  size="small"
+                  type="primary"
+                  href={pendingPayment.checkoutUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Complete payment
+                </Button>
+              )}
+              <Button
+                size="small"
+                loading={
+                  reconcile.isPending &&
+                  reconcile.variables === pendingPayment.id
+                }
+                onClick={() => reconcile.mutate(pendingPayment.id)}
+              >
+                Check status
+              </Button>
+            </Space>
+          }
+        />
+      )}
       {isError ? (
         <QueryErrorAlert
           message="Failed to load payment history"
@@ -120,7 +180,7 @@ export const PaymentHistoryTable = () => {
           columns={columns}
           dataSource={payments ?? []}
           pagination={{ pageSize: 10, showSizeChanger: false }}
-          scroll={{ x: 900 }}
+          scroll={{ x: 1000 }}
         />
       )}
       <Modal
@@ -143,8 +203,24 @@ export const PaymentHistoryTable = () => {
             <Descriptions.Item label="Payment ID">
               <Text code>{receipt.id}</Text>
             </Descriptions.Item>
-            <Descriptions.Item label="Reference">
+            <Descriptions.Item label="Payment reference">
               <Text code>{receipt.providerPaymentId ?? "—"}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Checkout reference">
+              <Text code>{receipt.providerCheckoutId ?? "—"}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Checkout URL">
+              {receipt.checkoutUrl ? (
+                <Typography.Link
+                  href={receipt.checkoutUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open checkout
+                </Typography.Link>
+              ) : (
+                "—"
+              )}
             </Descriptions.Item>
             <Descriptions.Item label="Plan">
               <Tag>{receipt.planCode}</Tag>

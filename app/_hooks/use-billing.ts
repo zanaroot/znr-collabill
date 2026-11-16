@@ -43,6 +43,8 @@ export type PaymentHistoryRow = {
   amountMinor: number;
   currency: string;
   provider: string;
+  providerCheckoutId: string | null;
+  checkoutUrl: string | null;
   providerPaymentId: string | null;
   paidAt: Date | string | null;
   failureReason: string | null;
@@ -143,6 +145,8 @@ export const useCheckout = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: billingKeys.usage() });
+      queryClient.invalidateQueries({ queryKey: billingKeys.payments() });
+      queryClient.invalidateQueries({ queryKey: billingKeys.subscription() });
       const pending: PendingCheckout = {
         paymentId: data.payment.id,
         planCode: data.plan.code,

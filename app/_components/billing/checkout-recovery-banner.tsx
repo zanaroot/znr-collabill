@@ -14,7 +14,18 @@ export const CheckoutRecoveryBanner = () => {
   }
 
   const actions = (
-    <Space>
+    <Space wrap>
+      {payment?.status === "PENDING" && payment.checkoutUrl && (
+        <Button
+          size="small"
+          type="primary"
+          href={payment.checkoutUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Continue payment
+        </Button>
+      )}
       <Button size="small" loading={isChecking} onClick={recovery.checkNow}>
         Check now
       </Button>

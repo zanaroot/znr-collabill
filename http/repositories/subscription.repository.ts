@@ -219,6 +219,8 @@ export const findPaymentsByOrganizationId = async (organizationId: string) => {
       amountMinor: subscriptionPayments.amountMinor,
       currency: subscriptionPayments.currency,
       provider: subscriptionPayments.provider,
+      providerCheckoutId: subscriptionPayments.providerCheckoutId,
+      checkoutUrl: subscriptionPayments.checkoutUrl,
       providerPaymentId: subscriptionPayments.providerPaymentId,
       paidAt: subscriptionPayments.paidAt,
       failureReason: subscriptionPayments.failureReason,

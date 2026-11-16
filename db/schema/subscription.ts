@@ -113,6 +113,8 @@ export const subscriptionPayments = pgTable(
     amountMinor: integer("amount_minor").notNull(),
     currency: text("currency").notNull().default("USD"),
     provider: text("provider").notNull().default("internal"),
+    providerCheckoutId: text("provider_checkout_id").unique(),
+    checkoutUrl: text("checkout_url"),
     providerPaymentId: text("provider_payment_id").unique(),
     paidAt: timestamp("paid_at"),
     failureReason: text("failure_reason"),
@@ -122,6 +124,9 @@ export const subscriptionPayments = pgTable(
   (t) => [
     index("subscription_payments_organization_id_idx").on(t.organizationId),
     index("subscription_payments_subscription_id_idx").on(t.subscriptionId),
+    uniqueIndex("subscription_payments_pending_unique_idx")
+      .on(t.organizationId)
+      .where(sql`${t.status} = 'PENDING'`),
   ],
 );
 

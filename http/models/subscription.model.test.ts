@@ -71,6 +71,8 @@ const paymentRow = {
   amountMinor: 1900,
   currency: "USD",
   provider: "stripe",
+  providerCheckoutId: "cs_123",
+  checkoutUrl: "https://checkout.stripe.com/c/pay/cs_123",
   providerPaymentId: "pi_123",
   paidAt: now,
   failureReason: null,

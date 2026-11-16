@@ -69,9 +69,20 @@ export class MockPaymentProvider implements PaymentProvider {
     });
     return {
       providerCheckoutId,
+      providerPaymentId: providerCheckoutId,
       url: `${this.appUrl}/api/payments/mock/checkout/${providerCheckoutId}`,
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
     };
+  };
+
+  retrieveCheckout = async (
+    providerCheckoutId: string,
+  ): Promise<PaymentStatusSnapshot | null> => {
+    try {
+      return await this.retrievePayment(providerCheckoutId);
+    } catch {
+      return null;
+    }
   };
 
   retrievePayment = async (

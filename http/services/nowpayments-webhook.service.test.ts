@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   findSubscriptionPaymentById: vi.fn(),
   findSubscriptionPaymentByProviderPaymentId: vi.fn(),
+  findSubscriptionPaymentByProviderCheckoutId: vi.fn(),
   linkSubscriptionPaymentSession: vi.fn(),
   applyPaymentProviderEvent: vi.fn(),
   findSubscriptionPlanById: vi.fn(),
@@ -15,6 +16,8 @@ vi.mock("@/http/repositories/payment.repository", () => ({
   findSubscriptionPaymentById: mocks.findSubscriptionPaymentById,
   findSubscriptionPaymentByProviderPaymentId:
     mocks.findSubscriptionPaymentByProviderPaymentId,
+  findSubscriptionPaymentByProviderCheckoutId:
+    mocks.findSubscriptionPaymentByProviderCheckoutId,
   linkSubscriptionPaymentSession: mocks.linkSubscriptionPaymentSession,
   applyPaymentProviderEvent: mocks.applyPaymentProviderEvent,
 }));
@@ -47,6 +50,8 @@ const linkedPayment = {
   amountMinor: 1900,
   currency: "USD",
   provider: "nowpayments",
+  providerCheckoutId: "987654321",
+  checkoutUrl: "https://nowpayments.io/payment/abc",
   providerPaymentId,
   paidAt: null,
   failureReason: null,
@@ -107,6 +112,9 @@ const processedResult = {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.serverEnv.NOWPAYMENTS_IPN_SECRET = ipnSecret;
+  mocks.findSubscriptionPaymentById.mockResolvedValue(null);
+  mocks.findSubscriptionPaymentByProviderPaymentId.mockResolvedValue(null);
+  mocks.findSubscriptionPaymentByProviderCheckoutId.mockResolvedValue(null);
 });
 
 describe("signature verification", () => {
@@ -221,6 +229,84 @@ describe("payment resolution", () => {
     expect(mocks.linkSubscriptionPaymentSession).toHaveBeenCalledWith(
       paymentId,
       providerPaymentId,
+      "987654321",
+    );
+  });
+
+  it("links an unlinked payment resolved through invoice_id", async () => {
+    const unlinked = { ...linkedPayment, providerPaymentId: null };
+    mocks.findSubscriptionPaymentByProviderPaymentId
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...unlinked, providerPaymentId });
+    mocks.findSubscriptionPaymentByProviderCheckoutId.mockResolvedValue(
+      unlinked,
+    );
+    mocks.linkSubscriptionPaymentSession.mockResolvedValue({
+      ...unlinked,
+      providerPaymentId,
+    });
+
+    const { rawBody, signature } = signRequest(
+      buildPayload({ invoice_id: 987654321 }),
+    );
+    const result = await processNowpaymentsWebhook(rawBody, signature);
+
+    expect(result.outcome).toBe("processed");
+    expect(mocks.linkSubscriptionPaymentSession).toHaveBeenCalledWith(
+      paymentId,
+      providerPaymentId,
+      "987654321",
+    );
+  });
+
+  it("repairs a legacy row that stored the invoice id as the payment id", async () => {
+    const legacy = {
+      ...linkedPayment,
+      providerCheckoutId: null,
+      providerPaymentId: "987654321",
+    };
+    mocks.findSubscriptionPaymentByProviderPaymentId
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...legacy, providerPaymentId });
+    mocks.findSubscriptionPaymentById.mockResolvedValue(legacy);
+    mocks.linkSubscriptionPaymentSession.mockResolvedValue({
+      ...legacy,
+      providerCheckoutId: "987654321",
+      providerPaymentId,
+    });
+
+    const { rawBody, signature } = signRequest(
+      buildPayload({ invoice_id: 987654321 }),
+    );
+    const result = await processNowpaymentsWebhook(rawBody, signature);
+
+    expect(result.outcome).toBe("processed");
+    expect(mocks.linkSubscriptionPaymentSession).toHaveBeenCalledWith(
+      paymentId,
+      providerPaymentId,
+      "987654321",
+    );
+    expect(mocks.applyPaymentProviderEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: expect.objectContaining({ providerPaymentId }),
+      }),
+    );
+  });
+
+  it("rejects a mismatched invoice id for an otherwise linked payment", async () => {
+    mocks.findSubscriptionPaymentByProviderPaymentId.mockResolvedValue(
+      linkedPayment,
+    );
+    mocks.findSubscriptionPaymentById.mockResolvedValue(linkedPayment);
+
+    const { rawBody, signature } = signRequest(
+      buildPayload({ invoice_id: 111111111 }),
+    );
+
+    await expectPaymentError(
+      processNowpaymentsWebhook(rawBody, signature),
+      400,
+      "Payment reference mismatch",
     );
   });
 

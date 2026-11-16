@@ -16,6 +16,10 @@ import {
   type PaymentWebhookEventType,
 } from "@/packages/payment";
 
+type LinkedPayment = NonNullable<
+  Awaited<ReturnType<typeof findSubscriptionPaymentById>>
+>;
+
 const pollEventTypeByStatus: Partial<
   Record<PaymentProviderStatus, PaymentWebhookEventType>
 > = {
@@ -38,7 +42,11 @@ export const createCheckoutSession = async (input: {
   planCode: string;
   amountMinor: number;
   currency: string;
-}): Promise<{ providerCheckoutId: string; checkoutUrl: string }> => {
+}): Promise<{
+  providerCheckoutId: string;
+  providerPaymentId: string | null;
+  checkoutUrl: string;
+}> => {
   const provider = requirePaymentProvider();
 
   let session: PaymentCheckoutSession;
@@ -60,14 +68,142 @@ export const createCheckoutSession = async (input: {
     throw new PaymentError("Failed to create checkout session", 502);
   }
 
-  await linkSubscriptionPaymentSession(
-    input.paymentId,
-    session.providerCheckoutId,
-  );
+  let updated: Awaited<ReturnType<typeof updateSubscriptionPayment>>;
+  try {
+    updated = await updateSubscriptionPayment(input.paymentId, {
+      providerCheckoutId: session.providerCheckoutId,
+      checkoutUrl: session.url,
+      providerPaymentId: session.providerPaymentId,
+    });
+  } catch {
+    await updateSubscriptionPayment(input.paymentId, {
+      status: "FAILED",
+      failureReason: "checkout_persist_failed",
+    }).catch(() => undefined);
+    throw new PaymentError("Failed to persist checkout session", 502);
+  }
+  if (!updated) {
+    throw new PaymentError("Failed to persist checkout session", 502);
+  }
 
   return {
     providerCheckoutId: session.providerCheckoutId,
+    providerPaymentId: session.providerPaymentId,
     checkoutUrl: session.url,
+  };
+};
+
+const reconcileLegacyCheckout = async (
+  payment: LinkedPayment,
+  provider: PaymentProvider,
+): Promise<{
+  payment: LinkedPayment;
+  snapshot: PaymentStatusSnapshot | null;
+} | null> => {
+  if (
+    !payment.providerPaymentId ||
+    payment.providerCheckoutId ||
+    !provider.retrieveCheckout
+  ) {
+    return null;
+  }
+
+  let checkout: Awaited<
+    ReturnType<NonNullable<PaymentProvider["retrieveCheckout"]>>
+  >;
+  try {
+    checkout = await provider.retrieveCheckout(payment.providerPaymentId);
+  } catch {
+    return null;
+  }
+  if (!checkout) {
+    return null;
+  }
+
+  if (!checkout.providerPaymentId) {
+    const updated = await updateSubscriptionPayment(payment.id, {
+      providerCheckoutId: payment.providerPaymentId,
+      providerPaymentId: null,
+      ...(checkout.status === "FAILED"
+        ? {
+            status: "FAILED",
+            failureReason: checkout.failureReason ?? "checkout_failed",
+          }
+        : {}),
+    });
+    return { payment: updated ?? payment, snapshot: null };
+  }
+
+  const linked = await linkSubscriptionPaymentSession(
+    payment.id,
+    checkout.providerPaymentId,
+    payment.providerPaymentId,
+  );
+  if (!linked) {
+    throw new PaymentError("Payment not found", 404);
+  }
+
+  return {
+    payment: linked,
+    snapshot: {
+      ...checkout,
+      providerPaymentId: checkout.providerPaymentId,
+    },
+  };
+};
+
+const reconcileCheckout = async (
+  payment: LinkedPayment,
+  provider: PaymentProvider,
+): Promise<{
+  payment: LinkedPayment;
+  snapshot: PaymentStatusSnapshot | null;
+}> => {
+  const legacy = await reconcileLegacyCheckout(payment, provider);
+  if (legacy) {
+    return legacy;
+  }
+
+  if (payment.providerPaymentId) {
+    return {
+      payment,
+      snapshot: await provider.retrievePayment(payment.providerPaymentId),
+    };
+  }
+  if (!payment.providerCheckoutId || !provider.retrieveCheckout) {
+    return { payment, snapshot: null };
+  }
+
+  const checkout = await provider.retrieveCheckout(payment.providerCheckoutId);
+  if (!checkout) {
+    return { payment, snapshot: null };
+  }
+  if (!checkout.providerPaymentId) {
+    if (checkout.status === "FAILED") {
+      const failed = await updateSubscriptionPayment(payment.id, {
+        status: "FAILED",
+        failureReason: checkout.failureReason ?? "checkout_failed",
+      });
+      return { payment: failed ?? payment, snapshot: null };
+    }
+    return { payment, snapshot: null };
+  }
+
+  const linked = await linkSubscriptionPaymentSession(
+    payment.id,
+    checkout.providerPaymentId,
+    payment.providerCheckoutId,
+  );
+  if (!linked) {
+    throw new PaymentError("Payment not found", 404);
+  }
+
+  return {
+    payment: linked,
+    snapshot: {
+      ...checkout,
+      providerPaymentId: checkout.providerPaymentId,
+    },
   };
 };
 
@@ -80,47 +216,54 @@ export const getPaymentStatusForOrganization = async (input: {
     throw new PaymentError("Payment not found", 404);
   }
 
-  if (!payment.providerPaymentId) {
+  if (!payment.providerPaymentId && !payment.providerCheckoutId) {
     return payment;
   }
 
   const provider = requirePaymentProvider();
 
-  let snapshot: PaymentStatusSnapshot;
+  let reconciled: Awaited<ReturnType<typeof reconcileCheckout>>;
   try {
-    snapshot = await provider.retrievePayment(payment.providerPaymentId);
-  } catch {
+    reconciled = await reconcileCheckout(payment, provider);
+  } catch (error) {
+    if (error instanceof PaymentError) throw error;
     throw new PaymentError("Failed to retrieve payment status", 502);
   }
 
+  const currentPayment = reconciled.payment;
+  const snapshot = reconciled.snapshot;
+  if (!snapshot) {
+    return currentPayment;
+  }
+
   if (
-    snapshot.amountMinor !== payment.amountMinor ||
-    snapshot.currency !== payment.currency
+    snapshot.amountMinor !== currentPayment.amountMinor ||
+    snapshot.currency !== currentPayment.currency
   ) {
     throw new PaymentError("Payment amount mismatch", 400);
   }
 
   const eventType = pollEventTypeByStatus[snapshot.status];
   if (!eventType) {
-    return payment;
+    return currentPayment;
   }
 
   const result = await processPaymentEvent(
     {
-      eventId: `poll:${payment.id}:${snapshot.status}`,
+      eventId: `poll:${currentPayment.id}:${snapshot.status}`,
       type: eventType,
-      providerPaymentId: payment.providerPaymentId,
+      providerPaymentId: snapshot.providerPaymentId,
       amountMinor: snapshot.amountMinor,
       currency: snapshot.currency,
-      organizationId: payment.organizationId,
+      organizationId: currentPayment.organizationId,
       failureReason: snapshot.failureReason,
       occurredAt: snapshot.occurredAt,
     },
-    payment.provider,
+    currentPayment.provider,
   );
 
   if (result.outcome === "unknown_payment") {
-    return payment;
+    return currentPayment;
   }
   return result.payment;
 };

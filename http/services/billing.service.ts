@@ -22,6 +22,7 @@ import {
 } from "@/http/repositories/subscription.repository";
 import {
   createCheckoutSession,
+  getPaymentStatusForOrganization,
   requirePaymentProvider,
 } from "@/http/services/payment.service";
 import {
@@ -55,6 +56,12 @@ const findPlanOrThrow = async (
   }
   return plan;
 };
+
+const isUniqueViolation = (error: unknown): boolean =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  error.code === "23505";
 
 const isPlanActive = (plan: SubscriptionPlan): boolean => plan.active ?? true;
 
@@ -205,7 +212,19 @@ export const initiateCheckout = async (input: {
     input.organizationId,
   );
   if (pending) {
-    throw new BillingError("A checkout is already in progress", 409);
+    const reconciled = await getPaymentStatusForOrganization({
+      organizationId: input.organizationId,
+      paymentId: pending.id,
+    });
+    if (reconciled.status === "PENDING") {
+      throw new BillingError("A checkout is already in progress", 409);
+    }
+    if (reconciled.status === "SUCCEEDED") {
+      throw new BillingError(
+        "Payment already completed; refresh billing before choosing a plan",
+        409,
+      );
+    }
   }
 
   let subscriptionId = current?.id;
@@ -218,18 +237,27 @@ export const initiateCheckout = async (input: {
 
   const billingPeriod = calculateBillingPeriod(new Date(), input.interval);
 
-  const { row: payment } = await insertSubscriptionPayment({
-    organizationId: input.organizationId,
-    subscriptionId,
-    planId: plan.id,
-    status: "PENDING",
-    amountMinor: price,
-    currency: plan.currency,
-    provider: providerName,
-    providerPaymentId: null,
-    paidAt: null,
-    failureReason: null,
-  });
+  let inserted: Awaited<ReturnType<typeof insertSubscriptionPayment>>;
+  try {
+    inserted = await insertSubscriptionPayment({
+      organizationId: input.organizationId,
+      subscriptionId,
+      planId: plan.id,
+      status: "PENDING",
+      amountMinor: price,
+      currency: plan.currency,
+      provider: providerName,
+      providerPaymentId: null,
+      paidAt: null,
+      failureReason: null,
+    });
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new BillingError("A checkout is already in progress", 409);
+    }
+    throw error;
+  }
+  const { row: payment } = inserted;
 
   const session = await createCheckoutSession({
     paymentId: payment.id,
@@ -246,6 +274,7 @@ export const initiateCheckout = async (input: {
     payload: {
       paymentId: payment.id,
       providerCheckoutId: session.providerCheckoutId,
+      checkoutUrl: session.checkoutUrl,
       planCode: plan.code,
       amountMinor: price,
       interval: input.interval,
@@ -255,7 +284,12 @@ export const initiateCheckout = async (input: {
   });
 
   return {
-    payment: { ...payment, providerPaymentId: session.providerCheckoutId },
+    payment: {
+      ...payment,
+      providerCheckoutId: session.providerCheckoutId,
+      checkoutUrl: session.checkoutUrl,
+      providerPaymentId: session.providerPaymentId,
+    },
     plan,
     billingPeriod,
     checkoutUrl: session.checkoutUrl,

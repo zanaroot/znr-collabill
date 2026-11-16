@@ -466,6 +466,14 @@ export const OrganizationDrawer = ({
                 },
                 { title: "Provider", dataIndex: "provider", width: 110 },
                 {
+                  title: "Checkout ref",
+                  dataIndex: "providerCheckoutId",
+                  width: 180,
+                  ellipsis: true,
+                  render: (value: string | null) =>
+                    value ? <Text code>{value}</Text> : "—",
+                },
+                {
                   title: "Paid at",
                   dataIndex: "paidAt",
                   width: 140,

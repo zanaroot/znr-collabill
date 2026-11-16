@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
     name: "mock",
     createCheckoutSession: vi.fn(),
     retrievePayment: vi.fn(),
+    retrieveCheckout: vi.fn(),
     verifyWebhook: vi.fn(),
     refundPayment: vi.fn(),
   },
@@ -76,6 +77,7 @@ const expectPaymentError = async (
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.getPaymentProvider.mockReturnValue(mocks.provider);
+  mocks.provider.retrieveCheckout.mockResolvedValue(undefined);
 });
 
 describe("requirePaymentProvider", () => {
@@ -97,15 +99,18 @@ describe("requirePaymentProvider", () => {
 });
 
 describe("createCheckoutSession", () => {
-  it("creates a provider session and links it to the payment", async () => {
+  it("creates a checkout and persists its reference separately", async () => {
     mocks.provider.createCheckoutSession.mockResolvedValue({
       providerCheckoutId: "cs_new",
+      providerPaymentId: null,
       url: "https://pay.example.com/session/cs_new",
       expiresAt: null,
     });
-    mocks.linkSubscriptionPaymentSession.mockResolvedValue({
+    mocks.updateSubscriptionPayment.mockResolvedValue({
       ...pendingPayment,
-      providerPaymentId: "cs_new",
+      providerCheckoutId: "cs_new",
+      checkoutUrl: "https://pay.example.com/session/cs_new",
+      providerPaymentId: null,
     });
 
     const session = await createCheckoutSession({
@@ -118,6 +123,7 @@ describe("createCheckoutSession", () => {
 
     expect(session).toEqual({
       providerCheckoutId: "cs_new",
+      providerPaymentId: null,
       checkoutUrl: "https://pay.example.com/session/cs_new",
     });
     expect(mocks.provider.createCheckoutSession).toHaveBeenCalledWith({
@@ -125,10 +131,12 @@ describe("createCheckoutSession", () => {
       currency: "USD",
       metadata: { paymentId, organizationId, planCode: "PRO" },
     });
-    expect(mocks.linkSubscriptionPaymentSession).toHaveBeenCalledWith(
-      paymentId,
-      "cs_new",
-    );
+    expect(mocks.updateSubscriptionPayment).toHaveBeenCalledWith(paymentId, {
+      providerCheckoutId: "cs_new",
+      checkoutUrl: "https://pay.example.com/session/cs_new",
+      providerPaymentId: null,
+    });
+    expect(mocks.linkSubscriptionPaymentSession).not.toHaveBeenCalled();
   });
 
   it("marks the payment failed when the provider session fails", async () => {
@@ -244,6 +252,108 @@ describe("getPaymentStatusForOrganization", () => {
       getPaymentStatusForOrganization({ organizationId, paymentId }),
       400,
     );
+    expect(mocks.processPaymentEvent).not.toHaveBeenCalled();
+  });
+
+  it("links a checkout payment id before applying the status", async () => {
+    const checkoutPayment = {
+      ...pendingPayment,
+      providerCheckoutId: "inv_1",
+      providerPaymentId: null,
+    };
+    mocks.findSubscriptionPaymentById.mockResolvedValue(checkoutPayment);
+    mocks.provider.retrieveCheckout.mockResolvedValue({
+      ...snapshot,
+      providerPaymentId: "pay_1",
+    });
+    mocks.linkSubscriptionPaymentSession.mockResolvedValue({
+      ...checkoutPayment,
+      providerPaymentId: "pay_1",
+    });
+    mocks.processPaymentEvent.mockResolvedValue({
+      outcome: "processed",
+      payment: { ...checkoutPayment, providerPaymentId: "pay_1" },
+      subscription: null,
+    });
+
+    await getPaymentStatusForOrganization({ organizationId, paymentId });
+
+    expect(mocks.provider.retrieveCheckout).toHaveBeenCalledWith("inv_1");
+    expect(mocks.linkSubscriptionPaymentSession).toHaveBeenCalledWith(
+      paymentId,
+      "pay_1",
+      "inv_1",
+    );
+    expect(mocks.processPaymentEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ providerPaymentId: "pay_1" }),
+      "mock",
+    );
+  });
+
+  it("repairs a legacy invoice id stored as the provider payment id", async () => {
+    const legacy = {
+      ...pendingPayment,
+      providerPaymentId: "inv_1",
+    };
+    mocks.findSubscriptionPaymentById.mockResolvedValue(legacy);
+    mocks.provider.retrieveCheckout.mockResolvedValue({
+      ...snapshot,
+      providerPaymentId: "pay_1",
+    });
+    mocks.linkSubscriptionPaymentSession.mockResolvedValue({
+      ...legacy,
+      providerCheckoutId: "inv_1",
+      providerPaymentId: "pay_1",
+    });
+    mocks.processPaymentEvent.mockResolvedValue({
+      outcome: "processed",
+      payment: { ...legacy, providerPaymentId: "pay_1" },
+      subscription: null,
+    });
+
+    await getPaymentStatusForOrganization({ organizationId, paymentId });
+
+    expect(mocks.provider.retrieveCheckout).toHaveBeenCalledWith("inv_1");
+    expect(mocks.linkSubscriptionPaymentSession).toHaveBeenCalledWith(
+      paymentId,
+      "pay_1",
+      "inv_1",
+    );
+    expect(mocks.provider.retrievePayment).not.toHaveBeenCalled();
+  });
+
+  it("marks a checkout failed when the invoice expired without a payment", async () => {
+    const checkoutPayment = {
+      ...pendingPayment,
+      providerCheckoutId: "inv_1",
+      providerPaymentId: null,
+    };
+    const failed = {
+      ...checkoutPayment,
+      status: "FAILED" as const,
+      failureReason: "expired",
+    };
+    mocks.findSubscriptionPaymentById.mockResolvedValue(checkoutPayment);
+    mocks.provider.retrieveCheckout.mockResolvedValue({
+      providerPaymentId: null,
+      status: "FAILED",
+      amountMinor: 1900,
+      currency: "USD",
+      failureReason: "expired",
+      occurredAt: "2026-01-03T00:00:00.000Z",
+    });
+    mocks.updateSubscriptionPayment.mockResolvedValue(failed);
+
+    const payment = await getPaymentStatusForOrganization({
+      organizationId,
+      paymentId,
+    });
+
+    expect(payment.status).toBe("FAILED");
+    expect(mocks.updateSubscriptionPayment).toHaveBeenCalledWith(paymentId, {
+      status: "FAILED",
+      failureReason: "expired",
+    });
     expect(mocks.processPaymentEvent).not.toHaveBeenCalled();
   });
 

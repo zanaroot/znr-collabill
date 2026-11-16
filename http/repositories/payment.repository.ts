@@ -71,6 +71,17 @@ export const findSubscriptionPaymentByProviderPaymentId = async (
   return payment ?? null;
 };
 
+export const findSubscriptionPaymentByProviderCheckoutId = async (
+  providerCheckoutId: string,
+) => {
+  const [payment] = await db
+    .select()
+    .from(subscriptionPayments)
+    .where(eq(subscriptionPayments.providerCheckoutId, providerCheckoutId))
+    .limit(1);
+  return payment ?? null;
+};
+
 export type ListPaymentsAdminFilters = {
   status?: SubscriptionPaymentStatus;
   organizationId?: string;
@@ -119,6 +130,8 @@ export const listSubscriptionPaymentsAdmin = async (
       amountMinor: subscriptionPayments.amountMinor,
       currency: subscriptionPayments.currency,
       provider: subscriptionPayments.provider,
+      providerCheckoutId: subscriptionPayments.providerCheckoutId,
+      checkoutUrl: subscriptionPayments.checkoutUrl,
       providerPaymentId: subscriptionPayments.providerPaymentId,
       paidAt: subscriptionPayments.paidAt,
       failureReason: subscriptionPayments.failureReason,
@@ -171,12 +184,16 @@ export const findSubscriptionPaymentDetailAdmin = async (paymentId: string) => {
 
   if (!row) return null;
 
-  const providerIdPattern = row.payment.providerPaymentId
-    ? or(
-        ilike(subscriptionEvents.payload, `%${row.payment.id}%`),
-        ilike(subscriptionEvents.payload, `%${row.payment.providerPaymentId}%`),
-      )
-    : ilike(subscriptionEvents.payload, `%${row.payment.id}%`);
+  const references = [
+    row.payment.id,
+    row.payment.providerCheckoutId,
+    row.payment.providerPaymentId,
+  ].filter((reference): reference is string => Boolean(reference));
+  const providerIdPattern = or(
+    ...references.map((reference) =>
+      ilike(subscriptionEvents.payload, `%${reference}%`),
+    ),
+  );
 
   const events = await db
     .select()
@@ -196,10 +213,15 @@ export const findSubscriptionPaymentDetailAdmin = async (paymentId: string) => {
 export const linkSubscriptionPaymentSession = async (
   paymentId: string,
   providerPaymentId: string,
+  providerCheckoutId?: string | null,
 ) => {
   const [updated] = await db
     .update(subscriptionPayments)
-    .set({ providerPaymentId, updatedAt: new Date() })
+    .set({
+      providerPaymentId,
+      ...(providerCheckoutId === undefined ? {} : { providerCheckoutId }),
+      updatedAt: new Date(),
+    })
     .where(eq(subscriptionPayments.id, paymentId))
     .returning();
   return updated ?? null;

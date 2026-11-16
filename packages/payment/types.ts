@@ -12,8 +12,18 @@ export type CreateCheckoutSessionInput = {
 
 export type PaymentCheckoutSession = {
   providerCheckoutId: string;
+  providerPaymentId: string | null;
   url: string;
   expiresAt: Date | null;
+};
+
+export type PaymentCheckoutStatusSnapshot = {
+  providerPaymentId: string | null;
+  status: PaymentProviderStatus;
+  amountMinor: number;
+  currency: string;
+  failureReason: string | null;
+  occurredAt: string;
 };
 
 export type PaymentProviderStatus =
@@ -68,6 +78,9 @@ export interface PaymentProvider {
     input: CreateCheckoutSessionInput,
   ): Promise<PaymentCheckoutSession>;
   retrievePayment(providerPaymentId: string): Promise<PaymentStatusSnapshot>;
+  retrieveCheckout?(
+    providerCheckoutId: string,
+  ): Promise<PaymentCheckoutStatusSnapshot | null>;
   verifyWebhook(rawBody: string, signature: string | null): WebhookVerification;
   refundPayment?(
     providerPaymentId: string,

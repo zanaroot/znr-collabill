@@ -102,6 +102,7 @@ describe("verifyNowpaymentsIpn", () => {
         priceAmountMinor: 1900,
         priceCurrency: "USD",
         orderId: paymentId,
+        invoiceId: null,
         occurredAt: "2026-01-02T00:00:00.000Z",
       });
     }
@@ -159,6 +160,20 @@ describe("verifyNowpaymentsIpn", () => {
     );
 
     expect(result).toEqual({ ok: false, reason: "invalid_signature" });
+  });
+
+  it("includes the invoice id when NOWPayments provides it", () => {
+    const payload = { ...finishedPayload, invoice_id: 987654321 };
+    const result = verifyNowpaymentsIpn(
+      JSON.stringify(payload),
+      signNowpaymentsIpn(payload, ipnSecret),
+      ipnSecret,
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.payload.invoiceId).toBe("987654321");
+    }
   });
 
   it("rejects malformed JSON", () => {
@@ -345,6 +360,7 @@ describe("NowPaymentsProvider.createCheckoutSession", () => {
     });
     expect(session).toEqual({
       providerCheckoutId: "123456789",
+      providerPaymentId: null,
       url: "https://nowpayments.io/payment/abc",
       expiresAt: null,
     });
@@ -431,5 +447,82 @@ describe("NowPaymentsProvider.retrievePayment", () => {
     await expect(provider.retrievePayment("1")).rejects.toThrow(
       "NOWPayments retrieve payment failed (404)",
     );
+  });
+});
+
+describe("NowPaymentsProvider.retrieveCheckout", () => {
+  it("maps a paid invoice with its payment id", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: 123456789,
+        invoice_id: 123456789,
+        payment_id: 555555555,
+        payment_status: "finished",
+        price_amount: 19,
+        price_currency: "usd",
+        updated_at: "2026-01-02T00:00:00.000Z",
+      }),
+    });
+
+    const snapshot = await provider.retrieveCheckout("123456789");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.nowpayments.io/v1/invoice/123456789",
+      { headers: { "x-api-key": apiKey } },
+    );
+    expect(snapshot).toEqual({
+      providerPaymentId: "555555555",
+      status: "SUCCEEDED",
+      amountMinor: 1900,
+      currency: "USD",
+      failureReason: null,
+      occurredAt: "2026-01-02T00:00:00.000Z",
+    });
+  });
+
+  it("maps an expired invoice without a payment id", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: 123456789,
+        status: "expired",
+        price_amount: 19,
+        price_currency: "usd",
+      }),
+    });
+
+    const snapshot = await provider.retrieveCheckout("123456789");
+
+    expect(snapshot).toEqual(
+      expect.objectContaining({
+        providerPaymentId: null,
+        status: "FAILED",
+        failureReason: "expired",
+      }),
+    );
+  });
+
+  it("returns null for an unknown invoice", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 404 });
+
+    await expect(provider.retrieveCheckout("missing")).resolves.toBeNull();
+  });
+
+  it("does not treat a paid invoice without a payment id as settled", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: 123456789,
+        status: "paid",
+        price_amount: 19,
+        price_currency: "usd",
+      }),
+    });
+
+    await expect(provider.retrieveCheckout("123456789")).resolves.toBeNull();
   });
 });

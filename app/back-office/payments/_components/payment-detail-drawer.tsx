@@ -90,8 +90,25 @@ export const PaymentDetailDrawer = ({
             <Descriptions.Item label="Provider">
               {data.payment.provider}
             </Descriptions.Item>
-            <Descriptions.Item label="Provider reference">
+            <Descriptions.Item label="Payment reference">
               {data.payment.providerPaymentId ?? "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Checkout reference">
+              {data.payment.providerCheckoutId ?? "—"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Checkout URL" span={2}>
+              {data.payment.checkoutUrl ? (
+                <Typography.Link
+                  href={data.payment.checkoutUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  copyable={{ text: data.payment.checkoutUrl }}
+                >
+                  {data.payment.checkoutUrl}
+                </Typography.Link>
+              ) : (
+                "—"
+              )}
             </Descriptions.Item>
             <Descriptions.Item label="Paid at">
               {formatDateTime(data.payment.paidAt)}

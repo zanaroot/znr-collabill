@@ -5,6 +5,7 @@ import { z } from "zod";
 import type {
   CreateCheckoutSessionInput,
   PaymentCheckoutSession,
+  PaymentCheckoutStatusSnapshot,
   PaymentProvider,
   PaymentProviderStatus,
   PaymentStatusSnapshot,
@@ -35,6 +36,7 @@ const nowpaymentsIpnPayloadSchema = z.object({
   price_amount: z.coerce.number().nonnegative(),
   price_currency: z.string().trim().min(1),
   order_id: z.string().min(1).nullish(),
+  invoice_id: z.union([z.string().min(1), z.number()]).nullish(),
   updated_at: z.string().nullish(),
   created_at: z.string().nullish(),
 });
@@ -45,6 +47,7 @@ export type NowpaymentsIpnPayload = {
   priceAmountMinor: number;
   priceCurrency: string;
   orderId: string | null;
+  invoiceId: string | null;
   occurredAt: string;
 };
 
@@ -138,6 +141,10 @@ export const verifyNowpaymentsIpn = (
       priceAmountMinor: Math.round(data.price_amount * 100),
       priceCurrency: data.price_currency.toUpperCase(),
       orderId: data.order_id ?? null,
+      invoiceId:
+        data.invoice_id === null || data.invoice_id === undefined
+          ? null
+          : String(data.invoice_id),
       occurredAt:
         data.updated_at ?? data.created_at ?? new Date().toISOString(),
     },
@@ -167,6 +174,36 @@ const createInvoiceResponseSchema = z.object({
   id: z.union([z.string().min(1), z.number()]),
   invoice_url: z.string().min(1),
 });
+
+const invoiceStatusResponseSchema = z.object({
+  payment_id: z.union([z.string().min(1), z.number()]).nullish(),
+  payment_status: z.string().trim().min(1).nullish(),
+  status: z.string().trim().min(1).nullish(),
+  price_amount: z.coerce.number().nonnegative().nullish(),
+  price_currency: z.string().trim().min(1).nullish(),
+  updated_at: z.string().nullish(),
+  created_at: z.string().nullish(),
+});
+
+const paymentStatusByRawStatus: Partial<Record<string, PaymentProviderStatus>> =
+  {
+    waiting: "PENDING",
+    pending: "PENDING",
+    active: "PENDING",
+    confirming: "PENDING",
+    confirmed: "PENDING",
+    sending: "PENDING",
+    partially_paid: "PENDING",
+    finished: "SUCCEEDED",
+    paid: "SUCCEEDED",
+    complete: "SUCCEEDED",
+    completed: "SUCCEEDED",
+    failed: "FAILED",
+    expired: "FAILED",
+    cancelled: "FAILED",
+    canceled: "FAILED",
+    refunded: "REFUNDED",
+  };
 
 const paymentStatusResponseSchema = z.object({
   payment_id: z.union([z.string().min(1), z.number()]),
@@ -232,8 +269,66 @@ export class NowPaymentsProvider implements PaymentProvider {
 
     return {
       providerCheckoutId: String(parsed.data.id),
+      providerPaymentId: null,
       url: parsed.data.invoice_url,
       expiresAt: null,
+    };
+  };
+
+  retrieveCheckout = async (
+    providerCheckoutId: string,
+  ): Promise<PaymentCheckoutStatusSnapshot | null> => {
+    const response = await fetch(
+      `${this.baseUrl}/invoice/${encodeURIComponent(providerCheckoutId)}`,
+      { headers: { "x-api-key": this.apiKey } },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+    if (!response.ok) {
+      throw new Error(
+        `NOWPayments retrieve invoice failed (${response.status})`,
+      );
+    }
+
+    const parsed = invoiceStatusResponseSchema.safeParse(await response.json());
+    if (!parsed.success) {
+      throw new Error(
+        "NOWPayments retrieve invoice returned an invalid response",
+      );
+    }
+
+    const data = parsed.data;
+    const rawStatus = (data.payment_status ?? data.status)?.toLowerCase();
+    if (!rawStatus) return null;
+
+    const status = paymentStatusByRawStatus[rawStatus];
+    if (!status) return null;
+
+    const providerPaymentId =
+      data.payment_id === null || data.payment_id === undefined
+        ? null
+        : String(data.payment_id);
+
+    if (status === "SUCCEEDED" && !providerPaymentId) {
+      return null;
+    }
+    if (data.price_amount === null || data.price_amount === undefined) {
+      return null;
+    }
+    if (!data.price_currency) {
+      return null;
+    }
+
+    return {
+      providerPaymentId,
+      status,
+      amountMinor: Math.round(data.price_amount * 100),
+      currency: data.price_currency.toUpperCase(),
+      failureReason: status === "FAILED" ? rawStatus : null,
+      occurredAt:
+        data.updated_at ?? data.created_at ?? new Date().toISOString(),
     };
   };
 

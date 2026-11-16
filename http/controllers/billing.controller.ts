@@ -136,7 +136,8 @@ export const postCheckout = factory.createHandlers(
           amountMinor: result.plan.amountMinor,
           interval: result.plan.interval,
           provider: result.payment.provider,
-          providerCheckoutId: result.payment.providerPaymentId,
+          providerCheckoutId: result.payment.providerCheckoutId,
+          providerPaymentId: result.payment.providerPaymentId,
         },
       });
 

@@ -5,6 +5,7 @@ import { PaymentError } from "@/http/models/payment.model";
 import {
   type ApplyPaymentProviderEventResult,
   findSubscriptionPaymentById,
+  findSubscriptionPaymentByProviderCheckoutId,
   findSubscriptionPaymentByProviderPaymentId,
   linkSubscriptionPaymentSession,
 } from "@/http/repositories/payment.repository";
@@ -34,33 +35,88 @@ const verificationError = (
 const resolvePayment = async (input: {
   providerPaymentId: string;
   orderId: string | null;
+  invoiceId: string | null;
 }) => {
-  const byProviderId = await findSubscriptionPaymentByProviderPaymentId(
-    input.providerPaymentId,
-  );
-  const byOrderId =
+  const [byProviderId, byCheckoutId, byOrderId] = await Promise.all([
+    findSubscriptionPaymentByProviderPaymentId(input.providerPaymentId),
+    input.invoiceId
+      ? findSubscriptionPaymentByProviderCheckoutId(input.invoiceId)
+      : null,
     input.orderId && z.uuid().safeParse(input.orderId).success
-      ? await findSubscriptionPaymentById(input.orderId)
-      : null;
+      ? findSubscriptionPaymentById(input.orderId)
+      : null,
+  ]);
 
-  if (byProviderId && byOrderId && byProviderId.id !== byOrderId.id) {
+  const candidates = [byProviderId, byCheckoutId, byOrderId].filter(
+    (payment): payment is NonNullable<typeof payment> => payment != null,
+  );
+  if (new Set(candidates.map((payment) => payment.id)).size > 1) {
     throw new PaymentError("Payment reference mismatch", 400);
   }
 
-  const payment = byProviderId ?? byOrderId;
+  const payment = candidates[0];
   if (!payment) {
     throw new PaymentError("Payment not found", 404);
   }
+  if (payment.provider !== "nowpayments") {
+    throw new PaymentError("Payment reference mismatch", 400);
+  }
   if (
-    payment.provider !== "nowpayments" ||
-    (payment.providerPaymentId !== null &&
-      payment.providerPaymentId !== input.providerPaymentId)
+    input.invoiceId &&
+    payment.providerCheckoutId &&
+    input.invoiceId !== payment.providerCheckoutId
   ) {
     throw new PaymentError("Payment reference mismatch", 400);
   }
-  if (!payment.providerPaymentId) {
-    await linkSubscriptionPaymentSession(payment.id, input.providerPaymentId);
+
+  if (
+    payment.providerPaymentId &&
+    payment.providerPaymentId !== input.providerPaymentId
+  ) {
+    const matchedByProvider = byProviderId?.id === payment.id;
+    const matchedByOrderOrInvoice =
+      byOrderId?.id === payment.id || byCheckoutId?.id === payment.id;
+    if (matchedByProvider || !matchedByOrderOrInvoice) {
+      throw new PaymentError("Payment reference mismatch", 400);
+    }
+
+    const linked = await linkSubscriptionPaymentSession(
+      payment.id,
+      input.providerPaymentId,
+      payment.providerCheckoutId ??
+        input.invoiceId ??
+        payment.providerPaymentId,
+    );
+    if (!linked) {
+      throw new PaymentError("Payment not found", 404);
+    }
+    return linked;
   }
+
+  if (!payment.providerPaymentId) {
+    const linked = await linkSubscriptionPaymentSession(
+      payment.id,
+      input.providerPaymentId,
+      payment.providerCheckoutId ?? input.invoiceId ?? undefined,
+    );
+    if (!linked) {
+      throw new PaymentError("Payment not found", 404);
+    }
+    return linked;
+  }
+
+  if (!payment.providerCheckoutId && input.invoiceId) {
+    const linked = await linkSubscriptionPaymentSession(
+      payment.id,
+      input.providerPaymentId,
+      input.invoiceId,
+    );
+    if (!linked) {
+      throw new PaymentError("Payment not found", 404);
+    }
+    return linked;
+  }
+
   return payment;
 };
 
@@ -87,6 +143,7 @@ export const processNowpaymentsWebhook = async (
   await resolvePayment({
     providerPaymentId: payload.paymentId,
     orderId: payload.orderId,
+    invoiceId: payload.invoiceId,
   });
 
   return await processPaymentEvent(event, "nowpayments");
