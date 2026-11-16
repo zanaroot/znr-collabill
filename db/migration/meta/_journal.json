@@ -253,6 +253,34 @@
       "when": 1793872038845,
       "tag": "0035_nice_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794566947618,
+      "tag": "0036_handy_william_stryker",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794818000000,
+      "tag": "0037_nebulous_iron_lad",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794819046508,
+      "tag": "0038_uneven_korvac",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1794819564585,
+      "tag": "0039_volatile_omega_sentinel",
+      "breakpoints": true
     }
   ]
 }
