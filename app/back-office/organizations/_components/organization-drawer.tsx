@@ -371,8 +371,8 @@ export const OrganizationDrawer = ({
               {data.usage.features.length === 0
                 ? "—"
                 : data.usage.features.map((feature) => (
-                  <Tag key={feature}>{feature}</Tag>
-                ))}
+                    <Tag key={feature}>{feature}</Tag>
+                  ))}
             </Descriptions.Item>
           </Descriptions>
 
@@ -384,13 +384,15 @@ export const OrganizationDrawer = ({
             }
             showIcon
             style={{ marginTop: 12 }}
-            message={`Members ${data.usage.usage.members}${data.usage.limits.maxMembers === null
+            message={`Members ${data.usage.usage.members}${
+              data.usage.limits.maxMembers === null
                 ? ""
                 : ` / ${data.usage.limits.maxMembers}`
-              } · Projects ${data.usage.usage.projects}${data.usage.limits.maxProjects === null
+            } · Projects ${data.usage.usage.projects}${
+              data.usage.limits.maxProjects === null
                 ? ""
                 : ` / ${data.usage.limits.maxProjects}`
-              }`}
+            }`}
           />
 
           <Divider titlePlacement="left">Payment exemption</Divider>
@@ -412,7 +414,7 @@ export const OrganizationDrawer = ({
             />
             <Text>
               {data.organization.paymentExempt ||
-                data.organization.isPaymentExempt
+              data.organization.isPaymentExempt
                 ? "Free Plan (Payment Exempt)"
                 : "Standard paid billing"}
             </Text>
