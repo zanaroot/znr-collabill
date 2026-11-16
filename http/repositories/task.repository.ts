@@ -163,10 +163,21 @@ export const createTask = async (input: CreateTaskInput) => {
   return task;
 };
 
-export const updateTask = async (id: string, input: UpdateTaskSystemInput) => {
+export const updateTaskWithAutoAssignment = async (
+  id: string,
+  input: UpdateTaskSystemInput,
+  autoAssignToUserId: string | null,
+) => {
+  const setValues = autoAssignToUserId
+    ? {
+        ...input,
+        assignedTo: sql<string>`coalesce(${tasks.assignedTo}, ${autoAssignToUserId})`,
+      }
+    : input;
+
   const [task] = await db
     .update(tasks)
-    .set(input)
+    .set(setValues)
     .where(eq(tasks.id, id))
     .returning();
 

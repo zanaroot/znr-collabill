@@ -5,6 +5,7 @@ import {
   getAllowedTaskTransitions,
 } from "@/app/_utils/task-workflow";
 
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: test suite groups related workflow cases
 describe("task-workflow", () => {
   describe("canTransitionTaskStatus", () => {
     it("returns true when transitioning to same status", () => {
@@ -289,6 +290,46 @@ describe("task-workflow", () => {
       });
       expect(result).toBe(false);
     });
+
+    it("blocks approving an unassigned ticket", () => {
+      const result = canTransitionTaskStatus({
+        from: "IN_REVIEW",
+        to: "APPROVED",
+        userRole: "OWNER",
+        hasAssignee: false,
+      });
+      expect(result).toBe(false);
+    });
+
+    it("blocks validating an unassigned ticket", () => {
+      const result = canTransitionTaskStatus({
+        from: "APPROVED",
+        to: "VALIDATED",
+        userRole: "OWNER",
+        hasAssignee: false,
+      });
+      expect(result).toBe(false);
+    });
+
+    it("allows approving and validating an assigned ticket", () => {
+      expect(
+        canTransitionTaskStatus({
+          from: "IN_REVIEW",
+          to: "APPROVED",
+          userRole: "OWNER",
+          hasAssignee: true,
+        }),
+      ).toBe(true);
+
+      expect(
+        canTransitionTaskStatus({
+          from: "APPROVED",
+          to: "VALIDATED",
+          userRole: "OWNER",
+          hasAssignee: true,
+        }),
+      ).toBe(true);
+    });
   });
 
   describe("getAllowedTaskTransitions", () => {
@@ -438,6 +479,24 @@ describe("task-workflow", () => {
         userRole: "OWNER",
       });
       expect(result).toContain("VALIDATED");
+    });
+
+    it("excludes approval and validation for unassigned tickets", () => {
+      expect(
+        getAllowedTaskTransitions({
+          from: "IN_REVIEW",
+          userRole: "OWNER",
+          hasAssignee: false,
+        }),
+      ).not.toContain("APPROVED");
+
+      expect(
+        getAllowedTaskTransitions({
+          from: "APPROVED",
+          userRole: "OWNER",
+          hasAssignee: false,
+        }),
+      ).not.toContain("VALIDATED");
     });
   });
 

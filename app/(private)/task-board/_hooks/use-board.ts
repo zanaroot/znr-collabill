@@ -1,5 +1,6 @@
 "use client";
 
+import { App } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import {
   BOARD_VIEW_STATUSES,
@@ -74,6 +75,7 @@ export function useBoard({
   taskId,
   projectRole,
 }: UseBoardOptions): UseBoardReturn {
+  const { message } = App.useApp();
   const [boardView, setBoardView] = useState<BoardView>("ACTIVE");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -105,6 +107,34 @@ export function useBoard({
       }
     }
   }, [taskId, tasks]);
+
+  useEffect(() => {
+    if (isEditing || !activeTask) return;
+
+    const refreshed = tasks.find((task) => task.id === activeTask.id);
+    if (!refreshed) return;
+
+    const changed =
+      refreshed.title !== activeTask.title ||
+      refreshed.status !== activeTask.status ||
+      refreshed.assignedTo !== activeTask.assignedTo ||
+      refreshed.reviewerId !== activeTask.reviewerId ||
+      refreshed.gitBranch !== activeTask.gitBranch ||
+      refreshed.previewLink !== activeTask.previewLink;
+
+    if (!changed) return;
+
+    setActiveTask(refreshed);
+    setFormValues((current) => ({
+      ...current,
+      title: refreshed.title,
+      status: refreshed.status,
+      assigneeId: refreshed.assignedTo ?? null,
+      reviewerId: refreshed.reviewerId ?? null,
+      gitBranch: refreshed.gitBranch ?? "",
+      previewLink: refreshed.previewLink ?? "",
+    }));
+  }, [activeTask, isEditing, tasks]);
 
   const createTaskMutation = useCreateTask();
   const updateTaskMutation = useUpdateTask();
@@ -198,8 +228,18 @@ export function useBoard({
         reviewerId: taskReviewerId,
         userId,
         projectRole,
+        hasAssignee: Boolean(formValues.assigneeId),
       })
     ) {
+      if (
+        (formValues.status === "APPROVED" ||
+          formValues.status === "VALIDATED") &&
+        !formValues.assigneeId
+      ) {
+        message.error(
+          "Task must have an assignee before it can be approved or validated",
+        );
+      }
       return;
     }
 
@@ -219,12 +259,18 @@ export function useBoard({
     if (activeTask) {
       updateTaskMutation.mutate(
         { id: activeTask.id, data: payload },
-        { onSuccess: handleClose },
+        {
+          onSuccess: handleClose,
+          onError: (error) => message.error(error.message),
+        },
       );
     } else if (projectId) {
       createTaskMutation.mutate(
         { ...payload, projectId },
-        { onSuccess: handleClose },
+        {
+          onSuccess: handleClose,
+          onError: (error) => message.error(error.message),
+        },
       );
     }
   };
@@ -267,9 +313,18 @@ export function useBoard({
       reviewerId: taskReviewerId,
       userId,
       projectRole,
+      hasAssignee: Boolean(task.assignedTo),
     });
 
     if (!canTransition) {
+      if (
+        (status === "APPROVED" || status === "VALIDATED") &&
+        !task.assignedTo
+      ) {
+        message.error(
+          "Task must have an assignee before it can be approved or validated",
+        );
+      }
       setDraggingTaskId(null);
       return;
     }
@@ -280,6 +335,7 @@ export function useBoard({
         data: { status },
       },
       {
+        onError: (error) => message.error(error.message),
         onSettled: () => {
           setDraggingTaskId(null);
         },
@@ -300,16 +356,22 @@ export function useBoard({
         reviewerId: task.reviewerId ?? userId,
         userId,
         projectRole,
+        hasAssignee: Boolean(task.assignedTo),
       });
     });
 
     if (eligibleTasks.length === 0) return;
 
     for (const task of eligibleTasks) {
-      updateTaskMutation.mutate({
-        id: task.id,
-        data: { status: to },
-      });
+      updateTaskMutation.mutate(
+        {
+          id: task.id,
+          data: { status: to },
+        },
+        {
+          onError: (error) => message.error(error.message),
+        },
+      );
     }
   };
 

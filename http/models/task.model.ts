@@ -19,6 +19,20 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 const taskSizeEnum = z.enum(TASK_SIZES);
 const taskStatusEnum = z.enum(TASK_STATUSES);
 
+const gitBranchSchema = z
+  .string()
+  .trim()
+  .max(255, "Branch name must be at most 255 characters")
+  .regex(/^\S*$/, "Branch name cannot contain spaces")
+  .nullable()
+  .optional();
+
+const previewLinkSchema = z
+  .url("Preview link must be a valid URL")
+  .nullable()
+  .optional()
+  .or(z.literal(""));
+
 export const taskSchema = z.object({
   id: z.uuid(),
   projectId: z.uuid(),
@@ -33,9 +47,9 @@ export const taskSchema = z.object({
   validatedBy: z.uuid().nullable().optional(),
   reviewerId: z.uuid().nullable().optional(),
   gitRepo: z.url().nullable().optional().or(z.literal("")),
-  gitBranch: z.string().nullable().optional(),
+  gitBranch: gitBranchSchema,
   gitPullRequest: z.string().nullable().optional(),
-  previewLink: z.string().nullable().optional(),
+  previewLink: previewLinkSchema,
   createdAt: z.string(),
 });
 
@@ -54,9 +68,9 @@ export const createTaskSchema = z.object({
   validatedBy: z.uuid().nullable().optional(),
   reviewerId: z.uuid().nullable().optional(),
   gitRepo: z.url().optional().nullable().or(z.literal("")),
-  gitBranch: z.string().optional().nullable(),
+  gitBranch: gitBranchSchema,
   gitPullRequest: z.string().optional().nullable(),
-  previewLink: z.string().optional().nullable(),
+  previewLink: previewLinkSchema,
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
@@ -71,9 +85,9 @@ export const updateTaskSchema = z.object({
   reviewerId: z.uuid().optional().nullable(),
   status: taskStatusEnum.optional(),
   gitRepo: z.url().optional().nullable().or(z.literal("")),
-  gitBranch: z.string().optional().nullable(),
+  gitBranch: gitBranchSchema,
   gitPullRequest: z.string().optional().nullable(),
-  previewLink: z.string().optional().nullable(),
+  previewLink: previewLinkSchema,
 });
 
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;

@@ -152,8 +152,25 @@ export const createTask = factory.createHandlers(
       }
     }
 
+    if (
+      (payload.status === "APPROVED" || payload.status === "VALIDATED") &&
+      !payload.assignedTo
+    ) {
+      return c.json(
+        {
+          error:
+            "Task must have an assignee before it can be approved or validated",
+        },
+        400,
+      );
+    }
+
+    const autoAssignedTo =
+      payload.status === "IN_PROGRESS" && !payload.assignedTo ? user.id : null;
+
     const taskData = {
       ...payload,
+      assignedTo: payload.assignedTo ?? autoAssignedTo ?? null,
       reviewerId,
       ...(payload.status === "VALIDATED" && {
         validatedAt: new Date().toISOString(),
@@ -267,7 +284,36 @@ export const updateTask = factory.createHandlers(
       }
     }
 
+    const isApprovalOrValidation =
+      payload.status === "APPROVED" || payload.status === "VALIDATED";
+    const effectiveAssignee =
+      payload.assignedTo !== undefined ? payload.assignedTo : task.assignedTo;
+
+    if (isApprovalOrValidation && !effectiveAssignee) {
+      return c.json(
+        {
+          error:
+            "Task must have an assignee before it can be approved or validated",
+        },
+        400,
+      );
+    }
+
     const updates: UpdateTaskSystemInput = { ...payload };
+
+    const isMovingToInProgress =
+      payload.status === "IN_PROGRESS" && task.status !== "IN_PROGRESS";
+    const hasExplicitAssignee =
+      payload.assignedTo !== undefined && payload.assignedTo !== null;
+
+    if (isMovingToInProgress && !hasExplicitAssignee) {
+      delete updates.assignedTo;
+    }
+
+    const autoAssignToUserId =
+      isMovingToInProgress && !hasExplicitAssignee && !task.assignedTo
+        ? user.id
+        : null;
 
     const taskReviewerId = task.reviewerId ?? user.id;
 
@@ -324,9 +370,6 @@ export const updateTask = factory.createHandlers(
       }
     }
 
-    const assigneeChanged =
-      payload.assignedTo && payload.assignedTo !== task.assignedTo;
-
     if (payload.status === "IN_REVIEW" && !task.reviewerId) {
       updates.reviewerId = user.id;
     }
@@ -335,10 +378,19 @@ export const updateTask = factory.createHandlers(
       payload.reviewerId !== undefined &&
       payload.reviewerId !== task.reviewerId;
 
-    const updated = await taskRepository.updateTask(id, updates);
+    const updated = await taskRepository.updateTaskWithAutoAssignment(
+      id,
+      updates,
+      autoAssignToUserId,
+    );
 
-    console.log("assigneeChanged:", assigneeChanged);
-    console.log("Sending assignment notifications...");
+    if (!updated) {
+      return c.json({ error: "Failed to update task" }, 500);
+    }
+
+    const updatedAssigneeId = updated.assignedTo;
+    const assigneeChanged =
+      Boolean(updatedAssigneeId) && updatedAssigneeId !== task.assignedTo;
 
     if (reviewerChanged && payload.reviewerId) {
       if (user.organizationId) {
@@ -355,10 +407,10 @@ export const updateTask = factory.createHandlers(
       }
     }
 
-    if (assigneeChanged && payload.assignedTo) {
+    if (assigneeChanged && updatedAssigneeId) {
       if (user.organizationId) {
         await createNotification({
-          userId: payload.assignedTo,
+          userId: updatedAssigneeId,
           organizationId: user.organizationId,
           actorId: user.id,
           type: "TASK_ASSIGNED",
@@ -378,10 +430,6 @@ export const updateTask = factory.createHandlers(
       });
     }
 
-    if (!updated) {
-      return c.json({ error: "Failed to update task" }, 500);
-    }
-
     if (user.organizationId) {
       await logAudit({
         organizationId: user.organizationId,
@@ -393,6 +441,8 @@ export const updateTask = factory.createHandlers(
           changes: payload,
           previousStatus: task.status,
           previousReviewerId: task.reviewerId,
+          assignedTo: updatedAssigneeId,
+          autoAssignedTo: autoAssignToUserId,
         },
       });
     }

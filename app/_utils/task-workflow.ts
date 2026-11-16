@@ -9,6 +9,20 @@ type TaskWorkflowContext = {
   reviewerId?: string | null;
   userId?: string;
   projectRole?: ProjectMemberRole;
+  hasAssignee?: boolean;
+};
+
+const isApprovalOrValidation = (status: TaskStatus) =>
+  status === "APPROVED" || status === "VALIDATED";
+
+const canTransitionToStatus = ({
+  to,
+  hasAssignee,
+}: Pick<TaskWorkflowContext, "to" | "hasAssignee">) => {
+  if (isApprovalOrValidation(to) && hasAssignee === false) {
+    return false;
+  }
+  return true;
 };
 
 const isAdminLike = (userRole?: Role, projectRole?: ProjectMemberRole) =>
@@ -35,8 +49,11 @@ export const canTransitionTaskStatus = ({
   reviewerId,
   userId,
   projectRole,
+  hasAssignee,
 }: TaskWorkflowContext) => {
   if (from === to) return true;
+
+  if (!canTransitionToStatus({ to, hasAssignee })) return false;
 
   if (from === "BACKLOG" || to === "BACKLOG") {
     const canAccessBacklog = isAdminLike(userRole, projectRole);
@@ -88,9 +105,17 @@ export const getAllowedTaskTransitions = ({
   reviewerId,
   userId,
   projectRole,
+  hasAssignee,
 }: Omit<TaskWorkflowContext, "to">): TaskStatus[] => {
+  const filterAllowed = (statuses: TaskStatus[]) =>
+    statuses.filter((status) =>
+      canTransitionToStatus({ to: status, hasAssignee }),
+    );
+
   if (from === "BACKLOG") {
-    return isAdminLike(userRole, projectRole) ? ["TODO", "TRASH"] : [];
+    return filterAllowed(
+      isAdminLike(userRole, projectRole) ? ["TODO", "TRASH"] : [],
+    );
   }
 
   const canAccessBacklog = isAdminLike(userRole, projectRole);
@@ -102,21 +127,23 @@ export const getAllowedTaskTransitions = ({
   if (from === "IN_REVIEW") {
     const isReviewer = reviewerId && userId && reviewerId === userId;
     if (isReviewer) {
-      return [
+      return filterAllowed([
         "TRASH",
         "IN_PROGRESS",
         "APPROVED",
         ...allowedToBacklog,
-      ] as TaskStatus[];
+      ] as TaskStatus[]);
     }
-    return isAdminLike(userRole, projectRole)
-      ? ([
-          "TRASH",
-          "IN_PROGRESS",
-          "APPROVED",
-          ...allowedToBacklog,
-        ] as TaskStatus[])
-      : [];
+    return filterAllowed(
+      isAdminLike(userRole, projectRole)
+        ? ([
+            "TRASH",
+            "IN_PROGRESS",
+            "APPROVED",
+            ...allowedToBacklog,
+          ] as TaskStatus[])
+        : [],
+    );
   }
 
   if (from === "APPROVED") {
@@ -132,7 +159,7 @@ export const getAllowedTaskTransitions = ({
       allowed.push(...(allowedToBacklog as TaskStatus[]));
     }
 
-    return allowed;
+    return filterAllowed(allowed);
   }
 
   if (from === "VALIDATED") {
@@ -140,10 +167,13 @@ export const getAllowedTaskTransitions = ({
     if (isAdminLike(userRole, projectRole)) {
       allowed.push("APPROVED");
     }
-    return allowed;
+    return filterAllowed(allowed);
   }
 
-  return [...COMMON_TRANSITIONS[from], ...allowedToBacklog] as TaskStatus[];
+  return filterAllowed([
+    ...COMMON_TRANSITIONS[from],
+    ...allowedToBacklog,
+  ] as TaskStatus[]);
 };
 
 export const canDeleteTaskByStatus = (status: TaskStatus) => {

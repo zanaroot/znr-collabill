@@ -72,6 +72,7 @@ export function CreateBoard({
       reviewerId: task.reviewerId ?? userId,
       userId,
       projectRole,
+      hasAssignee: Boolean(task.assignedTo),
     });
 
   const projectMap = useMemo(
@@ -187,6 +188,7 @@ export function CreateBoard({
                         projectRole,
                         reviewerId: draggingTask?.reviewerId ?? null,
                         userId,
+                        hasAssignee: Boolean(draggingTask?.assignedTo),
                       })
                     }
                     canDragFromStatus={(status) =>
@@ -196,6 +198,7 @@ export function CreateBoard({
                         projectRole,
                         reviewerId: draggingTask?.reviewerId ?? null,
                         userId,
+                        hasAssignee: Boolean(draggingTask?.assignedTo),
                       }).length > 0
                     }
                     onDragStartTask={board.handleDragStartTask}

@@ -110,6 +110,11 @@ export function useUpdateTask() {
       return (await res.json()) as Task;
     },
     onSuccess: (task) => {
+      queryClient.setQueryData<Task[]>(
+        taskKeys.project(task.projectId),
+        (current) =>
+          current?.map((item) => (item.id === task.id ? task : item)),
+      );
       queryClient.invalidateQueries({
         queryKey: taskKeys.project(task.projectId),
       });

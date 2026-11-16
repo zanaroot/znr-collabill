@@ -51,6 +51,7 @@ import { formatDueDate } from "@/lib/date";
 import { generateUniqueGitBranchFromTitle } from "@/lib/git-branch-name";
 import type { TaskMembers } from "./column";
 import { InfoRow } from "./info-row";
+import { TaskDeliveryFields } from "./task-delivery-fields";
 
 const { Text, Title } = Typography;
 
@@ -78,6 +79,7 @@ export const TaskForm = ({
   isEditing,
   members,
   projectId,
+  taskId,
   projectGitBranches = [],
   userRole,
   userId,
@@ -307,36 +309,13 @@ export const TaskForm = ({
               )}
             </InfoRow>
 
-            <InfoRow label="Git Branch" icon={<BranchesOutlined />}>
-              {formValues.gitBranch ? (
-                <Tag
-                  color="purple"
-                  icon={<BranchesOutlined />}
-                  className="m-0 break-all font-mono"
-                >
-                  {formValues.gitBranch}
-                </Tag>
-              ) : (
-                <Text type="secondary">—</Text>
-              )}
-            </InfoRow>
-
-            <InfoRow label="Preview" icon={<LinkOutlined />}>
-              {formValues.previewLink ? (
-                <Button
-                  type="link"
-                  href={formValues.previewLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  icon={<LinkOutlined />}
-                  className="p-0 h-auto break-all text-left"
-                >
-                  Visit Link
-                </Button>
-              ) : (
-                <Text type="secondary">Not available</Text>
-              )}
-            </InfoRow>
+            <TaskDeliveryFields
+              taskId={taskId}
+              gitBranch={formValues.gitBranch ?? ""}
+              previewLink={formValues.previewLink ?? ""}
+              canEdit={Boolean(userRole)}
+              onFieldSaved={(field, value) => updateField(field, value)}
+            />
           </Space>
         </Card>
       </Col>
@@ -499,6 +478,7 @@ export const TaskForm = ({
                     projectRole,
                     reviewerId: formValues.reviewerId,
                     userId,
+                    hasAssignee: Boolean(formValues.assigneeId),
                   }).map((status) => ({
                     label: formatStatus(status),
                     value: status,

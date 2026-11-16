@@ -255,6 +255,67 @@ describe("task model schemas", () => {
     });
   });
 
+  describe("delivery fields", () => {
+    it("accepts a valid preview URL", () => {
+      const result = updateTaskSchema.safeParse({
+        previewLink: "https://preview.example.com/tasks/1",
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("rejects an invalid preview URL", () => {
+      const result = updateTaskSchema.safeParse({
+        previewLink: "not-a-url",
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("allows clearing the preview link", () => {
+      const result = updateTaskSchema.safeParse({ previewLink: null });
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts a valid branch name", () => {
+      const result = updateTaskSchema.safeParse({
+        gitBranch: "feature/add-branch-name",
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("rejects a branch name containing spaces", () => {
+      const result = updateTaskSchema.safeParse({
+        gitBranch: "feature branch with spaces",
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects a branch name longer than 255 characters", () => {
+      const result = updateTaskSchema.safeParse({
+        gitBranch: `feature/${"a".repeat(250)}`,
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("validates delivery fields on create", () => {
+      const valid = createTaskSchema.safeParse({
+        projectId: "123e4567-e89b-12d3-a456-426614174001",
+        title: "New Task",
+        size: "S",
+        gitBranch: "feature/new-task",
+        previewLink: "https://preview.example.com/new-task",
+      });
+      expect(valid.success).toBe(true);
+
+      const invalid = createTaskSchema.safeParse({
+        projectId: "123e4567-e89b-12d3-a456-426614174001",
+        title: "New Task",
+        size: "S",
+        previewLink: "invalid-preview",
+      });
+      expect(invalid.success).toBe(false);
+    });
+  });
+
   describe("TASK_SIZES", () => {
     it("contains expected sizes", () => {
       expect(TASK_SIZES).toEqual(["XS", "S", "M", "L", "XL"]);
