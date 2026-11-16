@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => {
     NoLiveSubscriptionError,
     SubscriptionNotFoundError,
     SubscriptionPlanNotFoundError,
+    getOrganizationPaymentExempt: vi.fn().mockResolvedValue(false),
+    getOrganizationById: vi.fn().mockResolvedValue(null),
     findLatestSubscriptionByOrganizationId: vi.fn(),
     findLiveSubscriptionWithPlan: vi.fn(),
     findPendingPaymentByOrganizationId: vi.fn(),
@@ -32,6 +34,11 @@ const mocks = vi.hoisted(() => {
     })),
   };
 });
+
+vi.mock("@/http/repositories/organization.repository", () => ({
+  getOrganizationPaymentExempt: mocks.getOrganizationPaymentExempt,
+  getOrganizationById: mocks.getOrganizationById,
+}));
 
 vi.mock("@/http/repositories/subscription.repository", () => ({
   findLatestSubscriptionByOrganizationId:
