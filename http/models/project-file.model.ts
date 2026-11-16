@@ -47,5 +47,3 @@ export const projectFileUploadFormSchema = z.object({
     .transform((value) => value === "true")
     .optional(),
 });
-
-export type ProjectFileUploadForm = z.infer<typeof projectFileUploadFormSchema>;

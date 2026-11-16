@@ -89,9 +89,6 @@ const isPaymentExemptOrganizationSafe = async (
 ): Promise<boolean> => {
   try {
     const orgRepo = await import("@/http/repositories/organization.repository");
-    if (typeof orgRepo.isOrganizationPaymentExempt === "function") {
-      return Boolean(await orgRepo.isOrganizationPaymentExempt(organizationId));
-    }
     if (typeof orgRepo.getOrganizationPaymentExempt === "function") {
       return Boolean(
         await orgRepo.getOrganizationPaymentExempt(organizationId),

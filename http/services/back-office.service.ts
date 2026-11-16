@@ -253,26 +253,3 @@ export const listOrganizationsForAdmin = async (
 ) => {
   return await listOrganizationsAdmin(filters);
 };
-
-export const updateOrganizationPaymentExempt = setOrganizationPaymentExempt;
-export const setOrganizationFree = setOrganizationPaymentExempt;
-export const markOrganizationFree = setOrganizationPaymentExempt;
-export const setOrganizationFreeStatus = setOrganizationPaymentExempt;
-export const updateOrganizationFreeStatus = setOrganizationPaymentExempt;
-export const setPaymentExempt = setOrganizationPaymentExempt;
-export const updatePaymentExempt = setOrganizationPaymentExempt;
-export const setOrganizationExempt = setOrganizationPaymentExempt;
-export const toggleOrganizationPaymentExempt = setOrganizationPaymentExempt;
-export const adminSetOrganizationPaymentExempt = setOrganizationPaymentExempt;
-export const adminUpdateOrganizationPaymentExempt =
-  setOrganizationPaymentExempt;
-
-export const markOrganizationAsFree = setOrganizationPaymentExempt;
-export const setOrganizationPaymentExemptStatus = setOrganizationPaymentExempt;
-export const updateOrganizationPaymentExemptStatus =
-  setOrganizationPaymentExempt;
-export const enableFreePlan = setOrganizationPaymentExempt;
-export const disableFreePlan = setOrganizationPaymentExempt;
-export const setFreeOrganization = setOrganizationPaymentExempt;
-export const updateOrganizationFree = setOrganizationPaymentExempt;
-export const setOrganizationFreePlan = setOrganizationPaymentExempt;

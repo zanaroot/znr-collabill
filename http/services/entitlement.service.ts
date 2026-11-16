@@ -99,9 +99,6 @@ const requireFallbackPlan = (plan: SubscriptionPlan | null) => {
 const isPaymentExemptOrg = async (organizationId: string): Promise<boolean> => {
   try {
     const orgRepo = await import("@/http/repositories/organization.repository");
-    if (typeof orgRepo.isOrganizationPaymentExempt === "function") {
-      return Boolean(await orgRepo.isOrganizationPaymentExempt(organizationId));
-    }
     if (typeof orgRepo.getOrganizationPaymentExempt === "function") {
       return Boolean(
         await orgRepo.getOrganizationPaymentExempt(organizationId),
@@ -341,5 +338,3 @@ export const createInvitedUserWithMemberLimit = async (data: {
   runWithResourceLimit(data.organizationId, "members", (tx) =>
     createUserFromInvitationInTx(tx, data),
   );
-
-export const isOrganizationPaymentExempt = isPaymentExemptOrg;

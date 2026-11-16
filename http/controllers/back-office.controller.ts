@@ -199,9 +199,6 @@ export const patchBackOfficeOrganization = factory.createHandlers(
   },
 );
 
-export const patchBackOfficeOrganizationPaymentExempt =
-  patchBackOfficeOrganization;
-
 export const postBackOfficeOrganizationPaymentExempt = factory.createHandlers(
   zValidator("param", z.object({ organizationId: z.uuid() })),
   zValidator("json", paymentExemptBodySchema),

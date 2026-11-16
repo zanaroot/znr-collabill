@@ -5,7 +5,6 @@ import {
   getBackOfficeOverview,
   getBackOfficePlans,
   patchBackOfficeOrganization,
-  patchBackOfficeOrganizationPaymentExempt,
   patchBackOfficePlans,
   postBackOfficeOrganizationNotes,
   postBackOfficeOrganizationPaymentExempt,
@@ -44,7 +43,7 @@ export const backOfficeRoutes = new Hono()
   )
   .patch(
     "/billing/organizations/:organizationId/payment-exempt",
-    ...patchBackOfficeOrganizationPaymentExempt,
+    ...patchBackOfficeOrganization,
   )
   .post(
     "/billing/organizations/:organizationId/payment-exempt",

@@ -737,7 +737,7 @@ export const updateOrganizationSlackSettings = async (
   return org ?? null;
 };
 
-export const isPaymentExemptOrganization = (organization: unknown): boolean => {
+const isPaymentExemptOrganization = (organization: unknown): boolean => {
   if (!organization || typeof organization !== "object") return false;
   const org = organization as Record<string, unknown>;
   return (
@@ -819,24 +819,3 @@ export const deleteFinanceEmail = async (id: string) => {
 
   return deleted;
 };
-export const setOrganizationPaymentExempt = updateOrganizationPaymentExempt;
-export const updateOrganizationFreeStatus = updateOrganizationPaymentExempt;
-export const setOrganizationFreeStatus = updateOrganizationPaymentExempt;
-export const setOrganizationFree = updateOrganizationPaymentExempt;
-export const markOrganizationFree = updateOrganizationPaymentExempt;
-export const setPaymentExempt = updateOrganizationPaymentExempt;
-export const updatePaymentExempt = updateOrganizationPaymentExempt;
-export const setOrganizationExempt = updateOrganizationPaymentExempt;
-export const isOrganizationPaymentExempt = getOrganizationPaymentExempt;
-export const isOrganizationFree = getOrganizationPaymentExempt;
-
-export const markOrganizationAsFree = updateOrganizationPaymentExempt;
-export const setOrganizationPaymentExemptStatus =
-  updateOrganizationPaymentExempt;
-export const updateOrganizationPaymentExemptStatus =
-  updateOrganizationPaymentExempt;
-export const enableFreePlan = updateOrganizationPaymentExempt;
-export const disableFreePlan = updateOrganizationPaymentExempt;
-export const setFreeOrganization = updateOrganizationPaymentExempt;
-export const updateOrganizationFree = updateOrganizationPaymentExempt;
-export const setOrganizationFreePlan = updateOrganizationPaymentExempt;

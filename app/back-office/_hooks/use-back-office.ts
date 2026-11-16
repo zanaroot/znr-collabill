@@ -531,11 +531,6 @@ export const useSetOrganizationPaymentExempt = () =>
     },
   );
 
-export const useUpdateOrganizationPaymentExempt =
-  useSetOrganizationPaymentExempt;
-export const useSetOrganizationFree = useSetOrganizationPaymentExempt;
-export const useMarkOrganizationFree = useSetOrganizationPaymentExempt;
-
 export const useRefundPayment = () =>
   useBackOfficeMutation(
     async (paymentId: string) => {
