@@ -311,14 +311,25 @@ export const MemberList = () => {
       dataIndex: "email",
       key: "email",
       responsive: ["sm", "md", "lg", "xl"],
-      render: (email: string, record: UserWithRoles) => (
-        <EmailVerificationStatus
-          email={email}
-          emailVerified={record.emailVerified}
-          onVerify={() => handleVerifyEmail(record.id)}
-          loading={isSendingVerification && verificationUserId === record.id}
-        />
-      ),
+      render: (email: string, record: UserWithRoles) => {
+        const isEmailOwner = record.id === currentUser?.id;
+
+        return (
+          <EmailVerificationStatus
+            email={email}
+            emailVerified={record.emailVerified}
+            canVerify={isEmailOwner}
+            onVerify={
+              isEmailOwner ? () => handleVerifyEmail(record.id) : undefined
+            }
+            loading={
+              isEmailOwner &&
+              isSendingVerification &&
+              verificationUserId === record.id
+            }
+          />
+        );
+      },
     },
     {
       title: "Role",

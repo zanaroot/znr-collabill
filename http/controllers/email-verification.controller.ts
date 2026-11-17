@@ -3,7 +3,7 @@ import { and, eq, gt, isNull } from "drizzle-orm";
 import type { Context } from "hono";
 import { createFactory } from "hono/factory";
 import { db } from "@/db";
-import { emailVerifications, userRoles, users } from "@/db/schema";
+import { emailVerifications, users } from "@/db/schema";
 import { authMiddleware } from "@/http/middleware/auth.middleware";
 import { sendEmail } from "@/packages/email";
 
@@ -299,14 +299,11 @@ export const sendMemberEmailVerification = createFactory().createHandlers(
       );
     }
 
-    if (
-      authenticatedUser.organizationRole !== "OWNER" &&
-      authenticatedUser.organizationRole !== "ADMIN"
-    ) {
+    if (targetUserId !== authenticatedUser.id) {
       return c.json(
         {
           success: false,
-          error: "You are not allowed to verify another member's email.",
+          error: "You can only verify your own email address.",
         },
         403,
       );
@@ -327,40 +324,10 @@ export const sendMemberEmailVerification = createFactory().createHandlers(
         return c.json({ success: false, error: "Member not found." }, 404);
       }
 
-      if (!authenticatedUser.organizationId) {
-        return c.json(
-          {
-            success: false,
-            error: "You are not associated with an organization.",
-          },
-          403,
-        );
-      }
-
-      const memberRole = await db.query.userRoles.findFirst({
-        where: and(
-          eq(userRoles.userId, user.id),
-          eq(userRoles.organizationId, authenticatedUser.organizationId),
-        ),
-        columns: {
-          userId: true,
-        },
-      });
-
-      if (!memberRole) {
-        return c.json(
-          {
-            success: false,
-            error: "This user does not belong to your organization.",
-          },
-          403,
-        );
-      }
-
       if (user.emailVerified) {
         return c.json({
           success: true,
-          message: "This member's email address is already verified.",
+          message: "Your email address is already verified.",
         });
       }
 
@@ -428,7 +395,7 @@ export const sendMemberEmailVerification = createFactory().createHandlers(
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2>Verify your email address</h2>
               <p>Hello ${escapeHtml(user.name ?? "")},</p>
-              <p>An organization administrator has requested that you verify your email address.</p>
+              <p>Please click the button below to verify your email address.</p>
               <p>
                 <a
                   href="${verificationUrl.toString()}"
@@ -438,7 +405,7 @@ export const sendMemberEmailVerification = createFactory().createHandlers(
                 </a>
               </p>
               <p>This link expires in ${TOKEN_EXPIRATION_MINUTES} minutes and can only be used once.</p>
-              <p>If you did not expect this email, you can ignore it.</p>
+              <p>If you did not create this account, you can ignore this email.</p>
             </div>
           `,
           text: [
@@ -446,7 +413,7 @@ export const sendMemberEmailVerification = createFactory().createHandlers(
             "",
             `Hello ${user.name ?? ""},`,
             "",
-            "An organization administrator has requested that you verify your email address.",
+            "Please click the button below to verify your email address.",
             "",
             "Open this link to verify your email:",
             verificationUrl.toString(),
@@ -464,7 +431,7 @@ export const sendMemberEmailVerification = createFactory().createHandlers(
 
       return c.json({
         success: true,
-        message: "Verification email sent successfully to the member.",
+        message: "Verification email sent successfully.",
       });
     } catch (error) {
       console.error("Failed to send member verification email:", error);
