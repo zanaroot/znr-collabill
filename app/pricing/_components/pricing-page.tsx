@@ -5,8 +5,8 @@ import {
   Button,
   Card,
   Segmented,
-  Spin,
   Space,
+  Spin,
   Tag,
   Typography,
 } from "antd";
