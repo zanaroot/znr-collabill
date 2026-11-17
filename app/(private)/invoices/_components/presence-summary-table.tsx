@@ -21,7 +21,7 @@ export const PresenceSummaryTable = ({ data }: { data: PresenceSummary[] }) => {
       render: (type: PresenceSummary["type"]) =>
         type ? (
           <Tag color={PRESENCE_STATUS_COLORS[type]}>
-            {type.replace("_", " ")}
+            {type.replace("_", " ").toLowerCase()}
           </Tag>
         ) : null,
     },

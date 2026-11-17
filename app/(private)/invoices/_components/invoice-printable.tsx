@@ -9,6 +9,7 @@ import {
   Input,
   InputNumber,
   Space,
+  Tag,
   Typography,
 } from "antd";
 import { useRouter } from "next/navigation";
@@ -27,6 +28,7 @@ import type {
   ReviewerTaskSummary,
 } from "@/http/models/task.model";
 import { calculateReviewerAmount } from "@/lib/incoices/invoice-calculation";
+import { PRESENCE_STATUS_COLORS } from "@/lib/presence";
 import { client } from "@/packages/hono";
 
 const { Title, Text, Paragraph } = Typography;
@@ -512,7 +514,11 @@ export const InvoicePrintable = ({
                         </Text>
                       </td>
                       <td className="text-center p-4 dark:text-gray-300">
-                        <Text>{item.type}</Text>
+                        {item.type ? (
+                          <Tag color={PRESENCE_STATUS_COLORS[item.type]}>
+                            {item.type.replace("_", " ").toLowerCase()}
+                          </Tag>
+                        ) : null}
                       </td>
                       <td className="text-center p-4 dark:text-gray-300">
                         <Text>{item.count} days</Text>
