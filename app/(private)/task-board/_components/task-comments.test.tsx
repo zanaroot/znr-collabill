@@ -22,8 +22,8 @@ describe("TaskComments", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("renders loading state initially when taskId is provided", () => {
+  it("renders a skeleton initially when taskId is provided", () => {
     render(<TaskComments taskId="some-uuid" />, { wrapper: createWrapper() });
-    expect(document.querySelector(".ant-spin")).toBeInTheDocument();
+    expect(document.querySelector(".ant-skeleton")).toBeInTheDocument();
   });
 });

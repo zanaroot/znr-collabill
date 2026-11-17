@@ -1052,28 +1052,6 @@ h4 {
   color: #e2e8f0;
 }
 
-/* Loading Spinner */
-.auth-loading-spinner {
-  width: 44px;
-  height: 44px;
-  border: 3px solid #f1f5f9;
-  border-top-color: #6366f1;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 24px;
-}
-
-.dark .auth-loading-spinner {
-  border-color: rgba(255, 255, 255, 0.08);
-  border-top-color: #6366f1;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Ant Design Form Overrides for Auth */
 .auth-card .ant-form-item-label > label {
   font-weight: 500;
@@ -1178,4 +1156,3 @@ h4 {
 .dark .react-international-phone-country-selector-dropdown__list-item-dial-code {
   color: #a3a3a3 !important;
 }
-

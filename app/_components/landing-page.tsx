@@ -7,6 +7,7 @@ import {
   Drawer,
   Input,
   Layout,
+  Spin,
   theme,
 } from "antd";
 import {
@@ -653,7 +654,10 @@ const Hero = () => {
                   disabled={createInstant.isPending}
                   className="text-blue-600 dark:text-blue-400 hover:underline font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {createInstant.isPending ? "Starting…" : "Start a meeting →"}
+                  <span className="inline-flex items-center gap-2">
+                    {createInstant.isPending && <Spin size="small" />}
+                    Start a meeting →
+                  </span>
                 </button>
               </div>
               {createInstant.error && (

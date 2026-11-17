@@ -76,9 +76,18 @@ export const GuestJoin = ({ token }: { token: string }) => {
 
   if (isLoading || !meetingInfo) {
     return (
-      <div style={{ textAlign: "center", padding: 48 }}>
-        <Spin size="large" />
-      </div>
+      <Card style={{ maxWidth: 420, margin: "48px auto" }}>
+        <div
+          style={{
+            minHeight: 192,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Spin size="large" />
+        </div>
+      </Card>
     );
   }
 

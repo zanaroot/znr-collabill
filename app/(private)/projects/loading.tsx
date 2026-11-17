@@ -1,11 +1,13 @@
 "use client";
 
-import { Card, Skeleton } from "antd";
+import { Card, Spin } from "antd";
 
 const ProjectsLoading = () => {
   return (
-    <Card>
-      <Skeleton active paragraph={{ rows: 8 }} />
+    <Card style={{ minHeight: 320 }}>
+      <div className="flex min-h-[272px] items-center justify-center">
+        <Spin size="large" />
+      </div>
     </Card>
   );
 };

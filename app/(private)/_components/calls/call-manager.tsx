@@ -1,6 +1,6 @@
 "use client";
 
-import { App, Button } from "antd";
+import { App, Button, Spin } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useCurrentUser } from "@/app/(private)/team-management/_hooks/use-team";
 import type { CallDto } from "@/http/models/call.model";
@@ -132,7 +132,13 @@ export const CallManager = () => {
           gap: 16,
         }}
       >
-        <span>{tokenError ? "Failed to join call" : "Connecting..."}</span>
+        {tokenError ? (
+          <span>Failed to join call</span>
+        ) : (
+          <output aria-label="Connecting call">
+            <Spin size="small" />
+          </output>
+        )}
         {tokenError ? (
           <Button
             type="link"

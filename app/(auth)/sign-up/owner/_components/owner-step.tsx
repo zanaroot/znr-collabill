@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { App, Button, Form, Input, Typography } from "antd";
+import { App, Button, Form, Input, Spin, Typography } from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -325,7 +325,13 @@ const OwnerStepContent = () => {
 
 export const OwnerStep = () => {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="auth-card flex min-h-64 items-center justify-center">
+          <Spin size="large" />
+        </div>
+      }
+    >
       <OwnerStepContent />
     </Suspense>
   );

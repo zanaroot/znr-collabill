@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Card, Progress, Typography } from "antd";
+import { Alert, Card, Progress, Skeleton, Typography } from "antd";
 import { useEntitlements } from "@/app/_hooks/use-billing";
 import type { SubscriptionInput } from "@/app/_utils/billing";
 import { planLimitLabel } from "@/app/_utils/billing";
@@ -90,7 +90,7 @@ export const UsageCard = ({
         />
       )}
       {isLoadingUsers || isLoadingProjects ? (
-        <Text type="secondary">Loading usage…</Text>
+        <Skeleton active title={false} paragraph={{ rows: 4 }} />
       ) : (
         <>
           <UsageRow
