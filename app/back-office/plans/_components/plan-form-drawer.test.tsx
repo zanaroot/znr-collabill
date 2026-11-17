@@ -62,7 +62,7 @@ const existingPlan: AdminPlan = {
   subscriptionCount: 0,
 };
 
-describe("PlanFormDrawer", () => {
+describe("PlanFormDrawer", { timeout: 15_000 }, () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

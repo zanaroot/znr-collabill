@@ -132,6 +132,7 @@ export const useEntitlements = (options?: { enabled?: boolean }) =>
 export const useCheckout = () => {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
+
   return useMutation({
     mutationFn: async (input: {
       planCode: SubscriptionPlanCode;
@@ -177,6 +178,7 @@ export const useCheckout = () => {
 export const useChangePlan = () => {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
+
   return useMutation({
     mutationFn: async (input: {
       planCode: SubscriptionPlanCode;
@@ -205,6 +207,7 @@ export const useChangePlan = () => {
 export const useCancelSubscription = () => {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
+
   return useMutation({
     mutationFn: async (input: { atPeriodEnd?: boolean }) => {
       const res = await client.api.billing.cancel.$post({ json: input });
@@ -227,6 +230,7 @@ export const useCancelSubscription = () => {
 export const useReactivateSubscription = () => {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
+
   return useMutation({
     mutationFn: async () => {
       const res = await client.api.billing.reactivate.$post({ json: {} });
@@ -249,6 +253,7 @@ export const useReactivateSubscription = () => {
 export const useReconcilePayment = () => {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
+
   return useMutation({
     mutationFn: async (paymentId: string) => {
       const res = await client.api.billing.payments[":paymentId"].status.$get({
