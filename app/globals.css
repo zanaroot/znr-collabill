@@ -707,6 +707,35 @@ h4 {
   background: linear-gradient(180deg, #f8f9fc 0%, #f0f2f7 100%);
 }
 
+.auth-page-content {
+  width: 100%;
+  max-width: 440px;
+}
+
+.auth-back-button.ant-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-inline: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.auth-back-button.ant-btn:hover {
+  color: #6366f1 !important;
+  background: transparent !important;
+}
+
+.dark .auth-back-button.ant-btn {
+  color: #94a3b8;
+}
+
+.auth-verification-container {
+  min-height: 100vh;
+}
+
 .dark .auth-form-container {
   background: linear-gradient(180deg, #0c0c0e 0%, #111114 100%);
 }
