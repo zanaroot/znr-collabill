@@ -18,8 +18,8 @@ import {
   Input,
   InputNumber,
   Select,
+  Skeleton,
   Space,
-  Spin,
   Tabs,
   Tag,
   Tooltip,
@@ -465,12 +465,16 @@ export function ProjectDetailsDrawer({
                     )}
 
                     {isLoadingMembers ? (
-                      <Flex
-                        justify="center"
-                        align="center"
-                        style={{ padding: 24 }}
-                      >
-                        <Spin />
+                      <Flex vertical gap={12} style={{ padding: 8 }}>
+                        {[0, 1, 2].map((item) => (
+                          <Skeleton
+                            key={item}
+                            active
+                            avatar
+                            title={false}
+                            paragraph={{ rows: 1 }}
+                          />
+                        ))}
                       </Flex>
                     ) : members && members.length > 0 ? (
                       <Flex vertical gap={12}>

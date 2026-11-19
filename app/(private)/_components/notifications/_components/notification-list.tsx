@@ -1,6 +1,6 @@
 "use client";
 
-import { Empty, Flex, Spin } from "antd";
+import { Empty, Flex, Skeleton } from "antd";
 import { useNotifications } from "@/app/(private)/_components/notifications/_hook/use-notifications";
 import { NotificationItem } from "./notification-item";
 
@@ -24,8 +24,16 @@ export const NotificationList = () => {
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" style={{ padding: 40 }}>
-        <Spin />
+      <Flex vertical gap={16} style={{ padding: 24 }}>
+        {[0, 1, 2].map((item) => (
+          <Skeleton
+            key={item}
+            active
+            avatar
+            title={false}
+            paragraph={{ rows: 1 }}
+          />
+        ))}
       </Flex>
     );
   }

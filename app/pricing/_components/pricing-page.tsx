@@ -31,12 +31,6 @@ type PricingPageProps = {
   user: { organizationRole: Role | null } | null;
 };
 
-const CenteredSpin = () => (
-  <div style={{ padding: 48, textAlign: "center" }}>
-    <Spin />
-  </div>
-);
-
 export const PricingPage = ({ user }: PricingPageProps) => {
   const [billingInterval, setBillingInterval] =
     useState<SubscriptionInterval>("MONTHLY");
@@ -127,7 +121,16 @@ export const PricingPage = ({ user }: PricingPageProps) => {
       </div>
 
       {plans.isLoading ? (
-        <CenteredSpin />
+        <div
+          style={{
+            minHeight: 320,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Spin size="large" />
+        </div>
       ) : (
         <div
           style={{

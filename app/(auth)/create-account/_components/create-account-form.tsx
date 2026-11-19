@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { App, Button, Form, Input, Typography } from "antd";
+import { App, Button, Form, Input, Spin, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -121,11 +121,8 @@ export const CreateAccountForm = () => {
   if (isLoading) {
     return (
       <div className="auth-card">
-        <div className="auth-card-header">
-          <div className="auth-loading-spinner" />
-          <Typography.Title level={2} className="auth-card-title">
-            Loading invitation...
-          </Typography.Title>
+        <div className="auth-card-header flex min-h-48 items-center justify-center">
+          <Spin size="large" />
         </div>
       </div>
     );

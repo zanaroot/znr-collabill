@@ -8,6 +8,7 @@ import {
   Divider,
   Input,
   InputNumber,
+  Skeleton,
   Space,
   Tag,
   Typography,
@@ -409,7 +410,11 @@ export const InvoicePrintable = ({
               Bill To:
             </Text>
             {isLoadingOwner ? (
-              <Text type="secondary">Loading owner info...</Text>
+              <Skeleton
+                active
+                title={{ width: "55%" }}
+                paragraph={{ rows: 2 }}
+              />
             ) : (
               <div className="flex flex-col">
                 <Text strong className="text-lg">

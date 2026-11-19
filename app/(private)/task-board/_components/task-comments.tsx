@@ -10,7 +10,7 @@ import {
   Flex,
   Input,
   List,
-  Spin,
+  Skeleton,
   Typography,
 } from "antd";
 import { useState } from "react";
@@ -217,8 +217,8 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
       styles={{ body: { padding: "16px" } }}
     >
       {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Spin />
+        <div className="py-2">
+          <Skeleton active avatar paragraph={{ rows: 2 }} />
         </div>
       ) : (
         <>

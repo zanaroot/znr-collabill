@@ -10,8 +10,8 @@ import {
   Drawer,
   Empty,
   List,
+  Skeleton,
   Space,
-  Spin,
   Tag,
   Typography,
 } from "antd";
@@ -64,8 +64,8 @@ export const PaymentDetailDrawer = ({
       width={720}
     >
       {detail.isLoading && (
-        <div style={{ padding: 48, textAlign: "center" }}>
-          <Spin />
+        <div style={{ padding: 8 }}>
+          <Skeleton active paragraph={{ rows: 8 }} />
         </div>
       )}
       {detail.isError && (

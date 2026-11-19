@@ -193,7 +193,7 @@ export const TaskBoard = () => {
       </div>
 
       {isLoadingTasks || isLoadingMembers ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-1 items-center justify-center p-4">
           <Spin size="large" />
         </div>
       ) : (

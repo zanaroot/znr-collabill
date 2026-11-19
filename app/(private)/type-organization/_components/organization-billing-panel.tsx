@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircleOutlined } from "@ant-design/icons";
-import { Card, Col, Row, Space, Spin, Tag, Typography } from "antd";
+import { Card, Col, Row, Skeleton, Space, Tag, Typography } from "antd";
 import { CheckoutRecoveryBanner } from "@/app/_components/billing/checkout-recovery-banner";
 import { PlanCtaButton } from "@/app/_components/billing/plan-cta";
 import { QueryErrorAlert } from "@/app/_components/billing/query-error-alert";
@@ -17,10 +17,10 @@ import { UsageCard } from "./usage-card";
 
 const { Text, Title } = Typography;
 
-const CenteredSpin = () => (
-  <div style={{ padding: 32, textAlign: "center" }}>
-    <Spin />
-  </div>
+const BillingSkeleton = () => (
+  <Card>
+    <Skeleton active paragraph={{ rows: 5 }} />
+  </Card>
 );
 
 export const OrganizationBillingPanel = ({ isOwner }: { isOwner: boolean }) => {
@@ -37,7 +37,7 @@ export const OrganizationBillingPanel = ({ isOwner }: { isOwner: boolean }) => {
           onRetry={() => subscription.refetch()}
         />
       ) : subscription.isLoading ? (
-        <CenteredSpin />
+        <BillingSkeleton />
       ) : (
         subscription.data && (
           <>
@@ -57,7 +57,7 @@ export const OrganizationBillingPanel = ({ isOwner }: { isOwner: boolean }) => {
           onRetry={() => plans.refetch()}
         />
       ) : plans.isLoading ? (
-        <CenteredSpin />
+        <BillingSkeleton />
       ) : (
         <Row gutter={[16, 16]}>
           {(plans.data ?? []).map((plan) => {

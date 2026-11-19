@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Button, Space } from "antd";
+import { Alert, Button, Space, Spin } from "antd";
 import { useCheckoutRecovery } from "@/app/_hooks/use-billing";
 import { getPaymentStatusMeta } from "@/app/_utils/billing";
 
@@ -54,7 +54,11 @@ export const CheckoutRecoveryBanner = () => {
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
-        message="Checking your checkout…"
+        message={
+          <output aria-label="Checking your checkout">
+            <Spin size="small" />
+          </output>
+        }
         action={actions}
       />
     );

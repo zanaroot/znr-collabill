@@ -13,7 +13,17 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TabsProps } from "antd";
-import { App, Button, Card, Form, Input, Result, Tabs, Typography } from "antd";
+import {
+  App,
+  Button,
+  Card,
+  Form,
+  Input,
+  Result,
+  Skeleton,
+  Tabs,
+  Typography,
+} from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MemberRole } from "@/app/(private)/team-management/_components/member-role";
@@ -340,7 +350,11 @@ export const OrganizationType = () => {
   };
 
   if (isLoadingUser) {
-    return null;
+    return (
+      <div style={{ padding: 24 }}>
+        <Skeleton active paragraph={{ rows: 6 }} />
+      </div>
+    );
   }
 
   if (!canView) {
@@ -358,7 +372,7 @@ export const OrganizationType = () => {
       children: (
         <div style={{ padding: "16px 0" }}>
           {isLoading ? (
-            <p>Loading...</p>
+            <Skeleton active paragraph={{ rows: 4 }} />
           ) : organizations?.length === 0 ? (
             <p>No organizations</p>
           ) : (

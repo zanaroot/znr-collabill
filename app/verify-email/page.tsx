@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Result } from "antd";
+import { Button, Result, Spin } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
@@ -80,7 +80,13 @@ const VerifyEmailContent = () => {
 export default function VerifyEmailPage() {
   return (
     <div className="auth-card">
-      <Suspense fallback={<Result title="Checking verification status..." />}>
+      <Suspense
+        fallback={
+          <div className="flex min-h-48 items-center justify-center">
+            <Spin size="large" />
+          </div>
+        }
+      >
         <VerifyEmailContent />
       </Suspense>
     </div>
