@@ -41,7 +41,9 @@ describe("PresenceSummaryTable", () => {
     render(<PresenceSummaryTable data={data} />);
 
     for (const [type, color] of Object.entries(PRESENCE_STATUS_COLORS)) {
-      const tag = screen.getByText(type.replace("_", " ")).closest(".ant-tag");
+      const tag = screen
+        .getByText(type.replace("_", " ").toLowerCase())
+        .closest(".ant-tag");
 
       expect(tag).toBeInTheDocument();
       expect(tag).toHaveStyle({ color });
