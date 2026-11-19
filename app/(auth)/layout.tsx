@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { AuthBackButton } from "@/app/_components/auth-back-button";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
 
 const AuthLayout = async ({ children }: { children: ReactNode }) => {
@@ -116,7 +117,12 @@ const AuthLayout = async ({ children }: { children: ReactNode }) => {
           </div>
         </div>
       </div>
-      <div className="auth-form-container">{children}</div>
+      <div className="auth-form-container">
+        <div className="auth-page-content">
+          <AuthBackButton />
+          {children}
+        </div>
+      </div>
     </div>
   );
 };

@@ -3,6 +3,7 @@
 import { Button, Result, Spin } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { AuthBackButton } from "@/app/_components/auth-back-button";
 
 const VerifyEmailContent = () => {
   const router = useRouter();
@@ -79,16 +80,21 @@ const VerifyEmailContent = () => {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="auth-card">
-      <Suspense
-        fallback={
-          <div className="flex min-h-48 items-center justify-center">
-            <Spin size="large" />
-          </div>
-        }
-      >
-        <VerifyEmailContent />
-      </Suspense>
-    </div>
+    <main className="auth-form-container auth-verification-container">
+      <div className="auth-page-content">
+        <AuthBackButton />
+        <div className="auth-card">
+          <Suspense
+            fallback={
+              <div className="flex min-h-48 items-center justify-center">
+                <Spin size="large" />
+              </div>
+            }
+          >
+            <VerifyEmailContent />
+          </Suspense>
+        </div>
+      </div>
+    </main>
   );
 }
