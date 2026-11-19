@@ -334,6 +334,74 @@ describe("PUT /tasks/:id automatic assignment", () => {
   });
 });
 
+describe("PUT /tasks/:id reviewer assignment on review", () => {
+  it("keeps the existing reviewer when moving to IN_REVIEW", async () => {
+    currentUser = buildUser({ id: "user-1", organizationRole: "COLLABORATOR" });
+    mocks.findTaskById.mockResolvedValue(
+      buildTask({
+        status: "IN_PROGRESS",
+        assignedTo: "user-1",
+        reviewerId: "user-2",
+      }),
+    );
+
+    const res = await putTask({ status: "IN_REVIEW" });
+
+    expect(res.status).toBe(200);
+    const updates = mocks.updateTaskWithAutoAssignment.mock.calls[0][1] as
+      | Record<string, unknown>
+      | undefined;
+    expect(updates).toBeDefined();
+    expect(Object.hasOwn(updates ?? {}, "reviewerId")).toBe(false);
+    expect(mocks.createNotification).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: "TASK_REVIEWER_ASSIGNED" }),
+    );
+  });
+
+  it("does not let a payload reviewer replace the existing reviewer on review", async () => {
+    currentUser = buildUser({ id: "user-1", organizationRole: "COLLABORATOR" });
+    mocks.findTaskById.mockResolvedValue(
+      buildTask({
+        status: "IN_PROGRESS",
+        assignedTo: "user-1",
+        reviewerId: "user-2",
+      }),
+    );
+
+    const res = await putTask({
+      status: "IN_REVIEW",
+      reviewerId: "00000000-0000-4000-8000-000000000003",
+    });
+
+    expect(res.status).toBe(200);
+    const updates = mocks.updateTaskWithAutoAssignment.mock.calls[0][1] as
+      | Record<string, unknown>
+      | undefined;
+    expect(updates).toBeDefined();
+    expect(Object.hasOwn(updates ?? {}, "reviewerId")).toBe(false);
+  });
+
+  it("auto-assigns the reviewer to the user moving the task to IN_REVIEW", async () => {
+    currentUser = buildUser({ id: "user-1", organizationRole: "COLLABORATOR" });
+    mocks.findTaskById.mockResolvedValue(
+      buildTask({
+        status: "IN_PROGRESS",
+        assignedTo: "user-1",
+        reviewerId: null,
+      }),
+    );
+
+    const res = await putTask({ status: "IN_REVIEW" });
+
+    expect(res.status).toBe(200);
+    expect(mocks.updateTaskWithAutoAssignment).toHaveBeenCalledWith(
+      "task-1",
+      expect.objectContaining({ status: "IN_REVIEW", reviewerId: "user-1" }),
+      null,
+    );
+  });
+});
+
 describe("PUT /tasks/:id approval and validation rules", () => {
   it("rejects approving an unassigned task", async () => {
     currentUser = buildUser({ organizationRole: "OWNER" });
