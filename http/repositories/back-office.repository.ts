@@ -294,6 +294,7 @@ export const getOrganizationBillingDetail = async (organizationId: string) => {
       name: users.name,
       email: users.email,
       avatar: users.avatar,
+      phoneNumber: users.phoneNumber,
       role: organizationMembers.role,
     })
     .from(organizationMembers)
