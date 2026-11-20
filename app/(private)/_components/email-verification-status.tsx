@@ -3,6 +3,7 @@
 import { CheckCircleFilled, WarningFilled } from "@ant-design/icons";
 import { Button, Flex, Modal, Tooltip, Typography } from "antd";
 import { useState } from "react";
+import { Email } from "@/app/_components/email";
 
 type EmailVerificationStatusProps = {
   email: string;
@@ -38,8 +39,8 @@ export const EmailVerificationStatus = ({
 
   return (
     <>
-      <Flex align="center" gap={8}>
-        {showEmail && <Typography.Text>{email}</Typography.Text>}
+      <Flex align="center" gap={8} wrap="wrap">
+        {showEmail && <Email email={email} />}
 
         {isVerified ? (
           <Tooltip title="Email address verified">
@@ -88,8 +89,7 @@ export const EmailVerificationStatus = ({
           ]}
         >
           <Typography.Paragraph>
-            The email address <strong>{email}</strong> has not been verified
-            yet.
+            The email address <Email email={email} /> has not been verified yet.
           </Typography.Paragraph>
 
           <Typography.Paragraph>

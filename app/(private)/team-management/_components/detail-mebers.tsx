@@ -30,6 +30,7 @@ import {
 import dayjs, { type Dayjs } from "dayjs";
 import { useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { Email } from "@/app/_components/email";
 import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import {
   useAddProjectMember,
@@ -305,7 +306,7 @@ export const DetailMembers = ({
                   </Typography.Title>
 
                   <Typography.Text type="secondary">
-                    {member.email}
+                    <Email email={member.email} />
                   </Typography.Text>
                 </div>
               </Flex>

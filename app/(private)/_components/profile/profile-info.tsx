@@ -4,6 +4,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Button, Divider, Space, Tag } from "antd";
+import { Email } from "@/app/_components/email";
 import type { AuthUser } from "@/http/models/auth.model";
 
 type ProfileInfoProps = {
@@ -28,9 +29,7 @@ export const ProfileInfo = ({
       <span className="text-xl font-semibold">
         {currentName ?? currentUser?.name}
       </span>
-      <span className="text-sm text-gray-500">
-        {currentEmail ?? currentUser?.email}
-      </span>
+      <Email email={currentEmail ?? currentUser?.email ?? ""} />
     </div>
     <div className="w-full mt-3">
       <Button block onClick={onEdit}>

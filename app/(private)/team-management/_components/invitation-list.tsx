@@ -8,6 +8,7 @@ import {
 import { App, Button, Card, Flex, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { Email } from "@/app/_components/email";
 import type { Invitation } from "@/http/models/user.model";
 import {
   useCurrentUser,
@@ -67,7 +68,7 @@ export const InvitationList = () => {
             userEmail={email}
             size={32}
           />
-          <Typography.Text>{email}</Typography.Text>
+          <Email email={email} />
         </Flex>
       ),
     },

@@ -2,6 +2,7 @@
 
 import { DeleteOutlined, MailOutlined } from "@ant-design/icons";
 import { Button, Card, Input, List, Space, Typography } from "antd";
+import { Email } from "@/app/_components/email";
 
 const { Text } = Typography;
 
@@ -75,7 +76,7 @@ export const OrganizationFinancePanel = ({
           >
             <Space>
               <MailOutlined />
-              {item.email}
+              <Email email={item.email} />
             </Space>
           </List.Item>
         )}

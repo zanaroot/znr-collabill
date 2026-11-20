@@ -11,6 +11,7 @@ import { App, Button, Layout, Menu, Space, Tag, Typography, theme } from "antd";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { Email } from "@/app/_components/email";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -94,7 +95,7 @@ export const BackOfficeLayout = ({
             </Text>
             <div>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                {userEmail}
+                <Email email={userEmail} />
               </Text>
             </div>
             <Button
