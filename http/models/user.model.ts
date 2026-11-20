@@ -20,6 +20,7 @@ export type UserWithRoles = {
   email: string;
   name: string;
   avatar: string | null;
+  phoneNumber?: string | null;
   createdAt: string | Date | null;
   role: Role;
   joinedAt: string | Date | null;

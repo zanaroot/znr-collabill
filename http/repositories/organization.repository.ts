@@ -179,6 +179,7 @@ export const getOrganizationMembers = async (organizationId: string) => {
       name: users.name,
       email: users.email,
       avatar: users.avatar,
+      phoneNumber: users.phoneNumber,
       role: organizationMembers.role,
       joinedAt: organizationMembers.joinedAt,
       emailVerified: users.emailVerified,
