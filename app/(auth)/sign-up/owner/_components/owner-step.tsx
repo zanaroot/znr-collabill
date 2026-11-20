@@ -5,6 +5,7 @@ import { App, Button, Form, Input, Spin, Typography } from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { Email } from "@/app/_components/email";
 import type { RegisterInput } from "@/http/models/auth.model";
 import { client } from "@/packages/hono";
 
@@ -134,14 +135,14 @@ const OwnerStepContent = () => {
             {emailSent ? (
               <>
                 We sent a verification link to{" "}
-                <Typography.Text strong>{verificationEmail}</Typography.Text>.
-                Open the email and click the link to verify your address.
+                <Email email={verificationEmail} />. Open the email and click
+                the link to verify your address.
               </>
             ) : (
               <>
                 We couldn&apos;t confirm that the verification email was sent to{" "}
-                <Typography.Text strong>{verificationEmail}</Typography.Text>.
-                You can try again or continue to your dashboard.
+                <Email email={verificationEmail} />. You can try again or
+                continue to your dashboard.
               </>
             )}
           </Typography.Paragraph>

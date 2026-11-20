@@ -18,6 +18,7 @@ import {
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Email } from "@/app/_components/email";
 import {
   useCurrentUser,
   useUsers,
@@ -216,7 +217,14 @@ export const MeetingDetailDrawer = ({
                       {invitation.inviteeUser?.name?.charAt(0) ?? "?"}
                     </Avatar>
                   }
-                  title={invitation.inviteeUser?.name ?? invitation.email}
+                  title={
+                    invitation.inviteeUser?.name ??
+                    (invitation.email ? (
+                      <Email email={invitation.email} />
+                    ) : (
+                      "—"
+                    ))
+                  }
                 />
               </List.Item>
             )}

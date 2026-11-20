@@ -32,7 +32,7 @@ const FEATURE_OPTIONS = [
   { label: "Finance", value: "finance" },
 ];
 
-const defaultValues: CreatePlanInput = {
+const createDefaultValues = (): CreatePlanInput => ({
   code: "",
   name: "",
   description: "",
@@ -44,7 +44,7 @@ const defaultValues: CreatePlanInput = {
   maxProjects: null,
   features: [],
   active: true,
-};
+});
 
 const planToValues = (plan: AdminPlan): CreatePlanInput => ({
   code: plan.code,
@@ -85,12 +85,12 @@ export const PlanFormDrawer = ({
     formState: { errors },
   } = useForm<CreatePlanInput>({
     resolver: zodResolver(createPlanSchema),
-    defaultValues,
+    defaultValues: createDefaultValues(),
   });
 
   useEffect(() => {
     if (open) {
-      reset(plan ? planToValues(plan) : defaultValues);
+      reset(plan ? planToValues(plan) : createDefaultValues());
     }
   }, [open, plan, reset]);
 

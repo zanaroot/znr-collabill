@@ -26,6 +26,7 @@ import {
 } from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Email } from "@/app/_components/email";
 import { MemberRole } from "@/app/(private)/team-management/_components/member-role";
 import type {
   Integration,
@@ -407,7 +408,9 @@ export const OrganizationType = () => {
                     <div>
                       <Text strong>{member.name}</Text>
                       <br />
-                      <Text type="secondary">{member.email}</Text>
+                      <Text type="secondary">
+                        <Email email={member.email} />
+                      </Text>
                     </div>
                     <MemberRole
                       role={member.role}

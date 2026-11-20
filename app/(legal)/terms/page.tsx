@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Email } from "@/app/_components/email";
 import { JsonLd } from "@/app/_components/json-ld";
 import {
   LegalList,
@@ -202,12 +203,11 @@ const TermsOfServicePage = () => (
       <LegalSection title="Contact Us">
         <LegalParagraph>
           If you have any questions about these Terms, please contact us at{" "}
-          <a
+          <Email
+            email="legal@collabill.com"
             href="mailto:legal@collabill.com"
-            className="text-blue-600 dark:text-blue-400 font-semibold hover:underline"
-          >
-            legal@collabill.com
-          </a>
+            textClassName="text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+          />
           .
         </LegalParagraph>
       </LegalSection>
