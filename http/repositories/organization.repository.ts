@@ -1,6 +1,6 @@
 "server only";
 
-import { and, count, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   auditLogs,
@@ -29,10 +29,12 @@ export const registerOrganizationAndOwner = async (data: {
   passwordHash?: string;
 }) => {
   return db.transaction(async (tx) => {
+    const email = data.email.trim().toLowerCase();
+
     const [existingUser] = await tx
       .select()
       .from(users)
-      .where(eq(users.email, data.email))
+      .where(sql`lower(${users.email}) = ${email}`)
       .limit(1);
 
     let user: typeof existingUser;
@@ -46,7 +48,7 @@ export const registerOrganizationAndOwner = async (data: {
       const [newUser] = await tx
         .insert(users)
         .values({
-          email: data.email,
+          email,
           name: data.name,
           passwordHash: data.passwordHash,
         })

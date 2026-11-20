@@ -13,6 +13,7 @@ import {
   deleteSessionByToken,
 } from "@/http/repositories/session.repository";
 import { findUserByEmail } from "@/http/repositories/user.repository";
+import { issueEmailVerification } from "@/http/services/email-verification.service";
 import { getFutureDate } from "@/lib/date";
 import { logError } from "@/lib/sentry";
 import { generateSessionToken } from "@/lib/session-token";
@@ -40,7 +41,23 @@ export const register = factory.createHandlers(
       const existingUser = await findUserByEmail(email);
 
       let passwordHash: string | undefined;
-      if (!existingUser) {
+      if (existingUser) {
+        const isPasswordValid = await bcrypt.compare(
+          password,
+          existingUser.passwordHash,
+        );
+
+        if (!isPasswordValid) {
+          return c.json(
+            {
+              error:
+                "An account with this email already exists. Please sign in instead.",
+              success: false,
+            },
+            409,
+          );
+        }
+      } else {
         passwordHash = await bcrypt.hash(password, 10);
       }
 
@@ -69,7 +86,25 @@ export const register = factory.createHandlers(
         path: "/",
       });
 
-      return c.json({ message: "Registration successful", success: true }, 201);
+      let verificationEmailSent = false;
+      try {
+        const verification = await issueEmailVerification(user);
+        verificationEmailSent = verification.status === "sent";
+      } catch (error) {
+        console.error(
+          "Failed to send verification email after registration:",
+          error,
+        );
+      }
+
+      return c.json(
+        {
+          message: "Registration successful",
+          success: true,
+          verificationEmailSent,
+        },
+        201,
+      );
     } catch (error) {
       logError(error, {
         action: "register",

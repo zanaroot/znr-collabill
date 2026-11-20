@@ -158,6 +158,89 @@ export const openAPIDocument = {
         },
       },
     },
+    "/api/auth/email-verification/send": {
+      post: {
+        tags: ["Auth"],
+        summary: "Send email verification",
+        description:
+          "Sends a verification link to the authenticated user's email address. Rate limited to one request per minute.",
+        responses: {
+          200: { description: "Verification email sent or already verified" },
+          401: { description: "Unauthorized" },
+          429: { description: "Resend cooldown active" },
+          500: { description: "Unable to send the verification email" },
+        },
+      },
+    },
+    "/api/auth/email-verification/send-member/{userId}": {
+      post: {
+        tags: ["Auth"],
+        summary: "Send member email verification",
+        description:
+          "Sends a verification link for the authenticated user's own account. Users may only verify their own email address.",
+        parameters: [
+          {
+            name: "userId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: { description: "Verification email sent or already verified" },
+          401: { description: "Unauthorized" },
+          403: { description: "Cannot verify another user's email" },
+          429: { description: "Resend cooldown active" },
+          500: { description: "Unable to send the verification email" },
+        },
+      },
+    },
+    "/api/auth/email-verification/verify": {
+      get: {
+        tags: ["Auth"],
+        summary: "Redirect to email verification page",
+        description:
+          "Legacy email links land here. Redirects to the confirmation page without consuming the token.",
+        security: [],
+        parameters: [
+          {
+            name: "token",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          302: { description: "Redirect to /verify-email" },
+        },
+      },
+      post: {
+        tags: ["Auth"],
+        summary: "Verify email token",
+        description:
+          "Consumes a single-use verification token. Tokens expire after 30 minutes.",
+        security: [],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["token"],
+                properties: {
+                  token: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Email verified" },
+          400: { description: "Invalid or already used token" },
+          410: { description: "Token expired" },
+          500: { description: "Unable to verify email" },
+        },
+      },
+    },
     "/api/password/forgot": {
       post: {
         tags: ["Password"],

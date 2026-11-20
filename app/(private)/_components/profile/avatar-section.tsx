@@ -105,6 +105,7 @@ export const AvatarSection = ({
         <EmailVerificationStatus
           email={currentUser.email}
           emailVerified={currentUser.emailVerified}
+          canVerify
           onVerify={handleVerifyEmail}
           loading={isSendingVerification}
         />

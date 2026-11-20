@@ -7,57 +7,52 @@ import type { AuthEnv } from "@/http/models/auth.model";
 import type { Role } from "@/http/models/user.model";
 import { findValidSessionByToken } from "@/http/repositories/session.repository";
 
-export const authMiddleware = createMiddleware<AuthEnv>(
-  async (c: Context, next: Next) => {
-    const token =
-      c.req.header("Authorization")?.replace("Bearer ", "") ??
-      getCookieValue(c, "session_token");
+export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
+  const token =
+    c.req.header("Authorization")?.replace("Bearer ", "") ??
+    getCookieValue(c, "session_token");
 
-    if (!token) {
-      return c.redirect("/", 302);
-    }
+  if (!token) {
+    return c.redirect("/", 302);
+  }
 
-    const result = await findValidSessionByToken(token);
+  const result = await findValidSessionByToken(token);
 
-    if (!result) {
-      return c.redirect("/", 302);
-    }
+  if (!result) {
+    return c.redirect("/", 302);
+  }
 
-    let organizationRole: Role | null = null;
-    if (result.session.organizationId) {
-      const members = await db
-        .select({ role: organizationMembers.role })
-        .from(organizationMembers)
-        .where(
-          and(
-            eq(
-              organizationMembers.organizationId,
-              result.session.organizationId,
-            ),
-            eq(organizationMembers.userId, result.user.id),
-          ),
-        )
-        .limit(1);
-      organizationRole = members[0]?.role ?? null;
-    }
+  let organizationRole: Role | null = null;
+  if (result.session.organizationId) {
+    const members = await db
+      .select({ role: organizationMembers.role })
+      .from(organizationMembers)
+      .where(
+        and(
+          eq(organizationMembers.organizationId, result.session.organizationId),
+          eq(organizationMembers.userId, result.user.id),
+        ),
+      )
+      .limit(1);
+    organizationRole = members[0]?.role ?? null;
+  }
 
-    c.set("user", {
-      id: result.user.id,
-      email: result.user.email,
-      name: result.user.name,
-      avatar: result.user.avatar ?? null,
-      phoneNumber: result.user.phoneNumber ?? null,
-      phoneOwnerName: result.user.phoneOwnerName ?? null,
-      emailVerified: result.user.emailVerified ?? null,
-      organizationId: result.organization?.id ?? null,
-      organizationName: result.organization?.name ?? null,
-      organizationRole,
-      platformRole: result.user.platformRole ?? null,
-    });
+  c.set("user", {
+    id: result.user.id,
+    email: result.user.email,
+    name: result.user.name,
+    avatar: result.user.avatar ?? null,
+    phoneNumber: result.user.phoneNumber ?? null,
+    phoneOwnerName: result.user.phoneOwnerName ?? null,
+    emailVerified: result.user.emailVerified?.toISOString() ?? null,
+    organizationId: result.organization?.id ?? null,
+    organizationName: result.organization?.name ?? null,
+    organizationRole,
+    platformRole: result.user.platformRole ?? null,
+  });
 
-    await next();
-  },
-);
+  await next();
+});
 
 export const platformAdminMiddleware = createMiddleware<AuthEnv>(
   async (c: Context, next: Next) => {

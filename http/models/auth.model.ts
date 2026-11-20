@@ -1,15 +1,17 @@
 import { z } from "zod";
 import type { Role } from "@/http/models/user.model";
 
+const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
+
 export const signInSchema = z.object({
-  email: z.email(),
+  email: emailSchema,
   password: z.string().min(8),
 });
 
 export const registerSchema = z.object({
   organizationName: z.string().min(2),
   name: z.string().min(2),
-  email: z.email(),
+  email: emailSchema,
   password: z.string().min(8),
 });
 
@@ -59,7 +61,11 @@ export const createAccountSchema = z
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 
 export const forgotPasswordSchema = z.object({
-  email: z.email("Please enter a valid email"),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.email("Please enter a valid email")),
 });
 
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

@@ -7,6 +7,7 @@ import { useState } from "react";
 type EmailVerificationStatusProps = {
   email: string;
   emailVerified: string | Date | null | undefined;
+  canVerify?: boolean;
   onVerify?: () => Promise<void>;
   loading?: boolean;
   showEmail?: boolean;
@@ -15,6 +16,7 @@ type EmailVerificationStatusProps = {
 export const EmailVerificationStatus = ({
   email,
   emailVerified,
+  canVerify = false,
   onVerify,
   loading = false,
   showEmail = true,
@@ -24,7 +26,7 @@ export const EmailVerificationStatus = ({
   const isVerified = Boolean(emailVerified);
 
   const handleVerify = async () => {
-    if (isVerified) return;
+    if (!canVerify || isVerified) return;
 
     try {
       await onVerify?.();
@@ -44,49 +46,57 @@ export const EmailVerificationStatus = ({
             <CheckCircleFilled style={{ color: "#52c41a" }} />
           </Tooltip>
         ) : (
-          <Tooltip title="Email address not verified">
-            <WarningFilled
-              className="cursor-pointer"
-              style={{ color: "#faad14" }}
-              onClick={(event) => {
-                event.stopPropagation();
-                setModalOpen(true);
-              }}
-            />
+          <Tooltip title="Email not verified">
+            {canVerify ? (
+              <Button
+                type="text"
+                size="small"
+                aria-label="Verify email address"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setModalOpen(true);
+                }}
+                icon={<WarningFilled style={{ color: "#faad14" }} />}
+              />
+            ) : (
+              <WarningFilled
+                aria-label="Email not verified"
+                style={{ color: "#faad14" }}
+              />
+            )}
           </Tooltip>
         )}
       </Flex>
 
-      <Modal
-        title="Email verification"
-        open={modalOpen}
-        onCancel={() => setModalOpen(false)}
-        footer={[
-          <Button key="cancel" onClick={() => setModalOpen(false)}>
-            Cancel
-          </Button>,
-          ...(!isVerified
-            ? [
-                <Button
-                  key="verify"
-                  type="primary"
-                  loading={loading}
-                  onClick={handleVerify}
-                >
-                  Send verification link
-                </Button>,
-              ]
-            : []),
-        ]}
-      >
-        <Typography.Paragraph>
-          The email address <strong>{email}</strong> has not been verified yet.
-        </Typography.Paragraph>
+      {canVerify && !isVerified && (
+        <Modal
+          title="Email verification"
+          open={modalOpen}
+          onCancel={() => setModalOpen(false)}
+          footer={[
+            <Button key="cancel" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>,
+            <Button
+              key="verify"
+              type="primary"
+              loading={loading}
+              onClick={handleVerify}
+            >
+              Send verification link
+            </Button>,
+          ]}
+        >
+          <Typography.Paragraph>
+            The email address <strong>{email}</strong> has not been verified
+            yet.
+          </Typography.Paragraph>
 
-        <Typography.Paragraph>
-          Send a verification link to confirm this email address.
-        </Typography.Paragraph>
-      </Modal>
+          <Typography.Paragraph>
+            Send a verification link to confirm this email address.
+          </Typography.Paragraph>
+        </Modal>
+      )}
     </>
   );
 };
