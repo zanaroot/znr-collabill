@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { login, logout, register } from "@/http/controllers/auth.controller";
 import {
+  redirectToVerifyEmailPage,
   sendEmailVerification,
   sendMemberEmailVerification,
   verifyEmail,
@@ -15,4 +16,5 @@ export const authRoutes = new Hono()
     "/email-verification/send-member/:userId",
     ...sendMemberEmailVerification,
   )
-  .get("/email-verification/verify", ...verifyEmail);
+  .get("/email-verification/verify", ...redirectToVerifyEmailPage)
+  .post("/email-verification/verify", ...verifyEmail);

@@ -6,11 +6,11 @@ import {
   ExclamationCircleOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { App, Button, Card, Flex, Input, Modal, Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { EmailVerificationStatus } from "@/app/(private)/_components/email-verification-status";
 import { CallButtons } from "@/app/(private)/team-management/_components/call-buttons";
@@ -25,6 +25,7 @@ import type {
 } from "@/http/models/user.model";
 import { client } from "@/packages/hono";
 import {
+  teamKeys,
   useCollaboratorRates,
   useCurrentUser,
   useDeleteUser,
@@ -45,8 +46,22 @@ type VerificationResponse = {
 
 export const MemberList = () => {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { message, modal } = App.useApp();
+
+  useEffect(() => {
+    const refreshMembership = () => {
+      void queryClient.invalidateQueries({ queryKey: teamKeys.users() });
+      void queryClient.invalidateQueries({ queryKey: teamKeys.currentUser() });
+    };
+
+    window.addEventListener("focus", refreshMembership);
+
+    return () => {
+      window.removeEventListener("focus", refreshMembership);
+    };
+  }, [queryClient]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);

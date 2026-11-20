@@ -1,6 +1,6 @@
 "server only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   collaboratorRates,
@@ -13,10 +13,12 @@ import {
 import type { Role } from "@/http/models/user.model";
 
 export const findUserByEmail = async (email: string) => {
+  const normalizedEmail = email.trim().toLowerCase();
+
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.email, email))
+    .where(sql`lower(${users.email}) = ${normalizedEmail}`)
     .limit(1);
 
   return user ?? null;
@@ -94,22 +96,30 @@ export const updateUser = async (
     phoneOwnerName?: string | null;
   },
 ) => {
+  const normalizedData =
+    data.email === undefined
+      ? data
+      : { ...data, email: data.email.trim().toLowerCase() };
+
   return db.transaction(async (tx) => {
-    if (data.email !== undefined) {
+    if (normalizedData.email !== undefined) {
       const [current] = await tx
         .select({ email: users.email })
         .from(users)
         .where(eq(users.id, id))
         .limit(1);
 
-      if (current && current.email !== data.email) {
+      if (
+        current &&
+        current.email.trim().toLowerCase() !== normalizedData.email
+      ) {
         await tx
           .delete(emailVerifications)
           .where(eq(emailVerifications.userId, id));
 
         const [user] = await tx
           .update(users)
-          .set({ ...data, emailVerified: null })
+          .set({ ...normalizedData, emailVerified: null })
           .where(eq(users.id, id))
           .returning();
 
@@ -119,7 +129,7 @@ export const updateUser = async (
 
     const [user] = await tx
       .update(users)
-      .set(data)
+      .set(normalizedData)
       .where(eq(users.id, id))
       .returning();
 

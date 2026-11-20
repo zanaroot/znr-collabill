@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { App, Button, Form, Input, Typography } from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import type { RegisterInput } from "@/http/models/auth.model";
 import { client } from "@/packages/hono";
 
@@ -13,6 +13,7 @@ const { Title } = Typography;
 type RegisterResponse = {
   success?: boolean;
   error?: string;
+  verificationEmailSent?: boolean;
 };
 
 type VerificationResponse = {
@@ -85,8 +86,13 @@ const OwnerStepContent = () => {
     },
   });
 
+  useEffect(() => {
+    if (!orgName) {
+      router.replace("/sign-up");
+    }
+  }, [orgName, router]);
+
   if (!orgName) {
-    router.push("/sign-up");
     return null;
   }
 
@@ -99,7 +105,7 @@ const OwnerStepContent = () => {
 
       if (result.success) {
         setVerificationEmail(values.email);
-        await sendVerificationEmail();
+        setEmailSent(Boolean(result.verificationEmailSent));
       }
     } catch {
       // Les mutations affichent déjà les erreurs avec onError.
