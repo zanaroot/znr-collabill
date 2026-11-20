@@ -79,7 +79,14 @@ export const openAPIDocument = {
       },
       PaymentStatus: {
         type: "string",
-        enum: ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"],
+        enum: [
+          "PENDING",
+          "PROCESSING",
+          "SUCCEEDED",
+          "FAILED",
+          "EXPIRED",
+          "REFUNDED",
+        ],
       },
     },
   },
@@ -2259,7 +2266,14 @@ export const openAPIDocument = {
             in: "query",
             schema: {
               type: "string",
-              enum: ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"],
+              enum: [
+                "PENDING",
+                "PROCESSING",
+                "SUCCEEDED",
+                "FAILED",
+                "EXPIRED",
+                "REFUNDED",
+              ],
             },
           },
           { name: "organizationId", in: "query", schema: { type: "string" } },

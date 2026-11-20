@@ -223,9 +223,9 @@ describe("buildNowpaymentsIpnEvent", () => {
   });
 
   it.each([
-    ["failed", "failed"],
-    ["expired", "expired"],
-  ])("maps %s to a failed event with failure reason %s", (status, reason) => {
+    ["failed", "payment.failed", "failed"],
+    ["expired", "payment.expired", "expired"],
+  ])("maps %s to a %s event with failure reason %s", (status, type, reason) => {
     const verification = verifyNowpaymentsIpn(
       JSON.stringify({ ...finishedPayload, payment_status: status }),
       signNowpaymentsIpn(
@@ -239,7 +239,7 @@ describe("buildNowpaymentsIpnEvent", () => {
 
     expect(buildNowpaymentsIpnEvent(verification.payload)).toEqual(
       expect.objectContaining({
-        type: "payment.failed",
+        type,
         failureReason: reason,
       }),
     );
@@ -265,11 +265,8 @@ describe("buildNowpaymentsIpnEvent", () => {
 
   it.each([
     "waiting",
-    "confirming",
-    "confirmed",
-    "sending",
     "partially_paid",
-  ])("returns no event for in-flight status %s", (status) => {
+  ])("returns no event for pending status %s", (status) => {
     const payload = { ...finishedPayload, payment_status: status };
     const verification = verifyNowpaymentsIpn(
       JSON.stringify(payload),
@@ -280,6 +277,28 @@ describe("buildNowpaymentsIpnEvent", () => {
     if (!verification.ok) return;
 
     expect(buildNowpaymentsIpnEvent(verification.payload)).toBeNull();
+  });
+
+  it.each([
+    "confirming",
+    "confirmed",
+    "sending",
+  ])("maps in-flight status %s to a processing event", (status) => {
+    const payload = { ...finishedPayload, payment_status: status };
+    const verification = verifyNowpaymentsIpn(
+      JSON.stringify(payload),
+      signNowpaymentsIpn(payload, ipnSecret),
+      ipnSecret,
+    );
+    expect(verification.ok).toBe(true);
+    if (!verification.ok) return;
+
+    expect(buildNowpaymentsIpnEvent(verification.payload)).toEqual(
+      expect.objectContaining({
+        type: "payment.processing",
+        failureReason: null,
+      }),
+    );
   });
 });
 
@@ -298,8 +317,23 @@ describe("NowPaymentsProvider.verifyWebhook", () => {
     }
   });
 
-  it("returns a null event for an in-flight status", () => {
+  it("returns a processing event for an in-flight status", () => {
     const payload = { ...finishedPayload, payment_status: "confirming" };
+    const verification = provider.verifyWebhook(
+      JSON.stringify(payload),
+      signNowpaymentsIpn(payload, ipnSecret),
+    );
+
+    expect(verification.ok).toBe(true);
+    if (verification.ok) {
+      expect(verification.event).toEqual(
+        expect.objectContaining({ type: "payment.processing" }),
+      );
+    }
+  });
+
+  it("returns a null event for a waiting status", () => {
+    const payload = { ...finishedPayload, payment_status: "waiting" };
     const verification = provider.verifyWebhook(
       JSON.stringify(payload),
       signNowpaymentsIpn(payload, ipnSecret),
@@ -413,7 +447,7 @@ describe("NowPaymentsProvider.retrievePayment", () => {
     });
   });
 
-  it("maps waiting to pending and expired to failed", async () => {
+  it("maps waiting to pending and expired to expired", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
@@ -437,7 +471,7 @@ describe("NowPaymentsProvider.retrievePayment", () => {
       }),
     });
     const expired = await provider.retrievePayment("1");
-    expect(expired.status).toBe("FAILED");
+    expect(expired.status).toBe("EXPIRED");
     expect(expired.failureReason).toBe("expired");
   });
 
@@ -499,7 +533,7 @@ describe("NowPaymentsProvider.retrieveCheckout", () => {
     expect(snapshot).toEqual(
       expect.objectContaining({
         providerPaymentId: null,
-        status: "FAILED",
+        status: "EXPIRED",
         failureReason: "expired",
       }),
     );

@@ -21,9 +21,24 @@ export const classifyPaymentTransition = (
   type: PaymentWebhookEventType,
 ): PaymentTransitionDecision => {
   if (status === "PENDING") {
-    return type === "payment.succeeded" || type === "payment.failed"
+    return type === "payment.succeeded" ||
+      type === "payment.failed" ||
+      type === "payment.expired" ||
+      type === "payment.processing"
       ? "apply"
       : "out_of_order";
+  }
+
+  if (status === "PROCESSING") {
+    if (
+      type === "payment.processing" ||
+      type === "payment.succeeded" ||
+      type === "payment.failed" ||
+      type === "payment.expired"
+    ) {
+      return "apply";
+    }
+    return "out_of_order";
   }
 
   if (status === "SUCCEEDED") {

@@ -87,6 +87,14 @@ export const PaymentDetailDrawer = ({
               {data.organization.name}
             </Descriptions.Item>
             <Descriptions.Item label="Plan">{data.plan.name}</Descriptions.Item>
+            <Descriptions.Item label="Payment ID">
+              <Text code copyable={{ text: data.payment.id }}>
+                {data.payment.id}
+              </Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Interval">
+              {data.payment.interval ?? "—"}
+            </Descriptions.Item>
             <Descriptions.Item label="Provider">
               {data.payment.provider}
             </Descriptions.Item>
@@ -110,7 +118,7 @@ export const PaymentDetailDrawer = ({
                 "—"
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Paid at">
+            <Descriptions.Item label="Confirmed at">
               {formatDateTime(data.payment.paidAt)}
             </Descriptions.Item>
             <Descriptions.Item label="Created">
@@ -153,6 +161,7 @@ export const PaymentDetailDrawer = ({
 
           <Divider titlePlacement="left">Related subscription</Divider>
           <Descriptions size="small" column={2} bordered>
+            <Descriptions.Item label="Plan">{data.plan.name}</Descriptions.Item>
             <Descriptions.Item label="Status">
               {data.subscription.status}
             </Descriptions.Item>

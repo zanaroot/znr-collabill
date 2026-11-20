@@ -40,6 +40,7 @@ export type PaymentHistoryRow = {
   planId: string;
   planCode: SubscriptionPlanCode;
   status: SubscriptionPaymentStatus;
+  interval: SubscriptionInterval | null;
   amountMinor: number;
   currency: string;
   provider: string;
@@ -276,8 +277,12 @@ export const useReconcilePayment = () => {
             ? `Payment failed: ${payment.failureReason}`
             : "Payment failed",
         );
+      } else if (payment.status === "EXPIRED") {
+        message.error("Payment expired — start a new checkout to continue");
       } else if (payment.status === "REFUNDED") {
         message.info("Payment refunded");
+      } else if (payment.status === "PROCESSING") {
+        message.info("Payment is processing");
       } else {
         message.info("Payment is still pending");
       }
@@ -333,7 +338,11 @@ export const useCheckoutRecovery = () => {
     retry: false,
     refetchInterval: (queryState) => {
       const status = queryState.state.data?.status;
-      if (status !== undefined && status !== "PENDING") {
+      if (
+        status !== undefined &&
+        status !== "PENDING" &&
+        status !== "PROCESSING"
+      ) {
         return false;
       }
       if (attemptsRef.current >= MAX_RECOVERY_ATTEMPTS) {
@@ -353,7 +362,11 @@ export const useCheckoutRecovery = () => {
         throw new Error(await readError(res, "Failed to check payment"));
       }
       const payment = await res.json();
-      if (payment.status !== "PENDING" && !settledRef.current) {
+      if (
+        payment.status !== "PENDING" &&
+        payment.status !== "PROCESSING" &&
+        !settledRef.current
+      ) {
         settledRef.current = true;
         clearPendingCheckout();
         queryClient.invalidateQueries({ queryKey: billingKeys.subscription() });
@@ -372,7 +385,8 @@ export const useCheckoutRecovery = () => {
     isChecking: query.isFetching,
     attemptsExhausted:
       attemptsRef.current >= MAX_RECOVERY_ATTEMPTS &&
-      (query.data?.status ?? "PENDING") === "PENDING",
+      ((query.data?.status ?? "PENDING") === "PENDING" ||
+        query.data?.status === "PROCESSING"),
     dismiss,
     checkNow: () => query.refetch(),
   };

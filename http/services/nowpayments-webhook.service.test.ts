@@ -494,9 +494,6 @@ describe("payment resolution", () => {
 describe("in-flight statuses", () => {
   it.each([
     "waiting",
-    "confirming",
-    "confirmed",
-    "sending",
     "partially_paid",
   ])("acknowledges %s without writing to the database", async (status) => {
     const { rawBody, signature } = signRequest(
@@ -511,6 +508,40 @@ describe("in-flight statuses", () => {
     ).not.toHaveBeenCalled();
     expect(mocks.findSubscriptionPaymentById).not.toHaveBeenCalled();
     expect(mocks.applyPaymentProviderEvent).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "confirming",
+    "confirmed",
+    "sending",
+  ])("moves %s to PROCESSING without activating the subscription", async (status) => {
+    mocks.findSubscriptionPaymentByProviderPaymentId.mockResolvedValue(
+      linkedPayment,
+    );
+    mocks.findSubscriptionPaymentById.mockResolvedValue(linkedPayment);
+    mocks.applyPaymentProviderEvent.mockResolvedValue({
+      outcome: "processed",
+      payment: { ...linkedPayment, status: "PROCESSING" },
+      subscription: null,
+    });
+
+    const { rawBody, signature } = signRequest(
+      buildPayload({ payment_status: status }),
+    );
+    const result = await processNowpaymentsWebhook(rawBody, signature);
+
+    expect(result.outcome).toBe("processed");
+    expect(mocks.applyPaymentProviderEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: "PAYMENT_PROCESSING",
+        subscriptionPatch: undefined,
+        subscriptionPatchBuilder: undefined,
+        event: expect.objectContaining({
+          type: "payment.processing",
+          eventId: `nowpayments:${providerPaymentId}:${status}`,
+        }),
+      }),
+    );
   });
 
   it("does not mark a partially paid payment as succeeded", async () => {
@@ -540,9 +571,9 @@ describe("terminal statuses", () => {
   });
 
   it.each([
-    ["failed", "failed"],
-    ["expired", "expired"],
-  ])("marks a %s payment as failed with reason %s", async (status, reason) => {
+    ["failed", "PAYMENT_FAILED", "failed"],
+    ["expired", "PAYMENT_EXPIRED", "expired"],
+  ])("marks a %s payment with event type %s and reason %s", async (status, eventType, reason) => {
     const { rawBody, signature } = signRequest(
       buildPayload({ payment_status: status }),
     );
@@ -551,7 +582,7 @@ describe("terminal statuses", () => {
     expect(result.outcome).toBe("processed");
     expect(mocks.applyPaymentProviderEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        eventType: "PAYMENT_FAILED",
+        eventType,
         subscriptionPatch: undefined,
         event: expect.objectContaining({
           eventId: `nowpayments:${providerPaymentId}:${status}`,
@@ -611,6 +642,30 @@ describe("status transition rules", () => {
 
   it("rejects a refund while the payment is still pending", () => {
     expect(classifyPaymentTransition("PENDING", "payment.refunded")).toBe(
+      "out_of_order",
+    );
+  });
+
+  it("allows processing updates before settlement", () => {
+    expect(classifyPaymentTransition("PENDING", "payment.processing")).toBe(
+      "apply",
+    );
+    expect(classifyPaymentTransition("PROCESSING", "payment.processing")).toBe(
+      "apply",
+    );
+    expect(classifyPaymentTransition("PROCESSING", "payment.succeeded")).toBe(
+      "apply",
+    );
+  });
+
+  it("allows expired payments to settle from pending or processing", () => {
+    expect(classifyPaymentTransition("PENDING", "payment.expired")).toBe(
+      "apply",
+    );
+    expect(classifyPaymentTransition("PROCESSING", "payment.expired")).toBe(
+      "apply",
+    );
+    expect(classifyPaymentTransition("EXPIRED", "payment.succeeded")).toBe(
       "out_of_order",
     );
   });

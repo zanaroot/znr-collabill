@@ -110,6 +110,7 @@ export const subscriptionPayments = pgTable(
     status: subscriptionPaymentStatusEnum("status")
       .notNull()
       .default("PENDING"),
+    interval: subscriptionIntervalEnum("interval"),
     amountMinor: integer("amount_minor").notNull(),
     currency: text("currency").notNull().default("USD"),
     provider: text("provider").notNull().default("internal"),
@@ -126,7 +127,7 @@ export const subscriptionPayments = pgTable(
     index("subscription_payments_subscription_id_idx").on(t.subscriptionId),
     uniqueIndex("subscription_payments_pending_unique_idx")
       .on(t.organizationId)
-      .where(sql`${t.status} = 'PENDING'`),
+      .where(sql`${t.status} in ('PENDING', 'PROCESSING')`),
   ],
 );
 

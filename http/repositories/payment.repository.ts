@@ -25,13 +25,16 @@ import {
 import type { PaymentWebhookEvent } from "@/packages/payment";
 
 type PaymentRow = typeof subscriptionPayments.$inferSelect;
-type SubscriptionRow = typeof subscriptions.$inferSelect;
+export type SubscriptionRow = typeof subscriptions.$inferSelect;
 
 export type ApplyPaymentProviderEventInput = {
   provider: string;
   eventType: SubscriptionEventType;
   event: PaymentWebhookEvent;
   subscriptionPatch?: Partial<typeof subscriptions.$inferInsert>;
+  subscriptionPatchBuilder?: (
+    current: SubscriptionRow | null,
+  ) => Partial<typeof subscriptions.$inferInsert>;
 };
 
 export type ApplyPaymentProviderEventResult =
@@ -127,6 +130,7 @@ export const listSubscriptionPaymentsAdmin = async (
       subscriptionId: subscriptionPayments.subscriptionId,
       planId: subscriptionPayments.planId,
       status: subscriptionPayments.status,
+      interval: subscriptionPayments.interval,
       amountMinor: subscriptionPayments.amountMinor,
       currency: subscriptionPayments.currency,
       provider: subscriptionPayments.provider,
@@ -259,6 +263,22 @@ const buildPaymentPatch = (
     };
   }
 
+  if (event.type === "payment.expired") {
+    return {
+      status: "EXPIRED",
+      paidAt: null,
+      failureReason: event.failureReason ?? "Payment expired",
+    };
+  }
+
+  if (event.type === "payment.processing") {
+    return {
+      status: "PROCESSING",
+      paidAt: null,
+      failureReason: null,
+    };
+  }
+
   return { status: "REFUNDED" };
 };
 
@@ -338,9 +358,15 @@ export const applyPaymentProviderEvent = async (
         (await findLatestSubscriptionInTx(tx, payment.organizationId));
 
       if (target) {
+        const patch = input.subscriptionPatchBuilder
+          ? {
+              ...input.subscriptionPatch,
+              ...input.subscriptionPatchBuilder(target),
+            }
+          : input.subscriptionPatch;
         const [updated] = await tx
           .update(subscriptions)
-          .set({ ...input.subscriptionPatch, updatedAt: now })
+          .set({ ...patch, updatedAt: now })
           .where(eq(subscriptions.id, target.id))
           .returning();
         updatedSubscription = updated ?? null;

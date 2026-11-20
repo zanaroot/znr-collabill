@@ -216,7 +216,7 @@ export const initiateCheckout = async (input: {
       organizationId: input.organizationId,
       paymentId: pending.id,
     });
-    if (reconciled.status === "PENDING") {
+    if (reconciled.status === "PENDING" || reconciled.status === "PROCESSING") {
       throw new BillingError("A checkout is already in progress", 409);
     }
     if (reconciled.status === "SUCCEEDED") {
@@ -244,6 +244,7 @@ export const initiateCheckout = async (input: {
       subscriptionId,
       planId: plan.id,
       status: "PENDING",
+      interval: input.interval,
       amountMinor: price,
       currency: plan.currency,
       provider: providerName,
@@ -293,6 +294,15 @@ export const initiateCheckout = async (input: {
     plan,
     billingPeriod,
     checkoutUrl: session.checkoutUrl,
+    paymentId: payment.id,
+    providerCheckoutId: session.providerCheckoutId,
+    providerPaymentId: session.providerPaymentId,
+    planCode: plan.code,
+    amountMinor: price,
+    currency: plan.currency,
+    interval: input.interval,
+    periodStartsAt: billingPeriod.startsAt.toISOString(),
+    periodEndsAt: billingPeriod.endsAt.toISOString(),
   };
 };
 

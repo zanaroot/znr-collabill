@@ -28,8 +28,10 @@ export type PaymentCheckoutStatusSnapshot = {
 
 export type PaymentProviderStatus =
   | "PENDING"
+  | "PROCESSING"
   | "SUCCEEDED"
   | "FAILED"
+  | "EXPIRED"
   | "REFUNDED";
 
 export type PaymentStatusSnapshot = {
@@ -42,8 +44,10 @@ export type PaymentStatusSnapshot = {
 };
 
 export const paymentWebhookEventTypes = [
+  "payment.processing",
   "payment.succeeded",
   "payment.failed",
+  "payment.expired",
   "payment.refunded",
 ] as const;
 

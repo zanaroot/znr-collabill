@@ -281,6 +281,13 @@
       "when": 1794819564585,
       "tag": "0039_volatile_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1795174294533,
+      "tag": "0040_fancy_payback",
+      "breakpoints": true
     }
   ]
 }

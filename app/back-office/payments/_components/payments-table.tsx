@@ -24,14 +24,17 @@ const DEFAULT_FILTERS: PaymentListFilters = {
   pageSize: 20,
 };
 
-const STATUS_OPTIONS = ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"].map(
-  (value) => ({
-    label: getPaymentStatusMeta(
-      value as "PENDING" | "SUCCEEDED" | "FAILED" | "REFUNDED",
-    ).label,
-    value,
-  }),
-);
+const STATUS_OPTIONS = [
+  "PENDING",
+  "PROCESSING",
+  "SUCCEEDED",
+  "FAILED",
+  "EXPIRED",
+  "REFUNDED",
+].map((value) => ({
+  label: getPaymentStatusMeta(value as PaymentListRow["status"]).label,
+  value,
+}));
 
 export const PaymentsTable = () => {
   const [filters, setFilters] = useState<PaymentListFilters>(DEFAULT_FILTERS);
@@ -136,6 +139,7 @@ export const PaymentsTable = () => {
             style={{ width: "100%" }}
             options={[
               { label: "Mock", value: "mock" },
+              { label: "NOWPayments", value: "nowpayments" },
               { label: "Stripe", value: "stripe" },
             ]}
             value={filters.provider || undefined}

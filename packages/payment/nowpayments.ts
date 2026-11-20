@@ -61,9 +61,12 @@ export type NowpaymentsIpnVerification =
 const ipnEventTypeByStatus: Partial<
   Record<NowpaymentsIpnStatus, PaymentWebhookEventType>
 > = {
+  confirming: "payment.processing",
+  confirmed: "payment.processing",
+  sending: "payment.processing",
   finished: "payment.succeeded",
   failed: "payment.failed",
-  expired: "payment.failed",
+  expired: "payment.expired",
   refunded: "payment.refunded",
 };
 
@@ -72,14 +75,14 @@ const paymentStatusByIpnStatus: Record<
   PaymentProviderStatus
 > = {
   waiting: "PENDING",
-  confirming: "PENDING",
-  confirmed: "PENDING",
-  sending: "PENDING",
+  confirming: "PROCESSING",
+  confirmed: "PROCESSING",
+  sending: "PROCESSING",
   partially_paid: "PENDING",
   finished: "SUCCEEDED",
   failed: "FAILED",
   refunded: "REFUNDED",
-  expired: "FAILED",
+  expired: "EXPIRED",
 };
 
 const sortObjectKeys = (value: unknown): unknown => {
@@ -165,7 +168,10 @@ export const buildNowpaymentsIpnEvent = (
     amountMinor: payload.priceAmountMinor,
     currency: payload.priceCurrency,
     organizationId: null,
-    failureReason: type === "payment.failed" ? payload.status : null,
+    failureReason:
+      type === "payment.failed" || type === "payment.expired"
+        ? payload.status
+        : null,
     occurredAt: payload.occurredAt,
   };
 };
@@ -190,16 +196,16 @@ const paymentStatusByRawStatus: Partial<Record<string, PaymentProviderStatus>> =
     waiting: "PENDING",
     pending: "PENDING",
     active: "PENDING",
-    confirming: "PENDING",
-    confirmed: "PENDING",
-    sending: "PENDING",
+    confirming: "PROCESSING",
+    confirmed: "PROCESSING",
+    sending: "PROCESSING",
     partially_paid: "PENDING",
     finished: "SUCCEEDED",
     paid: "SUCCEEDED",
     complete: "SUCCEEDED",
     completed: "SUCCEEDED",
     failed: "FAILED",
-    expired: "FAILED",
+    expired: "EXPIRED",
     cancelled: "FAILED",
     canceled: "FAILED",
     refunded: "REFUNDED",
@@ -326,7 +332,8 @@ export class NowPaymentsProvider implements PaymentProvider {
       status,
       amountMinor: Math.round(data.price_amount * 100),
       currency: data.price_currency.toUpperCase(),
-      failureReason: status === "FAILED" ? rawStatus : null,
+      failureReason:
+        status === "FAILED" || status === "EXPIRED" ? rawStatus : null,
       occurredAt:
         data.updated_at ?? data.created_at ?? new Date().toISOString(),
     };

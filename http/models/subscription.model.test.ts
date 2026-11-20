@@ -68,6 +68,7 @@ const paymentRow = {
   subscriptionId: subscriptionRow.id,
   planId: planRow.id,
   status: "SUCCEEDED",
+  interval: "MONTHLY",
   amountMinor: 1900,
   currency: "USD",
   provider: "stripe",
@@ -156,6 +157,8 @@ describe("subscription model enums", () => {
       checkoutInitiated: "CHECKOUT_INITIATED",
       paymentSucceeded: "PAYMENT_SUCCEEDED",
       paymentFailed: "PAYMENT_FAILED",
+      paymentExpired: "PAYMENT_EXPIRED",
+      paymentProcessing: "PAYMENT_PROCESSING",
       paymentRefunded: "PAYMENT_REFUNDED",
       periodExtended: "SUBSCRIPTION_PERIOD_EXTENDED",
     });
@@ -172,8 +175,10 @@ describe("subscription model enums", () => {
     ];
     const paymentStatuses: SubscriptionPaymentStatus[] = [
       "PENDING",
+      "PROCESSING",
       "SUCCEEDED",
       "FAILED",
+      "EXPIRED",
       "REFUNDED",
     ];
     const entityTypes: ProviderReferenceEntityType[] = [

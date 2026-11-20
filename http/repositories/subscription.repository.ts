@@ -201,7 +201,7 @@ export const findPendingPaymentByOrganizationId = async (
     .where(
       and(
         eq(subscriptionPayments.organizationId, organizationId),
-        eq(subscriptionPayments.status, "PENDING"),
+        inArray(subscriptionPayments.status, ["PENDING", "PROCESSING"]),
       ),
     )
     .orderBy(desc(subscriptionPayments.createdAt))
@@ -216,6 +216,7 @@ export const findPaymentsByOrganizationId = async (organizationId: string) => {
       planId: subscriptionPayments.planId,
       planCode: subscriptionPlans.code,
       status: subscriptionPayments.status,
+      interval: subscriptionPayments.interval,
       amountMinor: subscriptionPayments.amountMinor,
       currency: subscriptionPayments.currency,
       provider: subscriptionPayments.provider,

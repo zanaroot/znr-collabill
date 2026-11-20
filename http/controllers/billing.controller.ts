@@ -133,8 +133,8 @@ export const postCheckout = factory.createHandlers(
         entityId: result.payment.id,
         metadata: {
           planCode: result.plan.code,
-          amountMinor: result.plan.amountMinor,
-          interval: result.plan.interval,
+          amountMinor: result.payment.amountMinor,
+          interval: result.payment.interval,
           provider: result.payment.provider,
           providerCheckoutId: result.payment.providerCheckoutId,
           providerPaymentId: result.payment.providerPaymentId,

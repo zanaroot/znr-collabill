@@ -451,7 +451,13 @@ export const OrganizationDrawer = ({
                   dataIndex: "status",
                   width: 120,
                   render: (
-                    status: "PENDING" | "SUCCEEDED" | "FAILED" | "REFUNDED",
+                    status:
+                      | "PENDING"
+                      | "PROCESSING"
+                      | "SUCCEEDED"
+                      | "FAILED"
+                      | "EXPIRED"
+                      | "REFUNDED",
                   ) => {
                     const meta = getPaymentStatusMeta(status);
                     return <Tag color={meta.color}>{meta.label}</Tag>;

@@ -169,7 +169,7 @@ export const subscriptionIntervalEnum = pgEnum("subscription_interval", [
 
 export const subscriptionPaymentStatusEnum = pgEnum(
   "subscription_payment_status",
-  ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"],
+  ["PENDING", "PROCESSING", "SUCCEEDED", "FAILED", "EXPIRED", "REFUNDED"],
 );
 
 export const providerReferenceEntityTypeEnum = pgEnum(

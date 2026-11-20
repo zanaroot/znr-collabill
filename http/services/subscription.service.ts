@@ -159,6 +159,7 @@ export const recordSubscriptionPayment = async (
     subscriptionId: parsed.subscriptionId,
     planId: subscription.planId,
     status: parsed.status,
+    interval: parsed.interval ?? subscription.interval,
     amountMinor: parsed.amountMinor,
     currency: parsed.currency,
     provider: parsed.provider,

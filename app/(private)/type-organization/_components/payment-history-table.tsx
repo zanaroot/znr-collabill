@@ -27,7 +27,8 @@ export const PaymentHistoryTable = () => {
   const reconcile = useReconcilePayment();
   const [receipt, setReceipt] = useState<PaymentHistoryRow | null>(null);
   const pendingPayment = payments?.find(
-    (payment) => payment.status === "PENDING",
+    (payment) =>
+      payment.status === "PENDING" || payment.status === "PROCESSING",
   );
 
   const columns: ColumnsType<PaymentHistoryRow> = [
@@ -90,9 +91,10 @@ export const PaymentHistoryTable = () => {
       width: 220,
       render: (_: unknown, payment: PaymentHistoryRow) => (
         <Space size={4} wrap>
-          {payment.status === "PENDING" && (
+          {(payment.status === "PENDING" ||
+            payment.status === "PROCESSING") && (
             <>
-              {payment.checkoutUrl && (
+              {payment.status === "PENDING" && payment.checkoutUrl && (
                 <Button
                   size="small"
                   type="primary"
@@ -100,7 +102,7 @@ export const PaymentHistoryTable = () => {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Complete payment
+                  Pay now
                 </Button>
               )}
               <Button
@@ -114,9 +116,11 @@ export const PaymentHistoryTable = () => {
               </Button>
             </>
           )}
-          {payment.status !== "PENDING" && (
+          {payment.status !== "PENDING" && payment.status !== "PROCESSING" && (
             <Button size="small" onClick={() => setReceipt(payment)}>
-              {payment.status === "FAILED" ? "Details" : "Receipt"}
+              {payment.status === "FAILED" || payment.status === "EXPIRED"
+                ? "Details"
+                : "Receipt"}
             </Button>
           )}
         </Space>
@@ -128,31 +132,36 @@ export const PaymentHistoryTable = () => {
     <Card title="Payment history" style={{ marginBottom: 16 }}>
       {pendingPayment && (
         <Alert
-          type="warning"
+          type={pendingPayment.status === "PROCESSING" ? "info" : "warning"}
           showIcon
           style={{ marginBottom: 16 }}
-          message={`${pendingPayment.planCode} payment pending`}
+          message={
+            pendingPayment.status === "PROCESSING"
+              ? `${pendingPayment.planCode} payment processing`
+              : `${pendingPayment.planCode} payment pending`
+          }
           description={
             <>
               {formatMoney(pendingPayment.amountMinor, pendingPayment.currency)}{" "}
-              is waiting for confirmation. Complete the checkout to activate
-              your plan. Access is activated only after the payment provider
-              confirms the payment.
+              {pendingPayment.status === "PROCESSING"
+                ? "has been received and is waiting for provider confirmation. Access is activated only after the payment is confirmed."
+                : "is waiting for confirmation. Complete the checkout to activate your plan. Access is activated only after the payment provider confirms the payment."}
             </>
           }
           action={
             <Space direction="vertical" size={4}>
-              {pendingPayment.checkoutUrl && (
-                <Button
-                  size="small"
-                  type="primary"
-                  href={pendingPayment.checkoutUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Complete payment
-                </Button>
-              )}
+              {pendingPayment.status === "PENDING" &&
+                pendingPayment.checkoutUrl && (
+                  <Button
+                    size="small"
+                    type="primary"
+                    href={pendingPayment.checkoutUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Pay now
+                  </Button>
+                )}
               <Button
                 size="small"
                 loading={
@@ -186,7 +195,9 @@ export const PaymentHistoryTable = () => {
       <Modal
         open={receipt !== null}
         title={
-          receipt?.status === "FAILED" ? "Payment details" : "Payment receipt"
+          receipt?.status === "FAILED" || receipt?.status === "EXPIRED"
+            ? "Payment details"
+            : "Payment receipt"
         }
         onCancel={() => setReceipt(null)}
         footer={[
@@ -224,6 +235,9 @@ export const PaymentHistoryTable = () => {
             </Descriptions.Item>
             <Descriptions.Item label="Plan">
               <Tag>{receipt.planCode}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="Billing interval">
+              {receipt.interval ?? "—"}
             </Descriptions.Item>
             <Descriptions.Item label="Amount">
               <Text strong>

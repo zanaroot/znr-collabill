@@ -15,17 +15,18 @@ export const CheckoutRecoveryBanner = () => {
 
   const actions = (
     <Space wrap>
-      {payment?.status === "PENDING" && payment.checkoutUrl && (
-        <Button
-          size="small"
-          type="primary"
-          href={payment.checkoutUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Continue payment
-        </Button>
-      )}
+      {(payment?.status === "PENDING" || payment?.status === "PROCESSING") &&
+        payment.checkoutUrl && (
+          <Button
+            size="small"
+            type="primary"
+            href={payment.checkoutUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Continue payment
+          </Button>
+        )}
       <Button size="small" loading={isChecking} onClick={recovery.checkNow}>
         Check now
       </Button>
@@ -89,6 +90,32 @@ export const CheckoutRecoveryBanner = () => {
         description={
           payment.failureReason ?? "The payment could not be processed."
         }
+        action={actions}
+      />
+    );
+  }
+
+  if (payment.status === "EXPIRED") {
+    return (
+      <Alert
+        type="warning"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message={`Checkout expired${planLabel}`}
+        description="Start a new checkout from the plans below to continue."
+        action={actions}
+      />
+    );
+  }
+
+  if (payment.status === "PROCESSING") {
+    return (
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message={`Payment processing${planLabel}`}
+        description="The payment provider has received your payment and is confirming it."
         action={actions}
       />
     );

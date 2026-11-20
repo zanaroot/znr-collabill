@@ -162,12 +162,20 @@ is always HTTPS in production.
 
 | NOWPayments status | CollaBill effect |
 | --- | --- |
-| `waiting`, `confirming`, `confirmed`, `sending` | Acknowledged (`200`), payment stays `PENDING` |
+| `waiting` | Acknowledged (`200`), payment stays `PENDING` |
+| `confirming`, `confirmed`, `sending` | Payment → `PROCESSING`; subscription is not activated |
 | `partially_paid` | Acknowledged (`200`), payment stays `PENDING` — a partial payment is never marked as paid |
 | `finished` | Payment → `SUCCEEDED`, subscription activated (only `finished` marks a payment as paid) |
 | `failed` | Payment → `FAILED` with failure reason `failed` |
-| `expired` | Payment → `FAILED` with failure reason `expired` (unblocks a new checkout) |
+| `expired` | Payment → `EXPIRED` with failure reason `expired` (unblocks a new checkout) |
 | `refunded` | Payment → `REFUNDED` |
+
+Only a verified `finished` notification activates a subscription. A successful
+checkout redirect or a generated checkout URL never activates a subscription.
+When a paid subscription renews, the new billing period is appended to the
+existing period end instead of resetting the current period. The interval
+chosen at checkout is persisted on the payment so monthly and yearly purchases
+activate with the correct period length.
 
 Notifications are idempotent: each `payment_id` + `payment_status` pair is
 recorded once (`nowpayments:<payment_id>:<status>`), so retries and replays

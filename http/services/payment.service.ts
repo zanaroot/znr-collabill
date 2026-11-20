@@ -23,8 +23,10 @@ type LinkedPayment = NonNullable<
 const pollEventTypeByStatus: Partial<
   Record<PaymentProviderStatus, PaymentWebhookEventType>
 > = {
+  PROCESSING: "payment.processing",
   SUCCEEDED: "payment.succeeded",
   FAILED: "payment.failed",
+  EXPIRED: "payment.expired",
   REFUNDED: "payment.refunded",
 };
 
@@ -93,6 +95,25 @@ export const createCheckoutSession = async (input: {
   };
 };
 
+const terminalFailurePatch = (
+  status: PaymentProviderStatus,
+  failureReason: string | null,
+) => {
+  if (status === "FAILED") {
+    return {
+      status: "FAILED" as const,
+      failureReason: failureReason ?? "checkout_failed",
+    };
+  }
+  if (status === "EXPIRED") {
+    return {
+      status: "EXPIRED" as const,
+      failureReason: failureReason ?? "expired",
+    };
+  }
+  return {};
+};
+
 const reconcileLegacyCheckout = async (
   payment: LinkedPayment,
   provider: PaymentProvider,
@@ -124,12 +145,7 @@ const reconcileLegacyCheckout = async (
     const updated = await updateSubscriptionPayment(payment.id, {
       providerCheckoutId: payment.providerPaymentId,
       providerPaymentId: null,
-      ...(checkout.status === "FAILED"
-        ? {
-            status: "FAILED",
-            failureReason: checkout.failureReason ?? "checkout_failed",
-          }
-        : {}),
+      ...terminalFailurePatch(checkout.status, checkout.failureReason),
     });
     return { payment: updated ?? payment, snapshot: null };
   }
@@ -179,10 +195,9 @@ const reconcileCheckout = async (
     return { payment, snapshot: null };
   }
   if (!checkout.providerPaymentId) {
-    if (checkout.status === "FAILED") {
+    if (checkout.status === "FAILED" || checkout.status === "EXPIRED") {
       const failed = await updateSubscriptionPayment(payment.id, {
-        status: "FAILED",
-        failureReason: checkout.failureReason ?? "checkout_failed",
+        ...terminalFailurePatch(checkout.status, checkout.failureReason),
       });
       return { payment: failed ?? payment, snapshot: null };
     }

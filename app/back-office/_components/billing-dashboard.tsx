@@ -28,7 +28,13 @@ const { Text, Paragraph } = Typography;
 type RecentPayment = {
   id: string;
   organizationName: string;
-  status: "PENDING" | "SUCCEEDED" | "FAILED" | "REFUNDED";
+  status:
+    | "PENDING"
+    | "PROCESSING"
+    | "SUCCEEDED"
+    | "FAILED"
+    | "EXPIRED"
+    | "REFUNDED";
   amountMinor: number;
   currency: string;
   provider: string;

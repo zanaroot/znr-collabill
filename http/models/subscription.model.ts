@@ -26,8 +26,10 @@ export const subscriptionPlanCodeSchema = z
 
 export const subscriptionPaymentStatusSchema = z.enum([
   "PENDING",
+  "PROCESSING",
   "SUCCEEDED",
   "FAILED",
+  "EXPIRED",
   "REFUNDED",
 ]);
 
@@ -53,6 +55,8 @@ export const subscriptionEventTypes = {
   checkoutInitiated: "CHECKOUT_INITIATED",
   paymentSucceeded: "PAYMENT_SUCCEEDED",
   paymentFailed: "PAYMENT_FAILED",
+  paymentExpired: "PAYMENT_EXPIRED",
+  paymentProcessing: "PAYMENT_PROCESSING",
   paymentRefunded: "PAYMENT_REFUNDED",
   periodExtended: "SUBSCRIPTION_PERIOD_EXTENDED",
 } as const;
@@ -120,6 +124,7 @@ export const subscriptionPaymentSchema = z.object({
   subscriptionId: z.uuid(),
   planId: z.uuid(),
   status: subscriptionPaymentStatusSchema,
+  interval: subscriptionIntervalSchema.nullable(),
   amountMinor: amountMinorSchema,
   currency: currencySchema,
   provider: z.string().min(1),
@@ -194,6 +199,7 @@ export const recordSubscriptionPaymentSchema = z.object({
   organizationId: z.uuid(),
   subscriptionId: z.uuid(),
   status: subscriptionPaymentStatusSchema.default("PENDING"),
+  interval: subscriptionIntervalSchema.nullable().optional(),
   amountMinor: amountMinorSchema,
   currency: currencySchema.default("USD"),
   provider: z.string().min(1).default("internal"),

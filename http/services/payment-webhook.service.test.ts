@@ -312,6 +312,133 @@ describe("processPaymentEvent", () => {
     );
   });
 
+  it("does not patch the subscription for an expired payment", async () => {
+    await processPaymentEvent(
+      buildEvent({ type: "payment.expired", failureReason: "expired" }),
+      "mock",
+    );
+
+    expect(mocks.applyPaymentProviderEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: "PAYMENT_EXPIRED",
+        subscriptionPatch: undefined,
+      }),
+    );
+    expect(mocks.findSubscriptionPlanById).not.toHaveBeenCalled();
+  });
+
+  it("does not patch the subscription for a processing payment", async () => {
+    await processPaymentEvent(
+      buildEvent({ type: "payment.processing" }),
+      "mock",
+    );
+
+    expect(mocks.applyPaymentProviderEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: "PAYMENT_PROCESSING",
+        subscriptionPatch: undefined,
+      }),
+    );
+    expect(mocks.findSubscriptionPlanById).not.toHaveBeenCalled();
+  });
+
+  it("uses the interval stored on the payment when activating", async () => {
+    mocks.findSubscriptionPaymentByProviderPaymentId.mockResolvedValue({
+      ...pendingPayment,
+      interval: "YEARLY",
+    });
+
+    await processPaymentEvent(successEvent, "mock");
+
+    const input = mocks.applyPaymentProviderEvent.mock.calls[0]?.[0];
+    expect(input?.subscriptionPatch).toEqual(
+      expect.objectContaining({ interval: "YEARLY" }),
+    );
+    const day = 24 * 60 * 60 * 1000;
+    const start = input?.subscriptionPatch.currentPeriodStart as Date;
+    const end = input?.subscriptionPatch.currentPeriodEnd as Date;
+    expect(end.getTime() - start.getTime()).toBeGreaterThan(360 * day);
+  });
+
+  it("extends an active subscription instead of resetting its period", async () => {
+    const day = 24 * 60 * 60 * 1000;
+    const periodStart = new Date(Date.now() - 20 * day);
+    const periodEnd = new Date(Date.now() + 10 * day);
+    const current = {
+      id: subscriptionId,
+      organizationId,
+      planId,
+      status: "ACTIVE" as const,
+      interval: "MONTHLY" as const,
+      amountMinor: 1900,
+      currency: "USD",
+      provider: "mock",
+      providerSubscriptionId: "sub_mock_1",
+      trialEndsAt: null,
+      currentPeriodStart: periodStart,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: true,
+      canceledAt: null,
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+    };
+
+    await processPaymentEvent(successEvent, "mock");
+
+    const builder = mocks.applyPaymentProviderEvent.mock.calls[0]?.[0]
+      ?.subscriptionPatchBuilder as (row: typeof current) => {
+      currentPeriodStart: Date;
+      currentPeriodEnd: Date;
+      cancelAtPeriodEnd: boolean;
+      providerSubscriptionId: string | null;
+    };
+    const patch = builder(current);
+
+    expect(patch.currentPeriodStart).toBe(periodStart);
+    expect(patch.currentPeriodEnd.getTime()).toBeGreaterThan(
+      periodEnd.getTime(),
+    );
+    expect(patch.cancelAtPeriodEnd).toBe(false);
+    expect(patch.providerSubscriptionId).toBe("sub_mock_1");
+  });
+
+  it("starts a new period when upgrading to a different plan", async () => {
+    const current = {
+      id: subscriptionId,
+      organizationId,
+      planId: "99999999-9999-4999-8999-999999999999",
+      status: "ACTIVE" as const,
+      interval: "MONTHLY" as const,
+      amountMinor: 500,
+      currency: "USD",
+      provider: "mock",
+      providerSubscriptionId: null,
+      trialEndsAt: null,
+      currentPeriodStart: new Date("2026-01-01T00:00:00.000Z"),
+      currentPeriodEnd: new Date("2026-02-01T00:00:00.000Z"),
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+    };
+
+    await processPaymentEvent(successEvent, "mock");
+
+    const builder = mocks.applyPaymentProviderEvent.mock.calls[0]?.[0]
+      ?.subscriptionPatchBuilder as (row: typeof current) => {
+      currentPeriodStart: Date;
+      currentPeriodEnd: Date;
+    };
+    const patch = builder(current);
+
+    expect(
+      Math.abs(patch.currentPeriodStart.getTime() - Date.now()),
+    ).toBeLessThan(5000);
+    expect(patch.currentPeriodEnd.getTime()).toBeGreaterThan(
+      patch.currentPeriodStart.getTime(),
+    );
+  });
+
   it("does not patch the subscription for a refund", async () => {
     await processPaymentEvent(
       buildEvent({ type: "payment.refunded", eventId: "evt_9" }),

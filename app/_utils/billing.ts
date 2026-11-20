@@ -55,8 +55,10 @@ const subscriptionStatusMeta: Record<SubscriptionStatus, StatusMeta> = {
 
 const paymentStatusMeta: Record<SubscriptionPaymentStatus, StatusMeta> = {
   PENDING: { label: "Pending", color: "processing" },
+  PROCESSING: { label: "Processing", color: "processing" },
   SUCCEEDED: { label: "Succeeded", color: "success" },
   FAILED: { label: "Failed", color: "error" },
+  EXPIRED: { label: "Expired", color: "default" },
   REFUNDED: { label: "Refunded", color: "warning" },
 };
 
