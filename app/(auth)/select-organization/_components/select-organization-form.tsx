@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { App, Button, List, Typography } from "antd";
+import { App, Button, List, Spin, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { client } from "@/packages/hono";
 
@@ -42,14 +42,8 @@ export const SelectOrganizationForm = () => {
   if (isLoading) {
     return (
       <div className="auth-card">
-        <div className="auth-card-header">
-          <div className="auth-loading-spinner" />
-          <Typography.Title level={2} className="auth-card-title">
-            Loading organizations...
-          </Typography.Title>
-          <Typography.Text type="secondary" className="auth-card-subtitle">
-            Please wait while we fetch your organizations
-          </Typography.Text>
+        <div className="auth-card-header flex min-h-48 items-center justify-center">
+          <Spin size="large" />
         </div>
       </div>
     );

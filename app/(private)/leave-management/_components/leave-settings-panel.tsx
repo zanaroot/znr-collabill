@@ -1,7 +1,15 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Card, Form, InputNumber, message, Radio } from "antd";
+import {
+  Button,
+  Card,
+  Form,
+  InputNumber,
+  message,
+  Radio,
+  Skeleton,
+} from "antd";
 import { dashboardKeys } from "@/app/(private)/dashboard/_hooks/usedasboard";
 import type { OrganizationLeaveSettings } from "@/http/models/leave.model";
 import { client } from "@/packages/hono";
@@ -61,7 +69,16 @@ export const LeaveSettingsPanel = () => {
     },
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <Card
+        title="Organization Leave Settings"
+        style={{ maxWidth: 600, minHeight: 360 }}
+      >
+        <Skeleton active paragraph={{ rows: 5 }} />
+      </Card>
+    );
+  }
 
   const orgData: OrganizationLeaveSettings | null = org ?? null;
 

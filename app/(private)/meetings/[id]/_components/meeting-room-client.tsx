@@ -63,8 +63,9 @@ export const MeetingRoomClient = ({
           gap: 16,
         }}
       >
-        <Spin size="large" />
-        <span>Joining {meetingTitle}...</span>
+        <output aria-label={`Joining ${meetingTitle}`}>
+          <Spin size="large" />
+        </output>
       </div>
     );
   }

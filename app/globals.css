@@ -707,6 +707,35 @@ h4 {
   background: linear-gradient(180deg, #f8f9fc 0%, #f0f2f7 100%);
 }
 
+.auth-page-content {
+  width: 100%;
+  max-width: 440px;
+}
+
+.auth-back-button.ant-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-inline: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.auth-back-button.ant-btn:hover {
+  color: #6366f1 !important;
+  background: transparent !important;
+}
+
+.dark .auth-back-button.ant-btn {
+  color: #94a3b8;
+}
+
+.auth-verification-container {
+  min-height: 100vh;
+}
+
 .dark .auth-form-container {
   background: linear-gradient(180deg, #0c0c0e 0%, #111114 100%);
 }
@@ -1052,28 +1081,6 @@ h4 {
   color: #e2e8f0;
 }
 
-/* Loading Spinner */
-.auth-loading-spinner {
-  width: 44px;
-  height: 44px;
-  border: 3px solid #f1f5f9;
-  border-top-color: #6366f1;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 24px;
-}
-
-.dark .auth-loading-spinner {
-  border-color: rgba(255, 255, 255, 0.08);
-  border-top-color: #6366f1;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Ant Design Form Overrides for Auth */
 .auth-card .ant-form-item-label > label {
   font-weight: 500;
@@ -1178,4 +1185,3 @@ h4 {
 .dark .react-international-phone-country-selector-dropdown__list-item-dial-code {
   color: #a3a3a3 !important;
 }
-

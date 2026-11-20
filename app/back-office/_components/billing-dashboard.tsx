@@ -73,8 +73,16 @@ export const BillingDashboard = () => {
 
   if (overview.isLoading) {
     return (
-      <div style={{ padding: 48, textAlign: "center" }}>
-        <Spin />
+      <div
+        style={{
+          minHeight: 320,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+        }}
+      >
+        <Spin size="large" />
       </div>
     );
   }

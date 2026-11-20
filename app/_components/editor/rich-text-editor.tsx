@@ -2,7 +2,7 @@
 
 import type { Editor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { Button, Card, Input, Modal, message, Upload } from "antd";
+import { Button, Card, Input, Modal, message, Spin, Upload } from "antd";
 import { Upload as UploadIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -292,11 +292,13 @@ export const RichTextEditor = ({
         <div className="scrollbar-hide max-h-[600px] overflow-y-auto">
           <EditorContent editor={editor} />
         </div>
-
         {isUploadingImage && (
-          <div className="px-6 pb-4 text-sm text-zinc-500">
-            Uploading image...
-          </div>
+          <output
+            className="flex min-h-8 items-center justify-center px-6 pb-4"
+            aria-label="Uploading image"
+          >
+            <Spin size="small" />
+          </output>
         )}
       </Card>
 

@@ -269,8 +269,16 @@ export const updateTask = factory.createHandlers(
     }
 
     const reviewerId = payload.reviewerId;
+    const isEnteringReview =
+      payload.status === "IN_REVIEW" && task.status !== "IN_REVIEW";
+    const shouldKeepExistingReviewer =
+      isEnteringReview && Boolean(task.reviewerId);
 
-    if (reviewerId && reviewerId !== task.reviewerId) {
+    if (
+      !shouldKeepExistingReviewer &&
+      reviewerId &&
+      reviewerId !== task.reviewerId
+    ) {
       const reviewerIsMember = await projectRepository.isProjectMember(
         task.projectId,
         reviewerId,
@@ -370,13 +378,16 @@ export const updateTask = factory.createHandlers(
       }
     }
 
-    if (payload.status === "IN_REVIEW" && !task.reviewerId) {
+    if (shouldKeepExistingReviewer) {
+      delete updates.reviewerId;
+    } else if (payload.status === "IN_REVIEW" && !task.reviewerId) {
       updates.reviewerId = user.id;
     }
 
+    const nextReviewerId =
+      updates.reviewerId !== undefined ? updates.reviewerId : task.reviewerId;
     const reviewerChanged =
-      payload.reviewerId !== undefined &&
-      payload.reviewerId !== task.reviewerId;
+      Boolean(nextReviewerId) && nextReviewerId !== task.reviewerId;
 
     const updated = await taskRepository.updateTaskWithAutoAssignment(
       id,
@@ -392,10 +403,10 @@ export const updateTask = factory.createHandlers(
     const assigneeChanged =
       Boolean(updatedAssigneeId) && updatedAssigneeId !== task.assignedTo;
 
-    if (reviewerChanged && payload.reviewerId) {
+    if (reviewerChanged && nextReviewerId && nextReviewerId !== user.id) {
       if (user.organizationId) {
         await createNotification({
-          userId: payload.reviewerId,
+          userId: nextReviewerId,
           organizationId: user.organizationId,
           actorId: user.id,
           type: "TASK_REVIEWER_ASSIGNED",

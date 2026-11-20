@@ -7,6 +7,7 @@ import {
   InvoicePrintable,
   type InvoicePrintableProps,
 } from "@/app/(private)/invoices/_components/invoice-printable";
+import { PRESENCE_STATUS_COLORS } from "@/lib/presence";
 
 // Mock the client
 vi.mock("@/packages/hono", () => ({
@@ -94,6 +95,16 @@ describe("InvoicePrintable", () => {
     // 5 * 100 = 500
     // Total appears multiple times (line total, subtotal, grand total)
     expect(screen.getAllByText(/500 €/).length).toBeGreaterThan(0);
+  });
+
+  it("renders presence type as a lowercase colored tag", () => {
+    render(<InvoicePrintable {...mockProps} />, { wrapper: createWrapper() });
+
+    const tag = screen.getByText("office").closest(".ant-tag");
+
+    expect(tag).toBeInTheDocument();
+    expect(tag).toHaveStyle({ color: PRESENCE_STATUS_COLORS.OFFICE });
+    expect(screen.queryByText("OFFICE")).not.toBeInTheDocument();
   });
 
   it("renders custom fields and updates total", () => {

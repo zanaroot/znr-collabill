@@ -16,8 +16,8 @@ import {
   List,
   Modal,
   Select,
+  Skeleton,
   Space,
-  Spin,
   Switch,
   Table,
   Tag,
@@ -342,8 +342,8 @@ export const OrganizationDrawer = ({
       width={920}
     >
       {detail.isLoading && (
-        <div style={{ padding: 48, textAlign: "center" }}>
-          <Spin />
+        <div style={{ padding: 8 }}>
+          <Skeleton active paragraph={{ rows: 8 }} />
         </div>
       )}
       {detail.isError && (

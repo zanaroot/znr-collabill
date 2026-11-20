@@ -2,7 +2,7 @@
 
 import { CommentOutlined, SendOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { App, Button, Card, Input, List, Spin, Typography } from "antd";
+import { App, Button, Card, Input, List, Skeleton, Typography } from "antd";
 import { useState } from "react";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
 import { client } from "@/packages/hono";
@@ -102,8 +102,8 @@ export const InvoiceComments = ({ invoiceId }: InvoiceCommentsProps) => {
       className="no-print mt-6"
     >
       {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Spin />
+        <div className="py-2">
+          <Skeleton active avatar paragraph={{ rows: 2 }} />
         </div>
       ) : (
         <>
