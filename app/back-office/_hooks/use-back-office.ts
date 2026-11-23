@@ -33,6 +33,8 @@ const backOfficeKeys = {
     [...backOfficeKeys.all, "organizations", filters] as const,
   organization: (organizationId: string) =>
     [...backOfficeKeys.all, "organization", organizationId] as const,
+  users: (filters: Record<string, unknown>) =>
+    [...backOfficeKeys.all, "users", filters] as const,
   payments: (filters: Record<string, unknown>) =>
     [...backOfficeKeys.all, "payments", filters] as const,
   payment: (paymentId: string) =>
@@ -80,6 +82,21 @@ export type OrganizationListFilters = {
   status?: SubscriptionStatus;
   page: number;
   pageSize: number;
+};
+
+export type AdminUserFilters = {
+  search?: string;
+  page: number;
+  pageSize: number;
+};
+
+export type AdminUserRow = {
+  id: string;
+  name: string;
+  email: string;
+  platformRole: "PLATFORM_ADMIN" | null;
+  createdAt: string | null;
+  organizationCount: number;
 };
 
 export type OrganizationListRow = {
@@ -245,6 +262,24 @@ export const useAdminOrganization = (organizationId: string | null) =>
     },
   });
 
+export const useAdminUsers = (filters: AdminUserFilters) =>
+  useQuery({
+    queryKey: backOfficeKeys.users(filters),
+    queryFn: async (): Promise<{ rows: AdminUserRow[]; total: number }> => {
+      const res = await client.api["back-office"].users.$get({
+        query: {
+          search: filters.search || undefined,
+          page: String(filters.page),
+          pageSize: String(filters.pageSize),
+        },
+      });
+      if (!res.ok) {
+        throw new Error(await readError(res, "Failed to load users"));
+      }
+      return res.json();
+    },
+  });
+
 export const useAdminPayments = (filters: PaymentListFilters) =>
   useQuery({
     queryKey: backOfficeKeys.payments(filters),
@@ -288,6 +323,11 @@ const useBackOfficeMutation = <TVariables, TResult>(
   mutationFn: (variables: TVariables) => Promise<TResult>,
   options?: {
     successMessage?: string | ((variables: TVariables) => string);
+    successMessageForResult?: (
+      variables: TVariables,
+      result: TResult,
+    ) => string | undefined;
+    warningMessage?: (result: TResult) => string | undefined;
     invalidate?: string[][];
   },
 ) => {
@@ -296,13 +336,16 @@ const useBackOfficeMutation = <TVariables, TResult>(
 
   return useMutation({
     mutationFn,
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
       const success = options?.successMessage;
-      if (success) {
-        message.success(
-          typeof success === "function" ? success(variables) : success,
-        );
-      }
+      const messageText = options?.successMessageForResult
+        ? options.successMessageForResult(variables, data)
+        : typeof success === "function"
+          ? success(variables)
+          : success;
+      if (messageText) message.success(messageText);
+      const warning = options?.warningMessage?.(data);
+      if (warning) message.warning(warning);
       for (const queryKey of options?.invalidate ?? []) {
         queryClient.invalidateQueries({ queryKey });
       }
@@ -312,6 +355,50 @@ const useBackOfficeMutation = <TVariables, TResult>(
     },
   });
 };
+
+export const useDeleteAdminOrganization = () =>
+  useBackOfficeMutation(
+    async (organizationId: string) => {
+      const res = await client.api["back-office"].billing.organizations[
+        ":organizationId"
+      ].$delete({ param: { organizationId } });
+      if (!res.ok) {
+        throw new Error(await readError(res, "Organization deletion failed"));
+      }
+      return res.json();
+    },
+    {
+      successMessage: "Organization deleted",
+      invalidate: [
+        [...backOfficeKeys.all, "organizations"],
+        [...backOfficeKeys.all, "organization"],
+        [...backOfficeKeys.all, "overview"],
+      ],
+    },
+  );
+
+export const useDeleteAdminUser = () =>
+  useBackOfficeMutation(
+    async (userId: string) => {
+      const res = await client.api["back-office"].users[":userId"].$delete({
+        param: { userId },
+      });
+      if (!res.ok) {
+        throw new Error(await readError(res, "User deletion failed"));
+      }
+      return res.json();
+    },
+    {
+      successMessageForResult: (_userId, result) =>
+        result.warning ? undefined : "User deleted",
+      warningMessage: (result) => result.warning,
+      invalidate: [
+        [...backOfficeKeys.all, "users"],
+        [...backOfficeKeys.all, "organizations"],
+        [...backOfficeKeys.all, "organization"],
+      ],
+    },
+  );
 
 export const useCreatePlan = () =>
   useBackOfficeMutation(

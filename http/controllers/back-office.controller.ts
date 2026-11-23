@@ -7,14 +7,18 @@ import {
   adminNoteSchema,
   createPlanSchema,
   listOrganizationsQuerySchema,
+  listUsersQuerySchema,
   updatePlanSchema,
 } from "@/http/models/back-office.model";
 import { getOrganizationBillingDetail } from "@/http/repositories/back-office.repository";
 import {
   BackOfficeError,
   createAdminPlan,
+  deleteBackOfficeOrganization as deleteOrganizationForAdmin,
+  deleteBackOfficeUser as deleteUserForAdmin,
   getBillingDashboard,
   listAdminPlans,
+  listBackOfficeUsers,
   listOrganizationsForAdmin,
   updateAdminPlan,
 } from "@/http/services/back-office.service";
@@ -23,6 +27,8 @@ import {
   adminAddNote,
   listAdminNotes,
 } from "@/http/services/subscription-admin.service";
+import { serverEnv } from "@/packages/env/server";
+import { deleteFile } from "@/packages/minio";
 
 const factory = createFactory<AuthEnv>();
 
@@ -82,6 +88,72 @@ export const getBackOfficeOrganizations = factory.createHandlers(
   async (c) => {
     try {
       return c.json(await listOrganizationsForAdmin(c.req.valid("query")));
+    } catch (error) {
+      return mapBackOfficeError(c, error);
+    }
+  },
+);
+
+export const getBackOfficeUsers = factory.createHandlers(
+  zValidator("query", listUsersQuerySchema),
+  async (c) => {
+    try {
+      return c.json(await listBackOfficeUsers(c.req.valid("query")));
+    } catch (error) {
+      return mapBackOfficeError(c, error);
+    }
+  },
+);
+
+export const deleteBackOfficeOrganization = factory.createHandlers(
+  zValidator("param", z.object({ organizationId: z.uuid() })),
+  async (c) => {
+    const user = c.get("user");
+    const { organizationId } = c.req.valid("param");
+    try {
+      await deleteOrganizationForAdmin(organizationId, user.id);
+      return c.json({ success: true, message: "Organization deleted" });
+    } catch (error) {
+      return mapBackOfficeError(c, error);
+    }
+  },
+);
+
+const getAvatarStorageKey = (avatarUrl: string) => {
+  const path = avatarUrl.startsWith("http")
+    ? new URL(avatarUrl).pathname
+    : avatarUrl;
+  const pathParts = path.split("/").filter(Boolean);
+  const bucketIndex = pathParts.indexOf(serverEnv.S3_BUCKET);
+  if (bucketIndex === -1) return null;
+  return pathParts.slice(bucketIndex + 1).join("/") || null;
+};
+
+export const deleteBackOfficeUser = factory.createHandlers(
+  zValidator("param", z.object({ userId: z.uuid() })),
+  async (c) => {
+    const actor = c.get("user");
+    const { userId } = c.req.valid("param");
+    try {
+      const { avatarUrl } = await deleteUserForAdmin(userId, actor.id);
+      let warning: string | undefined;
+
+      if (avatarUrl) {
+        try {
+          const storageKey = getAvatarStorageKey(avatarUrl);
+          if (storageKey) await deleteFile(storageKey);
+        } catch (error) {
+          console.error("User deleted but avatar cleanup failed:", error);
+          warning =
+            "The user was deleted, but their profile image could not be removed from storage.";
+        }
+      }
+
+      return c.json({
+        success: true,
+        message: "User deleted",
+        ...(warning ? { warning } : {}),
+      });
     } catch (error) {
       return mapBackOfficeError(c, error);
     }

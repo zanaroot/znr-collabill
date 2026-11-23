@@ -4,6 +4,9 @@ const mocks = vi.hoisted(() => ({
   logAudit: vi.fn(),
   getBillingOverview: vi.fn(),
   listOrganizationsAdmin: vi.fn(),
+  listUsersForAdmin: vi.fn(),
+  deleteUserForAdmin: vi.fn(),
+  deleteOrganizationForAdmin: vi.fn(),
   countSubscriptionsByPlan: vi.fn(),
   findAllSubscriptionPlans: vi.fn(),
   findSubscriptionPlanByCode: vi.fn(),
@@ -19,6 +22,11 @@ vi.mock("@/http/repositories/back-office.repository", () => ({
   getBillingOverview: mocks.getBillingOverview,
   listOrganizationsAdmin: mocks.listOrganizationsAdmin,
 }));
+vi.mock("@/http/repositories/back-office-deletion.repository", () => ({
+  listUsersForAdmin: mocks.listUsersForAdmin,
+  deleteUserForAdmin: mocks.deleteUserForAdmin,
+  deleteOrganizationForAdmin: mocks.deleteOrganizationForAdmin,
+}));
 vi.mock("@/http/repositories/subscription.repository", () => ({
   countSubscriptionsByPlan: mocks.countSubscriptionsByPlan,
   findAllSubscriptionPlans: mocks.findAllSubscriptionPlans,
@@ -32,7 +40,10 @@ vi.mock("@/db", () => ({ db: {}, dbClient: {} }));
 import {
   BackOfficeError,
   createAdminPlan,
+  deleteBackOfficeOrganization,
+  deleteBackOfficeUser,
   listAdminPlans,
+  listBackOfficeUsers,
   listOrganizationsForAdmin,
   updateAdminPlan,
 } from "@/http/services/back-office.service";
@@ -283,6 +294,122 @@ describe("listOrganizationsForAdmin", () => {
       search: "acme",
       page: 1,
       pageSize: 20,
+    });
+  });
+
+  describe("Back-office user deletion", () => {
+    const userId = "44444444-4444-4444-8444-444444444444";
+
+    it("deletes users without retained dependencies", async () => {
+      mocks.deleteUserForAdmin.mockResolvedValue({
+        status: "deleted",
+        avatarUrl: "/collabill/avatars/example.png",
+      });
+
+      await expect(deleteBackOfficeUser(userId, actorId)).resolves.toEqual({
+        avatarUrl: "/collabill/avatars/example.png",
+      });
+      expect(mocks.deleteUserForAdmin).toHaveBeenCalledWith(userId, actorId);
+    });
+
+    it("refuses to delete the active platform administrator", async () => {
+      await expect(
+        deleteBackOfficeUser(actorId, actorId),
+      ).rejects.toMatchObject({
+        name: "BackOfficeError",
+        statusCode: 409,
+        message: "You cannot delete your own account",
+      });
+      expect(mocks.deleteUserForAdmin).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 for a missing user", async () => {
+      mocks.deleteUserForAdmin.mockResolvedValue({ status: "not_found" });
+
+      await expect(deleteBackOfficeUser(userId, actorId)).rejects.toMatchObject(
+        {
+          name: "BackOfficeError",
+          statusCode: 404,
+          message: "User not found",
+        },
+      );
+    });
+
+    it("explains which retained records block user deletion", async () => {
+      mocks.deleteUserForAdmin.mockResolvedValue({
+        status: "blocked",
+        blockers: ["invoices", "comments", "organization_ownership"],
+      });
+
+      await expect(deleteBackOfficeUser(userId, actorId)).rejects.toMatchObject(
+        {
+          name: "BackOfficeError",
+          statusCode: 409,
+          message: expect.stringContaining(
+            "financial invoices, task or invoice comments, ownership of one or more organizations",
+          ),
+        },
+      );
+    });
+  });
+
+  describe("Back-office organization deletion", () => {
+    const organizationId = "55555555-5555-4555-8555-555555555555";
+
+    it("deletes an organization after repository checks pass", async () => {
+      mocks.deleteOrganizationForAdmin.mockResolvedValue({ status: "deleted" });
+
+      await expect(
+        deleteBackOfficeOrganization(organizationId, actorId),
+      ).resolves.toBeUndefined();
+      expect(mocks.deleteOrganizationForAdmin).toHaveBeenCalledWith(
+        organizationId,
+        actorId,
+      );
+    });
+
+    it("returns 404 for a missing organization", async () => {
+      mocks.deleteOrganizationForAdmin.mockResolvedValue({
+        status: "not_found",
+      });
+
+      await expect(
+        deleteBackOfficeOrganization(organizationId, actorId),
+      ).rejects.toMatchObject({
+        name: "BackOfficeError",
+        statusCode: 404,
+        message: "Organization not found",
+      });
+    });
+
+    it("preserves billing history by refusing organization deletion", async () => {
+      mocks.deleteOrganizationForAdmin.mockResolvedValue({
+        status: "blocked",
+        blockers: ["financial_records", "project_files"],
+      });
+
+      await expect(
+        deleteBackOfficeOrganization(organizationId, actorId),
+      ).rejects.toMatchObject({
+        name: "BackOfficeError",
+        statusCode: 409,
+        message: expect.stringContaining(
+          "invoices or billing history, uploaded project files",
+        ),
+      });
+    });
+  });
+
+  describe("listBackOfficeUsers", () => {
+    it("passes search and pagination through to the repository", async () => {
+      const filters = { search: "ada", page: 2, pageSize: 10 };
+      mocks.listUsersForAdmin.mockResolvedValue({ rows: [], total: 0 });
+
+      await expect(listBackOfficeUsers(filters)).resolves.toEqual({
+        rows: [],
+        total: 0,
+      });
+      expect(mocks.listUsersForAdmin).toHaveBeenCalledWith(filters);
     });
   });
 });
