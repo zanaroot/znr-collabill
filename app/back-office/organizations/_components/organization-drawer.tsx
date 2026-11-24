@@ -25,6 +25,7 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
+import { Email } from "@/app/_components/email";
 import {
   formatDate,
   formatDateTime,
@@ -356,7 +357,7 @@ export const OrganizationDrawer = ({
               {data.organization.name}
             </Descriptions.Item>
             <Descriptions.Item label="Owner">
-              {data.owner?.email ?? "—"}
+              {data.owner?.email ? <Email email={data.owner.email} /> : "—"}
             </Descriptions.Item>
             <Descriptions.Item label="Phone Number">
               {data.owner ? (

@@ -15,6 +15,7 @@ import {
 } from "antd";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { Email } from "@/app/_components/email";
 import { TaskSizeTag } from "@/app/_components/task-size-tag";
 import { AmountDisplay } from "@/app/(private)/_components/amount-display";
 import { useAmountsVisibility } from "@/app/(private)/_components/amounts-visibility-provider";
@@ -420,9 +421,11 @@ export const InvoicePrintable = ({
                 <Text strong className="text-lg">
                   {organizationOwner?.name}
                 </Text>
-                <Text type="secondary" className="text-sm">
-                  {organizationOwner?.email}
-                </Text>
+                {organizationOwner?.email && (
+                  <Text type="secondary" className="text-sm">
+                    <Email email={organizationOwner.email} />
+                  </Text>
+                )}
                 <Text type="secondary" className="text-sm">
                   Account ID: {organizationOwner?.id.slice(0, 8)}
                 </Text>

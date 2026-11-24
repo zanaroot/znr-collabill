@@ -3,6 +3,7 @@
 import { Col, Input, Row, Select, Table, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
+import { Email } from "@/app/_components/email";
 import {
   formatDate,
   getPaymentStatusMeta,
@@ -65,7 +66,9 @@ export const OrganizationsTable = () => {
         <span>
           {name}
           <br />
-          <small>{row.ownerEmail ?? "—"}</small>
+          <small>
+            {row.ownerEmail ? <Email email={row.ownerEmail} /> : "—"}
+          </small>
         </span>
       ),
     },

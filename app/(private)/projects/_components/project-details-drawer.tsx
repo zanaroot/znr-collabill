@@ -28,6 +28,7 @@ import {
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { AvatarProfile } from "@/app/_components/avatar-profile";
+import { Email } from "@/app/_components/email";
 import { ProjectFilesTab } from "@/app/(private)/projects/_components/project-files-tab";
 import { ProjectSlackSettingsForm } from "@/app/(private)/projects/_components/project-slack-settings-form";
 import {
@@ -56,6 +57,13 @@ interface ProjectDetailsDrawerProps {
   onClose: () => void;
   openGrantAccess?: boolean;
 }
+
+const canRemoveProjectMember = (
+  isAdminOrOwner: boolean | undefined,
+  isOwner: boolean,
+  currentUserId: string | undefined,
+  userId: string,
+) => Boolean(isAdminOrOwner && !(isOwner && userId === currentUserId));
 
 export function ProjectDetailsDrawer({
   project,
@@ -154,17 +162,6 @@ export function ProjectDetailsDrawer({
     members?.some(
       (m) => m.id === currentUser?.id && m.projectRole === "PRODUCT_OWNER",
     );
-
-  const canRemoveUser = (userId: string) => {
-    if (!isAdminOrOwner) return false;
-    if (
-      currentUser?.organizationRole === "OWNER" &&
-      userId === currentUser.id
-    ) {
-      return false;
-    }
-    return true;
-  };
 
   const handleGrantAccess = async () => {
     if (!project || !selectedUserId) return;
@@ -425,13 +422,17 @@ export function ProjectDetailsDrawer({
                         <Space orientation="vertical" style={{ width: "100%" }}>
                           <Select
                             showSearch={{
-                              filterOption: (input, option) =>
-                                (
-                                  (option as { label: string; value: string })
-                                    ?.label ?? ""
-                                )
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase()),
+                              filterOption: (input, option) => {
+                                const searchLabel = (
+                                  option as { searchLabel?: string } | undefined
+                                )?.searchLabel;
+
+                                return (
+                                  searchLabel
+                                    ?.toLowerCase()
+                                    .includes(input.toLowerCase()) ?? false
+                                );
+                              },
                             }}
                             placeholder="Select a user to grant access"
                             style={{ width: "100%" }}
@@ -439,7 +440,12 @@ export function ProjectDetailsDrawer({
                             onChange={setSelectedUserId}
                             value={selectedUserId}
                             options={availableUsers.map((u) => ({
-                              label: `${u.name} (${u.email})`,
+                              label: (
+                                <span>
+                                  {u.name} (<Email email={u.email} />)
+                                </span>
+                              ),
+                              searchLabel: `${u.name} (${u.email})`,
                               value: u.id,
                             }))}
                           />
@@ -542,7 +548,12 @@ export function ProjectDetailsDrawer({
                                   </Button>
                                 ),
 
-                                canRemoveUser(item.id) && (
+                                canRemoveProjectMember(
+                                  isAdminOrOwner,
+                                  currentUser?.organizationRole === "OWNER",
+                                  currentUser?.id,
+                                  item.id,
+                                ) && (
                                   <Button
                                     key="remove"
                                     type="text"
@@ -589,9 +600,7 @@ export function ProjectDetailsDrawer({
                                     )}
                                   </Flex>
 
-                                  <Typography.Text type="secondary" ellipsis>
-                                    {item.email}
-                                  </Typography.Text>
+                                  <Email email={item.email} />
                                 </Flex>
                               </Flex>
 

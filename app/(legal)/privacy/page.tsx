@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Email } from "@/app/_components/email";
 import { JsonLd } from "@/app/_components/json-ld";
 import {
   LegalList,
@@ -210,12 +211,11 @@ const PrivacyPolicyPage = () => (
         <LegalParagraph>
           If you have any questions about this Privacy Policy or how we handle
           your personal information, please contact us at{" "}
-          <a
+          <Email
+            email="privacy@collabill.com"
             href="mailto:privacy@collabill.com"
-            className="text-blue-600 dark:text-blue-400 font-semibold hover:underline"
-          >
-            privacy@collabill.com
-          </a>
+            textClassName="text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+          />
           .
         </LegalParagraph>
       </LegalSection>
