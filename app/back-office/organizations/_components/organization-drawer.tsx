@@ -358,6 +358,15 @@ export const OrganizationDrawer = ({
             <Descriptions.Item label="Owner">
               {data.owner?.email ?? "—"}
             </Descriptions.Item>
+            <Descriptions.Item label="Phone Number">
+              {data.owner ? (
+                <Typography.Text style={{ overflowWrap: "anywhere" }}>
+                  {data.owner.phoneNumber || "Not provided"}
+                </Typography.Text>
+              ) : (
+                "—"
+              )}
+            </Descriptions.Item>
             <Descriptions.Item label="Members">
               {data.memberCount}
             </Descriptions.Item>

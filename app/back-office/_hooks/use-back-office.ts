@@ -117,6 +117,7 @@ export type OrganizationBillingDetail = {
     name: string;
     email: string;
     avatar: string | null;
+    phoneNumber: string | null;
     role: string;
   } | null;
   memberCount: number;

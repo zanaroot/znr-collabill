@@ -4,6 +4,7 @@ import {
   CalendarOutlined,
   DeleteOutlined,
   FileTextOutlined,
+  PhoneOutlined,
   PlusOutlined,
   ProjectOutlined,
 } from "@ant-design/icons";
@@ -299,7 +300,7 @@ export const DetailMembers = ({
                   size={72}
                 />
 
-                <div>
+                <Flex vertical gap={4} style={{ minWidth: 0 }}>
                   <Typography.Title level={3} style={{ marginBottom: 4 }}>
                     {member.name}
                   </Typography.Title>
@@ -307,7 +308,19 @@ export const DetailMembers = ({
                   <Typography.Text type="secondary">
                     {member.email}
                   </Typography.Text>
-                </div>
+                  <Flex align="center" gap={6} wrap="wrap">
+                    <PhoneOutlined aria-hidden="true" />
+                    <Typography.Text type="secondary">
+                      Phone Number:
+                    </Typography.Text>
+                    <Typography.Text
+                      type="secondary"
+                      style={{ overflowWrap: "anywhere" }}
+                    >
+                      {member.phoneNumber || "Not provided"}
+                    </Typography.Text>
+                  </Flex>
+                </Flex>
               </Flex>
             </Flex>
           </Card>
