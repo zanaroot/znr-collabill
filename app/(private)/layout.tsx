@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
@@ -7,8 +8,13 @@ import {
 } from "@/http/repositories/organization.repository";
 import { findPresenceByUserIdAndDate } from "@/http/repositories/presence.repository";
 import { getISODate } from "@/lib/date";
+import { NOINDEX_ROBOTS } from "@/lib/seo";
 import { PrivateLayout as PrivateLayoutComponent } from "./_components/private-layout";
 import { LastProjectProvider } from "./_providers/last-projects-providers";
+
+export const metadata: Metadata = {
+  robots: NOINDEX_ROBOTS,
+};
 
 const PrivateLayout = async ({ children }: { children: ReactNode }) => {
   const user = await getCurrentUser();

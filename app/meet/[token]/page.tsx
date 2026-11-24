@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
+import { NOINDEX_ROBOTS } from "@/lib/seo";
 import { GuestJoin } from "./_components/guest-join";
+
+export const metadata: Metadata = {
+  title: "Join Meeting",
+  robots: NOINDEX_ROBOTS,
+};
 
 const GuestMeetingPage = async ({
   params,

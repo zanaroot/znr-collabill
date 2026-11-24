@@ -1,43 +1,32 @@
 import type { MetadataRoute } from "next";
-import { publicEnv } from "@/packages/env";
+import { absoluteUrl } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL;
+  const buildDate = new Date();
+  const legalUpdated = new Date("2026-08-14");
 
   return [
     {
-      url: baseUrl,
-      lastModified: new Date(),
+      url: absoluteUrl("/"),
+      lastModified: buildDate,
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: `${baseUrl}/sign-up`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
+      url: absoluteUrl("/pricing"),
+      lastModified: buildDate,
+      changeFrequency: "weekly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/sign-in`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/pricing`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
+      url: absoluteUrl("/privacy"),
+      lastModified: legalUpdated,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/terms`,
-      lastModified: new Date(),
+      url: absoluteUrl("/terms"),
+      lastModified: legalUpdated,
       changeFrequency: "yearly",
       priority: 0.3,
     },

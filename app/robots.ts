@@ -1,17 +1,40 @@
 import type { MetadataRoute } from "next";
-import { publicEnv } from "@/packages/env";
+import { SITE_URL } from "@/lib/seo";
+
+const disallowedPaths = [
+  "/api/",
+  "/monitoring",
+  "/back-office",
+  "/dashboard",
+  "/invoices",
+  "/leave-management",
+  "/meetings",
+  "/projects",
+  "/rates",
+  "/task-board",
+  "/team-management",
+  "/type-organization",
+  "/sign-in",
+  "/sign-up",
+  "/forgot-password",
+  "/reset-password",
+  "/create-account",
+  "/create-organization",
+  "/select-organization",
+  "/verify-email",
+  "/meet/",
+  "/sentry-example-page",
+];
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL;
-
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/private/", "/api/", "/_next/"],
+        disallow: disallowedPaths,
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

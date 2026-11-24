@@ -85,7 +85,7 @@ export const PricingPage = ({ user }: PricingPageProps) => {
       </header>
 
       <div style={{ textAlign: "center", padding: "32px 24px 0" }}>
-        <Title level={2} style={{ marginBottom: 8 }}>
+        <Title level={1} style={{ marginBottom: 8 }}>
           Simple pricing for every team
         </Title>
         <Paragraph type="secondary">

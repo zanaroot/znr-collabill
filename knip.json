@@ -1,10 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": [
-    "next-sitemap.config.js",
-    "http/routes/index.ts",
-    "http/routes/*.route.ts"
-  ],
+  "entry": ["http/routes/index.ts", "http/routes/*.route.ts"],
   "project": [
     "**/*.{ts,tsx,js,mjs,cjs}",
     "!node_modules/**",

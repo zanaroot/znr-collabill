@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AuthBackButton } from "@/app/_components/auth-back-button";
 import { getCurrentUser } from "@/http/actions/get-current-user.action";
+import { NOINDEX_ROBOTS } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  robots: NOINDEX_ROBOTS,
+};
 
 const AuthLayout = async ({ children }: { children: ReactNode }) => {
   const user = await getCurrentUser();

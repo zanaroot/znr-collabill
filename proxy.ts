@@ -29,7 +29,10 @@ export const config = {
      * - legal routes (privacy, terms)
      * - meet (public guest meeting join pages)
      * - assets (public assets like robots.txt)
+     * - files with extensions (static assets, robots.txt, sitemap.xml)
+     * - generated social images (opengraph-image, twitter-image)
+     * - monitoring (Sentry tunnel)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|public|sign-in|sign-up|forgot-password|create-account|reset-password|verify-email|privacy|terms|pricing|meet/|assets).+)",
+    "/((?!api|_next/static|_next/image|favicon.ico|public|sign-in|sign-up|forgot-password|create-account|reset-password|verify-email|privacy|terms|pricing|meet/|assets|monitoring|opengraph-image|twitter-image|sentry-example-page|.*\\..*).+)",
   ],
 };

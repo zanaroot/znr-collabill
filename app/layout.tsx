@@ -8,7 +8,14 @@ import { ReactQueryProvider } from "@/packages/react-query";
 import { ThemeProvider } from "./_components/theme-provider";
 import "./globals.css";
 import { SentryProvider } from "@/app/sentry-povider";
-import { publicEnv } from "@/packages/env";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  INDEXABLE_ROBOTS,
+  SITE_NAME,
+  SITE_URL,
+  TWITTER_HANDLE,
+} from "@/lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,13 +28,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(publicEnv.NEXT_PUBLIC_APP_URL),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "CollaBill - Collaborative Billing & Project Management for Teams",
-    template: "%s | CollaBill",
+    default: DEFAULT_TITLE,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "CollaBill helps agencies and freelancers manage projects, track tasks, and automate invoicing. Simplify collaborator billing with automatic monthly invoices.",
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  category: "business software",
   keywords: [
     "collaborative billing software",
     "project billing tool",
@@ -40,48 +48,34 @@ export const metadata: Metadata = {
     "online invoicing app",
     "SaaS billing solution",
   ],
-  authors: [{ name: "CollaBill" }],
-  creator: "CollaBill",
-  publisher: "CollaBill",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
+  robots: INDEXABLE_ROBOTS,
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: publicEnv.NEXT_PUBLIC_APP_URL,
-    siteName: "CollaBill",
-    title: "CollaBill - Collaborative Billing & Project Management for Teams",
-    description:
-      "Manage projects, track tasks, and automate invoicing for your team. Built for agencies and freelancers.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "CollaBill - Project Billing Made Simple",
-      },
-    ],
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "CollaBill - Collaborative Billing & Project Management",
-    description: "Automate invoicing and manage project billing for your team.",
-    images: ["/og-image.png"],
-    creator: "@collabill",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    creator: TWITTER_HANDLE,
   },
   alternates: {
-    canonical: publicEnv.NEXT_PUBLIC_APP_URL,
+    canonical: "/",
     languages: {
-      en: publicEnv.NEXT_PUBLIC_APP_URL,
+      en: "/",
     },
   },
 };

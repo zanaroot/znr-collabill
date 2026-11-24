@@ -31,10 +31,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { landingFaqs } from "@/app/_statics/landing-faq";
 import { useCreateInstantMeeting } from "@/app/(private)/meetings/_hooks/use-meetings";
 import { useTheme } from "../_hooks/use-theme";
 import { cn } from "../_utils/class-name";
-import { LandingPageSEO } from "./landing-page-seo";
 
 const { Content, Footer } = Layout;
 
@@ -1216,25 +1216,6 @@ const HowItWorks = () => {
 const FAQ = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
-  const faqs = [
-    {
-      q: "How does automatic billing calculate rates?",
-      a: "CollaBill monitors attendance logs and validated tasks for your collaborators. Depending on their customized rate scheme (hourly or daily), the billing engine automatically accumulates items to draft clean invoices dynamically at each month-end.",
-    },
-    {
-      q: "Can I set different rates for different collaborators?",
-      a: "Yes! Rates are fully dynamic and configurable per seat. You can invite multiple roles, from flat-rate designers to hourly developers, and easily scale budgets dynamically without breaking any calculations.",
-    },
-    {
-      q: "Is my financial data secure and hidden from collaborators?",
-      a: "Confidentiality is a priority. Collaborators only gain visibility into tasks they are assigned to, and their own personal hours/invoices. Global organization metrics, workspace margins, and other members' rates are strictly hidden from them.",
-    },
-    {
-      q: "Can I export invoices or sync with accounting software?",
-      a: "Yes. Invoices are automatically generated as beautifully-typeset, corporate-standard PDFs. In addition, you can export structured billing ledgers as CSV or JSON to effortlessly import into your primary tax/accounting software.",
-    },
-  ];
-
   return (
     <section
       id="faq"
@@ -1251,11 +1232,11 @@ const FAQ = () => {
         </div>
 
         <div className="space-y-4">
-          {faqs.map((faq, i) => {
+          {landingFaqs.map((faq, i) => {
             const isOpen = activeFaq === i;
             return (
               <div
-                key={faq.q}
+                key={faq.question}
                 className="bg-white dark:bg-zinc-900/60 border border-slate-200/80 dark:border-zinc-800/85 rounded-2xl overflow-hidden transition-all shadow-sm"
               >
                 <button
@@ -1263,7 +1244,9 @@ const FAQ = () => {
                   onClick={() => setActiveFaq(isOpen ? null : i)}
                   className="w-full flex items-center justify-between p-5 text-left font-bold text-slate-800 dark:text-zinc-200 cursor-pointer outline-none hover:bg-slate-50/50 dark:hover:bg-zinc-900"
                 >
-                  <span className="text-sm md:text-base pr-4">{faq.q}</span>
+                  <span className="text-sm md:text-base pr-4">
+                    {faq.question}
+                  </span>
                   <ChevronRight
                     className={cn(
                       "w-4 h-4 text-slate-400 shrink-0 transition-transform duration-300",
@@ -1281,7 +1264,7 @@ const FAQ = () => {
                 >
                   <div className="overflow-hidden">
                     <p className="px-5 pb-5 text-xs md:text-sm text-slate-500 dark:text-zinc-400 font-medium leading-relaxed border-t border-slate-100 dark:border-zinc-900 pt-3.5">
-                      {faq.a}
+                      {faq.answer}
                     </p>
                   </div>
                 </div>
@@ -1427,10 +1410,10 @@ const MainFooter = () => {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="#faq"
                   className="text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Integrations
+                  FAQ
                 </Link>
               </li>
             </ul>
@@ -1443,26 +1426,26 @@ const MainFooter = () => {
             <ul className="space-y-4 list-none p-0 text-xs font-semibold">
               <li>
                 <Link
-                  href="#"
+                  href="#how-it-works"
                   className="text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Documentation
+                  How it works
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="#faq"
                   className="text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Help Center
+                  FAQ
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/sign-up"
                   className="text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Blog
+                  Create account
                 </Link>
               </li>
             </ul>
@@ -1540,7 +1523,6 @@ const LandingPage = () => {
       }}
     >
       <Layout className="min-h-screen bg-transparent transition-colors duration-300">
-        <LandingPageSEO />
         <Navbar />
         <Content>
           <Hero />
