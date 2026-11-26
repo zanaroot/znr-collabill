@@ -7,6 +7,7 @@ import { AntProvider } from "@/packages/antd";
 import { ReactQueryProvider } from "@/packages/react-query";
 import { ThemeProvider } from "./_components/theme-provider";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { SentryProvider } from "@/app/sentry-povider";
 import {
   DEFAULT_DESCRIPTION,
@@ -90,6 +91,7 @@ const RootLayout = ({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
+        <Analytics />
         <SentryProvider>
           <ThemeProvider>
             <AntProvider>

@@ -52,6 +52,7 @@
     "@tiptap/react": "^3.22.3",
     "@tiptap/starter-kit": "^3.22.3",
     "@tiptap/suggestion": "^3.22.3",
+    "@vercel/analytics": "^2.0.1",
     "antd": "^6.2.2",
     "antd-img-crop": "^4.30.0",
     "bcryptjs": "^3.0.3",
