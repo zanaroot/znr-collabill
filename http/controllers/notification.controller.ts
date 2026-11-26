@@ -57,6 +57,9 @@ export const markNotificationAsRead = async (c: Context) => {
 
   const notificationId = c.req.param("id");
 
+  if (!notificationId) {
+    return c.json({ error: "Notification ID is required" }, 400);
+  }
   const notification = await markNotificationAsReadRepository(
     notificationId,
     user.id,
