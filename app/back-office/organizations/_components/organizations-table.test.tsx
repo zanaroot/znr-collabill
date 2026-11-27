@@ -90,13 +90,9 @@ describe("OrganizationsTable deletion", { timeout: 20_000 }, () => {
     expect(await screen.findAllByText("Delete organization")).not.toHaveLength(
       0,
     );
-    expect(
-      screen.getByText(
-        (_, element) =>
-          element?.tagName === "P" &&
-          !!element.textContent?.includes("cannot be undone"),
-      ),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("dialog")).toHaveTextContent(
+      "cannot be undone",
+    );
     fireEvent.click(
       screen.getByRole("button", { name: "Delete organization" }),
     );

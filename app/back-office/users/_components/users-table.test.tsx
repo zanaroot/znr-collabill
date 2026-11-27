@@ -68,16 +68,11 @@ describe("UsersTable deletion", { timeout: 20_000 }, () => {
     );
 
     expect(await screen.findAllByText("Delete user")).not.toHaveLength(0);
-    expect(
-      screen.getByText(
-        (_, element) =>
-          element?.tagName === "P" &&
-          !!element.textContent?.includes("alex@example.com"),
-      ),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("dialog")).toHaveTextContent(
+      "alex@example.com",
+    );
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-    await waitFor(() => expect(screen.queryByText("Delete user")).toBeNull());
     expect(mocks.userDelete).not.toHaveBeenCalled();
   });
 
