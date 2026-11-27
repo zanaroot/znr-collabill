@@ -30,7 +30,7 @@ import {
 } from "@/db/schema/subscription";
 import type { ListUsersQuery } from "@/http/models/back-office.model";
 
-export type UserDeletionBlocker =
+type UserDeletionBlocker =
   | "organization_ownership"
   | "invoices"
   | "comments"
@@ -39,19 +39,19 @@ export type UserDeletionBlocker =
   | "leave_requests"
   | "calls";
 
-export type UserDeletionResult =
+type UserDeletionResult =
   | { status: "not_found" }
   | { status: "blocked"; blockers: UserDeletionBlocker[] }
   | { status: "deleted"; avatarUrl: string | null };
 
-export type OrganizationDeletionBlocker =
+type OrganizationDeletionBlocker =
   | "financial_records"
   | "project_files"
   | "attendance"
   | "leave_history"
   | "calls";
 
-export type OrganizationDeletionResult =
+type OrganizationDeletionResult =
   | { status: "not_found" }
   | { status: "blocked"; blockers: OrganizationDeletionBlocker[] }
   | { status: "deleted" };
