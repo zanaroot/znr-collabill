@@ -1,6 +1,17 @@
 "use client";
 
-import { Col, Input, Row, Select, Table, Tag } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Col,
+  Input,
+  Modal,
+  Row,
+  Select,
+  Table,
+  Tag,
+  Typography,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { Email } from "@/app/_components/email";
@@ -17,6 +28,7 @@ import type {
 import {
   useAdminOrganizations,
   useAdminPlans,
+  useDeleteAdminOrganization,
 } from "../../_hooks/use-back-office";
 import { OrganizationDrawer } from "./organization-drawer";
 
@@ -40,12 +52,18 @@ const DEFAULT_FILTERS: OrganizationListFilters = {
   pageSize: 20,
 };
 
+const { Paragraph } = Typography;
+
 export const OrganizationsTable = () => {
   const [filters, setFilters] =
     useState<OrganizationListFilters>(DEFAULT_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<OrganizationListRow | null>(
+    null,
+  );
   const organizations = useAdminOrganizations(filters);
   const plans = useAdminPlans();
+  const deleteOrganization = useDeleteAdminOrganization();
 
   const patchFilters = (patch: Partial<OrganizationListFilters>) => {
     setFilters((current) => ({
@@ -132,19 +150,40 @@ export const OrganizationsTable = () => {
       width: 130,
       render: (value: string) => formatDate(value),
     },
+    {
+      title: "Actions",
+      key: "actions",
+      width: 100,
+      fixed: "right",
+      render: (_, row) => (
+        <Button
+          aria-label={`Delete ${row.name}`}
+          danger
+          icon={<DeleteOutlined />}
+          onClick={(event) => {
+            event.stopPropagation();
+            setDeleteTarget(row);
+          }}
+          size="small"
+          type="text"
+        >
+          Delete
+        </Button>
+      ),
+    },
   ];
 
   return (
     <>
       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
-        <Col flex="260px">
+        <Col flex="1 1 220px">
           <Input.Search
             allowClear
             placeholder="Search by name"
             onSearch={(value) => patchFilters({ search: value })}
           />
         </Col>
-        <Col flex="180px">
+        <Col flex="1 1 160px">
           <Select
             allowClear
             placeholder="Plan"
@@ -160,7 +199,7 @@ export const OrganizationsTable = () => {
             onChange={(value) => patchFilters({ planCode: value ?? "" })}
           />
         </Col>
-        <Col flex="180px">
+        <Col flex="1 1 160px">
           <Select
             allowClear
             placeholder="Status"
@@ -199,6 +238,34 @@ export const OrganizationsTable = () => {
         organizationId={selectedId}
         onClose={() => setSelectedId(null)}
       />
+      <Modal
+        cancelButtonProps={{ disabled: deleteOrganization.isPending }}
+        closable={!deleteOrganization.isPending}
+        confirmLoading={deleteOrganization.isPending}
+        destroyOnHidden
+        okButtonProps={{ danger: true, disabled: deleteOrganization.isPending }}
+        okText="Delete organization"
+        onCancel={() => {
+          if (!deleteOrganization.isPending) setDeleteTarget(null);
+        }}
+        onOk={() => {
+          if (!deleteTarget) return;
+          deleteOrganization.mutate(deleteTarget.id, {
+            onSuccess: () => setDeleteTarget(null),
+          });
+        }}
+        open={!!deleteTarget}
+        title="Delete organization"
+      >
+        {deleteTarget && (
+          <Paragraph>
+            Are you sure you want to delete <strong>{deleteTarget.name}</strong>
+            ? This action may permanently delete its associated data and cannot
+            be undone. Financial history, activity records, or files may prevent
+            deletion.
+          </Paragraph>
+        )}
+      </Modal>
     </>
   );
 };

@@ -6,6 +6,7 @@ import {
   LogoutOutlined,
   TagsOutlined,
   TeamOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { App, Button, Layout, Menu, Space, Tag, Typography, theme } from "antd";
 import Link from "next/link";
@@ -25,6 +26,11 @@ const MENU_ITEMS = [
     label: "Organizations",
   },
   {
+    key: "/back-office/users",
+    icon: <UserOutlined />,
+    label: "Users",
+  },
+  {
     key: "/back-office/payments",
     icon: <CreditCardOutlined />,
     label: "Payments",
@@ -35,6 +41,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/back-office": "Billing dashboard",
   "/back-office/plans": "Plans",
   "/back-office/organizations": "Organizations",
+  "/back-office/users": "User management",
   "/back-office/payments": "Payments",
 };
 
@@ -53,13 +60,20 @@ export const BackOfficeLayout = ({
   } = theme.useToken();
 
   const selectedKey =
-    MENU_ITEMS.find((item) => pathname === item.key)?.key ?? "/back-office";
+    MENU_ITEMS.find(
+      (item) =>
+        pathname === item.key ||
+        (item.key !== "/back-office" && pathname.startsWith(`${item.key}/`)),
+    )?.key ?? "/back-office";
   const pageTitle = PAGE_TITLES[pathname] ?? "Back office";
 
   return (
     <App>
       <Layout style={{ minHeight: "100vh" }}>
         <Sider
+          breakpoint="lg"
+          collapsible
+          collapsedWidth={0}
           theme="light"
           width={250}
           style={{
@@ -112,7 +126,7 @@ export const BackOfficeLayout = ({
           <Header
             style={{
               background: colorBgContainer,
-              padding: "0 24px",
+              padding: "0 clamp(12px, 3vw, 24px)",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -127,12 +141,12 @@ export const BackOfficeLayout = ({
               </Button>
             </Space>
           </Header>
-          <Content style={{ margin: 24 }}>
+          <Content style={{ margin: "clamp(12px, 3vw, 24px)" }}>
             <div
               style={{
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
-                padding: 24,
+                padding: "clamp(12px, 3vw, 24px)",
               }}
             >
               {children}

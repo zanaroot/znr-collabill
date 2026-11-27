@@ -21,6 +21,9 @@ const mocks = vi.hoisted(() => {
     createAdminPlan: vi.fn(),
     updateAdminPlan: vi.fn(),
     listOrganizationsForAdmin: vi.fn(),
+    listBackOfficeUsers: vi.fn(),
+    deleteBackOfficeOrganization: vi.fn(),
+    deleteBackOfficeUser: vi.fn(),
     getOrganizationBillingDetail: vi.fn(),
     adminAddNote: vi.fn(),
     listAdminNotes: vi.fn(),
@@ -43,6 +46,9 @@ vi.mock("@/http/services/back-office.service", () => ({
   getBillingDashboard: mocks.getBillingDashboard,
   listAdminPlans: mocks.listAdminPlans,
   listOrganizationsForAdmin: mocks.listOrganizationsForAdmin,
+  listBackOfficeUsers: mocks.listBackOfficeUsers,
+  deleteBackOfficeOrganization: mocks.deleteBackOfficeOrganization,
+  deleteBackOfficeUser: mocks.deleteBackOfficeUser,
   updateAdminPlan: mocks.updateAdminPlan,
 }));
 vi.mock("@/http/repositories/back-office.repository", () => ({
@@ -141,6 +147,30 @@ describe("back-office authorization", () => {
     expect(res.status).toBe(403);
     expect(mocks.createAdminPlan).not.toHaveBeenCalled();
   });
+
+  it("blocks organization owners and admins from deletion endpoints", async () => {
+    const orgAdmin: AuthUser = {
+      ...orgOwner,
+      id: "00000000-0000-4000-8000-0000000000cc",
+      organizationRole: "ADMIN",
+    };
+    const organizationId = "11111111-1111-4111-8111-111111111111";
+    const userId = "22222222-2222-4222-8222-222222222222";
+
+    const ownerOrgResponse = await createRouteApp(orgOwner).request(
+      `/billing/organizations/${organizationId}`,
+      { method: "DELETE" },
+    );
+    const adminUserResponse = await createRouteApp(orgAdmin).request(
+      `/users/${userId}`,
+      { method: "DELETE" },
+    );
+
+    expect(ownerOrgResponse.status).toBe(403);
+    expect(adminUserResponse.status).toBe(403);
+    expect(mocks.deleteBackOfficeOrganization).not.toHaveBeenCalled();
+    expect(mocks.deleteBackOfficeUser).not.toHaveBeenCalled();
+  });
 });
 
 describe("GET back-office reads", () => {
@@ -207,6 +237,85 @@ describe("GET back-office reads", () => {
     expect(mocks.getOrganizationUsage).toHaveBeenCalledWith(
       "11111111-1111-4111-8111-111111111111",
     );
+  });
+
+  it("lists users using validated pagination", async () => {
+    mocks.listBackOfficeUsers.mockResolvedValue({ rows: [], total: 0 });
+
+    const res = await createRouteApp(platformAdmin).request(
+      "/users?search=ada&page=2&pageSize=10",
+    );
+
+    expect(res.status).toBe(200);
+    expect(mocks.listBackOfficeUsers).toHaveBeenCalledWith({
+      search: "ada",
+      page: 2,
+      pageSize: 10,
+    });
+  });
+
+  it("rejects invalid user pagination", async () => {
+    const res = await createRouteApp(platformAdmin).request("/users?page=0");
+
+    expect(res.status).toBe(400);
+    expect(mocks.listBackOfficeUsers).not.toHaveBeenCalled();
+  });
+
+  it("deletes an organization through the platform-admin service", async () => {
+    mocks.deleteBackOfficeOrganization.mockResolvedValue(undefined);
+
+    const res = await createRouteApp(platformAdmin).request(
+      "/billing/organizations/11111111-1111-4111-8111-111111111111",
+      { method: "DELETE" },
+    );
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      success: true,
+      message: "Organization deleted",
+    });
+    expect(mocks.deleteBackOfficeOrganization).toHaveBeenCalledWith(
+      "11111111-1111-4111-8111-111111111111",
+      platformAdmin.id,
+    );
+  });
+
+  it("deletes a user through the platform-admin service", async () => {
+    mocks.deleteBackOfficeUser.mockResolvedValue({ avatarUrl: null });
+
+    const res = await createRouteApp(platformAdmin).request(
+      "/users/22222222-2222-4222-8222-222222222222",
+      { method: "DELETE" },
+    );
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      success: true,
+      message: "User deleted",
+    });
+    expect(mocks.deleteBackOfficeUser).toHaveBeenCalledWith(
+      "22222222-2222-4222-8222-222222222222",
+      platformAdmin.id,
+    );
+  });
+
+  it("returns an explicit conflict when financial records block deletion", async () => {
+    mocks.deleteBackOfficeOrganization.mockRejectedValue(
+      new mocks.BackOfficeError(
+        "Organization cannot be deleted while these records exist: invoices or billing history. Preserve or remove them first.",
+        409,
+      ),
+    );
+
+    const res = await createRouteApp(platformAdmin).request(
+      "/billing/organizations/11111111-1111-4111-8111-111111111111",
+      { method: "DELETE" },
+    );
+
+    expect(res.status).toBe(409);
+    await expect(res.json()).resolves.toMatchObject({
+      error: expect.stringContaining("invoices or billing history"),
+    });
   });
 });
 

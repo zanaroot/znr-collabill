@@ -5,6 +5,7 @@ import { logAudit } from "@/http/actions/audit.action";
 import type {
   CreatePlanInput,
   ListOrganizationsQuery,
+  ListUsersQuery,
   UpdatePlanInput,
 } from "@/http/models/back-office.model";
 import type {
@@ -15,6 +16,11 @@ import {
   getBillingOverview,
   listOrganizationsAdmin,
 } from "@/http/repositories/back-office.repository";
+import {
+  deleteOrganizationForAdmin,
+  deleteUserForAdmin,
+  listUsersForAdmin,
+} from "@/http/repositories/back-office-deletion.repository";
 import {
   getOrganizationById,
   updateOrganizationPaymentExempt as updateOrganizationPaymentExemptRepo,
@@ -252,4 +258,64 @@ export const listOrganizationsForAdmin = async (
   filters: ListOrganizationsQuery,
 ) => {
   return await listOrganizationsAdmin(filters);
+};
+
+export const listBackOfficeUsers = async (filters: ListUsersQuery) =>
+  listUsersForAdmin(filters);
+
+export const deleteBackOfficeUser = async (userId: string, actorId: string) => {
+  if (userId === actorId) {
+    throw new BackOfficeError("You cannot delete your own account", 409);
+  }
+
+  const result = await deleteUserForAdmin(userId, actorId);
+  if (result.status === "not_found") {
+    throw new BackOfficeError("User not found", 404);
+  }
+  if (result.status === "blocked") {
+    const descriptions: Record<(typeof result.blockers)[number], string> = {
+      organization_ownership: "ownership of one or more organizations",
+      invoices: "financial invoices",
+      comments: "task or invoice comments",
+      project_files: "uploaded project files",
+      attendance: "attendance records",
+      leave_requests: "leave request history",
+      calls: "initiated call history",
+    };
+    const dependencies = result.blockers
+      .map((blocker) => descriptions[blocker])
+      .join(", ");
+    throw new BackOfficeError(
+      `User cannot be deleted while these records exist: ${dependencies}. Preserve or reassign them first.`,
+      409,
+    );
+  }
+
+  return { avatarUrl: result.avatarUrl };
+};
+
+export const deleteBackOfficeOrganization = async (
+  organizationId: string,
+  actorId: string,
+) => {
+  const result = await deleteOrganizationForAdmin(organizationId, actorId);
+  if (result.status === "not_found") {
+    throw new BackOfficeError("Organization not found", 404);
+  }
+  if (result.status === "blocked") {
+    const descriptions: Record<(typeof result.blockers)[number], string> = {
+      financial_records: "invoices or billing history",
+      project_files: "uploaded project files",
+      attendance: "attendance records",
+      leave_history: "leave request history",
+      calls: "call history",
+    };
+    const dependencies = result.blockers
+      .map((blocker) => descriptions[blocker])
+      .join(", ");
+    throw new BackOfficeError(
+      `Organization cannot be deleted while these records exist: ${dependencies}. Preserve or remove them first.`,
+      409,
+    );
+  }
 };

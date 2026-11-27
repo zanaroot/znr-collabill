@@ -1,9 +1,12 @@
 import { Hono } from "hono";
 import {
+  deleteBackOfficeOrganization,
+  deleteBackOfficeUser,
   getBackOfficeOrganization,
   getBackOfficeOrganizations,
   getBackOfficeOverview,
   getBackOfficePlans,
+  getBackOfficeUsers,
   patchBackOfficeOrganization,
   patchBackOfficePlans,
   postBackOfficeOrganizationNotes,
@@ -32,6 +35,10 @@ export const backOfficeRoutes = new Hono()
   .post("/billing/plans", ...postBackOfficePlans)
   .patch("/billing/plans/:planId", ...patchBackOfficePlans)
   .get("/billing/organizations", ...getBackOfficeOrganizations)
+  .delete(
+    "/billing/organizations/:organizationId",
+    ...deleteBackOfficeOrganization,
+  )
   .get("/billing/organizations/:organizationId", ...getBackOfficeOrganization)
   .post(
     "/billing/organizations/:organizationId/notes",
@@ -53,6 +60,8 @@ export const backOfficeRoutes = new Hono()
     "/billing/organizations/:organizationId/free",
     ...postBackOfficeOrganizationPaymentExempt,
   )
+  .get("/users", ...getBackOfficeUsers)
+  .delete("/users/:userId", ...deleteBackOfficeUser)
   .get("/billing/payments", ...getBackOfficePayments)
   .get("/billing/payments/:paymentId", ...getBackOfficePayment)
   .post("/billing/payments/:paymentId/refund", ...postBackOfficePaymentRefund)

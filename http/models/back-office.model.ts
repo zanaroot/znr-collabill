@@ -67,6 +67,12 @@ export const listOrganizationsQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });
 
+export const listUsersQuerySchema = z.object({
+  search: z.string().trim().max(200).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+
 export const listPaymentsQuerySchema = z.object({
   status: subscriptionPaymentStatusSchema.optional(),
   organizationId: z.uuid().optional(),
@@ -100,6 +106,7 @@ export type UpdatePlanInput = z.input<typeof updatePlanSchema>;
 export type ListOrganizationsQuery = z.infer<
   typeof listOrganizationsQuerySchema
 >;
+export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 export type ListPaymentsQuery = z.infer<typeof listPaymentsQuerySchema>;
 export type AdminChangePlanInput = z.input<typeof adminChangePlanSchema>;
 export type AdminExtendInput = z.input<typeof adminExtendSchema>;
